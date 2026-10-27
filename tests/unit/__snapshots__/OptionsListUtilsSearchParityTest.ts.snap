@@ -152,13 +152,13 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
   },
   "searching": {
     "hydratedPersonalDetails": [
-      "1 Current User [alt: current.user@example.com] [accID: 1]",
+      "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
       "1003 Vít Novák [alt: vit.novak@example.com] [accID: 3]",
       "1004 İsmail Yılmaz [alt: ismail@example.com] [accID: 4]",
       "1006 Łukasz Wójcik [alt: lukasz@example.com] [accID: 6]",
       "1007 Οδυσσεύς [alt: odysseus@example.com] [accID: 7]",
       "1009 Ana​Maria [alt: ana.maria@example.com] [accID: 9]",
-      "101 Bea Ames [alt: bea.ames.1@example.com] [accID: 101]",
+      "101 Bea Ames [alt: bea.ames.1@example.com] [accID: 101] [nav: bea.ames.1@example.com]",
       "1010 Bob Builder [alt: bob.builder@example.com] [accID: 10]",
       "1012 first.last+tag@x.com [alt: first.last+tag@x.com] [accID: 12]",
       "1013 (500) 555-0006 [alt: +15005550006@expensify.sms] [accID: 13]",
@@ -167,9 +167,9 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
       "1018 Domain Admin [alt: admin@example.com] [accID: 18]",
       "1019 No Login [accID: 19]",
       "1021 Concierge [alt: concierge@expensify.com] [accID: -1]",
-      "104 Eve Ames [alt: eve.ames.4@example.com] [accID: 104]",
-      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
-      "110 Kim Ames [alt: kim.ames.10@example.com] [accID: 110]",
+      "104 Eve Ames [alt: eve.ames.4@example.com] [accID: 104] [nav: eve.ames.4@example.com]",
+      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107] [nav: hal.ames.7@example.com]",
+      "110 Kim Ames [alt: kim.ames.10@example.com] [accID: 110] [nav: kim.ames.10@example.com]",
       "1100 Ada Ames [alt: ada.ames.0@example.com] [accID: 100]",
       "1102 Cyd Ames [alt: cyd.ames.2@example.com] [accID: 102]",
       "1103 Dan Ames [alt: dan.ames.3@example.com] [accID: 103]",
@@ -190,7 +190,7 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
       "1126 Cyd Cole [alt: cyd.cole.26@example.com] [accID: 126]",
       "1127 Dan Cole [alt: dan.cole.27@example.com] [accID: 127]",
       "1129 Fay Cole [alt: fay.cole.29@example.com] [accID: 129]",
-      "113 Bea Byrd [alt: bea.byrd.13@example.com] [accID: 113]",
+      "113 Bea Byrd [alt: bea.byrd.13@example.com] [accID: 113] [nav: bea.byrd.13@example.com]",
       "1130 Gus Cole [alt: gus.cole.30@example.com] [accID: 130]",
       "1132 Ivy Cole [alt: ivy.cole.32@example.com] [accID: 132]",
       "1133 Jon Cole [alt: jon.cole.33@example.com] [accID: 133]",
@@ -198,21 +198,21 @@ exports[`OptionsListUtils search parity (golden master) builds searching and Sea
       "1136 Ada Dunn [alt: ada.dunn.36@example.com] [accID: 136]",
       "1138 Cyd Dunn [alt: cyd.dunn.38@example.com] [accID: 138]",
       "1139 Dan Dunn [alt: dan.dunn.39@example.com] [accID: 139]",
-      "116 Eve Byrd [alt: eve.byrd.16@example.com] [accID: 116]",
-      "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119]",
-      "122 Kim Byrd [alt: kim.byrd.22@example.com] [accID: 122]",
-      "125 Bea Cole [alt: bea.cole.25@example.com] [accID: 125]",
-      "128 Eve Cole [alt: eve.cole.28@example.com] [accID: 128]",
-      "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131]",
-      "134 Kim Cole [alt: kim.cole.34@example.com] [accID: 134]",
-      "137 Bea Dunn [alt: bea.dunn.37@example.com] [accID: 137]",
-      "17 Account Executive [alt: Account Executive] [accID: 17]",
-      "20 René Dupont [alt: rene@example.com] [accID: 20]",
+      "116 Eve Byrd [alt: eve.byrd.16@example.com] [accID: 116] [nav: eve.byrd.16@example.com]",
+      "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119] [nav: hal.byrd.19@example.com]",
+      "122 Kim Byrd [alt: kim.byrd.22@example.com] [accID: 122] [nav: kim.byrd.22@example.com]",
+      "125 Bea Cole [alt: bea.cole.25@example.com] [accID: 125] [nav: bea.cole.25@example.com]",
+      "128 Eve Cole [alt: eve.cole.28@example.com] [accID: 128] [nav: eve.cole.28@example.com]",
+      "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131] [nav: hal.cole.31@example.com]",
+      "134 Kim Cole [alt: kim.cole.34@example.com] [accID: 134] [nav: kim.cole.34@example.com]",
+      "137 Bea Dunn [alt: bea.dunn.37@example.com] [accID: 137] [nav: bea.dunn.37@example.com]",
+      "17 Account Executive [alt: Account Executive] [accID: 17] [nav: Account Executive]",
+      "20 René Dupont [alt: rene@example.com] [accID: 20] [nav: rene@example.com]",
       "2000 Mary-Jane O'Brien [archived] [alt: obrien@example.com] [accID: 11]",
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "2020 José Ñúñez [alt: jose.nunez@example.com] [accID: 2]",
-      "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
-      "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8]",
+      "5 Groß Straße [alt: strasse@example.com] [accID: 5] [nav: strasse@example.com]",
+      "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8] [nav: zoe@example.com]",
     ],
     "personalDetails": [
       " | 1 | current.user@example.com",
@@ -416,7 +416,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "+1 650 555 0100": {
     "displayedRows": [
-      "1100537387 +1 650 555 0100 [alt: +1 650 555 0100] [accID: 1100537387]",
+      "1100537387 +1 650 555 0100 [alt: +1 650 555 0100] [accID: 1100537387] [nav: +1 650 555 0100]",
     ],
     "hasMore": false,
   },
@@ -471,7 +471,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "Groß": {
     "displayedRows": [
-      "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
+      "5 Groß Straße [alt: strasse@example.com] [accID: 5] [nav: strasse@example.com]",
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
     ],
@@ -486,7 +486,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "René": {
     "displayedRows": [
-      "20 René Dupont [alt: rene@example.com] [accID: 20]",
+      "20 René Dupont [alt: rene@example.com] [accID: 20] [nav: rene@example.com]",
     ],
     "hasMore": false,
   },
@@ -557,9 +557,9 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
     "displayedRows": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
-      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
-      "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119]",
-      "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131]",
+      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107] [nav: hal.ames.7@example.com]",
+      "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119] [nav: hal.byrd.19@example.com]",
+      "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131] [nav: hal.cole.31@example.com]",
     ],
     "hasMore": false,
   },
@@ -688,9 +688,9 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
       "1108 Ivy Ames [alt: This chat is with Ivy Ames.] [accID: 108]",
       "1106 Gus Ames [alt: This chat is with Gus Ames.] [accID: 106]",
       "1105 Fay Ames [alt: This chat is with Fay Ames.] [accID: 105]",
-      "101 Bea Ames [alt: bea.ames.1@example.com] [accID: 101]",
-      "104 Eve Ames [alt: eve.ames.4@example.com] [accID: 104]",
-      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
+      "101 Bea Ames [alt: bea.ames.1@example.com] [accID: 101] [nav: bea.ames.1@example.com]",
+      "104 Eve Ames [alt: eve.ames.4@example.com] [accID: 104] [nav: eve.ames.4@example.com]",
+      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107] [nav: hal.ames.7@example.com]",
       "2012 #vít-room [rbr] [alt: Acme Holdings • This chat room is for anything #vít-room related.] [sub: Acme Holdings]",
     ],
     "hasMore": true,
@@ -704,7 +704,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "new.person@example.com": {
     "displayedRows": [
-      "301623904 new.person@example.com [alt: new.person@example.com] [accID: 301623904]",
+      "301623904 new.person@example.com [alt: new.person@example.com] [accID: 301623904] [nav: new.person@example.com]",
     ],
     "hasMore": false,
   },
@@ -759,7 +759,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "rene": {
     "displayedRows": [
-      "20 René Dupont [alt: rene@example.com] [accID: 20]",
+      "20 René Dupont [alt: rene@example.com] [accID: 20] [nav: rene@example.com]",
     ],
     "hasMore": false,
   },
@@ -771,7 +771,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "strasse": {
     "displayedRows": [
-      "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
+      "5 Groß Straße [alt: strasse@example.com] [accID: 5] [nav: strasse@example.com]",
       "2006 Groß Straße's expenses [alt: Vít Workspace • This is where Groß Straße will submit expenses to Vít Workspace. Just use the + button.] [sub: Vít Workspace]",
       "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
     ],
@@ -855,7 +855,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterDi
   },
   "👩‍💻": {
     "displayedRows": [
-      "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8]",
+      "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8] [nav: zoe@example.com]",
     ],
     "hasMore": false,
   },
@@ -1038,10 +1038,10 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "workspaceChats": [],
   },
   "CURRENT.USER@EXAMPLE.COM": {
-    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1]",
+    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
     "hasMore": false,
     "personalDetails": [
-      "1 Current User [alt: current.user@example.com] [accID: 1]",
+      "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
     ],
     "recentReports": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
@@ -1056,7 +1056,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
+      "5 Groß Straße [alt: strasse@example.com] [accID: 5] [nav: strasse@example.com]",
     ],
     "recentReports": [
       "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
@@ -1084,7 +1084,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "20 René Dupont [alt: rene@example.com] [accID: 20]",
+      "20 René Dupont [alt: rene@example.com] [accID: 20] [nav: rene@example.com]",
     ],
     "recentReports": [],
     "selfDMChat": null,
@@ -1205,9 +1205,9 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "personalDetails": [
       "2001 Alex Smith [alt: alex.smith@example.com] [accID: 14]",
       "1015 Alex Smith Jr. [alt: alex.smith2@example.com] [accID: 15]",
-      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
-      "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119]",
-      "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131]",
+      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107] [nav: hal.ames.7@example.com]",
+      "119 Hal Byrd [alt: hal.byrd.19@example.com] [accID: 119] [nav: hal.byrd.19@example.com]",
+      "131 Hal Cole [alt: hal.cole.31@example.com] [accID: 131] [nav: hal.cole.31@example.com]",
     ],
     "recentReports": [
       "1015 Alex Smith Jr. [alt: This chat is with Alex Smith Jr..] [accID: 15]",
@@ -1438,18 +1438,18 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "workspaceChats": [],
   },
   "me": {
-    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1]",
+    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
     "hasMore": true,
     "personalDetails": [
       "1100 Ada Ames [alt: ada.ames.0@example.com] [accID: 100]",
-      "101 Bea Ames [alt: bea.ames.1@example.com] [accID: 101]",
-      "1 Current User [alt: current.user@example.com] [accID: 1]",
+      "101 Bea Ames [alt: bea.ames.1@example.com] [accID: 101] [nav: bea.ames.1@example.com]",
+      "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
       "1102 Cyd Ames [alt: cyd.ames.2@example.com] [accID: 102]",
       "1103 Dan Ames [alt: dan.ames.3@example.com] [accID: 103]",
-      "104 Eve Ames [alt: eve.ames.4@example.com] [accID: 104]",
+      "104 Eve Ames [alt: eve.ames.4@example.com] [accID: 104] [nav: eve.ames.4@example.com]",
       "1105 Fay Ames [alt: fay.ames.5@example.com] [accID: 105]",
       "1106 Gus Ames [alt: gus.ames.6@example.com] [accID: 106]",
-      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107]",
+      "107 Hal Ames [alt: hal.ames.7@example.com] [accID: 107] [nav: hal.ames.7@example.com]",
     ],
     "recentReports": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
@@ -1584,7 +1584,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "20 René Dupont [alt: rene@example.com] [accID: 20]",
+      "20 René Dupont [alt: rene@example.com] [accID: 20] [nav: rene@example.com]",
     ],
     "recentReports": [],
     "selfDMChat": null,
@@ -1608,7 +1608,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "5 Groß Straße [alt: strasse@example.com] [accID: 5]",
+      "5 Groß Straße [alt: strasse@example.com] [accID: 5] [nav: strasse@example.com]",
     ],
     "recentReports": [
       "2007 Groß Straße [alt: Vít Workspace • This chat is for invoices between Groß Straße and Vít Workspace. Use the + button to send an invoice.] [sub: Invoices]",
@@ -1703,10 +1703,10 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "workspaceChats": [],
   },
   "you": {
-    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1]",
+    "currentUserOption": "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
     "hasMore": false,
     "personalDetails": [
-      "1 Current User [alt: current.user@example.com] [accID: 1]",
+      "1 Current User [alt: current.user@example.com] [accID: 1] [nav: current.user@example.com]",
     ],
     "recentReports": [
       "2004 Current User (you) [alt: This is your personal space. Use it for notes, tasks, drafts, and reminders.] [accID: 1]",
@@ -1763,7 +1763,7 @@ exports[`OptionsListUtils search parity (golden master) call site searchRouterLo
     "currentUserOption": null,
     "hasMore": false,
     "personalDetails": [
-      "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8]",
+      "8 Zoë 👩‍💻 [alt: zoe@example.com] [accID: 8] [nav: zoe@example.com]",
     ],
     "recentReports": [],
     "selfDMChat": null,

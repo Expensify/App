@@ -53,8 +53,10 @@ function clearSearchCaches() {
 }
 
 /**
- * Serializes options into "<keyForList> <text> [flags] [alt: ...] [sub: ...] [accID: ...]" lines to pin option ordering and content rather than rendering details.
+ * Serializes options into "<keyForList> <text> [flags] [alt: ...] [sub: ...] [accID: ...] [nav: ...]" lines to pin option ordering and content rather than rendering details.
  * [sub: ...] is only emitted for rooms and workspace chats, because that is what search matches for them.
+ * [nav: ...] is the row's navigation target (reportID, else login, else none), emitted only when it differs from keyForList: report rows navigate by reportID, which equals keyForList today, so only a divergence shows.
+ * The userToInvite login target is not emitted, because it is already visible as the text or the trailing invited login.
  * Fields the SearchRouter never reads (participantsList, icons, policyID, ownerAccountID, item) are deliberately left out.
  */
 function serializeOption(option: SearchOptionData | null | undefined, {isUserToInvite = false}: {isUserToInvite?: boolean} = {}): string | null {
@@ -73,7 +75,10 @@ function serializeOption(option: SearchOptionData | null | undefined, {isUserToI
     const altText = option.alternateText ? ` [alt: ${option.alternateText}]` : '';
     const subtitle = (option.isChatRoom || option.isPolicyExpenseChat) && option.subtitle ? ` [sub: ${option.subtitle}]` : '';
     const accountID = option.accountID ? ` [accID: ${option.accountID}]` : '';
-    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${invitedLogin}`;
+    const navigationTarget = option.reportID || option.login;
+    const isLoginShownAlready = isUserToInvite && !option.reportID;
+    const navigation = !isLoginShownAlready && String(navigationTarget ?? '') !== (option.keyForList ?? '') ? ` [nav: ${navigationTarget || 'none'}]` : '';
+    return `${option.keyForList ?? ''} ${option.text ?? ''}${flags}${altText}${subtitle}${accountID}${navigation}${invitedLogin}`;
 }
 
 /** What the screen shows: one flat list of rows, in order. */
