@@ -4,7 +4,7 @@ import type {Rule} from 'eslint';
 
 import {Linter} from 'eslint';
 
-import {didBothCompilersMemoizeFile} from '../../config/reactCompiler/checkBoth.mjs';
+import checkReactCompilerWithOxc from '../../config/reactCompiler/checkWithOxc.mjs';
 import * as rule from '../../eslint-plugin-local-rules/no-manual-memoization';
 import {normalizeESLintResults} from '../../scripts/lint/eslint/ESLintLinter';
 import {filterReactCompilerMessages} from '../../scripts/lint/processors/ReactCompilerFilter';
@@ -35,17 +35,17 @@ describe('no-manual-memoization', () => {
             shouldForbid: false,
         },
     ])('enforces the real compiler verdict: $shouldForbid', async ({source, shouldForbid}) => {
-        // Given a hook that either compiles on both platforms or violates the rules for refs.
+        // Given a hook that either compiles or violates the rules for refs.
         const filename = '/repo/src/useExample.ts';
         const [{messages}] = normalizeESLintResults([{filePath: filename, messages: lint(source)}]);
         expect(messages).toHaveLength(1);
 
-        // When the production compiler helpers determine whether manual memoization is redundant.
-        const bothMemoized = didBothCompilersMemoizeFile(source, filename);
-        const filtered = await filterReactCompilerMessages(messages, '/repo', () => bothMemoized);
+        // When the production compiler helper determines whether manual memoization is redundant.
+        const memoized = checkReactCompilerWithOxc(source, filename).memoized;
+        const filtered = await filterReactCompilerMessages(messages, '/repo', () => memoized);
 
         // Then the lint pipeline enforces the restriction only for automatically memoized code.
-        expect(bothMemoized).toBe(shouldForbid);
+        expect(memoized).toBe(shouldForbid);
         expect(filtered).toHaveLength(shouldForbid ? 1 : 0);
     });
 

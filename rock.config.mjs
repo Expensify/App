@@ -5,9 +5,8 @@ import {pluginRepack} from '@rock-js/plugin-repack';
 import {providerS3} from '@rock-js/provider-s3';
 
 const isHybrid = process.env.IS_HYBRID_APP === 'true';
-// `BUNDLER=metro` reverts the native build to Metro. Keep it while HybridApp still bundles with
-// Metro: its release builds go through the Gradle plugin's own Metro task, so deleting Metro here is
-// blocked on moving hybrid bundling onto Rock in the wrapper repo first.
+// `BUNDLER=metro` reverts the native build to Metro. Metro no longer runs React Compiler, so
+// babel.config.js refuses Metro builds; the flag stays only until Metro is removed entirely.
 const useMetro = process.env.BUNDLER === 'metro';
 const isPublicAccess = !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY;
 
