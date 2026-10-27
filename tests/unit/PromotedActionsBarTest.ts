@@ -37,6 +37,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             login: 'test@example.com',
             currentUserAccountID: 1,
@@ -52,7 +53,7 @@ describe('PromotedActions.message', () => {
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
             isSupportalSession: false,
             login: 'test@example.com',
-            accountID: 42,
+            personalDetailsByLogin: {},
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
@@ -70,6 +71,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: generateAccountID(login),
             login,
             currentUserAccountID: 1,
@@ -83,9 +85,9 @@ describe('PromotedActions.message', () => {
         // When the message action is selected
         action.onSelected();
 
-        // Then the chat is still opened by login with that accountID, instead of the falsy accountID blocking it
+        // Then the chat is still opened by login, instead of the falsy accountID blocking it
         expect(generateAccountID(login)).toBe(0);
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(expect.objectContaining({login, accountID: 0}));
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(expect.objectContaining({login}));
     });
 
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
@@ -93,6 +95,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             currentUserAccountID: 1,
             personalDetails: {},
@@ -111,6 +114,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             currentUserAccountID: 1,
             personalDetails: {},
@@ -129,6 +133,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             reportID: 'report123',
             currentUserAccountID: 1,
             personalDetails: {},
@@ -150,6 +155,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             personalDetails: {},
             login: 'test@example.com',
@@ -165,7 +171,7 @@ describe('PromotedActions.message', () => {
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
             isSupportalSession: false,
             login: 'test@example.com',
-            accountID: 42,
+            personalDetailsByLogin: {},
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
@@ -183,6 +189,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             currentUserAccountID: 1,
             introSelected,
@@ -202,6 +209,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             login: 'test@example.com',
             currentUserAccountID: 1,
@@ -221,6 +229,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             reportID: 'selfReport123',
             accountID: 1,
             currentUserAccountID: 1,

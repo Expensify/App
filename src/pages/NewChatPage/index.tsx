@@ -17,6 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -31,7 +32,7 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type {OptionData} from '@libs/ReportUtils';
-import {expensifyLoginsSelector, generateAccountID} from '@libs/UserUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import variables from '@styles/variables';
 
@@ -91,6 +92,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {singleExecution} = useSingleExecution();
     const isSupportalSession = useIsSupportalSession();
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
@@ -313,13 +315,11 @@ function NewChatPage({ref}: NewChatPageProps) {
             Log.warn('Tried to create chat with empty login');
             return;
         }
-        // createOption leaves no usable accountID for an invited user whose generated accountID is 0, so it is generated from the login again
-        const accountID = participant?.accountID || generateAccountID(login);
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
                 navigateToAndOpenReport({
                     login,
-                    accountID,
+                    personalDetailsByLogin: getPersonalDetailsByLogin(),
                     personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,

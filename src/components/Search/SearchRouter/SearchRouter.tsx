@@ -49,7 +49,6 @@ import {
     getSearchRouterQueryChangedAt,
     startSearchRouterQuerySpan,
 } from '@libs/telemetry/searchRouterQuerySpans';
-import {generateAccountID} from '@libs/UserUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -549,8 +548,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 } else if ('login' in item && item.login) {
                     navigateToAndOpenReport({
                         login: item.login,
-                        // createOption leaves no usable accountID for an invited user whose generated accountID is 0, so it is generated from the login again
-                        accountID: item.accountID || generateAccountID(item.login),
+                        personalDetailsByLogin: getPersonalDetailsByLogin(),
                         personalDetails,
                         currentUserAccountID,
                         introSelected,
@@ -568,6 +566,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             autocompleteSubstitutions,
             onRouterClose,
             personalDetails,
+            getPersonalDetailsByLogin,
             onSearchQueryChange,
             submitSearch,
             textInputValue,

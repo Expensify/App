@@ -2628,7 +2628,7 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
 
 type NavigateToAndOpenReportParams = {
     login: string;
-    accountID: number;
+    personalDetailsByLogin: PersonalDetailsByLogin;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
@@ -2655,7 +2655,7 @@ type NavigateToAndOpenReportParams = {
  */
 function navigateToAndOpenReport({
     login,
-    accountID,
+    personalDetailsByLogin,
     personalDetails,
     currentUserAccountID,
     introSelected,
@@ -2670,6 +2670,7 @@ function navigateToAndOpenReport({
     linkToOptions,
     sourceReportID,
 }: NavigateToAndOpenReportParams) {
+    const [accountID] = PersonalDetailsUtils.getAccountIDsByLogins([login], personalDetailsByLogin);
     const chat = getChatByParticipants([accountID, currentUserAccountID]);
     const createAndOpenNewOptimisticChat = (sourceCachedReportID?: string) => {
         // The server rejects chat creation during a support session, so block it here instead of letting the agent land on an
@@ -4743,7 +4744,7 @@ function navigateToConciergeChat({
             }
             navigateToAndOpenReport({
                 login: CONST.EMAIL.CONCIERGE,
-                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                personalDetailsByLogin: {[CONST.EMAIL.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, login: CONST.EMAIL.CONCIERGE}},
                 // The list was captured before onServerDataReady(), so it can be stale when OpenApp only just loaded Concierge.
                 // When Concierge is missing from it, pass undefined so openReport reads the live list instead of treating Concierge
                 // as a new account and merging an optimistic personal detail over the real one.

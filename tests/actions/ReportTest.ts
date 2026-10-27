@@ -10197,7 +10197,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10254,7 +10254,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10310,7 +10310,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10359,7 +10359,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10398,7 +10398,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10431,7 +10431,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10469,7 +10469,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10506,7 +10506,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10545,7 +10545,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10584,7 +10584,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10623,7 +10623,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10829,7 +10829,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10852,7 +10852,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10873,7 +10873,7 @@ describe('actions/Report', () => {
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
                 login: PARTICIPANT_LOGIN,
-                accountID: PARTICIPANT_ACCOUNT_ID,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,

@@ -22,6 +22,7 @@ import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -120,6 +121,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
+    const personalDetailsByLogin = usePersonalDetailsByLogins([loginParams]);
 
     let details: OnyxEntry<PersonalDetails>;
     // Check if we have the personal details already in Onyx
@@ -216,9 +218,9 @@ function ProfilePage({route}: ProfilePageProps) {
             PromotedActions.message({
                 reportID: report?.reportID,
                 personalDetails,
-                // A profile opened by login has no accountID in the route, so the one resolved from the login is used
-                accountID: details?.accountID ?? accountID,
+                accountID,
                 login: loginParams,
+                personalDetailsByLogin,
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,

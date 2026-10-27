@@ -5,7 +5,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateAccountID} from '@libs/UserUtils';
 
 import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
@@ -23,6 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
+import type {PersonalDetailsByLogin} from './PersonalDetailsByLoginProvider';
 
 import Button from './Button';
 
@@ -39,6 +39,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
         reportID?: string;
         accountID?: number;
         login?: string;
+        personalDetailsByLogin: PersonalDetailsByLogin;
         currentUserAccountID: number;
         introSelected: OnyxEntry<IntroSelected>;
         personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -83,6 +84,7 @@ const PromotedActions = {
         reportID,
         accountID,
         login,
+        personalDetailsByLogin,
         personalDetails,
         currentUserAccountID,
         introSelected,
@@ -104,8 +106,7 @@ const PromotedActions = {
             if (login) {
                 navigateToAndOpenReport({
                     login,
-                    // A generated accountID can be 0, which is falsy, so it is generated from the login again
-                    accountID: accountID || generateAccountID(login),
+                    personalDetailsByLogin,
                     personalDetails,
                     currentUserAccountID,
                     introSelected,
