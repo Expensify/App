@@ -27,6 +27,7 @@ import {
     getMoneyRequestParticipantsFromReport,
     initMoneyRequest,
     setMoneyRequestBillable,
+    setMoneyRequestDraftHasUserEdits,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
@@ -292,10 +293,12 @@ function SubmitDetailsPage({
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
+        setMoneyRequestDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     };
 
     const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
+        setMoneyRequestDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     };
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
