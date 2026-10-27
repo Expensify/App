@@ -25,7 +25,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type SageIntacctAutoSyncPageBaseParams = {
     policy: OnyxEntry<Policy>;
@@ -41,9 +41,9 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction = settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(navigateBackTo ?? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
-    }, [navigateBackTo, policyID]);
+    };
 
     return (
         <ConnectionLayout

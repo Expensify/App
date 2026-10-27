@@ -285,8 +285,12 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            const isReimbursementDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled) {
+            const reimbursementChoice = getReimbursementChoice(policy);
+            const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }

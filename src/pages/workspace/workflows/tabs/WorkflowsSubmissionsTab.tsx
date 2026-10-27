@@ -18,7 +18,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -36,7 +36,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
 
     const scheduleDescription = getSubmissionScheduleDescription(policy, translate);
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
-    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID)), [policyID]);
+    const onPressAutoReportingFrequency = () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
 
     const onToggle = (isEnabled: boolean) => {
         if (!canWriteWorkflows) {
