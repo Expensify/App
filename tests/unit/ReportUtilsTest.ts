@@ -23258,6 +23258,62 @@ describe('ReportUtils', () => {
             // Then it is hidden, because no value can be selected
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
+        it('should return true if a list report field with no value was deleted from the workspace', () => {
+            // Given the report's copy of a list field, which still reads every option as enabled, and a workspace that no longer has the field
+            const reportField = createMock<PolicyReportField>({
+                fieldID: 'deletedList',
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [],
+                value: '',
+            });
+            const policyFieldList = {expensify_otherField: createMock<PolicyReportField>({fieldID: 'otherField'})};
+
+            // When checking whether the field should be hidden
+            // Then it is hidden, because the workspace's disabled options are gone and nothing was entered on the report
+            expect(shouldHideSingleReportField(reportField, policyFieldList)).toBe(true);
+        });
+        it('should return false if a list report field with a value was deleted from the workspace', () => {
+            // Given the report's copy of a list field that has a value, and a workspace that no longer has the field
+            const reportField = createMock<PolicyReportField>({
+                fieldID: 'deletedList',
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [],
+                value: 'A',
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is visible, so the report keeps the value the user entered
+            expect(shouldHideSingleReportField(reportField, {})).toBe(false);
+        });
+        it('should return false if a list report field with no value is still on the workspace', () => {
+            // Given a list field with enabled options and no value that is still on the workspace
+            const reportField = createMock<PolicyReportField>({
+                fieldID: 'activeList',
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                values: ['A', 'B'],
+                disabledOptions: [false, false],
+                value: '',
+            });
+            const policyFieldList = {expensify_activeList: reportField};
+
+            // When checking whether the field should be hidden
+            // Then it is visible, because the user can still pick a value
+            expect(shouldHideSingleReportField(reportField, policyFieldList)).toBe(false);
+        });
+        it('should return false if a text report field with no value was deleted from the workspace', () => {
+            // Given the report's copy of a text field with no value, and a workspace that no longer has the field
+            const reportField = createMock<PolicyReportField>({
+                fieldID: 'deletedText',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                value: '',
+            });
+
+            // When checking whether the field should be hidden
+            // Then it is visible, because only list fields lose their disabled options when deleted
+            expect(shouldHideSingleReportField(reportField, {})).toBe(false);
+        });
     });
     describe('shouldDisplayThreadReplies', () => {
         it('returns true when the action has replies', () => {
