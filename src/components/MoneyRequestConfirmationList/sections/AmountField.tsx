@@ -14,6 +14,7 @@ import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
+    setMoneyRequestDraftHasUserEdits,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU/MoneyRequest';
@@ -274,6 +275,7 @@ function AmountField({
         // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
         if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
             setMoneyRequestCurrency(transactionID, value);
+            setMoneyRequestDraftHasUserEdits(transactionID);
         } else {
             persistMainDraftTotal(updatedAmount, value);
         }
