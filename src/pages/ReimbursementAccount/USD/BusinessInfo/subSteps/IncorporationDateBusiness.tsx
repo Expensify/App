@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
@@ -32,20 +32,17 @@ function IncorporationDateBusiness({onNext, isEditing}: SubPageProps) {
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
-                errors.incorporationDate = translate('common.error.dateInvalid');
-            } else if (values.incorporationDate && !isValidPastDate(values.incorporationDate)) {
-                errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
-            }
+        if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
+            errors.incorporationDate = translate('common.error.dateInvalid');
+        } else if (values.incorporationDate && !isValidPastDate(values.incorporationDate)) {
+            errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const defaultCompanyIncorporationDate = reimbursementAccount?.achData?.incorporationDate ?? reimbursementAccountDraft?.incorporationDate ?? '';
 

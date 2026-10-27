@@ -10,7 +10,6 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
@@ -50,6 +49,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {getCustomAgentAccountIDs} from '@selectors/AgentZeroChat';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -101,6 +101,9 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {selector: getStableReportSelector});
     const reportsParentHierarchy = useReportsParentHierarchy(reportIDFromRoute);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportIDFromRoute}`);
@@ -132,7 +135,6 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions, false, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(reportID);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
@@ -195,8 +197,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID: reportID ?? reportIDFromRoute ?? '',
         report,
-        // The table view doesn't show the expense thread's actions, so a new one there shouldn't mark the report as read
-        transactionThreadReport: shouldUseTableViewForSingleExpense ? undefined : transactionThreadReport,
+        transactionThreadReport,
         sortedVisibleReportActions: visibleReportActionsNewestFirst,
         sortedReportActions: reportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
@@ -228,6 +229,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         onScrolledOverThresholdChange: setHasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
+        fullPolicySnapshot: report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
     });
 
     // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount
@@ -311,13 +313,20 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         rules,
     });
 
+    // The narrow layout puts its selection controls in a header above the list, while the wide layout floats a bar over
+    // the end of it. The floating bar has to follow the list here rather than lead it, or Tab reaches it only after the
+    // rest of the app has been walked through and wrapped back around.
+    const selectionToolbar = (
+        <SelectionToolbar
+            reportID={report.reportID}
+            transactions={transactions}
+            reportActions={reportActions}
+        />
+    );
+
     return (
         <View style={[styles.flex1]}>
-            <SelectionToolbar
-                reportID={report.reportID}
-                transactions={transactions}
-                reportActions={reportActions}
-            />
+            {shouldUseNarrowLayout && selectionToolbar}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                 <FloatingMessageCounter
                     hasNewMessages={!!unreadMarkerReportActionID}
@@ -370,6 +379,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                     />
                 )}
             </View>
+            {!shouldUseNarrowLayout && selectionToolbar}
         </View>
     );
 }

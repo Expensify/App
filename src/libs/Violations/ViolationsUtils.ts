@@ -687,6 +687,7 @@ const ViolationsUtils = {
         distanceOriginalPolicy,
         ownerLogin: ownerLoginParam,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -703,6 +704,7 @@ const ViolationsUtils = {
         ownerLogin: string | undefined;
         /** Undefined while the account betas are still loading, which leaves the inactive vendor violation untouched */
         isVendorMatchingBetaEnabled: boolean | undefined;
+        policyVendors?: OnyxEntry<PolicyVendors>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -811,14 +813,17 @@ const ViolationsUtils = {
                 // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
                 // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+                const isVendorDisabled = policyVendorsParam?.[transactionVendorID]?.enabled === false;
+                const isVendorInactive = !matchedVendor || isVendorDisabled;
+                const canConfirmVendorEnabled = policyVendorsParam !== undefined && !isVendorDisabled;
 
-                if (!matchedVendor && !hasInactiveVendorViolation) {
+                if (isVendorInactive && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.INACTIVE_VENDOR,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         showInReview: true,
                     });
-                } else if (matchedVendor && hasInactiveVendorViolation) {
+                } else if (!isVendorInactive && canConfirmVendorEnabled && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
@@ -897,7 +902,6 @@ const ViolationsUtils = {
         const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
 

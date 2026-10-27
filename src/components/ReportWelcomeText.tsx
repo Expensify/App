@@ -56,7 +56,6 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [personalDetails] = useAllPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`);
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);

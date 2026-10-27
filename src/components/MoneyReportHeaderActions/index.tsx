@@ -8,7 +8,6 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -57,10 +56,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const {selectedTransactionIDs} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const hasSelectedTransactions = !!selectedTransactionIDs.length;
-
-    // In the table view a single-expense report lists its expense as a selectable row, so it acts like a multi-expense report here.
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(moneyRequestReport?.reportID);
-    const isTransactionThread = !!transactionThreadReportID && !shouldUseTableViewForSingleExpense;
+    const isTransactionThread = !!transactionThreadReportID;
 
     useEffect(() => {
         if (!transactionThreadReportID) {

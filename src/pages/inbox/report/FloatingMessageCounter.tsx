@@ -16,7 +16,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
@@ -123,17 +123,17 @@ function FloatingMessageCounter({
     const shouldRenderActionBadgePill = !!renderedActionBadge;
     const isError = renderedActionBadge?.actionBadgeBrickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
 
-    const show = useCallback(() => {
+    const show = () => {
         'worklet';
 
         translateY.set(withSpring(MARKER_ACTIVE_TRANSLATE_Y));
-    }, [translateY]);
+    };
 
-    const hide = useCallback(() => {
+    const hide = () => {
         'worklet';
 
         translateY.set(withSpring(MARKER_INACTIVE_TRANSLATE_Y));
-    }, [translateY]);
+    };
 
     useEffect(() => {
         if (isVisible) {
@@ -184,4 +184,4 @@ function FloatingMessageCounter({
 
 FloatingMessageCounter.displayName = 'FloatingMessageCounter';
 
-export default React.memo(FloatingMessageCounter);
+export default FloatingMessageCounter;

@@ -30,7 +30,7 @@ import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 import type {ComponentRef} from 'react';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ConfirmationStepProps = {
@@ -55,7 +55,6 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     const data = issueNewCard?.data;
     const cardholder = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.displayName || data?.assigneeEmail || '');
     });
     const isSuccessful = issueNewCard?.isSuccessful;
@@ -100,7 +99,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         }
     }, [issueNewCard, isSuccessful, policyID, buildDynamicRoute]);
 
-    const handleIssueCard = useCallback(() => {
+    const handleIssueCard = () => {
         if (!policyID) {
             return;
         }
@@ -113,7 +112,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
             // Navigate to validateCode page
             Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, assigneeTimeZone, buildDynamicRoute]);
+    };
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 

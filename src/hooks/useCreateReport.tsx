@@ -14,7 +14,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useCallback} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -90,7 +89,7 @@ export default function useCreateReport({
         shouldHandleNavigationBack,
     });
 
-    const createReport = useCallback(() => {
+    const createReport = () => {
         interceptAnonymousUser(() => {
             if (!arePoliciesLoaded) {
                 return;
@@ -147,23 +146,7 @@ export default function useCreateReport({
 
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
         });
-    }, [
-        arePoliciesLoaded,
-        shouldNavigateToUpgradePath,
-        activePolicy,
-        defaultChatEnabledPolicy,
-        defaultChatEnabledPolicyID,
-        ownerBillingGracePeriodEnd,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        accountID,
-        isLockedToPreferredPolicy,
-        defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies,
-        onNavigateToWorkspaceSelection,
-        shouldShowEmptyReportConfirmation,
-        openCreateReportConfirmation,
-        onCreateReport,
-    ]);
+    };
 
     return {createReport, isVisible};
 }

@@ -50,7 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -110,21 +110,21 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const achData = reimbursementAccount?.achData;
     const shouldShowContinueModal = hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
 
-    const showAddBankAccountPermissionModal = useCallback(() => {
+    const showAddBankAccountPermissionModal = () => {
         showConfirmModal({
             title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
             prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+    const confirmCurrencyChangeAndHideModal = () => {
         if (!policy) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
-    }, [policy]);
+    };
 
     const workflowsBackTo = ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
 
@@ -157,7 +157,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
 
     const hasReimburserError = !!policy?.errorFields?.reimburser;
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
     const bankConnectionStatus = getBankAccountConnectionStatus(state, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);

@@ -577,6 +577,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
+        test('vendor filter value', () => {
+            // Given a filter form with a picked vendor and the "No vendor" option
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendor: ['Acme', 'none'],
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then both values are written to one vendor filter so the search matches either of them
+            expect(result).toEqual('type:expense vendor:Acme,none');
+        });
+
+        test('negated vendor filter value', () => {
+            // Given a filter form that excludes a vendor
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendorNot: ['Acme'],
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the vendor filter keeps its negation so the exclusion is not turned into a match
+            expect(result).toEqual('type:expense -vendor:Acme');
+        });
+
         test('receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1695,6 +1723,43 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 category: ['Maintenance', 'none'],
+            });
+        });
+
+        test('vendor filter keeps the typed names and the empty value', () => {
+            // Given a typed query with a quoted vendor name and the empty value
+            const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the filter form is built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then both values are kept as typed, since vendor names are matched by text and not checked against a list
+            expect(result).toEqual({
+                type: 'expense',
+                vendor: ['Acme Tools', 'none'],
+            });
+        });
+
+        test('negated vendor filter is kept in the negated form key', () => {
+            // Given a typed query that excludes a vendor
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -vendor:"Acme Tools"');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the filter form is built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the exclusion lands in vendorNot so applying the form keeps it an exclusion
+            expect(result).toEqual({
+                type: 'expense',
+                vendorNot: ['Acme Tools'],
             });
         });
 
@@ -3233,6 +3298,28 @@ describe('SearchQueryUtils', () => {
             expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
         });
 
+        it('returns false when only a Spend footer selection differs from the default query', () => {
+            // Given a saved search on the reimbursable total
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:reimbursable');
+
+            // When only the footer selections change, which the footer's own Reset undoes
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:billable footerCount:reports footerCurrency:EUR');
+
+            // Then the header doesn't offer Save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('still returns true when a row filter changes alongside a footer selection', () => {
+            // Given a search on one category
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When the category changes along with the footer total
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:meals footerTotal:billable');
+
+            // Then the header offers Save, since a row filter changed
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
         it('returns false when the query equals the default query', () => {
             // Given a query that matches its default
             const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
@@ -4704,7 +4791,7 @@ describe('SearchQueryUtils', () => {
             );
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelInvoicing'));
+            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelBilling'));
         });
 
         it('should fall back to the raw feed key when a non-Plaid feed is not in the display table', () => {
@@ -6078,6 +6165,42 @@ describe('SearchQueryUtils', () => {
         it('returns the default query when the last query type differs from the default type', () => {
             const lastQuery = 'type:invoice status:all';
             expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
+        });
+
+        describe('with the Spend footer selections', () => {
+            it('keeps a last query switched back to the default total, which leaves the total out', () => {
+                // Given a saved search on the reimbursable total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When it is switched back to the plain total, which leaves the total out of the last query
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back, the same as when switching to any other total
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+                expect(getValidLastQuery('type:expense status:all footerTotal:non-reimbursable', savedQuery)).toBe('type:expense status:all footerTotal:non-reimbursable');
+            });
+
+            it('keeps a last query switched back to the default count, which leaves the count out', () => {
+                // Given a saved search on the report count
+                const savedQuery = 'type:expense status:all footerCount:reports';
+
+                // When it is switched back to the expense count, which leaves the count out of the last query
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+            });
+
+            it('still drops a last query that lost a real filter', () => {
+                // Given a saved search with a footer total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When its last query drops the status filter
+                const lastQuery = 'type:expense footerTotal:reimbursable';
+
+                // Then the saved query comes back, since a row filter still decides
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(savedQuery);
+            });
         });
     });
 

@@ -10,6 +10,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +20,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch, {getPolicyIDsFromSearchResults} from '@hooks/useSearchAutoRefetch';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -35,17 +35,16 @@ import {
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
 import Log from '@libs/Log';
-import {shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
-import {isCreatedTaskReportAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
@@ -90,7 +89,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import {createMemberCustomFieldsSelector} from '@src/selectors/Policy';
+import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -103,7 +102,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -186,7 +185,6 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -195,6 +193,7 @@ function Search({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -334,6 +333,15 @@ function Search({
         selectedTransactions,
     });
 
+    // Deleted expenses have no report owner, so their From column falls back to the cardholder. Search opens with only
+    // some cards, so load the rest whenever a deleted expense can be on screen. Grouped searches never set
+    // hasDeletedTransaction, so check the status filter too. A negated filter such as status!:drafts still admits
+    // deleted expenses unless it excludes them.
+    const statusFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    const hasDeletedStatus = !!statusFilter.value?.includes(CONST.SEARCH.STATUS.EXPENSE.DELETED);
+    const isDeletedStatusQuery = statusFilter.isNegated ? !hasDeletedStatus : hasDeletedStatus;
+    useLoadSearchCardData(hasDeletedTransaction || isDeletedStatusQuery);
+
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
@@ -447,6 +455,7 @@ function Search({
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
+    const autoSearchedHashRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
@@ -477,7 +486,10 @@ function Search({
             return;
         }
 
-        if (hasErrors && !shouldRefreshOnReconnect) {
+        // A stale error an earlier visit left on this hash must not block this instance's first request,
+        // except when the server judged the query itself malformed, because re-sending it cannot succeed.
+        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        if (hasErrors && !shouldRefreshOnReconnect && (isInvalidQuery || autoSearchedHashRef.current === queryJSON.hash)) {
             return;
         }
 
@@ -501,9 +513,12 @@ function Search({
 
         // The page already fetched this first page, and that request finished before Search mounts, so search() no longer sees it.
         if (!shouldRefreshOnReconnect && searchRequestOffset === 0 && isDataLoaded && consumePageRequestedSearch(queryJSON.hash, shouldCalculateTotals)) {
+            // That request was made for this mount, so an error it leaves behind is this instance's own.
+            autoSearchedHashRef.current = queryJSON.hash;
             return;
         }
 
+        autoSearchedHashRef.current = queryJSON.hash;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -637,6 +652,12 @@ function Search({
     const carouselSource = CAROUSEL_SOURCE.search(hash);
     const hasSeededCarouselRef = useRef(false);
 
+    // Read at press time rather than closed over, so rebuilding the rows doesn't give onSelectRow (and every row) a new identity.
+    const carouselSiblingTransactionIDsRef = useRef(carouselSiblingTransactionIDs);
+    useLayoutEffect(() => {
+        carouselSiblingTransactionIDsRef.current = carouselSiblingTransactionIDs;
+    }, [carouselSiblingTransactionIDs]);
+
     // Hands this list's expenses to the carousel for the expense the user is opening in *this* tab.
     //
     // It is called at each in-tab navigation rather than once at the top of `onSelectRow`, because a Cmd/Ctrl+click
@@ -644,8 +665,9 @@ function Search({
     // open in the RHP, which then paged through unrelated Spend results. Releasing is scoped to this source for the
     // same reason - the unscoped clear used to wipe a carousel another screen owned.
     const seedCarouselForOpenedExpense = useCallback(() => {
-        if (carouselSiblingTransactionIDs.length > 1) {
-            setActiveTransactionIDs(carouselSiblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
+        const siblingTransactionIDs = carouselSiblingTransactionIDsRef.current;
+        if (siblingTransactionIDs.length > 1) {
+            setActiveTransactionIDs(siblingTransactionIDs, {source: carouselSource, snapshotHash: hash});
             // Mark the seed so the release effect below knows this instance owns a carousel. Without it an instance
             // that only ever seeded from a row press skipped its own cleanup and stranded `search:<hash>` behind.
             hasSeededCarouselRef.current = true;
@@ -653,7 +675,7 @@ function Search({
         }
         clearActiveTransactionIDsForSource(carouselSource);
         hasSeededCarouselRef.current = false;
-    }, [carouselSiblingTransactionIDs, carouselSource, hash]);
+    }, [carouselSource, hash]);
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
@@ -689,6 +711,7 @@ function Search({
                     delegateAccountID,
                     IOUTransactionID: item?.reportAction?.childReportID,
                     shouldNavigate: shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab,
+                    fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
                     openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: item.transactionID}), event);
@@ -754,6 +777,7 @@ function Search({
                             IOUTransactionID: firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
                             shouldNavigate: false,
+                            fullPolicySnapshotLastModifiedByPolicyID,
                         });
                     } else {
                         setOptimisticDataForTransactionThreadPreview(
@@ -766,10 +790,7 @@ function Search({
                     }
                 }
 
-                // A single-expense report in the table view opens at the same width as a multi-expense report.
-                // A "Pay someone" report always uses the expense view, so it keeps the normal wide width.
-                const isSentMoneyReport = isSentMoneyReportAction(firstTransaction?.reportAction);
-                if (shouldUseMultiExpenseReportLayout(item.transactions.length, shouldUseTableViewForSingleExpense && !isSentMoneyReport)) {
+                if (item.transactions.length > 1) {
                     markReportRHPWidth(reportID, 'super-wide');
                 } else {
                     unmarkReportRHPWidth(reportID, 'super-wide');
@@ -857,7 +878,7 @@ function Search({
             getCurrencyDecimals,
             conciergeChat,
             delegateAccountID,
-            shouldUseTableViewForSingleExpense,
+            fullPolicySnapshotLastModifiedByPolicyID,
         ],
     );
 
@@ -1203,8 +1224,18 @@ function Search({
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                rearmTracking();
-                setSkeletonWasDisplayed(true);
+                const rearm = () => {
+                    rearmTracking();
+                    setSkeletonWasDisplayed(true);
+                };
+
+                // On a wide pre-mount reveal Search focuses while the RHP is sliding out. Re-arming re-renders the whole list,
+                // so a transition keeps that render from blocking the slide.
+                if (Navigation.getIsRevealingPreMountedFullscreen()) {
+                    startTransition(rearm);
+                } else {
+                    rearm();
+                }
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
@@ -1263,6 +1294,7 @@ function Search({
                       shouldShowYearApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
+                      shouldShowYearPaid: false,
                       shouldShowYearWithdrawn: false,
                   },
         [searchResults?.data, isExpenseReportType, type],
@@ -1277,6 +1309,37 @@ function Search({
                       shouldShowTaxAmountInWideColumn: false,
                   },
         [searchResults?.data],
+    );
+
+    // The same flags the column header below is built from, so a row and its heading can't disagree about how wide a
+    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
+    // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
+    const isActionColumnWide = isTask || hasDeletedTransaction;
+    const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
+        () => ({
+            isActionColumnWide,
+            isDateColumnWide: yearIndicators.shouldShowYearCreated,
+            isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
+            isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
+            isPostedColumnWide: yearIndicators.shouldShowYearPosted,
+            isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isPaidColumnWide: yearIndicators.shouldShowYearPaid,
+            isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
+            isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
+            isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
+        }),
+        [
+            isActionColumnWide,
+            yearIndicators.shouldShowYearCreated,
+            yearIndicators.shouldShowYearSubmitted,
+            yearIndicators.shouldShowYearApproved,
+            yearIndicators.shouldShowYearPosted,
+            yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearPaid,
+            yearIndicators.shouldShowYearWithdrawn,
+            amountIndicators.shouldShowAmountInWideColumn,
+            amountIndicators.shouldShowTaxAmountInWideColumn,
+        ],
     );
 
     const onSortPress = useCallback(
@@ -1421,7 +1484,8 @@ function Search({
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearPaid, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1497,13 +1561,14 @@ function Search({
                 shouldShowYearApproved={shouldShowYearApproved}
                 shouldShowYearPosted={shouldShowYearPosted}
                 shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearPaid={shouldShowYearPaid}
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                 shouldShowSorting
                 groupBy={validGroupBy}
                 isExpenseReportView={isExpenseReportType}
-                isActionColumnWide={isTask || hasDeletedTransaction}
+                isActionColumnWide={isActionColumnWide}
             />
         </View>
     );
@@ -1518,20 +1583,6 @@ function Search({
                 isLoadMore
             />
         ) : undefined;
-
-    // The same flags the column header above is built from, so a row and its heading can't disagree about how wide a
-    // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
-    const columnSizeOptions: GetReportTableColumnStylesParams = {
-        isActionColumnWide: isTask || hasDeletedTransaction,
-        isDateColumnWide: shouldShowYearCreated,
-        isSubmittedColumnWide: shouldShowYearSubmitted,
-        isApprovedColumnWide: shouldShowYearApproved,
-        isPostedColumnWide: shouldShowYearPosted,
-        isExportedColumnWide: shouldShowYearExported,
-        isWithdrawnColumnWide: shouldShowYearWithdrawn,
-        isAmountColumnWide: shouldShowAmountInWideColumn,
-        isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-    };
 
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
@@ -1551,7 +1602,7 @@ function Search({
         isMobileSelectionModeEnabled,
         newTransactions,
         hasLoadedAllTransactions,
-        isActionColumnWide: isTask || hasDeletedTransaction,
+        isActionColumnWide,
         columnSizeOptions,
     };
 

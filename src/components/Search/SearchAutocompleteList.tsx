@@ -35,6 +35,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
+import {cancelSearchRouterQuerySpan, markSearchRouterQueryCommitted} from '@libs/telemetry/searchRouterQuerySpans';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -47,7 +48,7 @@ import type {ForwardedRef, RefObject} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {SearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
@@ -243,7 +244,7 @@ function SearchAutocompleteList({
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
-    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
+    const taxRates = getAllTaxRates(policies);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {
@@ -262,6 +263,7 @@ function SearchAutocompleteList({
     useEffect(() => {
         return () => {
             cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.UNMOUNTED);
         };
     }, []);
 
@@ -277,90 +279,63 @@ function SearchAutocompleteList({
         }
     }, [isLoadingOptions]);
 
-    const searchOptions = useMemo(() => {
-        if (listOptions === null) {
-            return defaultListOptions;
-        }
-        return getSearchOptions({
-            dateFnsLocale,
-            convertToDisplayString,
-            convertToDisplayStringWithoutCurrency,
-            options: listOptions,
-            draftComments,
-            isDefaultRoomsBetaEnabled,
-            isUsedInChatFinder: true,
-            includeReadOnly: true,
-            searchQuery: autocompleteQueryValue,
-            maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
-            includeUserToInvite: true,
-            includeRecentReports: true,
-            includeCurrentUser: true,
-            countryCode,
-            shouldShowGBR: false,
-            shouldUnreadBeBold: true,
-            loginList,
-            visibleReportActionsData,
-            currentUserAccountID,
-            currentUserEmail,
-            policyCollection: policies,
-            personalDetails,
-            reportAttributesDerived: reportAttributes,
-            sortedActions,
-            transactionThreadIDs,
-            lastActions,
-            currentUserLogin: currentUserEmail,
-            localeCompare,
-            formatPhoneNumber,
-            conciergeReportID,
-            allPolicyTags,
-            isTrackIntentUser,
-            translate,
-            getReportByID,
-            rules,
-        }).options;
-    }, [
-        listOptions,
-        draftComments,
-        isDefaultRoomsBetaEnabled,
-        autocompleteQueryValue,
-        countryCode,
-        loginList,
-        visibleReportActionsData,
-        currentUserAccountID,
-        currentUserEmail,
-        policies,
-        allPolicyTags,
-        personalDetails,
-        reportAttributes,
-        sortedActions,
-        transactionThreadIDs,
-        lastActions,
-        localeCompare,
-        formatPhoneNumber,
-        conciergeReportID,
-        isTrackIntentUser,
-        translate,
-        getReportByID,
-        dateFnsLocale,
-        convertToDisplayString,
-        convertToDisplayStringWithoutCurrency,
-        rules,
-    ]);
+    const searchOptions =
+        listOptions === null
+            ? defaultListOptions
+            : getSearchOptions({
+                  dateFnsLocale,
+                  convertToDisplayString,
+                  convertToDisplayStringWithoutCurrency,
+                  options: listOptions,
+                  draftComments,
+                  isDefaultRoomsBetaEnabled,
+                  isUsedInChatFinder: true,
+                  includeReadOnly: true,
+                  searchQuery: autocompleteQueryValue,
+                  maxResults: CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
+                  includeUserToInvite: true,
+                  includeRecentReports: true,
+                  includeCurrentUser: true,
+                  countryCode,
+                  shouldShowGBR: false,
+                  shouldUnreadBeBold: true,
+                  loginList,
+                  visibleReportActionsData,
+                  currentUserAccountID,
+                  currentUserEmail,
+                  policyCollection: policies,
+                  personalDetails,
+                  reportAttributesDerived: reportAttributes,
+                  sortedActions,
+                  transactionThreadIDs,
+                  lastActions,
+                  currentUserLogin: currentUserEmail,
+                  localeCompare,
+                  formatPhoneNumber,
+                  conciergeReportID,
+                  allPolicyTags,
+                  isTrackIntentUser,
+                  translate,
+                  getReportByID,
+                  rules,
+              }).options;
 
     // Deduped once and read everywhere the order is needed, so a repeated reportID ranks at its first position.
-    const orderedSearchResultReportIDs = useMemo<string[]>(() => (searchResultReportIDs?.length ? [...new Set(searchResultReportIDs)] : []), [searchResultReportIDs]);
+    const orderedSearchResultReportIDs: string[] = searchResultReportIDs?.length ? [...new Set(searchResultReportIDs)] : [];
 
-    const serverReportsOptions = useMemo(() => {
-        if (!hasActiveSearchResults || listOptions === null || orderedSearchResultReportIDs.length === 0) {
-            return CONST.EMPTY_ARRAY;
-        }
-
+    let serverReportsOptions;
+    if (!hasActiveSearchResults || listOptions === null || orderedSearchResultReportIDs.length === 0) {
+        serverReportsOptions = CONST.EMPTY_ARRAY;
+    } else {
         const orderedReportIDs = orderedSearchResultReportIDs.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         const reportIDs = new Set(orderedReportIDs);
         const options = getSearchOptions({
             dateFnsLocale,
             convertToDisplayString,
-            options: {reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)), personalDetails: []},
+            options: {
+                reports: listOptions.reports.filter((option) => reportIDs.has(option.reportID)),
+                personalDetails: [],
+            },
             draftComments,
             isDefaultRoomsBetaEnabled,
             isUsedInChatFinder: true,
@@ -390,32 +365,35 @@ function SearchAutocompleteList({
             formatPhoneNumber,
         }).options;
         const optionsByReportID = new Map(options.recentReports.map((option) => [option.reportID, option]));
-        return orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
-    }, [
-        hasActiveSearchResults,
-        listOptions,
-        orderedSearchResultReportIDs,
-        dateFnsLocale,
-        convertToDisplayString,
-        draftComments,
-        isDefaultRoomsBetaEnabled,
-        countryCode,
-        loginList,
-        visibleReportActionsData,
-        currentUserAccountID,
-        currentUserEmail,
-        policies,
-        personalDetails,
-        sortedActions,
-        conciergeReportID,
-        isTrackIntentUser,
-        translate,
-        getReportByID,
-        rules,
-        formatPhoneNumber,
-    ]);
+        serverReportsOptions = orderedReportIDs.map((reportID) => optionsByReportID.get(reportID)).filter((option): option is OptionData => !!option && !option.isSelfDM);
+    }
 
     const [isInitialRender, setIsInitialRender] = useState(true);
+
+    const localResultCount = searchOptions.recentReports.length + searchOptions.personalDetails.length;
+    const hasCommittedListRef = useRef(false);
+    const committedListOptionsRef = useRef(listOptions);
+    // Commit the query span in a layout effect so the span's end time reflects when the list is laid out
+    // for this query before paint. The list's first commit after the loading skeleton is cancelled so open latency
+    // stays with ManualOpenSearchRouter. While the skeleton is shown, the list is not rendered, so the span keeps waiting for it.
+    // While options are still loading, searchOptions is the empty default list, so committing would record a bogus zero-result query.
+    // Cancel instead of waiting so Onyx cold-load time does not get folded into query latency.
+    useLayoutEffect(() => {
+        if (!isRecentSearchesDataLoaded) {
+            return;
+        }
+        const isListMountCommit = !hasCommittedListRef.current;
+        hasCommittedListRef.current = true;
+        // useFilteredOptions rebuilds listOptions on the first query after open or clear, and when an Onyx dependency changes.
+        // Later queries reuse it, so samples are only comparable when split by this.
+        const areOptionsRebuilt = committedListOptionsRef.current !== listOptions;
+        committedListOptionsRef.current = listOptions;
+        if (isLoadingOptions) {
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.OPTIONS_NOT_READY);
+            return;
+        }
+        markSearchRouterQueryCommitted(autocompleteQueryValue, {localResultCount, areOptionsRebuilt}, isListMountCommit);
+    }, [autocompleteQueryValue, localResultCount, listOptions, isRecentSearchesDataLoaded, isLoadingOptions]);
     const prevQueryRef = useRef(effectiveInputQueryValue);
     const innerListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const hasSetInitialFocusRef = useRef(false);
@@ -478,63 +456,43 @@ function SearchAutocompleteList({
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const recentSearchesData = useMemo(() => {
-        const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
-            localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
-        );
-
-        return sortedRecentSearches.slice(0, 5).map(([recentSearchHash, {query}]) => {
-            const searchQueryJSON = buildSearchQueryJSON(query);
-            return {
-                text: searchQueryJSON
-                    ? buildUserReadableQueryString({
-                          queryJSON: searchQueryJSON,
-                          PersonalDetails: personalDetails,
-                          reports,
-                          taxRates,
-                          cardList: allCards,
-                          cardFeeds: allFeeds,
-                          policies,
-                          currentUserAccountID,
-                          autoCompleteWithSpace: false,
-                          translate,
-                          formatPhoneNumber,
-                          feedKeysWithCards,
-                          reportAttributes,
-                          bankAccountList,
-                      })
-                    : query,
-                singleIcon: expensifyIcons.History,
-                searchQuery: query,
-                keyForList: recentSearchHash,
-                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-            };
-        });
-    }, [
-        recentSearches,
-        localeCompare,
-        personalDetails,
-        reports,
-        taxRates,
-        allCards,
-        allFeeds,
-        policies,
-        currentUserAccountID,
-        translate,
-        formatPhoneNumber,
-        feedKeysWithCards,
-        reportAttributes,
-        bankAccountList,
-        expensifyIcons.History,
-    ]);
+    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+    );
+    const recentSearchesData = sortedRecentSearches.slice(0, 5).map(([recentSearchHash, {query}]) => {
+        const searchQueryJSON = buildSearchQueryJSON(query);
+        return {
+            text: searchQueryJSON
+                ? buildUserReadableQueryString({
+                      queryJSON: searchQueryJSON,
+                      PersonalDetails: personalDetails,
+                      reports,
+                      taxRates,
+                      cardList: allCards,
+                      cardFeeds: allFeeds,
+                      policies,
+                      currentUserAccountID,
+                      autoCompleteWithSpace: false,
+                      translate,
+                      formatPhoneNumber,
+                      feedKeysWithCards,
+                      reportAttributes,
+                      bankAccountList,
+                  })
+                : query,
+            singleIcon: expensifyIcons.History,
+            searchQuery: query,
+            keyForList: recentSearchHash,
+            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+        };
+    });
 
     // The client's own matches, before Auth's order is merged in. Kept separate so the frozen rank below can snapshot
     // the client's order: snapshotting the merged list would bake the previous query's server order into "Recent chats".
-    const localReportsOptions = useMemo<OptionData[]>(() => {
-        if (!hasActiveSearchResults) {
-            return [];
-        }
-
+    let localReportsOptions: OptionData[];
+    if (!hasActiveSearchResults) {
+        localReportsOptions = [];
+    } else {
         // searchOptions/autocompleteQueryValue are debounced. For a query -> query change this still returns the
         // previous query's matches during the debounce window (rows stay visible, preserving focus/Enter/arrow keys).
         // For the empty -> query transition hasActiveSearchResults is false until the debounced query lands, so
@@ -543,26 +501,21 @@ function SearchAutocompleteList({
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
-
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (searchOptions.userToInvite) {
             reportOptions.push(searchOptions.userToInvite);
         }
+        localReportsOptions = reportOptions;
+    }
 
-        return reportOptions;
-    }, [autocompleteQueryValue, activePolicyID, hasActiveSearchResults, searchOptions]);
-
-    const recentReportsOptions = useMemo(() => {
-        if (!hasActiveSearchResults) {
-            return searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
-        }
-
+    let recentReportsOptions;
+    if (!hasActiveSearchResults) {
+        recentReportsOptions = searchOptions.recentReports.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+    } else {
         const reportOptions: OptionData[] = [...localReportsOptions];
-
         if (orderedSearchResultReportIDs.length > 0) {
             const matchedReportIDs = new Set(reportOptions.map((option) => option.reportID).filter(Boolean));
             reportOptions.push(...serverReportsOptions.filter((option) => !matchedReportIDs.has(option.reportID)));
-
             const rankByReportID = new Map(orderedSearchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
                 if (option.isSelfDM) {
@@ -576,10 +529,11 @@ function SearchAutocompleteList({
         // Preserve locally matched rows first. Auth orders only the remaining slots, so a server response cannot
         // remove chats, contacts, or invite options that were already visible locally. The combined list remains capped at 20.
         if (orderedSearchResultReportIDs.length > 0) {
-            return reportOptions;
+            recentReportsOptions = reportOptions;
+        } else {
+            recentReportsOptions = reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
         }
-        return reportOptions.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
-    }, [hasActiveSearchResults, localReportsOptions, orderedSearchResultReportIDs, searchOptions, serverReportsOptions]);
+    }
 
     // Locked rank map (stable key -> originalIndex) capturing the order of the client's own matches at the moment the
     // query settled, so reports merged into Onyx later do not shift the rows already visible in the top section.
@@ -648,154 +602,148 @@ function SearchAutocompleteList({
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch, handleSearch, hasUpstreamDebounce]);
 
     /* Sections generation */
-    const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
-        const nextSections: Array<Section<AutocompleteListItem>> = [];
-        let sectionIndex = 0;
-        let nextSuggestionsCount = 0;
-
-        const pushSection = (section: Section<AutocompleteListItem>) => {
-            nextSections.push(section);
-            nextSuggestionsCount += section.data.filter((item) => item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length;
-        };
-
-        if (searchQueryItems && searchQueryItems.length > 0) {
-            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
-        }
-
-        const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
-
-        if (additionalSections) {
-            for (const section of additionalSections) {
-                pushSection(section);
-                sectionIndex++;
-            }
-        }
-
-        if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
-            pushSection({title: translate('search.recentSearches'), data: recentSearchesData as AutocompleteListItem[], sectionIndex: sectionIndex++});
-        }
-
-        const nextStyledRecentReports = recentReportsOptions.map((option) => {
-            const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
-            const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-            const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
-            return {
-                ...option,
-                keyForList,
-                pressableStyle: styles.br2,
-                text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-            } as AutocompleteListItem;
+    const nextSections: Array<Section<AutocompleteListItem>> = [];
+    let sectionIndex = 0;
+    let nextSuggestionsCount = 0;
+    const pushSection = (section: Section<AutocompleteListItem>) => {
+        nextSections.push(section);
+        nextSuggestionsCount += section.data.filter((item) => item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length;
+    };
+    if (searchQueryItems && searchQueryItems.length > 0) {
+        pushSection({
+            data: searchQueryItems as AutocompleteListItem[],
+            sectionIndex: sectionIndex++,
         });
-
-        const skeletonHeader = (
-            <OptionsListSkeletonView
-                fixedNumItems={3}
-                shouldStyleAsTable
-                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-            />
-        );
-
-        if (!hasActiveSearchResults) {
-            // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
-            // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
-            if (!isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
-            } else {
-                pushSection({
-                    title: translate('search.recentChats'),
-                    data: [],
-                    sectionIndex: sectionIndex++,
-                    customHeader: skeletonHeader,
-                });
-            }
+    }
+    const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
+    if (additionalSections) {
+        for (const section of additionalSections) {
+            pushSection(section);
+            sectionIndex++;
+        }
+    }
+    if (!hasEffectiveInputQuery && recentSearchesData && recentSearchesData.length > 0) {
+        pushSection({
+            title: translate('search.recentSearches'),
+            data: recentSearchesData as AutocompleteListItem[],
+            sectionIndex: sectionIndex++,
+        });
+    }
+    const nextStyledRecentReports = recentReportsOptions.map((option) => {
+        const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
+        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
+        return {
+            ...option,
+            keyForList,
+            pressableStyle: styles.br2,
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+        } as AutocompleteListItem;
+    });
+    const skeletonHeader = (
+        <OptionsListSkeletonView
+            fixedNumItems={3}
+            shouldStyleAsTable
+            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+        />
+    );
+    if (!hasActiveSearchResults) {
+        // No active (debounced) query yet: single "Recent chats" section. This also covers the debounce window
+        // right after the user starts typing, so we keep recent chats visible instead of flashing search rows.
+        if (!isLoadingOptions) {
+            pushSection({
+                title: translate('search.recentChats'),
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
         } else {
-            // Active search uses one shared 20-row budget: preserve locally matched rows first, then fill remaining
-            // slots with Auth-ranked server results. Auth orders the server section; it does not evict local rows.
-            const localRows: AutocompleteListItem[] = [];
-            const serverRows: AutocompleteListItem[] = [];
-            for (const item of nextStyledRecentReports) {
-                const stableKey = getStableRankKey(item);
-                if (item.isSelfDM || (stableKey && frozenLocalRank.has(stableKey))) {
-                    localRows.push(item);
-                } else {
-                    serverRows.push(item);
-                }
-            }
-            // Sort the local section by the rank captured at query-change time so it cannot
-            // reorder when the API returns.
-            localRows.sort((a, b) => {
-                if (a.isSelfDM !== b.isSelfDM) {
-                    return a.isSelfDM ? -1 : 1;
-                }
-                return (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0);
+            pushSection({
+                title: translate('search.recentChats'),
+                data: [],
+                sectionIndex: sectionIndex++,
+                customHeader: skeletonHeader,
             });
-
-            if (localRows.length > 0 || !isLoadingOptions) {
-                pushSection({title: translate('search.recentChats'), data: localRows, sectionIndex: sectionIndex++});
+        }
+    } else {
+        // Active search uses one shared 20-row budget: preserve locally matched rows first, then fill remaining
+        // slots with Auth-ranked server results. Auth orders the server section; it does not evict local rows.
+        const localRows: AutocompleteListItem[] = [];
+        const serverRows: AutocompleteListItem[] = [];
+        for (const item of nextStyledRecentReports) {
+            const stableKey = getStableRankKey(item);
+            if (item.isSelfDM || (stableKey && frozenLocalRank.has(stableKey))) {
+                localRows.push(item);
             } else {
-                // Options are still loading and no local results matched — show a skeleton so the
-                // user sees feedback instead of a bare section header.
-                pushSection({
-                    title: undefined,
-                    data: [],
-                    sectionIndex: sectionIndex++,
-                    customHeader: skeletonHeader,
-                });
-            }
-
-            const remainingServerRows = serverRows.slice(0, Math.max(CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - localRows.length, 0));
-            if (remainingServerRows.length > 0) {
-                pushSection({
-                    title: translate('search.serverResults'),
-                    data: remainingServerRows,
-                    sectionIndex: sectionIndex++,
-                });
+                serverRows.push(item);
             }
         }
-
-        if (autocompleteSuggestions.length > 0) {
-            const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
-                return {
-                    text: getAutocompleteDisplayText(filterKey, text),
-                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                    singleIcon: expensifyIcons.MagnifyingGlass,
-                    searchQuery: text,
-                    autocompleteID,
-                    keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
-                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
-                    // For report-backed `in:` suggestions, show the owning workspace on the right of the row so identically
-                    // named rooms (e.g. #admins) in different workspaces can be told apart.
-                    rightElement: workspaceIcon ? (
-                        <AvatarWithTextCell
-                            reportName={workspaceIcon.name}
-                            icon={workspaceIcon}
-                            textStyle={styles.textLabelSupporting}
-                        />
-                    ) : undefined,
-                };
+        // Sort the local section by the rank captured at query-change time so it cannot
+        // reorder when the API returns.
+        localRows.sort((a, b) => {
+            if (a.isSelfDM !== b.isSelfDM) {
+                return a.isSelfDM ? -1 : 1;
+            }
+            return (frozenLocalRank.get(getStableRankKey(a) ?? '') ?? 0) - (frozenLocalRank.get(getStableRankKey(b) ?? '') ?? 0);
+        });
+        if (localRows.length > 0 || !isLoadingOptions) {
+            pushSection({
+                title: translate('search.recentChats'),
+                data: localRows,
+                sectionIndex: sectionIndex++,
             });
-
-            pushSection({title: translate('search.suggestions'), data: autocompleteData, sectionIndex: sectionIndex++});
+        } else {
+            // Options are still loading and no local results matched — show a skeleton so the
+            // user sees feedback instead of a bare section header.
+            pushSection({
+                title: undefined,
+                data: [],
+                sectionIndex: sectionIndex++,
+                customHeader: skeletonHeader,
+            });
         }
-
-        return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
-    }, [
-        hasEffectiveInputQuery,
-        hasActiveSearchResults,
-        autocompleteSuggestions,
-        expensifyIcons,
-        frozenLocalRank,
-        getAdditionalSections,
-        recentReportsOptions,
-        recentSearchesData,
-        searchOptions,
-        searchQueryItems,
-        styles,
-        translate,
-        isLoadingOptions,
-        reports,
-    ]);
+        const remainingServerRows = serverRows.slice(0, Math.max(CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - localRows.length, 0));
+        if (remainingServerRows.length > 0) {
+            pushSection({
+                title: translate('search.serverResults'),
+                data: remainingServerRows,
+                sectionIndex: sectionIndex++,
+            });
+        }
+    }
+    if (autocompleteSuggestions.length > 0) {
+        const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
+            return {
+                text: getAutocompleteDisplayText(filterKey, text),
+                mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
+                singleIcon: expensifyIcons.MagnifyingGlass,
+                searchQuery: text,
+                autocompleteID,
+                keyForList: autocompleteID ?? text,
+                // in case we have a unique identifier then use it because text might not be unique
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+                // For report-backed `in:` suggestions, show the owning workspace on the right of the row so identically
+                // named rooms (e.g. #admins) in different workspaces can be told apart.
+                rightElement: workspaceIcon ? (
+                    <AvatarWithTextCell
+                        reportName={workspaceIcon.name}
+                        icon={workspaceIcon}
+                        textStyle={styles.textLabelSupporting}
+                    />
+                ) : undefined,
+            };
+        });
+        pushSection({
+            title: translate('search.suggestions'),
+            data: autocompleteData,
+            sectionIndex: sectionIndex++,
+        });
+    }
+    const {sections, styledRecentReports, suggestionsCount} = {
+        sections: nextSections,
+        styledRecentReports: nextStyledRecentReports,
+        suggestionsCount: nextSuggestionsCount,
+    };
 
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
 
@@ -975,5 +923,5 @@ function SearchAutocompleteList({
 
 SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
-export default React.memo(SearchAutocompleteList);
+export default SearchAutocompleteList;
 export type {GetAdditionalSectionsCallback, SearchAutocompleteListProps};

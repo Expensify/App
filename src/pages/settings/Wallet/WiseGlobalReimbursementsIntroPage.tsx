@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -72,23 +73,30 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                     <Header.BackButton onPress={goBackToEntryPoint} />
                     <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
                 </Header>
-                <ConfirmationPage
-                    illustration={illustrations.EarthWithCoins}
-                    illustrationStyle={StyleUtils.getWidthAndHeightStyle(variables.wiseGlobalReimbursementsIntroIllustrationSize)}
-                    heading={translate('walletPage.wiseGlobalReimbursementsIntro.title')}
-                    description={translate('walletPage.wiseGlobalReimbursementsIntro.subtitle')}
-                    descriptionStyle={styles.textSupporting}
-                    shouldShowSecondaryButton
-                    secondaryButtonText={translate('common.notNow')}
-                    onSecondaryButtonPress={goBackToEntryPoint}
-                    shouldShowButton
-                    buttonText={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
-                    onButtonPress={() => {
-                        // Starting onboarding for any account retires both banners for good
-                        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
-                        dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
-                    }}
-                />
+                <ConfirmationPage>
+                    <ConfirmationPage.Content>
+                        <ConfirmationPage.Illustration
+                            illustration={illustrations.EarthWithCoins}
+                            illustrationStyle={StyleUtils.getWidthAndHeightStyle(variables.wiseGlobalReimbursementsIntroIllustrationSize)}
+                        />
+                        <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
+                        <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseGlobalReimbursementsIntro.subtitle')}</ConfirmationPage.Description>
+                    </ConfirmationPage.Content>
+                    <FixedFooter>
+                        <ConfirmationPage.SecondaryButton
+                            text={translate('common.notNow')}
+                            onPress={goBackToEntryPoint}
+                        />
+                        <ConfirmationPage.PrimaryButton
+                            text={translate('walletPage.wiseGlobalReimbursementsIntro.getStarted')}
+                            onPress={() => {
+                                // Starting onboarding for any account retires both banners for good
+                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER);
+                                dismissProductTraining(CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER);
+                            }}
+                        />
+                    </FixedFooter>
+                </ConfirmationPage>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
