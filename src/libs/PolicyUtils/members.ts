@@ -100,6 +100,19 @@ function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserL
 }
 
 /**
+ * Whether a login should be hidden from a cardholder picker because it belongs to Expensify staff, who are also hidden from the Workspace Members page.
+ * The current cardholder is never hidden, so editing an existing assignment doesn't blank out the selection.
+ */
+function shouldHideExpensifyTeamCardholder(
+    login: string | null | undefined,
+    currentCardholderLogin: string | undefined,
+    policyOwner: string | undefined,
+    currentUserLogin: string | undefined,
+): boolean {
+    return !!login && login !== currentCardholderLogin && isExpensifyTeam(login) && shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+}
+
+/**
  * Creates a selector for useOnyx that computes the filtered member count.
  * Returns a primitive number to prevent unnecessary re-renders when unrelated personal details change.
  */
@@ -398,6 +411,7 @@ export {
     filterGuideAndAccountManager,
     isExpensifyTeam,
     shouldFilterExpensifyTeam,
+    shouldHideExpensifyTeamCardholder,
     createFilteredMemberCountSelector,
     isDeletedPolicyEmployee,
     hasEligibleBankAccountShareRecipient,

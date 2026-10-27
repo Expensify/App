@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useMemo} from 'react';
 
 import RHP_WEB_TRANSITION_SPEC from './RHPTransitionSpec';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -48,27 +47,25 @@ const useRHPScreenOptions = (): PlatformStackNavigationOptions => {
     // A skinny RHP pushed over a centered wide card gets the same slide-and-fade as the centered cards instead of a full-width slide.
     const isWideRHPContext = !isSmallScreenWidth && (wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0);
 
-    return useMemo<PlatformStackNavigationOptions>(() => {
-        return {
-            headerShown: false,
-            animation: Animations.SLIDE_FROM_RIGHT,
+    return {
+        headerShown: false,
+        animation: Animations.SLIDE_FROM_RIGHT,
+        gestureDirection: 'horizontal',
+        web: {
+            // Otherwise forHorizontalIOS misbehaves on Safari, so the custom interpolator replaces it there.
+            // eslint-disable-next-line no-nested-ternary
+            cardStyleInterpolator: isWideRHPContext
+                ? (props) => customInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}})
+                : isSafari()
+                  ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}})
+                  : (props) => CardStyleInterpolators.forHorizontalIOS(shouldAdjustInterpolatorProps ? getModifiedCardStyleInterpolatorProps(props) : props),
+            presentation: Presentation.TRANSPARENT_MODAL,
+            cardOverlayEnabled: false,
+            cardStyle: styles.navigationScreenCardStyle,
             gestureDirection: 'horizontal',
-            web: {
-                // Otherwise forHorizontalIOS misbehaves on Safari, so the custom interpolator replaces it there.
-                // eslint-disable-next-line no-nested-ternary
-                cardStyleInterpolator: isWideRHPContext
-                    ? (props) => customInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}})
-                    : isSafari()
-                      ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}})
-                      : (props) => CardStyleInterpolators.forHorizontalIOS(shouldAdjustInterpolatorProps ? getModifiedCardStyleInterpolatorProps(props) : props),
-                presentation: Presentation.TRANSPARENT_MODAL,
-                cardOverlayEnabled: false,
-                cardStyle: styles.navigationScreenCardStyle,
-                gestureDirection: 'horizontal',
-                transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
-            },
-        };
-    }, [customInterpolator, shouldAdjustInterpolatorProps, isWideRHPContext, isSmallScreenWidth, styles.navigationScreenCardStyle]);
+            transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
+        },
+    };
 };
 
 export default useRHPScreenOptions;

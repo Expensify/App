@@ -43,7 +43,7 @@ import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter} from 'react-native';
 
@@ -197,7 +197,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+    const overlayPositionLeft = -1 * calculateSuperWideRHPWidth(windowWidth);
 
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
     let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
@@ -219,25 +219,22 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
 
-    const screenListeners = useMemo(
-        () => ({
-            blur: () => {
-                const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
-                    | NavigatorScreenParams<RightModalNavigatorParamList>
-                    | undefined;
+    const screenListeners = {
+        blur: () => {
+            const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                | NavigatorScreenParams<RightModalNavigatorParamList>
+                | undefined;
 
-                if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
-                    return;
-                }
-                // Delay clearing review duplicate data till the RHP is completely closed
-                // to avoid not found showing briefly in confirmation page when RHP is closing
-                TransitionTracker.runAfterTransitions({callback: () => abandonReviewDuplicateTransactions()});
-            },
-        }),
-        [navigation, route.params?.screen],
-    );
+            if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                return;
+            }
+            // Delay clearing review duplicate data till the RHP is completely closed
+            // to avoid not found showing briefly in confirmation page when RHP is closing
+            TransitionTracker.runAfterTransitions({callback: () => abandonReviewDuplicateTransactions()});
+        },
+    };
 
-    const handleOverlayPress = useCallback(() => {
+    const handleOverlayPress = () => {
         if (isExecutingRef.current) {
             return;
         }
@@ -255,7 +252,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         } else {
             isExecutingRef.current = false;
         }
-    }, [navigation]);
+    };
 
     // Pressing the dimmed gap around the focused card goes back one level when a card is stacked below, and closes the RHP when it is not.
     const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
@@ -263,7 +260,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // The gap on the right stops before the Side Panel, which shares that edge.
     const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
 
-    const clearWideRHPKeysAfterTabChanged = useCallback(() => {
+    const clearWideRHPKeysAfterTabChanged = () => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
         const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
         const hasTabChanged = isRhpOpened && isFullScreenTopmostRoute;
@@ -271,7 +268,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         clearWideRHPKeys();
-    }, [clearWideRHPKeys, route.key]);
+    };
 
     useFocusEffect(
         useCallback(() => {

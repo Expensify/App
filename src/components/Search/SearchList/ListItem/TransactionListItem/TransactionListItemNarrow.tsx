@@ -143,7 +143,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     <>
                         <UserInfoAndActionButtonRow
                             item={transactionItem}
-                            shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
+                            shouldShowUserInfo={!!transactionItem?.from}
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
                             isSelected={isSelected}

@@ -11,7 +11,7 @@ import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/u
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type ConfirmationProps = SubPageProps;
 
@@ -23,7 +23,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const values = useMemo(() => getValuesForSignerInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
+    const values = getValuesForSignerInfo(reimbursementAccountDraft);
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

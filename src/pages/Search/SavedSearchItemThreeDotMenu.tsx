@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ThreeDotsMenuHandle = {hidePopoverMenu: () => void; isPopupMenuVisible: boolean};
@@ -23,23 +23,19 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: Save
     const {endPeek} = useSearchSidebarCollapse();
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
 
-    const menuItemsWithPeekCleanup = useMemo(
-        () =>
-            menuItems.map((item) => {
-                if (item.shouldCloseModalOnSelect === false) {
-                    return item;
-                }
+    const menuItemsWithPeekCleanup = menuItems.map((item) => {
+        if (item.shouldCloseModalOnSelect === false) {
+            return item;
+        }
 
-                return {
-                    ...item,
-                    onSelected: () => {
-                        endPeek();
-                        item.onSelected?.();
-                    },
-                };
-            }),
-        [endPeek, menuItems],
-    );
+        return {
+            ...item,
+            onSelected: () => {
+                endPeek();
+                item.onSelected?.();
+            },
+        };
+    });
 
     useEffect(() => {
         if (!isCopied) {

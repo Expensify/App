@@ -1,8 +1,8 @@
 ---
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, EUR government mileage rates, IRS standard rate, mileage rates, distance bands, auto-generated rate, lightning bolt icon, default currency change, miles kilometers unit]
-internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, does not cover creating distance expenses.
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, EUR government mileage rates, IRS standard rate, mileage rates, distance bands, auto-generated rate, lightning bolt icon, default currency change, miles kilometers unit, require GPS or map entry, disable manual distance, disable odometer entry, restrict distance expense types]
+internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates and requiring GPS or map entry, does not cover creating distance expenses.
 ---
 
 # Set Distance Rates
@@ -152,6 +152,27 @@ When a workspace has more than one distance rate, Expensify uses effective dates
  - When a member creates a distance expense, Expensify selects the rate whose **Start date** and **End date** include the expense date, using the most narrow and most recent date range if multiple apply,
  - If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating that the rate doesn't match the selected date. 
  - Setting effective dates is optional. Rates without a **Start date** or **End date** continue to apply without an effective-date restriction.
+
+---
+
+## How to require GPS or map entry for distance expenses
+
+Workspace admins can control how members log trips by requiring a map-based route or a GPS-tracked trip on every distance expense. When **Require GPS or map entry** is enabled, manual and odometer entry are disabled for the workspace.
+
+To require GPS or map entry:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Enable **Require GPS or map entry**.
+
+After you enable it:
+
+- Members creating a distance expense on the workspace see only the **Map** and **GPS** options. **Manual** and **Odometer** are hidden.
+- If a member tries to create a manual or odometer distance expense on the workspace, Expensify shows a message that the workspace requires either map-based or GPS-tracked distance expenses.
+- Existing distance expenses are not changed, and members can still edit them.
+
+**Exclude commutes** also requires GPS or map entry, because commute exclusions are calculated from the trip's route. While **Exclude commutes** is set to anything other than **Do not exclude commute**, manual and odometer entry are disabled and **Require GPS or map entry** stays on and locked. To turn off **Require GPS or map entry**, first set **Exclude commutes** to **Do not exclude commute**.
 
 ---
 
