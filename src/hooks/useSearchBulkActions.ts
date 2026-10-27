@@ -1645,6 +1645,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateTransactions,
         duplicateTransactionViolations,
         delegateAccountID,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(
