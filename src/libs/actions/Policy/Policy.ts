@@ -4314,7 +4314,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fun
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string, currentValue: string | undefined) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
 
-    if (value === (currentValue ?? '')) {
+    if (!login || value === (currentValue ?? '')) {
         return;
     }
 
@@ -5159,6 +5159,12 @@ const ENABLE_CONNECTION_FEATURE = {
 function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName: ConnectionFeatureName) {
     if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
         return;
+    }
+    // A workspace that is still being created has no connections to fetch. Without this, the open Connections page
+    // would be replaced by a loader while the fetch waits behind the create request. It's set first so the page never
+    // sees the feature on without it.
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
     ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }

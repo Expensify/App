@@ -6,6 +6,12 @@
 
 React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the ESLint processor use the same compiler through `config/reactCompiler/checkWithOxc.mjs`.
 
+## Manual memoization
+
+`rulesdir/no-manual-memoization` disallows `React.memo`, `useMemo`, and `useCallback` in files fully compiled and memoized by React Compiler. Derive values directly in render and use plain functions instead of maintaining dependency arrays. The lint pipeline allows manual memoization when the compiler cannot memoize the file.
+
+Callbacks passed to React Navigation's `useFocusEffect` are the exception: keep their `useCallback` wrapper because React Navigation requires a stable callback.
+
 ## React Compiler CI check
 
 A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs `oxc-transform-react` and reports whether the file compiles and whether it is actually memoized.
@@ -73,7 +79,7 @@ If you added a modification to `SharedValue`, you'll likely encounter this error
 
 ### Existing manual memoization could not be preserved. [...]
 
-These types of errors usually occur when the calls to `useMemo` that were made manually are too complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
+Remove the manual memoization and derive the value directly in render. This lets React Compiler infer dependencies and choose its own memoization boundaries. The examples below explain the historical errors in files that still need manual memoization because they do not compile on both platforms.
 
 Some specific cases of this error are described below.
 

@@ -5,12 +5,14 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isReportTransactionThread} from '@libs/ReportUtils';
 import {getTransactionID} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {getParentReportActionSelector} from '@selectors/ReportAction';
 
 function useShouldAddOrReplaceReceipt(reportID: string) {
     const {isOffline} = useNetwork();
@@ -18,9 +20,9 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-
     const isTransactionThreadView = isReportTransactionThread(report);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isTransactionThreadView ? report?.parentReportID : undefined)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const filteredReportActions = getFilteredReportActionsForReportView(rawReportActions ? Object.values(rawReportActions) : []);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
@@ -33,11 +35,19 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const isSingleTransactionView = !!transaction && !!reportTransactions && reportTransactions.length === 1;
-    const effectiveParentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
+    const effectiveParentReportAction = isSingleTransactionView ? iouAction : parentReportAction;
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, rules, reportNameValuePairs: undefined}) &&
+        canEditFieldOfMoneyRequest({
+            reportAction: effectiveParentReportAction,
+            fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+            transaction,
+            rules,
+            reportNameValuePairs: undefined,
+            reportActions: isSingleTransactionView ? rawReportActions : parentReportActions,
+        }) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 

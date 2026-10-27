@@ -7,6 +7,7 @@ import WorkerPool from '../../utils/WorkerPool';
 import Processor from '../Processor';
 
 const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
+const MANUAL_MEMOIZATION_RULE = 'rulesdir/no-manual-memoization';
 const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 const CACHE_DIR = 'node_modules/.cache/react-compiler';
 const REACT_COMPILER_FINGERPRINT_FILES = [
@@ -122,8 +123,8 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkCompiler: C
 }
 
 /**
- * Drop suppressible React-Compiler-redundant messages, but only after the
- * compiler memoizes the file. Files with no suppressible message are skipped
+ * Drop redundant messages and enforce no-manual-memoization only after the
+ * compiler memoizes the file. Files with no compiler-dependent message are skipped
  * entirely (~60× fewer compiler invocations than the ESLint processor).
  *
  * Cache is one file per compiler fingerprint and content hash so concurrent
@@ -162,13 +163,13 @@ async function filterReactCompilerMessages(
         if (shouldSkipCompiler(filename)) {
             continue;
         }
-        if (fileMessages.some(isSuppressibleMessage)) {
+        if (fileMessages.some((message) => isSuppressibleMessage(message) || message.ruleID === MANUAL_MEMOIZATION_RULE)) {
             candidateNames.push(filename);
         }
     }
 
     if (candidateNames.length === 0) {
-        return messages;
+        return messages.filter((message) => message.ruleID !== MANUAL_MEMOIZATION_RULE);
     }
 
     const uncached: Candidate[] = [];
@@ -216,6 +217,9 @@ async function filterReactCompilerMessages(
     );
 
     return messages.filter((message) => {
+        if (message.ruleID === MANUAL_MEMOIZATION_RULE) {
+            return memoized.get(message.filePath) === true;
+        }
         if (!memoized.get(message.filePath)) {
             return true;
         }

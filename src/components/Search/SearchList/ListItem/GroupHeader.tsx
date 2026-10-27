@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
@@ -38,7 +39,7 @@ import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
@@ -73,7 +74,6 @@ type GroupHeaderProps = SearchListActionProps & {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
     shouldSyncFocus?: boolean;
-    isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
     visibleColumns?: SearchCustomColumnIds[];
@@ -95,7 +95,6 @@ function GroupHeader({
     onLongPressRow,
     onFocus,
     shouldSyncFocus,
-    isFocused,
     isFirstItem,
     isLastItem,
     lastPaymentMethod,
@@ -105,6 +104,7 @@ function GroupHeader({
     visibleColumns,
     windowWidth,
 }: GroupHeaderProps) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
@@ -128,15 +128,12 @@ function GroupHeader({
     const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
     });
-    const transactionPreviewData: TransactionPreviewData = useMemo(
-        () => ({
-            hasParentReport: !!parentReport,
-            hasTransaction: !!oneTransaction,
-            hasParentReportAction: !!parentReportAction,
-            hasTransactionThreadReport: !!oneTransactionThreadReport,
-        }),
-        [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
-    );
+    const transactionPreviewData: TransactionPreviewData = {
+        hasParentReport: !!parentReport,
+        hasTransaction: !!oneTransaction,
+        hasParentReportAction: !!parentReportAction,
+        hasTransactionThreadReport: !!oneTransactionThreadReport,
+    };
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const snapshotData = transactionsSnapshot?.data;

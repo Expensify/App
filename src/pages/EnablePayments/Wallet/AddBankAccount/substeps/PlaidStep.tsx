@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
@@ -25,7 +25,7 @@ function PlaidStep({onNext}: SubPageProps) {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const selectedPlaidAccountID = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
-    const handleNextPress = useCallback(() => {
+    const handleNextPress = () => {
         const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]);
 
         const bankAccountData = {
@@ -40,7 +40,7 @@ function PlaidStep({onNext}: SubPageProps) {
 
         updateAddPersonalBankAccountDraft(bankAccountData);
         onNext();
-    }, [onNext, personalBankAccountDraft, plaidData]);
+    };
 
     const handleSelectPlaidAccount = (plaidAccountID: string) => {
         updateAddPersonalBankAccountDraft({plaidAccountID});
