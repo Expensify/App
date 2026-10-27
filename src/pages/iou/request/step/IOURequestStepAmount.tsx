@@ -23,6 +23,7 @@ import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
+import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
@@ -35,7 +36,7 @@ import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyReque
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Report, SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -70,6 +71,7 @@ const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
 function IOURequestStepAmount({
     report,
     route: {
+        name: routeName,
         params: {iouType, reportID, transactionID = '-1', backTo, action, backToReport, reportActionID},
     },
     transaction,
@@ -149,6 +151,10 @@ function IOURequestStepAmount({
 
     const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
 
+    // Embedded in the start page (INVOICE), this step is the root of the flow, so leaving the flow from any later step prompts too.
+    // Its committed amount keeps it dirty once the user has moved on.
+    const isFlowRoot = routeName === SCREENS.MONEY_REQUEST.CREATE;
+
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
@@ -162,6 +168,9 @@ function IOURequestStepAmount({
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
         },
+        shouldPromptWhenUnfocused: isFlowRoot,
+        // Wait for the closing transition so the flow's screens don't flash empty on their way out
+        onDiscarded: isFlowRoot ? () => cleanupAfterExpenseCreate({draftTransactionIDs: [transactionID], shouldWaitForUpcomingTransition: true}) : undefined,
     });
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
