@@ -8607,6 +8607,7 @@ const CONST = {
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
+            JACKS_COLUMN: 'jacksColumn',
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
