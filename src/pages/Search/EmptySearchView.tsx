@@ -131,6 +131,7 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
@@ -194,7 +195,7 @@ function EmptySearchViewContent({
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
             startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
-        });
+        }, session);
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
