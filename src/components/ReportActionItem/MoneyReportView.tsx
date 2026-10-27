@@ -43,7 +43,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type BreakdownRow = {
@@ -134,10 +134,8 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const policyReportFields = useMemo(() => {
-        const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs, policy?.errorFields);
-        return Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
-    }, [policy?.fieldList, policy?.errorFields, report, reportNameValuePairs]);
+    const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs, policy?.errorFields);
+    const policyReportFields = Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
 
     const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions.length > 0);
@@ -146,20 +144,16 @@ function MoneyReportView({
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
-    const renderThreadDivider = useMemo(
-        () =>
-            shouldHideThreadDividerLine ? (
-                <UnreadActionIndicator
-                    reportActionID={report?.reportID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                />
-            ) : (
-                <SpacerView
-                    shouldShow
-                    style={styles.reportHorizontalRule}
-                />
-            ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
+    const renderThreadDivider = shouldHideThreadDividerLine ? (
+        <UnreadActionIndicator
+            reportActionID={report?.reportID}
+            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+        />
+    ) : (
+        <SpacerView
+            shouldShow
+            style={styles.reportHorizontalRule}
+        />
     );
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
