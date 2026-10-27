@@ -96,6 +96,19 @@ function isMCPEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.isMCPEnabled ?? true;
 }
 
+const CONNECTION_FEATURE_NAMES = new Set<PolicyFeatureName>([
+    CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+    CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED,
+    CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+    CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED,
+]);
+
+/** Whether the feature is turned on by connecting an integration on Connections, so More features has no toggle for it */
+function isConnectionFeature(featureName: PolicyFeatureName): boolean {
+    return CONNECTION_FEATURE_NAMES.has(featureName);
+}
+
 /**
  * Returns the policy's default hourly rate for the Time Tracking feature.
  */
@@ -103,4 +116,4 @@ function getDefaultTimeTrackingRate(policy: Partial<OnyxEntry<Policy>>): number 
     return policy?.units?.time?.rate !== undefined ? convertToBackendAmount(policy.units.time.rate) : undefined;
 }
 
-export {isAttendeeTrackingEnabled, arePolicyRulesEnabled, isInvoiceFieldsEnabled, isPolicyFeatureEnabled, isTimeTrackingEnabled, getDefaultTimeTrackingRate};
+export {isAttendeeTrackingEnabled, arePolicyRulesEnabled, isConnectionFeature, isInvoiceFieldsEnabled, isPolicyFeatureEnabled, isTimeTrackingEnabled, getDefaultTimeTrackingRate};

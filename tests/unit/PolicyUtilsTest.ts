@@ -129,6 +129,7 @@ import {
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
     isPolicyAccessible,
+    isConnectionFeature,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
     isRoomMemberProtectedByPolicyRole,
@@ -6083,6 +6084,26 @@ describe('PolicyUtils', () => {
 
             it('returns false for an undefined policy', () => {
                 expect(isInvoiceFieldsEnabled(undefined)).toBe(false);
+            });
+        });
+
+        describe('isConnectionFeature', () => {
+            it('returns true for the features that connecting an integration turns on', () => {
+                // Given the features Connections turns on, which have no toggle on More features
+                // When each one is checked
+                // Then each counts as a connection feature, so a page gated on it sends users to Connections instead
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.IS_RECRUITING_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)).toBe(true);
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED)).toBe(true);
+            });
+
+            it('returns false for a feature that has a toggle on More features', () => {
+                // Given a feature that is still turned on from More features
+                // When it is checked
+                // Then it is not a connection feature, so a page gated on it keeps sending users to More features
+                expect(isConnectionFeature(CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED)).toBe(false);
             });
         });
 

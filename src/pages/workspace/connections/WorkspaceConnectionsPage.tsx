@@ -160,6 +160,16 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 
     const openSuggestIntegration = () => openConciergeAnywhere({forceConcierge: true});
 
+    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page
+    const linkedTab = params?.tab;
+    useFocusEffect(() => {
+        if (!linkedTab) {
+            return;
+        }
+        setLastSelectedTab(linkedTab);
+        Navigation.setParams({tab: undefined});
+    });
+
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
     // `startIntegrationFlow` changes identity whenever `policy` does, and the params are only cleared in a later render,
     // so the guard is keyed on the value to start each flow once.

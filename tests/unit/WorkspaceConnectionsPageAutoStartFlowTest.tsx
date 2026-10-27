@@ -208,6 +208,23 @@ describe('WorkspaceConnectionsPage tab from the route', () => {
         expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ACCOUNTING);
     });
 
+    it('should clear the tab from the route and stay on it', async () => {
+        // Given a link to Connections that asks for the Accounting tab
+        mockRouteParams = {tab: CONST.TAB.CONNECTIONS.ACCOUNTING};
+        const {rerender} = render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // When the page clears the tab from its params and re-renders without it
+        landPendingParamsUpdate();
+        rerender(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the param is gone, so Back from a panel finds this page, and the Accounting tab is still selected
+        expect(Navigation.setParams).toHaveBeenCalledWith({tab: undefined});
+        expect(mockRouteParams.tab).toBeUndefined();
+        expect(mockActiveTabKey).toBe(CONST.TAB.CONNECTIONS.ACCOUNTING);
+    });
+
     it('should fall back to All for a tab it does not know', async () => {
         // Given a link with a tab value that is not one of the page's tabs
         mockRouteParams = {tab: 'unknown'};
