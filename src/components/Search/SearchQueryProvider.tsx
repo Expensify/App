@@ -29,8 +29,9 @@ type SearchQueryProviderProps = {
 
 /**
  * Joins `q` and `rawQuery` so they can't drift apart. Restoring only `q` would drop `rawFilterList` while keeping the same hash.
- * Returns `undefined` when the last tab navigator has no Search state yet, so `usePreviousDefined` keeps the last real query.
- * Otherwise a still-mounted Search page in an older tab navigator would save and search the default query.
+ * Returns `undefined` when no tab navigator has Search state, so `usePreviousDefined` keeps the last real query
+ * instead of resetting to the default. This happens once the Spend navigator is dropped, for example after
+ * "Go to room" and "Go to workspace" push two more tab navigators.
  */
 function selectSearchQueryParams(state: NavigationState | undefined) {
     const searchRootParams = getSearchRootParamsFromRootState(state, false);

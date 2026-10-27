@@ -93,6 +93,13 @@ type NavigationRouteLike = {
     state?: unknown;
 };
 
+/**
+ * The outcome for one tab navigator that has Search state. `params` is `undefined` when its Search navigator is
+ * mounted but has no usable root route params. Wrapping it lets that "resolved, but empty" outcome be told apart
+ * from a tab navigator with no Search state at all, which returns no resolution so the walk keeps going.
+ */
+type TabNavigatorSearchResolution = {params: SearchRootParams | undefined};
+
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
@@ -2808,6 +2815,45 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
     return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
+function isTabNavigatorRoute(route: unknown): route is NavigationRouteLike {
+    return isRecord(route) && route.name === NAVIGATORS.TAB_NAVIGATOR;
+}
+
+/**
+ * Returns the Search root params a single tab navigator resolves to, or `undefined` when it has no Search state.
+ *
+ * Nested route params are only consulted when `shouldUseNestedParams` is set, which the caller does for the newest
+ * tab navigator only. For an older navigator they are the params it was first opened with, and the user may have
+ * changed the query since, so they can be stale. The live or preserved Search state is always current.
+ */
+function getSearchRootParamsFromTabNavigator(tabNavigator: NavigationRouteLike, shouldUseNestedParams: boolean): TabNavigatorSearchResolution | undefined {
+    const tabStateFromParams = getParamsState(tabNavigator.params);
+    const tabState = tabNavigator.state ?? (tabNavigator.key ? getPreservedNavigatorState(tabNavigator.key) : undefined) ?? tabStateFromParams;
+    const searchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const searchNavigatorState = searchNavigator?.state ?? (searchNavigator?.key ? getPreservedNavigatorState(searchNavigator.key) : undefined);
+
+    if (searchNavigatorState) {
+        return {params: getSearchRootParamsFromSearchNavigatorState(searchNavigatorState)};
+    }
+
+    if (!shouldUseNestedParams) {
+        return undefined;
+    }
+
+    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
+    // neither .state nor the preserved state map will have an entry. Use nested route params when
+    // React Navigation provided them and they parse.
+    const nestedSearchRootParams =
+        getSearchRootParamsFromNestedNavigatorParams(searchNavigator?.params) ??
+        getSearchRootParamsFromNestedNavigatorParams(tabNavigator.params) ??
+        getSearchRootParamsFromTabState(tabStateFromParams);
+    if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
+        return {params: nestedSearchRootParams};
+    }
+
+    return undefined;
+}
+
 /**
  * Resolves the params of the Search root route that the app is currently showing (or would return to),
  * from a navigation state tree.
@@ -2817,40 +2863,33 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
  * still does. It also does not walk only the live tree. A non-focused tab navigator has its nested state
  * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
  *
+ * Tab navigators are walked from newest to oldest and the first one with Search state wins, like the tab bar's
+ * `getLastRoute`. A cross-tab push such as "Go to room" adds a newer tab navigator without Search state, so the
+ * older Spend tab keeps providing the query. Only the newest one may use nested route params, since an older
+ * one's can be stale.
+ *
  * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
  * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
  * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
  *
- * Pass `shouldFallBackToDefaultQuery: false` to get `undefined` instead of the default query when the last tab
- * navigator has no Search state yet (e.g. a tab navigator pushed from the side panel). Reactive readers use this
- * to keep the last real query instead of resetting it to the default.
+ * Pass `shouldFallBackToDefaultQuery: false` to get `undefined` instead of the default query when no tab
+ * navigator has Search state. Reactive readers use this to keep their last real query.
  */
 function getSearchRootParamsFromRootState(rootState: unknown, shouldFallBackToDefaultQuery = true): SearchRootParams | undefined {
-    const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
-    const tabStateFromParams = getParamsState(lastTabNavigator?.params);
-    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
-    const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    let lastSearchNavigatorState = lastSearchNavigator?.state;
-    if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined;
+    const tabNavigators = (getRoutes(rootState) ?? []).filter(isTabNavigatorRoute);
+    const newestTabNavigator = tabNavigators.at(-1);
+
+    // Walk newest to oldest. `??` short-circuits, so older tab navigators are not resolved once one has Search state.
+    const resolution = tabNavigators.reduceRight<TabNavigatorSearchResolution | undefined>(
+        (found, tabNavigator) => found ?? getSearchRootParamsFromTabNavigator(tabNavigator, tabNavigator === newestTabNavigator),
+        undefined,
+    );
+
+    if (resolution) {
+        return resolution.params;
     }
 
-    const nestedSearchRootParams =
-        getSearchRootParamsFromNestedNavigatorParams(lastSearchNavigator?.params) ??
-        getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params) ??
-        getSearchRootParamsFromTabState(tabStateFromParams);
-
-    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
-    // neither .state nor the preserved state map will have an entry. Use nested route params when
-    // React Navigation provided them and they parse, otherwise fall back to the default initialParams query.
-    if (!lastSearchNavigatorState) {
-        if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
-            return nestedSearchRootParams;
-        }
-        return shouldFallBackToDefaultQuery ? {q: buildSearchQueryString()} : undefined;
-    }
-
-    return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);
+    return shouldFallBackToDefaultQuery ? {q: buildSearchQueryString()} : undefined;
 }
 
 function getCurrentSearchQueryJSON() {
