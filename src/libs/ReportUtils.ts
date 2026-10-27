@@ -5668,6 +5668,24 @@ function getReportFieldKey(reportFieldId: string | undefined) {
 }
 
 /**
+ * Whether a policy report field failed to be created. It stays on the policy, pending ADD with an error, until the error
+ * is dismissed. Fields still pending ADD without an error (for example, created offline) haven't failed.
+ */
+function isFailedReportFieldAdd(reportField: (PolicyReportField & {pendingAction?: PendingAction | null}) | undefined, policyErrorFields: ErrorFields | undefined): boolean {
+    return reportField?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !!policyErrorFields?.fieldList?.[getReportFieldKey(reportField.fieldID)];
+}
+
+/**
+ * Get the policy report fields without the ones that failed to be created
+ */
+function getReportFieldsWithoutFailedAdds<TReportField extends PolicyReportField & {pendingAction?: PendingAction | null}>(
+    fieldList: Record<string, TReportField> | undefined,
+    policyErrorFields: ErrorFields | undefined,
+): Record<string, TReportField> {
+    return Object.fromEntries(Object.entries(fieldList ?? {}).filter(([, reportField]) => !isFailedReportFieldAdd(reportField, policyErrorFields)));
+}
+
+/**
  * Get the report fields attached to the policy given policyID
  */
 function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList'] {
@@ -5706,12 +5724,9 @@ function getAvailableReportFields(
 
     // If the report is unsettled, we want to merge the new fields that get added to the policy with the fields that
     // are attached to the report.
-    // Skip policy fields that failed to be created. They stay on the policy, pending ADD with an error, until the error is
-    // dismissed. Fields still pending ADD without an error (for example, created offline) are kept.
+    // Policy fields that failed to be created are skipped.
     const reportFieldIDs = new Set(reportFields.map(({fieldID}) => fieldID));
-    const availablePolicyReportFields = policyReportFields.filter(
-        ({fieldID, pendingAction}) => pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !policyErrorFields?.fieldList?.[getReportFieldKey(fieldID)],
-    );
+    const availablePolicyReportFields = policyReportFields.filter((policyReportField) => !isFailedReportFieldAdd(policyReportField, policyErrorFields));
     const mergedFieldIds = Array.from(new Set([...availablePolicyReportFields.map(({fieldID}) => fieldID), ...reportFieldIDs]));
 
     const fields = mergedFieldIds.map((id) => {
@@ -15530,6 +15545,8 @@ export {
     getReimbursementQueuedActionMessage,
     getReportDescription,
     getReportFieldKey,
+    getReportFieldsWithoutFailedAdds,
+    isFailedReportFieldAdd,
     getReportFieldMaps,
     getReportIDFromLink,
     getReportTransactions,

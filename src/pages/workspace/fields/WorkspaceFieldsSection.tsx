@@ -20,7 +20,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getReportFieldKey} from '@libs/ReportUtils';
+import {getReportFieldKey, isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -50,6 +50,7 @@ type FieldListItem = {
     fieldID: string;
     errors: Errors;
     isDisabled: boolean;
+    isFailedAdd: boolean;
     keyForList: string;
     pendingAction?: PendingAction;
     rightLabel: string;
@@ -149,12 +150,14 @@ function WorkspaceFieldsSection({
                       pendingAction: field.pendingAction,
                       errors: getLatestErrorField({errorFields: errorFields?.fieldList?.[fieldKey] ?? {}}, 'defaultValue'),
                       isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      isFailedAdd: isFailedReportFieldAdd(field, errorFields),
                       rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
                   };
               });
 
     const navigateToFieldSettings = (item: FieldListItem) => {
-        if (!canWrite) {
+        // A field that failed to be created doesn't exist on the server, so its settings can't be saved. The user dismisses the error instead.
+        if (!canWrite || item.isFailedAdd) {
             return;
         }
 
@@ -174,8 +177,8 @@ function WorkspaceFieldsSection({
                 onPress={() => navigateToFieldSettings(item)}
                 description={item.text}
                 disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled && canWrite}
-                interactive={!item.isDisabled && canWrite}
+                shouldShowRightIcon={!item.isDisabled && !item.isFailedAdd && canWrite}
+                interactive={!item.isDisabled && !item.isFailedAdd && canWrite}
                 rightLabel={item.rightLabel}
                 descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
             />

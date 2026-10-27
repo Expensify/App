@@ -146,6 +146,7 @@ import {
     getReportActionWithSmartscanError,
     getReportFieldMaps,
     getReportFieldsByPolicyID,
+    getReportFieldsWithoutFailedAdds,
     getReportForHeader,
     getReportIDFromLink,
     getReportNotificationPreference,
@@ -22988,6 +22989,47 @@ describe('ReportUtils', () => {
 
             // Then the optimistic field is still shown on the report
             expect(availableFields.map(({fieldID}) => fieldID)).toEqual(['field_id_LIST']);
+        });
+    });
+
+    describe('getReportFieldsWithoutFailedAdds', () => {
+        const baseField = createMock<PolicyReportField>({type: 'text', values: [], disabledOptions: [], defaultValue: ''});
+        const savedField = {...baseField, fieldID: 'field_id_SAVED', name: 'Saved'};
+        const offlineField = {...baseField, fieldID: 'field_id_OFFLINE', name: 'Offline', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        const updateFailedField = {...baseField, fieldID: 'field_id_UPDATE_FAILED', name: 'Update failed'};
+        const fieldList = {
+            expensify_field_id_SAVED: savedField,
+            expensify_field_id_OFFLINE: offlineField,
+            expensify_field_id_FAILED: failedField,
+            expensify_field_id_UPDATE_FAILED: updateFailedField,
+        };
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses
+        const policyErrorFields = {
+            fieldList: {
+                expensify_field_id_FAILED: {defaultValue: {1: 'Error'}},
+                expensify_field_id_UPDATE_FAILED: {defaultValue: {2: 'Error'}},
+            },
+        } as unknown as ErrorFields;
+
+        it('should leave out only the fields that failed to be created', () => {
+            // Given a policy with a saved field, a field added offline, a field whose creation failed, and an existing field whose update failed
+
+            // When removing the failed adds
+            const fields = getReportFieldsWithoutFailedAdds(fieldList, policyErrorFields);
+
+            // Then only the field whose creation failed is left out, because it doesn't exist on the server. The others do, or are still being created.
+            expect(Object.keys(fields)).toEqual(['expensify_field_id_SAVED', 'expensify_field_id_OFFLINE', 'expensify_field_id_UPDATE_FAILED']);
+        });
+
+        it('should keep every field when the policy has no errors', () => {
+            // Given a policy without report field errors
+
+            // When removing the failed adds
+            const fields = getReportFieldsWithoutFailedAdds(fieldList, undefined);
+
+            // Then no field is left out, because a pending ADD without an error hasn't failed
+            expect(fields).toEqual(fieldList);
         });
     });
 

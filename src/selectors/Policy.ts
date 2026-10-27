@@ -23,6 +23,7 @@ import {
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
+import {getReportFieldsWithoutFailedAdds} from '@libs/ReportUtils';
 import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
@@ -267,12 +268,12 @@ const createHasWorkspaceToSubmitToSelector =
         getActivePoliciesWithExpenseChat(policies, currentUserLogin).length > 0;
 
 /**
- * Creates a selector that aggregates all non-formula policy report fields from all policies,
+ * Creates a selector that aggregates all non-formula policy report fields from all policies, except the ones that failed to be created,
  * sorted alphabetically by field key using the provided locale compare function
  */
 const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, localeCompare: (a: string, b: string) => number) => {
     const allPolicyReportFields = Object.values(policies ?? {}).reduce<Record<string, PolicyReportField>>((acc, policy) => {
-        Object.assign(acc, policy?.fieldList ?? {});
+        Object.assign(acc, getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields));
         return acc;
     }, {});
 

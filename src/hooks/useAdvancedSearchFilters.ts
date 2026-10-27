@@ -1,5 +1,6 @@
 import {isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {hasVendorFeatureOnAnyPolicy, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {getReportFieldsWithoutFailedAdds} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -246,7 +247,7 @@ const policyDerivedSelector = (policies: OnyxCollection<Policy>) => {
             isAttendeeTrackingEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED);
         }
         if (!hasReportFields) {
-            hasReportFields = Object.values(policy.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
+            hasReportFields = Object.values(getReportFieldsWithoutFailedAdds(policy.fieldList, policy.errorFields)).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
         }
         if (!hasAnyTaxRates && policy.taxRates?.taxes && Object.keys(policy.taxRates.taxes).length > 0) {
             hasAnyTaxRates = true;

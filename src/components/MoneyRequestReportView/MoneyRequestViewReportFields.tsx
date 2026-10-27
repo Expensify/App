@@ -18,6 +18,7 @@ import {
     getFieldViolationTranslation,
     getReportFieldKey,
     getReportFieldMaps,
+    getReportFieldsWithoutFailedAdds,
     isReportFieldDisabledForUser,
     isReportFieldTargetMatchingReport,
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
@@ -97,7 +98,7 @@ function ReportFieldView(
                     value={reportField.fieldValue}
                     isDisabled={reportField.isFieldDisabled}
                     errorText={reportField.violationTranslation}
-                    fieldList={policy?.fieldList}
+                    fieldList={getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields)}
                     onSaveValue={(value) => onSaveValue(reportField, value)}
                     onDelete={
                         reportField.isFieldDeletable
