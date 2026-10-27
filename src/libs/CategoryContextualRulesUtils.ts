@@ -15,7 +15,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
-import {getCategoryExpenseDefaultMatches, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
+import {getCategoryOwnExpenseDefaultRule, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
 import {getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
@@ -121,29 +121,26 @@ function getCategoryContextualRules({
         }
     }
 
-    // Expense defaults are ordinary rules rather than something stored on the category, so they are looked up by
-    // what they match on. The summary is the table's, so a rule reads the same in both places.
-    for (const {match} of getCategoryExpenseDefaultMatches(policyRules, policy.id, categoryName)) {
-        const summary = getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(match.rule), policy, translate);
-        if (!summary) {
-            continue;
-        }
-
-        // A rule is also reached through the category and the tax rate it depends on, so deleting either of those
-        // retires the rule with them.
-        const rulePendingAction = match.rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(match.rule));
+    // An expense default is an ordinary rule rather than something stored on the category, so it is looked up by
+    // what it matches on. Only a rule the category decides alone belongs here. One that also matches on a merchant
+    // or a tag is listed with them on the Rules page, and the row's route addresses a rule by category, so listing
+    // it here would open the wrong rule. The summary is the table's, so a rule reads the same in both places.
+    const ownRule = getCategoryOwnExpenseDefaultRule(policyRules, policy.id, categoryName);
+    const ownRuleSummary = ownRule ? getExpenseDefaultRuleDescription(getExpenseDefaultRuleSummaryFields(ownRule.rule), policy, translate) : '';
+    if (ownRule && ownRuleSummary) {
+        // The rule is also reached through the category and the tax rate it depends on, so deleting either of
+        // those retires the rule with them.
+        const rulePendingAction = ownRule.rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(ownRule.rule));
         const isRulePendingDelete = rulePendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        if (!isOffline && isRulePendingDelete) {
-            continue;
+        if (isOffline || !isRulePendingDelete) {
+            rules.push({
+                key: `expense-default-${ownRule.ruleID}`,
+                summary: ownRuleSummary,
+                dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
+                pendingAction: rulePendingAction,
+                isDisabled: isRulePendingDelete,
+            });
         }
-
-        rules.push({
-            key: `expense-default-${match.ruleID}`,
-            summary,
-            dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.path,
-            pendingAction: rulePendingAction,
-            isDisabled: isRulePendingDelete,
-        });
     }
 
     return rules;

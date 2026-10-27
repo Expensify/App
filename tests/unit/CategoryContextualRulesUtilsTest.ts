@@ -288,15 +288,19 @@ describe('getCategoryContextualRules', () => {
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
         });
 
-        it('lists a rule per matching rule', () => {
-            // Given two rules that both match the category
-            const twoRules: OnyxCollection<Rule> = {
+        it('leaves a rule that also matches on a merchant to the Rules page', () => {
+            // Given the category's own rule and a second rule matching the category together with a merchant
+            const withMerchantRule: OnyxCollection<Rule> = {
                 ...taxDefaultRules,
                 [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
                     scope: CONST.RULES.SCOPE.POLICY,
                     scopeID: policy.id,
                     triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
-                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                        right: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+                    },
                     actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
                 },
             };
@@ -305,7 +309,7 @@ describe('getCategoryContextualRules', () => {
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
                 policyCategories: undefined,
-                policyRules: twoRules,
+                policyRules: withMerchantRule,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -313,8 +317,10 @@ describe('getCategoryContextualRules', () => {
                 isOffline: false,
             });
 
-            // Then both are listed, rather than one standing in for the category
-            expect(rules).toHaveLength(2);
+            // Then only the category's own rule is listed. The merchant one belongs with the merchants on the
+            // Rules page, and the row's route opens a rule by category, so a second row would open this same one
+            expect(rules).toHaveLength(1);
+            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)"');
         });
     });
 });

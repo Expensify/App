@@ -730,7 +730,6 @@ export {
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryExpenseDefaultMatches,
     getCategoryExpenseDefaultRule,
     getExpenseDefaultTaxID,
     getCategoryOwnExpenseDefaultRule,
