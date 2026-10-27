@@ -1188,6 +1188,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Gestegen met ${percentage}`,
             decrease: (percentage: string) => `Gedaald met ${percentage}`,
         },
+        compliance: 'Naleving',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

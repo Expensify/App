@@ -1236,6 +1236,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
         },
+        compliance: 'Συμμόρφωση',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

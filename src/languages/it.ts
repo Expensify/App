@@ -1189,6 +1189,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `In aumento del ${percentage}`,
             decrease: (percentage: string) => `In calo del ${percentage}`,
         },
+        compliance: 'Conformità',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
