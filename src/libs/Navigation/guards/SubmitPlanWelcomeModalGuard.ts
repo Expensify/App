@@ -37,17 +37,9 @@ let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 
-// IDs of the group workspaces the POLICY subscription last saw the user able to create reports on. Undefined until it
-// is computed for an otherwise-eligible user.
-let lastReportCreatablePolicyIDs: string[] | undefined;
-
-// The report-creatable workspaces whose loss opened the modal. A deletion stays pending while offline, but an online
-// deletion the server rejects restores the workspace, so the modal must close again if one of these comes back.
-let lostReportCreatablePolicyIDs: string[] | undefined;
-
-// Set while the modal is closed because a lost workspace came back, so closing it doesn't mark the modal as shown
-// and the user can still see it if they delete that workspace again later.
-let isClosingForRestoredPolicy = false;
+// Whether the POLICY subscription last saw a workspace where the user can create reports. Undefined until it is
+// computed for an otherwise-eligible user.
+let hadReportablePolicy: boolean | undefined;
 
 // An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
 // top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
@@ -78,31 +70,7 @@ function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
 function resetSessionFlag() {
     hasRedirectedToSubmitPlanModal = false;
     hasPendingSubmitDeeplink = false;
-    lastReportCreatablePolicyIDs = undefined;
-    lostReportCreatablePolicyIDs = undefined;
-    isClosingForRestoredPolicy = false;
-}
-
-/**
- * IDs of the group workspaces the user can create reports on, which skips ones pending deletion. This is the same check
- * `shouldShowSubmitPlanWelcomeModal` and `useAutoCreateSubmitWorkspace` use, so losing the last of these workspaces is
- * what makes the modal eligible and lets "Get the free plan" create one.
- */
-function getReportCreatablePolicyIDs(): string[] {
-    return getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).map((policy) => policy.id);
-}
-
-/** Whether the modal should record itself as shown when it closes. */
-function shouldMarkSubmitPlanWelcomeModalShown() {
-    return !isClosingForRestoredPolicy;
-}
-
-/** Closes the modal opened by losing a workspace once that workspace is restored, such as after a rejected delete. */
-function closeModalForRestoredPolicy() {
-    hasRedirectedToSubmitPlanModal = false;
-    lostReportCreatablePolicyIDs = undefined;
-    isClosingForRestoredPolicy = true;
-    Navigation.removeScreenFromNavigationState(NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR);
+    hadReportablePolicy = undefined;
 }
 
 /**
@@ -152,7 +120,6 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
     }
 
     hasRedirectedToSubmitPlanModal = true;
-    isClosingForRestoredPolicy = false;
     Navigation.navigate(getSubmitPlanWelcomeModalRoute());
 }
 
@@ -188,8 +155,7 @@ Onyx.connectWithoutView({
 // the proactive check. They intentionally do NOT drive navigation: by the time the session/app-load signal
 // fires, every value below has already landed in the same OpenApp batch. Driving navigation from these
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
-// the whole session. The one exception is POLICY losing the user's last workspace where they can create reports
-// (or getting it back after a rejected delete), handled below.
+// the whole session. The one exception is POLICY losing the user's last reportable workspace, handled below.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
@@ -211,33 +177,17 @@ Onyx.connectWithoutView({
 
         // Deleting the user's last workspace (for example, while offline) neither navigates nor reloads the app, so
         // nothing else re-checks the modal. To keep this high-churn collection cheap, only users who are otherwise
-        // eligible recompute workspace eligibility, and only losing the last workspace where they can create reports
-        // triggers a check.
-        if (introSelected?.choice !== CONST.ONBOARDING_CHOICES.EMPLOYER || !hasCompletedGuidedSetupFlow || hasShownSubmitMigrationModal) {
-            lastReportCreatablePolicyIDs = undefined;
-            lostReportCreatablePolicyIDs = undefined;
+        // eligible recompute workspace eligibility, and only losing the last reportable workspace triggers a check.
+        if (introSelected?.choice !== CONST.ONBOARDING_CHOICES.EMPLOYER || !hasCompletedGuidedSetupFlow || hasShownSubmitMigrationModal || hasRedirectedToSubmitPlanModal) {
+            hadReportablePolicy = undefined;
             return;
         }
 
-        if (hasRedirectedToSubmitPlanModal) {
-            // Only a lost workspace coming back closes the modal. An offline deletion keeps the workspace pending
-            // delete until it succeeds, so it never comes back and the modal stays open.
-            const lostPolicyIDs = lostReportCreatablePolicyIDs;
-            if (lostPolicyIDs && getReportCreatablePolicyIDs().some((policyID) => lostPolicyIDs.includes(policyID))) {
-                closeModalForRestoredPolicy();
-            }
-            lastReportCreatablePolicyIDs = undefined;
-            return;
-        }
-
-        const reportCreatablePolicyIDs = getReportCreatablePolicyIDs();
-        if (reportCreatablePolicyIDs.length > 0) {
-            lostReportCreatablePolicyIDs = undefined;
-        } else if (lastReportCreatablePolicyIDs?.length !== 0) {
-            lostReportCreatablePolicyIDs = lastReportCreatablePolicyIDs;
+        const hasReportablePolicy = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).length > 0;
+        if (!hasReportablePolicy && hadReportablePolicy !== false) {
             scheduleSubmitPlanWelcomeModalEvaluation();
         }
-        lastReportCreatablePolicyIDs = reportCreatablePolicyIDs;
+        hadReportablePolicy = hasReportablePolicy;
     },
 });
 
@@ -349,7 +299,6 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
         }
 
         hasRedirectedToSubmitPlanModal = true;
-        isClosingForRestoredPolicy = false;
 
         return {
             type: 'REDIRECT',
@@ -359,4 +308,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink, shouldMarkSubmitPlanWelcomeModalShown};
+export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink};

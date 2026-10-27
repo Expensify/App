@@ -7,7 +7,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {shouldMarkSubmitPlanWelcomeModalShown} from '@libs/Navigation/guards/SubmitPlanWelcomeModalGuard';
 import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
@@ -41,11 +40,6 @@ function SubmitPlanWelcomeModal() {
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
     useBeforeRemove(() => {
-        // The guard closes the modal when the workspace whose deletion opened it is restored. The user didn't
-        // dismiss it, so leave it unmarked and let it show again if that workspace is later deleted.
-        if (!shouldMarkSubmitPlanWelcomeModalShown()) {
-            return;
-        }
         setSubmitMigrationModalShown();
     });
 
