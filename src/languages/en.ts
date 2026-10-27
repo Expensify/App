@@ -2671,7 +2671,8 @@ const translations = {
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
-            lossOfUnsubmittedData: (login: string) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Merging your accounts is irreversible. All expenses and reports from <strong>${login}</strong>, including drafts and unreported expenses, will be moved to the account you’re keeping.`,
             enterSecurityCode: (login: string) => `To continue, please enter the security code sent to <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Incorrect or invalid security code. Please try again or request a new code.',
@@ -7202,6 +7203,7 @@ const translations = {
                             settlementFrequencyDescription: 'How often Expensify will pull from your business bank account to settle recent Expensify Travel transactions.',
                             monthlySpendLimitLabel: 'Monthly spend limit per member',
                             monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) => `The monthly spend limit per member can't exceed the current travel limit of ${travelLimit}.`,
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                             provisioningError:
@@ -7924,6 +7926,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
@@ -7949,6 +7952,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -8199,6 +8204,18 @@ const translations = {
                         case 'campfireSyncCardSettlements':
                             return 'Syncing card settlements';
                         case 'campfireSyncTravelSettlements':
+                            return 'Syncing travel settlements';
+                        case 'digitsSyncTitle':
+                            return 'Syncing Digits data';
+                        case 'digitsSyncConnection':
+                            return 'Initializing connection to Digits';
+                        case 'digitsSyncImportData':
+                            return 'Loading data';
+                        case 'digitsSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'digitsSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'digitsSyncTravelSettlements':
                             return 'Syncing travel settlements';
                         case 'businessCentralSyncTitle':
                             return 'Syncing Dynamics 365 Business Central data';
@@ -9277,13 +9294,10 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify when your conditions are met',
-                requireFields: 'Set field requirements',
-                requireFieldsShort: 'Require fields',
+                requireFields: 'Require fields',
                 requireFieldsDescription: 'Receipts, categories, etc.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields automatically',
-                createAgentRule: 'Describe agent rule',
-                createAgentRuleDescription: 'Create flexible rules that run when you need.',
                 describeItBelow: 'Or just describe it below',
                 describeRulePlaceholder: 'Block all spend above $2,000',
                 selectTemplateOrDescribe: 'Select a template or describe a rule to continue',
@@ -10782,6 +10796,7 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
+        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -11952,6 +11967,10 @@ const translations = {
                 one: '1 active user',
                 other: `${count} active users`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
             state: {
                 paid: 'Paid',
                 cleared: 'Cleared',
@@ -11973,6 +11992,7 @@ const translations = {
             billedTo: 'Billed to',
             activity: 'Activity',
             findActiveUser: 'Find an active user',
+            findMember: 'Find a member',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },
@@ -12264,6 +12284,7 @@ const translations = {
         downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
+        currentViewGroupsOnly: 'Current view (groups only)',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         multipleTaxExport: 'Canadian Multiple Tax Export',

@@ -7,7 +7,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {ComponentRef, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 /** Positions the submit-to popover below the Search row Submit button (wide layout). */
@@ -68,12 +68,9 @@ function useReportSubmitToPopoverAnchorRef() {
 function useOpenSearchReportSubmitToPopover() {
     const host = useContext(ReportSubmitToPopoverHostContext);
 
-    return useCallback(
-        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions) => {
-            host?.openReportSubmitToPopover(reportID, options);
-        },
-        [host],
-    );
+    return (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions) => {
+        host?.openReportSubmitToPopover(reportID, options);
+    };
 }
 
 type ReportSubmitToPopoverRootProps = {
@@ -102,7 +99,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
     const [activeReportID, setActiveReportID] = useState<string | undefined>();
     const pendingOpenRef = useRef<{reportID: string; options?: ReportSubmitToPopoverOpenOptions; anchorRef?: RefObject<ComponentRef<typeof View> | null>} | null>(null);
 
-    const registerAnchor = useCallback((reportID: string | undefined, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
+    const registerAnchor = (reportID: string | undefined, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
         if (!reportID) {
             return () => {};
         }
@@ -125,9 +122,9 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
                 anchorRegistryRef.current.delete(reportID);
             }
         };
-    }, []);
+    };
 
-    const getAnchorRef = useCallback(() => {
+    const getAnchorRef = () => {
         if (activeAnchorRefRef.current) {
             return activeAnchorRefRef.current;
         }
@@ -142,7 +139,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         }
 
         return anchors.values().next().value ?? null;
-    }, [activeReportID]);
+    };
 
     const {
         reportSubmitToPopover,
@@ -156,34 +153,28 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         getAnchorRef,
     });
 
-    const searchSubmitPopoverGuard = useMemo(
-        () => ({
-            isReportSubmitToPopoverVisible,
-            isReportSubmitToDismissGuardActive,
-            shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
-            consumeIgnoreNextSearchSubmitPress,
-        }),
-        [isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress],
-    );
+    const searchSubmitPopoverGuard = {
+        isReportSubmitToPopoverVisible,
+        isReportSubmitToDismissGuardActive,
+        shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
+        consumeIgnoreNextSearchSubmitPress,
+    };
 
-    const openReportSubmitToPopoverForHost = useCallback(
-        (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => {
-            if (!reportID) {
-                return;
-            }
+    const openReportSubmitToPopoverForHost = (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => {
+        if (!reportID) {
+            return;
+        }
 
-            activeAnchorRefRef.current = anchorRef ?? null;
+        activeAnchorRefRef.current = anchorRef ?? null;
 
-            if (activeReportID === reportID) {
-                openPopoverForActiveReport(options);
-                return;
-            }
+        if (activeReportID === reportID) {
+            openPopoverForActiveReport(options);
+            return;
+        }
 
-            pendingOpenRef.current = {reportID, options, anchorRef};
-            setActiveReportID(reportID);
-        },
-        [activeReportID, openPopoverForActiveReport],
-    );
+        pendingOpenRef.current = {reportID, options, anchorRef};
+        setActiveReportID(reportID);
+    };
 
     useLayoutEffect(() => {
         const pending = pendingOpenRef.current;
@@ -196,13 +187,10 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         openPopoverForActiveReport(pending.options);
     }, [activeReportID, openPopoverForActiveReport]);
 
-    const hostContextValue = useMemo(
-        () => ({
-            registerAnchor,
-            openReportSubmitToPopover: openReportSubmitToPopoverForHost,
-        }),
-        [registerAnchor, openReportSubmitToPopoverForHost],
-    );
+    const hostContextValue = {
+        registerAnchor,
+        openReportSubmitToPopover: openReportSubmitToPopoverForHost,
+    };
 
     return (
         <SearchSubmitPopoverGuardProvider guard={searchSubmitPopoverGuard}>
@@ -245,12 +233,9 @@ function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID
 
     useEffect(() => host.registerAnchor(reportID, anchorRef), [host, reportID]);
 
-    const openReportSubmitToPopover = useCallback(
-        (options?: ReportSubmitToPopoverOpenOptions) => {
-            host.openReportSubmitToPopover(reportID, options, anchorRef);
-        },
-        [host, reportID, anchorRef],
-    );
+    const openReportSubmitToPopover = (options?: ReportSubmitToPopoverOpenOptions) => {
+        host.openReportSubmitToPopover(reportID, options, anchorRef);
+    };
 
     return (
         <ReportSubmitToPopoverAnchorRefContext.Provider value={anchorRef}>
@@ -267,15 +252,12 @@ function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, a
             anchorAlignment,
         });
 
-    const searchSubmitPopoverGuard = useMemo(
-        () => ({
-            isReportSubmitToPopoverVisible,
-            isReportSubmitToDismissGuardActive,
-            shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
-            consumeIgnoreNextSearchSubmitPress,
-        }),
-        [isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress],
-    );
+    const searchSubmitPopoverGuard = {
+        isReportSubmitToPopoverVisible,
+        isReportSubmitToDismissGuardActive,
+        shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
+        consumeIgnoreNextSearchSubmitPress,
+    };
 
     return (
         <SearchSubmitPopoverGuardProvider guard={searchSubmitPopoverGuard}>

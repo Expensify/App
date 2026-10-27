@@ -484,6 +484,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'orderDealNumbers':
         case 'debitedCurrency':
         case 'creditedCurrency':
+        case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -638,6 +639,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -2495,7 +2495,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Tem certeza de que deseja mesclar as contas?',
-            lossOfUnsubmittedData: (login: string) => `A fusão das suas contas é irreversível e resultará na perda de quaisquer despesas não enviadas para <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Mesclar suas contas é irreversível. Todas as despesas e relatórios de <strong>${login}</strong>, incluindo rascunhos e despesas não informadas, serão movidos para a conta que você está mantendo.`,
             enterSecurityCode: (login: string) => `Para continuar, digite o código de segurança enviado para <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',
@@ -6728,6 +6729,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             provisioningError:
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                             sendInvoiceNowCta: 'Enviar fatura agora',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `O limite mensal de gastos por membro não pode exceder o limite de viagem atual de ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configurar um novo feed de viagem',
                         feedSelectorIntro:
@@ -7455,6 +7458,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7700,6 +7705,18 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando liquidações de cartão';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizando acertos de viagem';
+                        case 'digitsSyncTitle':
+                            return 'Sincronizando dados do Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inicializando conexão com o Digits';
+                        case 'digitsSyncImportData':
+                            return 'Carregando dados';
+                        case 'digitsSyncPayments':
+                            return 'Sincronizando pagamentos a fornecedores';
+                        case 'digitsSyncCardSettlements':
+                            return 'Sincronizando liquidações de cartão';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Sincronizando acertos de viagem';
                         case 'businessCentralSyncTitle':
                             return 'Sincronizando dados do Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7749,6 +7766,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Para desbloquear, defina uma conta para suas exportações.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Para desbloquear, ative a sincronização automática.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>A Conciliação Contínua é configurada por feed de cartão. Selecione um feed para alterar qual você está configurando.</muted-text-label>',
@@ -8846,11 +8864,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 applyExpenseDefaultsDescription: 'Atualizar campos automaticamente',
                 flagForReview: 'Marcar para revisão',
                 flagForReviewDescription: 'Notificar quando suas condições forem atendidas',
-                requireFields: 'Definir requisitos de campo',
-                requireFieldsShort: 'Exigir campos',
+                requireFields: 'Exigir campos',
                 requireFieldsDescription: 'Recibos, categorias etc.',
-                createAgentRule: 'Descrever regra do agente',
-                createAgentRuleDescription: 'Crie regras flexíveis que sejam executadas quando você precisar.',
                 describeItBelow: 'Ou simplesmente descreva abaixo',
                 describeRulePlaceholder: 'Bloquear todos os gastos acima de $2.000',
                 selectTemplateOrDescribe: 'Selecione um modelo ou descreva uma regra para continuar',
@@ -10416,6 +10431,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noCategory: 'Sem categoria',
         noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
+        noVendor: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {
@@ -11595,6 +11611,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 one: '1 usuário ativo',
                 other: `${count} usuários ativos`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 membro',
+                other: `${count} membros`,
+            }),
             state: {paid: 'Pago', cleared: 'Compensado', failed: 'Falhou', refunded: 'Reembolsado', disputed: 'Contestado', balanceTransfer: 'Transferência de saldo'},
             details: 'Detalhes do pagamento',
             badge: {
@@ -11609,6 +11629,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             billedTo: 'Cobrado de',
             activity: 'Atividade',
             findActiveUser: 'Encontrar um usuário ativo',
+            findMember: 'Encontrar um membro',
             viewReceipt: 'Ver recibo',
             viewInvoice: 'Ver fatura',
         },
@@ -11906,6 +11927,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
         currentView: 'Visualização atual',
+        currentViewGroupsOnly: 'Visualização atual (somente grupos)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

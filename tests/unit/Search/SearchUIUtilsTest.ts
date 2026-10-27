@@ -7286,6 +7286,93 @@ describe('SearchUIUtils', () => {
                 expect(item?.formattedTotal).toBe(-5000);
             });
 
+            describe('From for card expenses', () => {
+                const deletedQueryJSON = makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DELETED]);
+                const deletedCardID = 40404040;
+                const cardList = createMock<OnyxTypes.CardList>({
+                    [deletedCardID]: {cardID: deletedCardID, accountID: submitterAccountID},
+                });
+
+                it('should show the cardholder when a deleted expense has no report or IOU action', () => {
+                    // Given a deleted card expense, which sits on the trash report and has no IOU action in the snapshot
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.TRASH_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: deletedQueryJSON, cardList});
+
+                    // Then From falls back to the holder of the card the expense was charged to
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                    expect(item?.formattedFrom).toBe('Submitter');
+                });
+
+                it('should use card owner over the report owner for an active expense', () => {
+                    // Given an active card expense whose report is owned by the admin, while the card belongs to the submitter
+                    const data = makeFilterTestData({}, {cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {cardList});
+
+                    // Then the cardholder wins, because the card owner is the canonical owner of a card expense
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                });
+
+                it('should use the cardholder for an unreported card expense', () => {
+                    // Given an unreported card expense, which has no report or IOU action
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built with the card list
+                    const [sections] = callGetTransactionsSections(data, {cardList});
+
+                    // Then From shows the cardholder, the same as for any other card expense
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(submitterAccountID);
+                });
+
+                it('should fall back to the report owner when the card is not in the card list', () => {
+                    // Given an active card expense whose card the viewer hasn't loaded
+                    const data = makeFilterTestData({}, {cardID: deletedCardID});
+
+                    // When the sections are built without that card
+                    const [sections] = callGetTransactionsSections(data, {cardList: {}});
+
+                    // Then From falls back to the report owner
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.from.accountID).toBe(adminAccountID);
+                });
+
+                it('should read the cardholder from Onyx personal details when the snapshot does not include them', () => {
+                    // Given a deleted card expense whose cardholder is missing from the snapshot's personal details
+                    const outsiderAccountID = 555555;
+                    const outsiderCardList = createMock<OnyxTypes.CardList>({
+                        [deletedCardID]: {cardID: deletedCardID, accountID: outsiderAccountID},
+                    });
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.TRASH_REPORT_ID, cardID: deletedCardID});
+                    const onyxPersonalDetailsList = {[outsiderAccountID]: {accountID: outsiderAccountID, displayName: 'Outsider', login: 'outsider@test.com'}};
+
+                    // When the sections are built with Onyx personal details
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: deletedQueryJSON, cardList: outsiderCardList, onyxPersonalDetailsList});
+
+                    // Then From still shows the cardholder
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item?.formattedFrom).toBe('Outsider');
+                });
+
+                it('should leave From empty when the deleted expense card is not in the card list', () => {
+                    // Given a deleted card expense whose card the viewer hasn't loaded
+                    const data = makeFilterTestData({}, {reportID: CONST.REPORT.TRASH_REPORT_ID, cardID: deletedCardID});
+
+                    // When the sections are built without that card
+                    const [sections] = callGetTransactionsSections(data, {queryJSON: deletedQueryJSON, cardList: {}});
+
+                    // Then the row still renders, with no owner to show
+                    const item = sections.find((s) => s.transactionID === filterTestTxID);
+                    expect(item).toBeDefined();
+                    expect(item?.from.accountID).toBe(CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+                });
+            });
+
             // Amounts are stored with the opposite sign, so these three rows render +$80.00, -$40.00 and +$10.00.
             function makeAmountSortData() {
                 const baseTransaction = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -8815,6 +8902,31 @@ describe('SearchUIUtils', () => {
                 'report_reversed',
                 'report_domestic',
             ]);
+        });
+
+        it('should sort expense reports by their lowest withdrawal ID, leaving the reports without a withdrawal at the empty end', () => {
+            // Given reports whose comma separated withdrawal IDs start with numbers of different lengths, and one report without a withdrawal
+            const withWithdrawals = (keyForList: string, withdrawalIDs?: string) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(withdrawalIDs ? {withdrawalIDs} : {}),
+                });
+            const reports = [withWithdrawals('report_high', '100,250'), withWithdrawals('report_none'), withWithdrawals('report_low', '99')];
+
+            // When the reports are sorted by Withdrawal ID
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then they are ranked numerically by their first ID, as the backend ranks them, rather than as text
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_none', 'report_low', 'report_high']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_high', 'report_low', 'report_none']);
         });
 
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
@@ -12145,6 +12257,20 @@ describe('SearchUIUtils', () => {
             expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
         });
 
+        test('Should show the selected Withdrawal ID column on report searches even when no report on the page has a withdrawal', () => {
+            // Given a page of reports where no report has withdrawals, and the user selected the Withdrawal ID column
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID];
+            const unpaidReportID = '1';
+            const unpaidReport = {reportID: unpaidReportID, type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const unpaidData: OnyxTypes.SearchResults['data'] = {[`report_${unpaidReportID}`]: unpaidReport};
+
+            // When the columns to show are computed
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: unpaidData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then the column stays visible, because the user selected it
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
+        });
+
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
             const domesticGroup = {
                 entryID: 1,
@@ -15363,6 +15489,22 @@ describe('SearchUIUtils', () => {
             expect(result.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]);
             expect(result.at(0)?.isDefault).toBe(true);
             expect(result.at(1)?.isDefault).toBe(false);
+        });
+
+        it('gives a filter and its negation the same key but different ids', () => {
+            // Given a query that uses the status filter both normally and negated, e.g. `status:approved -status:drafts,paid`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.STATUS]: [CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+                [FILTER_KEYS.STATUS_NOT]: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.PAID],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const statusFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+
+            // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
+            expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
         });
     });
 });

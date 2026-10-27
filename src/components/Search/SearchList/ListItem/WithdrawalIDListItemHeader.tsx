@@ -3,7 +3,6 @@ import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -32,9 +31,9 @@ import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
-type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
+type WithdrawalIDListItemHeaderProps = {
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TransactionWithdrawalIDGroupListItemType) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -57,11 +56,7 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-/**
- * Non-generic implementation so OXC's React Compiler can memoize the component.
- * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
- */
-function WithdrawalIDListItemHeaderImpl({
+function WithdrawalIDListItemHeader({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -71,7 +66,7 @@ function WithdrawalIDListItemHeaderImpl({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps<ListItem>) {
+}: WithdrawalIDListItemHeaderProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -112,7 +107,7 @@ function WithdrawalIDListItemHeaderImpl({
                   return translate('settlement.failedError', {link: walletLink});
               })();
 
-    const columnComponents = {
+    const columnComponents: Partial<Record<SearchColumnType, React.JSX.Element>> = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
@@ -226,7 +221,7 @@ function WithdrawalIDListItemHeaderImpl({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(withdrawalIDItem as ListItem)}
+                            onPress={() => onCheckboxPress?.(withdrawalIDItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
@@ -259,7 +254,7 @@ function WithdrawalIDListItemHeaderImpl({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
@@ -298,10 +293,6 @@ function WithdrawalIDListItemHeaderImpl({
             )}
         </View>
     );
-}
-
-function WithdrawalIDListItemHeader<TItem extends ListItem>(props: WithdrawalIDListItemHeaderProps<TItem>) {
-    return <WithdrawalIDListItemHeaderImpl {...(props as WithdrawalIDListItemHeaderProps<ListItem>)} />;
 }
 
 export default WithdrawalIDListItemHeader;

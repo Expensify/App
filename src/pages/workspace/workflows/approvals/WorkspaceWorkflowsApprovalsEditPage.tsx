@@ -56,7 +56,7 @@ import type {ComponentRef} from 'react';
 import type {ScrollView} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
@@ -69,7 +69,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const {translate, localeCompare} = useLocalize();
     const [personalDetails] = useAllPersonalDetails();
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, route.params.policyID), [route.params.policyID]);
+    const policyRulesSelector = (rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, route.params.policyID);
     const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowMetadata);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
