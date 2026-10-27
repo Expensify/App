@@ -42,6 +42,7 @@ import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
+import InsightsTabSelector from './InsightsTabSelector';
 import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
@@ -187,7 +188,10 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
-function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
+function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
+    const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
     const {isOffline} = useNetwork();
@@ -241,6 +245,23 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
 
+    const tabSelector =
+        accessibleDashboards.length > 1 ? (
+            <InsightsTabSelector
+                activeDashboardID={dashboardID}
+                dashboardIDs={accessibleDashboards}
+            />
+        ) : null;
+
+    const pageControls =
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? (
+            <InsightsPageControls
+                filters={filters}
+                defaultFilters={defaultFilters}
+                onChange={setFilters}
+            />
+        ) : null;
+
     return (
         <ScreenWrapper
             shouldShowOfflineIndicatorInWideScreen
@@ -252,12 +273,20 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
-                />
+            {shouldUseNarrowLayout ? (
+                <>
+                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+                    {pageControls}
+                </>
+            ) : (
+                (!!tabSelector || !!pageControls) && (
+                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {tabSelector}
+                            {pageControls}
+                        </View>
+                    </View>
+                )
             )}
             <InsightsDashboardContent
                 state={state}

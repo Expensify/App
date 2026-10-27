@@ -17,6 +17,7 @@ const FILTERS: InsightsFilters = {
 };
 
 const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
+const COMPLIANCE_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE];
 
 type InsightsPayload = {
     hash: number;
@@ -69,6 +70,113 @@ describe('insightsQueries', () => {
                 filters: queryJSON?.filters,
                 insightsHashes: buildExpectedHashes(filters),
                 numberOfPeriods: 1,
+            });
+        });
+
+        it('requests Compliance by submission or approval dates without sharing Spend snapshots', () => {
+            // Given Spend and Compliance using the same year-to-date picker selections
+            const spend = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, []);
+
+            // When Compliance requests its current, previous, and average periods
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, FILTERS, []);
+            const compared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, {...FILTERS, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}, []);
+
+            // Then both action stages use the same bounded period and all snapshots belong to the Compliance graph
+            expect(parsePayload(request)).toMatchObject({
+                searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
+                filters: {
+                    operator: 'and',
+                    left: {operator: 'eq', left: 'groupCurrency', right: 'USD'},
+                    right: {
+                        operator: 'or',
+                        left: {operator: 'eq', left: 'anySubmission', right: 'year-to-date'},
+                        right: {operator: 'eq', left: 'anyApproval', right: 'year-to-date'},
+                    },
+                },
+                insightsHashes: {
+                    violationsOverTime: {
+                        snapshotHash: request?.headlineChart.queryJSON?.hash,
+                        previousPeriodSnapshotHash: request?.headlineChart.previousPeriodQueryJSON?.hash,
+                        averageSnapshotHash: request?.headlineChart.averageQueryJSON?.hash,
+                    },
+                },
+                numberOfPeriods: 1,
+            });
+            expect(request?.headlineChart.chart.graphKey).toBe(COMPLIANCE_SPEC.headlineChart.graphKey);
+            expect(Object.keys(parsePayload(request)?.insightsHashes ?? {})).toEqual(['violationsOverTime']);
+            expect(new Set(request?.snapshotHashes).size).toBe(3);
+            expect(request?.hash).not.toBe(spend?.hash);
+            for (const hash of request?.snapshotHashes ?? []) {
+                expect(spend?.snapshotHashes).not.toContain(hash);
+            }
+            expect(compared?.hash).toBe(request?.hash);
+            expect(compared?.snapshotHashes).toEqual(request?.snapshotHashes);
+            expect(parsePayload(request)?.inputQuery).toBe(buildInsightsQueryString(FILTERS));
+        });
+
+        it('keeps each Compliance action range bounded and workspace filters outside the OR', () => {
+            // Given a custom Compliance period scoped to one workspace
+            const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], date: {from: '2026-01-01', to: '2026-03-31'}};
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, filters, []);
+
+            // Then either stage must satisfy both bounds, with no expense-date constraint and all comparison snapshots
+            expect(parsePayload(request)).toMatchObject({
+                filters: {
+                    operator: 'and',
+                    left: {
+                        operator: 'and',
+                        left: {operator: 'eq', left: 'groupCurrency', right: 'USD'},
+                        right: {operator: 'eq', left: 'policyID', right: 'A1'},
+                    },
+                    right: {
+                        operator: 'or',
+                        left: {
+                            operator: 'and',
+                            left: {operator: 'gte', left: 'anySubmission', right: '2026-01-01'},
+                            right: {operator: 'lte', left: 'anySubmission', right: '2026-03-31'},
+                        },
+                        right: {
+                            operator: 'and',
+                            left: {operator: 'gte', left: 'anyApproval', right: '2026-01-01'},
+                            right: {operator: 'lte', left: 'anyApproval', right: '2026-03-31'},
+                        },
+                    },
+                },
+                insightsHashes: {
+                    violationsOverTime: {
+                        snapshotHash: request?.headlineChart.queryJSON?.hash,
+                        previousPeriodSnapshotHash: request?.headlineChart.previousPeriodQueryJSON?.hash,
+                        averageSnapshotHash: request?.headlineChart.averageQueryJSON?.hash,
+                    },
+                },
+                numberOfPeriods: 1,
+            });
+            expect(request?.snapshotHashes).toEqual([
+                request?.headlineChart.queryJSON?.hash,
+                request?.headlineChart.previousPeriodQueryJSON?.hash,
+                request?.headlineChart.averageQueryJSON?.hash,
+            ]);
+        });
+
+        it('uses a single selected day for both Compliance action stages', () => {
+            // Given Compliance narrowed to one day
+            const filters: InsightsFilters = {...FILTERS, date: {on: '2026-03-04'}};
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, filters, []);
+
+            // Then both stages match that day and the headline uses daily buckets
+            expect(parsePayload(request)).toMatchObject({
+                groupBy: CONST.SEARCH.GROUP_BY.DAY,
+                filters: {
+                    right: {
+                        operator: 'or',
+                        left: {operator: 'eq', left: 'anySubmission', right: '2026-03-04'},
+                        right: {operator: 'eq', left: 'anyApproval', right: '2026-03-04'},
+                    },
+                },
             });
         });
 

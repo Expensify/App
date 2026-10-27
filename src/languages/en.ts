@@ -1319,6 +1319,7 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        compliance: 'Compliance',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
