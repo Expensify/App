@@ -38,6 +38,7 @@ import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/act
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getTaxReclaimableAmount, isDistanceRateTaxTrackingEnabled} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
@@ -79,6 +80,7 @@ function PolicyDistanceRatesPage({
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = customUnit?.rates ?? {};
+    const shouldShowTaxReclaimableColumn = isDistanceRateTaxTrackingEnabled(policy, customUnit);
 
     const selectableRates = Object.values(customUnitRates).reduce<Record<string, Rate>>((acc, rate) => {
         acc[rate.customUnitRateID] = rate;
@@ -280,6 +282,8 @@ function PolicyDistanceRatesPage({
             (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined);
 
         const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const rateCurrency = rate.currency ?? CONST.CURRENCY.USD;
+        const taxReclaimableAmount = getTaxReclaimableAmount(rate, policy);
 
         return {
             keyForList: rate.customUnitRateID,
@@ -288,7 +292,9 @@ function PolicyDistanceRatesPage({
             disabled: isDeleting,
             enabled: !!rate.enabled,
             isLocked: !canWriteDistanceRates || !canDisableOrDeleteRate(rate.customUnitRateID) || isDeleting,
-            formattedRate: `${convertAmountToDisplayString(rate.rate, rate.currency ?? CONST.CURRENCY.USD)} / ${unitTranslation}`,
+            formattedRate: `${convertAmountToDisplayString(rate.rate, rateCurrency)} / ${unitTranslation}`,
+            taxReclaimableAmount,
+            formattedTaxReclaimable: taxReclaimableAmount !== undefined ? convertAmountToDisplayString(taxReclaimableAmount, rateCurrency) : '',
             pendingAction: resolvedPendingAction ?? undefined,
             errors: rate.errors ?? undefined,
             canEditName: canWriteDistanceRates && !isDeleting && !isSelectionModeActive,
@@ -470,6 +476,7 @@ function PolicyDistanceRatesPage({
                         selectionEnabled={canWriteDistanceRates}
                         onRowSelectionChange={setSelectedDistanceRates}
                         canWriteDistanceRates={canWriteDistanceRates}
+                        shouldShowTaxReclaimableColumn={shouldShowTaxReclaimableColumn}
                         headerComponent={distanceRatesTableHeader}
                     />
                 )}
