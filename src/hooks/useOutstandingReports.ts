@@ -3,7 +3,7 @@ import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,12 +13,17 @@ import useOnyx from './useOnyx';
 
 const policyIdMapper = (policy: OnyxEntry<Policy>) => policy?.id;
 
+/** Whether the outstanding reports of every workspace are listed, instead of those of the selected workspace only */
+function shouldListAllPolicies(selectedPolicyID: string | undefined, personalPolicyID: string | undefined, selectedReport: OnyxEntry<Report>) {
+    return !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
+}
+
 export default function useOutstandingReports(selectedReportID: string | undefined, selectedPolicyID: string | undefined, ownerAccountID: number | undefined, isEditing: boolean) {
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [allPoliciesID] = useMappedPolicies(policyIdMapper);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
+    const shouldUseAllPolicies = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -54,3 +59,5 @@ export default function useOutstandingReports(selectedReportID: string | undefin
         isEditing,
     );
 }
+
+export {shouldListAllPolicies};

@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React from 'react';
+import React, {Profiler} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
@@ -65,12 +65,16 @@ const CURRENT_USER_EMAIL = 'user@test.com';
 const CURRENT_USER_DOMAIN = 'test.com';
 const MOCK_POLICY_ID = 'policy-123';
 
-function renderComponent() {
-    return render(
+function QuickCreationActionsBarWithProviders() {
+    return (
         <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <QuickCreationActionsBar />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+function renderComponent() {
+    return render(<QuickCreationActionsBarWithProviders />);
 }
 
 describe('QuickCreationActionsBar - empty report confirmation', () => {
@@ -377,5 +381,44 @@ describe('QuickCreationActionsBar - domain preferred workspace', () => {
         expect(mockCreateNewReport).toHaveBeenCalledTimes(1);
         expect(mockCreateNewReport.mock.calls.at(0)?.at(3)).toEqual(expect.objectContaining({id: PREFERRED_POLICY_ID}));
         expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
+    });
+});
+
+describe('QuickCreationActionsBar - transaction violations', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not re-render when a transaction violation changes', async () => {
+        // Given the bar is rendered inside a Profiler and has settled, so the render count is a stable baseline
+        const onRender = jest.fn();
+        render(
+            <Profiler
+                id="QuickCreationActionsBar"
+                onRender={onRender}
+            >
+                <QuickCreationActionsBarWithProviders />
+            </Profiler>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeChange = onRender.mock.calls.length;
+
+        // When a violation changes on any transaction, which the bar never reads because a new report has no expenses
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}123`, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the bar does not re-render, so a violation change anywhere in the app doesn't cost it a render
+        expect(renderCountBeforeChange).toBeGreaterThan(0);
+        expect(onRender).toHaveBeenCalledTimes(renderCountBeforeChange);
     });
 });

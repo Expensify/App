@@ -29,7 +29,7 @@ import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {policyTypeSelector} from '@selectors/Policy';
 import {getReportOwnerAccountID} from '@selectors/Report';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 import HoldReasonFormView from './HoldReasonFormView';
 
@@ -102,30 +102,27 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
         Navigation.goBack(backPath);
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
 
-            if (!values.comment) {
-                errors.comment = translate('common.error.fieldRequired');
-            }
-            // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
-            // as we do not allow requestee to edit fields like description and amount.
-            // But, we still want the requestee to be able to put the request on hold
-            if (
-                isMoneyRequestAction(parentReportAction) &&
-                !canEditMoneyRequest(parentReportAction, transaction, rules, false, undefined, undefined, parentReportActions) &&
-                isWorkspaceRequest
-            ) {
-                const formErrors = {};
-                addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
-                setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
-            }
+        if (!values.comment) {
+            errors.comment = translate('common.error.fieldRequired');
+        }
+        // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+        // as we do not allow requestee to edit fields like description and amount.
+        // But, we still want the requestee to be able to put the request on hold
+        if (
+            isMoneyRequestAction(parentReportAction) &&
+            !canEditMoneyRequest(parentReportAction, transaction, rules, false, undefined, undefined, parentReportActions) &&
+            isWorkspaceRequest
+        ) {
+            const formErrors = {};
+            addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
+            setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
+        }
 
-            return errors;
-        },
-        [parentReportAction, parentReportActions, isWorkspaceRequest, translate, transaction, rules],
-    );
+        return errors;
+    };
 
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
