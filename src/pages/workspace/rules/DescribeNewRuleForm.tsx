@@ -18,7 +18,6 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {getCategoryOwnExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -92,7 +91,6 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
     const policy = usePolicy(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const domainAccountID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
@@ -123,8 +121,6 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
                 return !categoryHasAnyRequireFieldsRule(category);
             case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
                 return !hasExplicitFlagAmount(category.maxExpenseAmount);
-            case CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE:
-                return !getCategoryOwnExpenseDefaultRule(rules, policyID, category.name);
             default:
                 return true;
         }

@@ -1,7 +1,6 @@
 import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
-    getCategoryOwnExpenseDefaultRule,
     getCategoryOwnExpenseDefaultRules,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
@@ -532,7 +531,7 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
-    describe('getCategoryOwnExpenseDefaultRule', () => {
+    describe('getCategoryOwnExpenseDefaultRules', () => {
         const categoryOnlyRuleBody: ExpenseDefaultRule = {
             triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
             filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
@@ -545,7 +544,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's own rule is looked up
             // Then it is found, so creating another one for that category opens it as an edit instead
-            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
         });
 
         it('ignores a rule that also matches on a merchant', () => {
@@ -563,7 +562,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When the category's own rule is looked up
             // Then nothing is returned, because that rule belongs to the merchant as much as to the category, so
             // the category is still free to get a rule of its own
-            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee')).toEqual([]);
         });
 
         it('ignores a rule that also matches on a tag', () => {
@@ -580,7 +579,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's own rule is looked up
             // Then nothing is returned, for the same reason a merchant match is skipped
-            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee')).toEqual([]);
         });
 
         it('ignores a rule being deleted', () => {
@@ -591,7 +590,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's own rule is looked up
             // Then nothing is returned, so the category can be given a rule again
-            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')).toBeUndefined();
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee')).toEqual([]);
         });
 
         it('returns a rule that sets no tax', () => {
@@ -604,7 +603,7 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When the category's own rule is looked up
             // Then it is found, because a category's rule need not set a tax
-            expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
         });
 
         it('returns a rule that matches on this category and another', () => {

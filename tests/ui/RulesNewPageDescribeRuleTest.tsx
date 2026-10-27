@@ -353,7 +353,7 @@ describe('New rule describe section', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
-    it('shows an error when the generated category already has a tax rate rule', async () => {
+    it('opens the editor when the generated category already has a rule', async () => {
         // Given a Meals category that already has a tax rate rule
         mockedUsePolicy.mockReturnValue({
             ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
@@ -383,9 +383,10 @@ describe('New rule describe section', () => {
             rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
         });
 
-        // Then New rule shows the error and opens nothing, because a category can have one tax rate rule
-        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.categoryHasRule')]);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        // Then the editor opens anyway, because a category can hold more than one rule and saving a second one
+        // that matches the same things prompts first
+        expect(await getPromptErrors()).toEqual([]);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
     it.each([CONST.GENERATED_RULE.STATE.UNSUPPORTED, CONST.GENERATED_RULE.STATE.MULTIPLE_RULES])(

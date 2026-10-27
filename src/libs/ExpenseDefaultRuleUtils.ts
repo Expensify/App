@@ -612,11 +612,6 @@ function getCategoryOwnExpenseDefaultRules(rulesCollection: OnyxCollection<Rule>
         .map(({match}) => match);
 }
 
-/** The first rule a category decides on its own, which is the one a further rule for that category would duplicate. */
-function getCategoryOwnExpenseDefaultRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID | undefined {
-    return getCategoryOwnExpenseDefaultRules(rulesCollection, policyID, categoryName).at(0);
-}
-
 /** The tax rate a rule applies, if it sets one. */
 function getExpenseDefaultTaxID(rule: Rule | ExpenseDefaultRule | undefined): string | undefined {
     for (const action of getRuleActions(rule)) {
@@ -728,7 +723,6 @@ export {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
     getExpenseDefaultTaxID,
-    getCategoryOwnExpenseDefaultRule,
     getCategoryOwnExpenseDefaultRules,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
