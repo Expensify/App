@@ -3,7 +3,7 @@ import createScheduleOnce from '@libs/Navigation/helpers/createScheduleOnce';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getValidDynamicRouteBasePath from '@libs/Navigation/helpers/getValidDynamicRouteBasePath';
 import Navigation from '@libs/Navigation/Navigation';
-import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, getGroupPoliciesWhereReportCanBeCreated, isGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -37,13 +37,13 @@ let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 
-// IDs of the workspaces where the POLICY subscription last saw the user able to create reports. Undefined until it
-// is computed for an otherwise-eligible user.
-let lastReportablePolicyIDs: string[] | undefined;
+// IDs of the group workspaces the POLICY subscription last saw the user able to edit. Undefined until it is computed
+// for an otherwise-eligible user.
+let lastEditablePolicyIDs: string[] | undefined;
 
-// The reportable workspaces whose loss opened the modal. A deletion stays pending while offline, but an online
+// The editable workspaces whose loss opened the modal. A deletion stays pending while offline, but an online
 // deletion the server rejects restores the workspace, so the modal must close again if one of these comes back.
-let lostReportablePolicyIDs: string[] | undefined;
+let lostEditablePolicyIDs: string[] | undefined;
 
 // Set while the modal is closed because a lost workspace came back, so closing it doesn't mark the modal as shown
 // and the user can still see it if they delete that workspace again later.
@@ -78,9 +78,19 @@ function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
 function resetSessionFlag() {
     hasRedirectedToSubmitPlanModal = false;
     hasPendingSubmitDeeplink = false;
-    lastReportablePolicyIDs = undefined;
-    lostReportablePolicyIDs = undefined;
+    lastEditablePolicyIDs = undefined;
+    lostEditablePolicyIDs = undefined;
     isClosingForRestoredPolicy = false;
+}
+
+/**
+ * IDs of the group workspaces the user can edit, skipping ones pending deletion. This matches the check
+ * `useAutoCreateSubmitWorkspace` uses, so losing the last of these workspaces is what lets "Get the free plan" create one.
+ */
+function getEditableGroupPolicyIDs(): string[] {
+    return Object.values(policies ?? {})
+        .filter((policy): policy is Policy => isGroupPolicy(policy) && !isPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy))
+        .map((policy) => policy.id);
 }
 
 /** Whether the modal should record itself as shown when it closes. */
@@ -91,7 +101,7 @@ function shouldMarkSubmitPlanWelcomeModalShown() {
 /** Closes the modal opened by losing a workspace once that workspace is restored, such as after a rejected delete. */
 function closeModalForRestoredPolicy() {
     hasRedirectedToSubmitPlanModal = false;
-    lostReportablePolicyIDs = undefined;
+    lostEditablePolicyIDs = undefined;
     isClosingForRestoredPolicy = true;
     Navigation.removeScreenFromNavigationState(NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR);
 }
@@ -179,7 +189,7 @@ Onyx.connectWithoutView({
 // the proactive check. They intentionally do NOT drive navigation: by the time the session/app-load signal
 // fires, every value below has already landed in the same OpenApp batch. Driving navigation from these
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
-// the whole session. The one exception is POLICY losing the user's last reportable workspace (or getting it back
+// the whole session. The one exception is POLICY losing the user's last editable workspace (or getting it back
 // after a rejected delete), handled below.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
@@ -202,32 +212,32 @@ Onyx.connectWithoutView({
 
         // Deleting the user's last workspace (for example, while offline) neither navigates nor reloads the app, so
         // nothing else re-checks the modal. To keep this high-churn collection cheap, only users who are otherwise
-        // eligible recompute workspace eligibility, and only losing the last reportable workspace triggers a check.
+        // eligible recompute workspace eligibility, and only losing the last editable workspace triggers a check.
         if (introSelected?.choice !== CONST.ONBOARDING_CHOICES.EMPLOYER || !hasCompletedGuidedSetupFlow || hasShownSubmitMigrationModal) {
-            lastReportablePolicyIDs = undefined;
-            lostReportablePolicyIDs = undefined;
+            lastEditablePolicyIDs = undefined;
+            lostEditablePolicyIDs = undefined;
             return;
         }
 
         if (hasRedirectedToSubmitPlanModal) {
             // Only a lost workspace coming back closes the modal. An offline deletion keeps the workspace pending
             // delete until it succeeds, so it never comes back and the modal stays open.
-            const lostPolicyIDs = lostReportablePolicyIDs;
-            if (lostPolicyIDs && getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).some((policy) => lostPolicyIDs.includes(policy.id))) {
+            const lostPolicyIDs = lostEditablePolicyIDs;
+            if (lostPolicyIDs && getEditableGroupPolicyIDs().some((policyID) => lostPolicyIDs.includes(policyID))) {
                 closeModalForRestoredPolicy();
             }
-            lastReportablePolicyIDs = undefined;
+            lastEditablePolicyIDs = undefined;
             return;
         }
 
-        const reportablePolicyIDs = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).map((policy) => policy.id);
-        if (reportablePolicyIDs.length > 0) {
-            lostReportablePolicyIDs = undefined;
-        } else if (lastReportablePolicyIDs?.length !== 0) {
-            lostReportablePolicyIDs = lastReportablePolicyIDs;
+        const editablePolicyIDs = getEditableGroupPolicyIDs();
+        if (editablePolicyIDs.length > 0) {
+            lostEditablePolicyIDs = undefined;
+        } else if (lastEditablePolicyIDs?.length !== 0) {
+            lostEditablePolicyIDs = lastEditablePolicyIDs;
             scheduleSubmitPlanWelcomeModalEvaluation();
         }
-        lastReportablePolicyIDs = reportablePolicyIDs;
+        lastEditablePolicyIDs = editablePolicyIDs;
     },
 });
 
