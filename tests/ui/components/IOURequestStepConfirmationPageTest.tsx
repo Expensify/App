@@ -12,6 +12,7 @@ import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
+import {isFlowDiscardPromptSuppressed, releaseFlowDiscardPromptSuppression} from '@libs/Navigation/helpers/discardPromptState';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
@@ -1753,6 +1754,57 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
+        });
+
+        it('mutes the flow discard guard before the submit leaves the flow', async () => {
+            // Given a create flow draft ready to submit
+            releaseFlowDiscardPromptSuppression();
+            const transactionID = 'tx-unreported-suppress';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 1000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test Merchant',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                });
+            });
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user submits the expense
+            fireEvent.press(await screen.findByText(/^Create .*expense/i));
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+
+            // Then the flow's discard guard stays quiet while the RHP closes, instead of asking to discard the expense just created
+            expect(isFlowDiscardPromptSuppressed()).toBe(true);
+            releaseFlowDiscardPromptSuppression();
         });
 
         it('should route unreported distance expense to requestMoney and skip createDistanceRequest', async () => {
