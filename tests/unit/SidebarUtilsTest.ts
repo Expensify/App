@@ -4072,15 +4072,20 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    formatPhoneNumber,
+                );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
 
@@ -4187,15 +4192,20 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(translateLocal, convertToDisplayString, {
-                    reportOrID: iouReport,
-                    iouReportAction: iouAction,
-                    shouldConsiderScanningReceiptOrPendingRoute: true,
-                    isPreviewMessageForParentChatReport: true,
-                    policy: null,
-                    isForListPreview: true,
-                    originalReportAction: lastReportPreviewAction,
-                });
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
+                    {
+                        reportOrID: iouReport,
+                        iouReportAction: iouAction,
+                        shouldConsiderScanningReceiptOrPendingRoute: true,
+                        isPreviewMessageForParentChatReport: true,
+                        policy: null,
+                        isForListPreview: true,
+                        originalReportAction: lastReportPreviewAction,
+                    },
+                    formatPhoneNumber,
+                );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });

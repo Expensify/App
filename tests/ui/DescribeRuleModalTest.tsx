@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import useNetwork from '@hooks/useNetwork';
+
 import * as API from '@libs/API';
 import type {GenerateRuleParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -37,6 +39,7 @@ jest.mock('@hooks/useLocalize', () =>
         translate: (key: string) => key,
     })),
 );
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false, shouldUseNarrowLayout: false})));
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(
@@ -63,10 +66,11 @@ jest.mock(
 jest.mock('@components/Button', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
-        Pressable: React.ComponentType<{onPress?: () => void; children?: React.ReactNode}>;
+        Pressable: React.ComponentType<{onPress?: () => void; disabled?: boolean; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    const MockButton = ({onPress, children}: {onPress: () => void; children: React.ReactNode}) => ReactModule.createElement(Pressable, {onPress}, children);
+    const MockButton = ({onPress, isDisabled, children}: {onPress: () => void; isDisabled?: boolean; children: React.ReactNode}) =>
+        ReactModule.createElement(Pressable, {onPress, disabled: isDisabled}, children);
     MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
     return MockButton;
 });
@@ -91,6 +95,8 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 
 const POLICY_ID = 'policy1';
+
+const mockedUseNetwork = jest.mocked(useNetwork);
 
 const IMPOSSIBLE_ANSWER = {
     generationID: '',
@@ -156,6 +162,7 @@ describe('DescribeRuleModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPrompt = '';
+        mockedUseNetwork.mockReturnValue({isOffline: false});
         writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
     });
 
@@ -289,6 +296,32 @@ describe('DescribeRuleModal', () => {
         // And the refusal goes away, because it belongs to the earlier description
         expect(screen.queryByText(IMPOSSIBLE_ANSWER.explanation)).toBeNull();
         logSpy.mockRestore();
+    });
+
+    it('disables Try this instead and sends no request while offline', async () => {
+        // Given Concierge answered that the description cannot be done and suggested another one
+        await renderFlagForReviewModal(jest.fn(), jest.fn());
+        const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
+        await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
+
+        // When the admin goes offline and taps Try this instead
+        mockedUseNetwork.mockReturnValue({isOffline: true});
+        screen.rerender(
+            <DescribeRuleModal
+                isVisible
+                onClose={jest.fn()}
+                policyID={POLICY_ID}
+                ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
+                onRuleGenerated={jest.fn()}
+            />,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no new GenerateRule request is sent, because generating a rule needs a connection, like the form's own submit
+        expect(getGenerateRuleRequests(writeSpy)).toHaveLength(1);
+        expect(screen.getByText(IMPOSSIBLE_ANSWER.explanation)).toBeOnTheScreen();
     });
 
     it('shows the general title and no suggestion when the reason is unknown and nothing is suggested', async () => {

@@ -62,7 +62,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 type WorkspaceInviteMessageComponentProps = {
@@ -172,14 +172,11 @@ function WorkspaceInviteMessageComponent({
         })
         .join(', ');
 
-    const welcomeNoteSubject = useMemo(
-        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
-        [policy?.name, currentUserPersonalDetails?.displayName],
-    );
+    const welcomeNoteSubject = `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`;
 
-    const getDefaultWelcomeNote = useCallback(() => {
+    const getDefaultWelcomeNote = () => {
         return formData?.[INPUT_IDS.WELCOME_MESSAGE] ?? workspaceInviteMessageDraft ?? translate('workspace.common.welcomeNote');
-    }, [workspaceInviteMessageDraft, translate, formData]);
+    };
 
     useEffect(() => {
         if (isOnyxLoading) {
