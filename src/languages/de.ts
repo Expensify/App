@@ -550,7 +550,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Begründung einklappen',
         expandReasoning: 'Begründung erweitern',
         enableNotifications: {prompt: 'Möchten Sie benachrichtigt werden, wenn Concierge antwortet?', cta: 'Benachrichtigen'},
-        feedback: {prompt: 'War diese Antwort hilfreich?', useful: 'Hilfreiche Antwort', notUseful: 'Nicht hilfreiche Antwort', thanks: 'Danke für Ihr Feedback!'},
+        feedback: {prompt: 'War das hilfreich?', useful: 'Hilfreiche Antwort', notUseful: 'Nicht hilfreiche Antwort', thanks: 'Danke für Ihr Feedback!'},
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -10510,6 +10510,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Gebucht',
                 hint: 'Gilt nur für Kartentransaktionen.',
             },
+            searchFilters: 'Suchfilter',
+            noFiltersSelected: 'Keine Filter ausgewählt',
         },
         display: {
             label: 'Anzeige',
@@ -11937,6 +11939,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             aBankAccountIsLocked: 'Ein Bankkonto ist gesperrt',
             completeHrSetup: 'HR-Einrichtung abschließen',
             theresAProblemWithAnHRConnection: 'Es gibt ein Problem mit einer HR-Verbindung',
+            theresAProblemWithYourAgent: 'Es gibt ein Problem mit Ihrem/Ihren Agent(en)',
         },
     },
     emptySearchView: {

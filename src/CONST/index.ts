@@ -1467,7 +1467,6 @@ const CONST = {
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
@@ -9643,6 +9642,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
