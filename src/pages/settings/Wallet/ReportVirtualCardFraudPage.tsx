@@ -24,7 +24,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type ReportVirtualCardFraudPageProps =
@@ -45,9 +45,9 @@ function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
         clearReportVirtualCardFraudForm();
     }, []);
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.getRoute(String(cardID)));
-    }, [cardID]);
+    };
 
     if (isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;

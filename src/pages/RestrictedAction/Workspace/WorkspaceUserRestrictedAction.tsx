@@ -18,7 +18,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceUserRestrictedActionProps = {
@@ -31,12 +31,12 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
-    const openPolicyExpenseReport = useCallback(() => {
+    const openPolicyExpenseReport = () => {
         // eslint-disable-next-line rulesdir/no-default-id-values
         const reportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [policyID]);
+    };
 
     return (
         <ScreenWrapper

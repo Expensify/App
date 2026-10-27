@@ -15,7 +15,7 @@ import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DomainItem = ListItem & {
@@ -28,18 +28,16 @@ function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
 
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
-    const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
-    const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(domains, policy), [policy, domains]);
+    const domains = getAdminsPrivateEmailDomains(policy);
+    const recommendedDomain = getMostFrequentEmailDomain(domains, policy);
 
-    const data: DomainItem[] = useMemo(() => {
-        return domains.map((domain) => ({
-            value: domain,
-            isSelected: domain === selectedDomain,
-            keyForList: domain,
-            text: domain,
-            rightElement: domain === recommendedDomain ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined,
-        }));
-    }, [domains, recommendedDomain, selectedDomain, translate]);
+    const data: DomainItem[] = domains.map((domain) => ({
+        value: domain,
+        isSelected: domain === selectedDomain,
+        keyForList: domain,
+        text: domain,
+        rightElement: domain === recommendedDomain ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined,
+    }));
 
     const handleContinue = () => {
         if (!selectedDomain) {

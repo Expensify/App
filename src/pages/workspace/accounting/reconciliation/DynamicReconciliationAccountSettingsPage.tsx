@@ -36,7 +36,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from './constants';
@@ -236,9 +236,9 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
 
     const connectionBankAccounts = getConnectionBankAccountsForReconciliation(connections, connectionName);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     if (reconciliationAccountSettingsType === RECONCILIATION_ACCOUNT_SETTINGS_TYPE.TRAVEL_BILLING) {
         return (

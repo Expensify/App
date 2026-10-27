@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function getInputComponent(field: CorpayFormField) {
@@ -54,28 +54,22 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
         shouldSaveDraft: true,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION], translate);
-        },
-        [fieldsMap, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION], translate);
+    };
 
-    const getStyle = useCallback(
-        (field: CorpayFormField, index: number) => {
-            if ((field.valueSet ?? []).length > 0) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
-            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
-            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
-                return [index === 0 ? styles.pb2 : styles.pv2];
-            }
+    const getStyle = (field: CorpayFormField, index: number) => {
+        if ((field.valueSet ?? []).length > 0) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
             return [index === 0 ? styles.pb2 : styles.pv2];
-        },
-        [styles.mhn5, styles.pb1, styles.pb2, styles.pv1, styles.pv2],
-    );
+        }
+        return [index === 0 ? styles.pb2 : styles.pv2];
+    };
 
     return (
         <FormProvider
