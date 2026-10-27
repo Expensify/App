@@ -355,6 +355,8 @@ export default defineConfig({
         'rulesdir/require-a11y-disable-justification': 'error',
         'rulesdir/require-live-region-for-status-updates': 'error',
         'rulesdir/require-locale-for-localized-date-format': 'error',
+        'rulesdir/no-unsafe-onyx-read': 'error',
+        'rulesdir/no-onyx-get-snapshot-key': 'error',
         'rulesdir/use-double-negation-instead-of-boolean': 'error',
         // Needs the type of the `&&` left operand, and jsPlugins get no type info.
         'rulesdir/boolean-conditional-rendering': 'off',
@@ -1066,7 +1068,15 @@ export default defineConfig({
             files: ['server/victory-chart-renderer/**/*.{ts,tsx}'],
             rules: {'no-restricted-imports': ['error', {paths: victoryChartRendererRestrictedImportPaths, patterns: victoryChartRendererRestrictedImportPatterns}]},
         },
-        {files: ['src/**/*.{ts,tsx}'], rules: {'rulesdir/no-object-keys-includes': 'error', 'rulesdir/prefer-locale-compare-from-context': 'error'}},
+        {
+            files: ['src/**/*.{ts,tsx}'],
+            rules: {
+                // The lint pipeline keeps this diagnostic only when both compilers memoize the file.
+                'rulesdir/no-manual-memoization': 'error',
+                'rulesdir/no-object-keys-includes': 'error',
+                'rulesdir/prefer-locale-compare-from-context': 'error',
+            },
+        },
         {
             files: ['src/styles/typography.ts', 'src/styles/variables.ts'],
             rules: {
