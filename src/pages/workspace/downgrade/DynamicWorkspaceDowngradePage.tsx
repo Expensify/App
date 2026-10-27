@@ -30,7 +30,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import DowngradeConfirmation from './DowngradeConfirmation';
@@ -45,7 +45,7 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: ownerPoliciesSelectorWithAccountID,
     });

@@ -11,7 +11,7 @@ import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type AverageReimbursementProps = SubPageProps;
 
@@ -27,24 +27,18 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
 
-    const tradeVolumeRangeListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
-        [corpayOnboardingFields?.picklists.TradeVolumeRange],
-    );
+    const tradeVolumeRangeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange);
 
-    const pushRowFields = useMemo(
-        () => [
-            {
-                inputID: TRADE_VOLUME,
-                defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
-                options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
-                modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
-                searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
-            },
-        ],
-        [reimbursementAccount, currency, tradeVolumeRangeListOptions, translate],
-    );
+    const pushRowFields = [
+        {
+            inputID: TRADE_VOLUME,
+            defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
+            options: tradeVolumeRangeListOptions,
+            description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
+            modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
+            searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
+        },
+    ];
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
