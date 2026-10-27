@@ -2,7 +2,7 @@
 
     python3 oxlint-migration/checkReactCompilerGate.py
 
-Two rules are suppressed wholesale in files both React compilers memoize. On the ESLint side that is
+Two rules are suppressed wholesale in files React Compiler memoizes. On the ESLint side that is
 a pipeline stage, `scripts/lint/processors/ReactCompilerFilter.ts`, which runs over ESLint's output
 rather than inside it; oxlint has no processor concept, so config/oxlint/reactCompilerGate.mjs does
 it by wrapping `context.report` inside the JS plugin. This checks the two agree, on both answers.

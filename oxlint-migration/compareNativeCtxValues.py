@@ -28,7 +28,7 @@ Three things come out of it:
                  separately so they are not read as differences.
 
 Note this rule is NOT at parity even where the two agree: ESLint's processor drops every message
-from it in files both React compilers memoize, so ESLint reports 0 repo-wide today. See
+from it in files React Compiler memoizes, so ESLint reports 0 repo-wide today. See
 "React Compiler checks" in OXLINT_MIGRATION_INVESTIGATION.md.
 """
 
