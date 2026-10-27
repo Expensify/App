@@ -846,7 +846,7 @@ const ONYXKEYS = {
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
     /** Signals the UI to show the Enable Global Reimbursements modal when a pay attempt fails because the workspace USD VBBA is not set up on Corpay */
-    RAM_ONLY_CORPAY_PAY_MODAL: 'corpayPayModal',
+    RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL: 'enableGlobalReimbursementsModal',
 
     /** Answers to sensitive DynamicForm fields, such as SSNs, carried between the pages of one visit to the form instead of saved to its draft */
     RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS: 'dynamicFormSensitiveAnswers',
@@ -2033,7 +2033,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
-    [ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL]: OnyxTypes.CorpayPayModal;
+    [ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL]: OnyxTypes.EnableGlobalReimbursementsModal;
     [ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: OnyxTypes.DynamicFormSensitiveAnswers;
     [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;

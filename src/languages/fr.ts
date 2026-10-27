@@ -1197,6 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
+        compliance: 'Conformité',
+        runningTotal: 'Total cumulé',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2880,6 +2882,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
+            payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },
@@ -3039,6 +3042,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
+        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
+        collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -10605,6 +10610,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
                 hint: 'S’applique uniquement aux transactions par carte.',
             },
+            searchFilters: 'Filtres de recherche',
+            noFiltersSelected: 'Aucun filtre sélectionné',
         },
         display: {
             label: 'Affichage',

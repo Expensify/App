@@ -1193,6 +1193,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
         },
+        compliance: 'Compliance',
+        runningTotal: 'Laufende Summe',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2875,6 +2877,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',
             getStarted: "Los geht's",
             headerTitle: 'Globale Erstattungen',
+            payingReportSubtitle: 'Die Bankkonten des Unternehmens und der Mitarbeitenden verwenden unterschiedliche Währungen.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Weltweit bezahlen', subtitle: 'Aktivieren Sie globale Erstattungen auf Ihrem USD-Konto.'},
     },
@@ -3034,6 +3037,8 @@ ${amount} für ${merchant} – ${date}`,
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
+        collectEmployeeBankDetails: 'Bankdaten der Mitarbeitenden erfassen',
+        collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten Ihrer Mitarbeitenden, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wende dich bitte an deine:n <account-manager-link>Account Manager</account-manager-link> oder an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -10576,6 +10581,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Gebucht',
                 hint: 'Gilt nur für Kartentransaktionen.',
             },
+            searchFilters: 'Suchfilter',
+            noFiltersSelected: 'Keine Filter ausgewählt',
         },
         display: {
             label: 'Anzeige',
