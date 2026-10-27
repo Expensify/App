@@ -11,6 +11,8 @@ sitemap: false
 
 # Connect to Dynamics 365 Business Central
 
+**Currently in BETA: Reach out to your account manager or account executive if you are interested.**
+
 Connect Dynamics 365 Business Central to your Expensify workspace to sync accounting data. Once connected, Expensify can import accounts, dimensions, vendors, and tax rates from Business Central and export approved reports back to it.
 
 This integration supports Business Central only. To export expenses to Dynamics 365 Finance and Operations or other Microsoft Dynamics products, use a flat-file export instead. Learn more about [indirect accounting integrations](/articles/new-expensify/connections/Indirect-Accounting-Integrations).
