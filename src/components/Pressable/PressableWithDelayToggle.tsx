@@ -108,9 +108,9 @@ function PressableWithDelayToggle({
     };
 
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    // Using || intentionally so empty string tooltip/text values fall through to the next fallback
     const checkedAccessibilityLabel = accessibilityLabelChecked || accessibilityLabelProp || tooltipTextChecked || textChecked || text || '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    // Using || intentionally so empty string tooltip/text values fall through to the next fallback
     const defaultAccessibilityLabel = accessibilityLabelProp || tooltipText || text || '';
     const accessibilityLabel = !isActive ? checkedAccessibilityLabel : defaultAccessibilityLabel;
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);

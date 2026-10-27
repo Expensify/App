@@ -1,9 +1,12 @@
 import {render} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormLayout, DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import {getListItems, getListItemSensitiveKey} from '@components/DynamicForm/utils/listItems';
 import type {FormValue} from '@components/Form/types';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -44,6 +47,7 @@ jest.mock('@userActions/DynamicForm', () => ({
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
+jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
 jest.mock('@components/InteractiveStepWrapper', () => jest.fn((props: {stepNames: string[]; startStepIndex: number}) => mockStepWrapper(props)));
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () =>
@@ -427,6 +431,18 @@ describe('DynamicFormFlow', () => {
         // Then no page is drawn and the hidden page is not skipped, since useSubPage needs a page to stay on
         expect(mockCurrentPage).not.toHaveBeenCalled();
         expect(subPageOptions.skipPages).toEqual([]);
+    });
+
+    it('shows a spinner below the header while it loads, so no second Go Back button covers the header', async () => {
+        // Given a flow that is redirecting to another page
+        // When the flow renders
+        await renderFlow({isRedirecting: true});
+
+        // Then the header is drawn with a plain spinner under it instead of a page
+        expect(HeaderWithBackButtonAndTitle).toHaveBeenCalled();
+        expect(ActivityIndicator).toHaveBeenCalled();
+        expect(FullscreenLoadingIndicator).not.toHaveBeenCalled();
+        expect(mockCurrentPage).not.toHaveBeenCalled();
     });
 
     it('sends the user back to the incomplete page without pushing a second copy of it', async () => {

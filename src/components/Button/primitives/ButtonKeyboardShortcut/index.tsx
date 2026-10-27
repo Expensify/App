@@ -1,4 +1,4 @@
-import {useButtonContext} from '@components/Button/context';
+import {useButtonActions, useButtonState} from '@components/Button/context';
 import type {ButtonKeyboardShortcutProps} from '@components/Button/types';
 import withNavigationFallback from '@components/withNavigationFallback';
 
@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import type {GestureResponderEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useMemo} from 'react';
 
 import validateSubmitShortcut from './validateSubmitShortcut';
 
@@ -28,33 +27,28 @@ const accessibilityRoles: string[] = Object.values(CONST.ROLE);
  *   </Button>
  */
 function ButtonKeyboardShortcut({allowBubble, enterKeyEventListenerPriority, isPressOnEnterActive = false}: ButtonKeyboardShortcutProps) {
-    // The press handler and disabled/loading state come from the parent Button context.
-    const {onPress, isDisabled, isLoading} = useButtonContext();
+    // The disabled/loading state and the press handler come from the parent Button's state and actions contexts.
+    const {isDisabled, isLoading} = useButtonState();
+    const {onPress} = useButtonActions();
 
     const isFocused = useIsFocused();
     const activeElementRole = useActiveElementRole();
 
-    const shouldDisableEnterShortcut = useMemo(() => accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION, [activeElementRole]);
+    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElementRole ?? '') && activeElementRole !== CONST.ROLE.PRESENTATION;
 
-    const keyboardShortcutCallback = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
-                return;
-            }
-            onPress();
-        },
-        [isDisabled, isLoading, onPress],
-    );
+    const keyboardShortcutCallback = (event?: GestureResponderEvent | KeyboardEvent) => {
+        if (!validateSubmitShortcut(isDisabled, isLoading, event)) {
+            return;
+        }
+        onPress();
+    };
 
-    const config = useMemo(
-        () => ({
-            isActive: !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
-            shouldBubble: allowBubble,
-            priority: enterKeyEventListenerPriority,
-            shouldPreventDefault: false,
-        }),
-        [shouldDisableEnterShortcut, isFocused, isPressOnEnterActive, allowBubble, enterKeyEventListenerPriority],
-    );
+    const config = {
+        isActive: !shouldDisableEnterShortcut && (isFocused || isPressOnEnterActive),
+        shouldBubble: allowBubble,
+        priority: enterKeyEventListenerPriority,
+        shouldPreventDefault: false,
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, config);
 

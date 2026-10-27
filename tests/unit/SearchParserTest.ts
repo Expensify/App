@@ -1366,6 +1366,62 @@ const keywordTests = [
         },
     },
     {
+        query: 'declined:yes',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'declined',
+                right: 'yes',
+            },
+        },
+    },
+    {
+        query: 'type:expense-report -declined:no',
+        expected: {
+            type: 'expense-report',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'declined',
+                right: 'no',
+            },
+        },
+    },
+    {
+        query: 'held:yes',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'held',
+                right: 'yes',
+            },
+        },
+    },
+    {
+        query: '-held:no',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'held',
+                right: 'no',
+            },
+        },
+    },
+    {
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',

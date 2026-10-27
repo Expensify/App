@@ -152,7 +152,7 @@ function useAutocompleteSuggestions({
 
     if (!autocomplete && ranges.length > 0) {
         const lastRange = ranges.at(ranges.length - 1);
-        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key)) {
+        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.some((key) => key === lastRange.key)) {
             const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
             const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
@@ -546,7 +546,9 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD: {
             const filteredValues = BOOLEAN_VALUES.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value)).sort();
 
             return filteredValues.map((value) => ({
@@ -571,10 +573,10 @@ function useAutocompleteSuggestions({
                 new Set(
                     policyIdRanges
                         .map((range) => {
-                            const baseKey = getSubstitutionMapKey(range.key, range.value);
+                            const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
                             const index = keyValueCount.get(baseKey) ?? 0;
                             keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+                            const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
                             return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
                         })
                         .filter(Boolean),

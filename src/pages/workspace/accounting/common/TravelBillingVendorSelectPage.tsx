@@ -70,7 +70,7 @@ function TravelBillingVendorSelectPage({
             accessVariants={accessVariants}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={displayName}
-            title="workspace.common.travelInvoicingVendor"
+            title="workspace.common.travelBillingVendor"
             data={data}
             onSelectRow={onSelect}
             shouldSingleExecuteRowSelect

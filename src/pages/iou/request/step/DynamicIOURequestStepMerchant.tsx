@@ -26,7 +26,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMerchantRequired} from '@libs/MoneyRequestUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
-import {getMerchantError, isInvalidMerchantValue} from '@libs/ValidationUtils';
+import {getMerchantError, getMerchantErrorMessage, isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -41,7 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -100,23 +100,16 @@ function DynamicIOURequestStepMerchant({
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
-            const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
+        const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
 
-            if (merchantError?.type === 'required') {
-                errors.moneyRequestMerchant = translate('common.error.fieldRequired');
-            } else if (merchantError?.type === 'invalidValue') {
-                errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
-            } else if (merchantError?.type === 'tooLong') {
-                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', merchantError.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
-            }
+        if (merchantError) {
+            errors.moneyRequestMerchant = getMerchantErrorMessage(translate, merchantError);
+        }
 
-            return errors;
-        },
-        [isMerchantFieldRequired, translate],
-    );
+        return errors;
+    };
 
     const updateMerchantRef = (value: string) => {
         setCurrentMerchant(value);

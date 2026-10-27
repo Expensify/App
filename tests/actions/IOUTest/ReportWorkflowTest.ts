@@ -45,7 +45,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -119,6 +119,18 @@ function getRequiredReportAction(update: unknown): Record<string, unknown> {
 }
 
 OnyxUpdateManager();
+
+/** Reads the expenses currently in Onyx for a report, i.e. what a component would pass as the report's transactions. */
+async function getReportTransactionsFromOnyx(reportID: string | undefined): Promise<Transaction[]> {
+    let allTransactions: OnyxCollection<Transaction>;
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+        callback: (transactions) => {
+            allTransactions = transactions;
+        },
+    });
+    return Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+}
 
 describe('actions/IOU/ReportWorkflow', () => {
     let mockFetch: MockFetch;
@@ -274,12 +286,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 )
                 .then(async () => {
                     if (expenseReport) {
+                        const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                         submitReport({
                             rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
                             personalDetailsByLogins: {},
                             expenseReport,
+                            expenseReportTransactions,
                             policy: undefined,
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
@@ -412,12 +426,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 personalDetailsByLogins: {},
                 expenseReport: freshExpenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -558,12 +574,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 personalDetailsByLogins: {},
                 expenseReport: freshExpenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -687,12 +705,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 personalDetailsByLogins: {},
                 expenseReport: freshExpenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -819,12 +839,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When submitting the report while offline (callers pass the live report, refreshed by the hold)
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
                 personalDetailsByLogins: {},
                 expenseReport: freshExpenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1170,12 +1192,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                     )
                     .then(async () => {
                         if (expenseReport) {
+                            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                             submitReport({
                                 rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
                                 personalDetailsByLogins: {},
                                 expenseReport,
+                                expenseReportTransactions,
                                 policy,
                                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1493,12 +1517,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(async () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
+                            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                             submitReport({
                                 rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
                                 personalDetailsByLogins: {},
                                 expenseReport,
+                                expenseReportTransactions,
                                 policy: undefined,
                                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1677,14 +1703,16 @@ describe('actions/IOU/ReportWorkflow', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     if (expenseReport) {
+                        const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                         submitReport({
                             rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
                             personalDetailsByLogins: {},
                             expenseReport,
+                            expenseReportTransactions,
                             policy,
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
@@ -1758,12 +1786,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             // Submit with amountOwed > 0 should trigger restriction
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 personalDetailsByLogins: {},
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -1891,12 +1921,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 jest.mocked(Navigation.navigate).mockClear();
 
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
+                const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 submitReport({
                     rules: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     submitterLogin: undefined,
                     personalDetailsByLogins: {},
                     expenseReport,
+                    expenseReportTransactions,
                     policy,
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
@@ -1955,12 +1987,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2042,12 +2076,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2116,12 +2152,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2170,10 +2208,12 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2227,10 +2267,12 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2299,12 +2341,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -2393,10 +2437,12 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2487,12 +2533,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -2564,12 +2612,14 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Go offline so only the optimistic update is applied
             mockFetch?.pause?.();
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2636,12 +2686,14 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
+            const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 personalDetailsByLogins,
                 expenseReport,
+                expenseReportTransactions,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2714,6 +2766,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 submitterLogin: undefined,
                 personalDetailsByLogins: {},
                 expenseReport: report,
+                expenseReportTransactions: [transaction],
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2780,6 +2833,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 submitterLogin: undefined,
                 personalDetailsByLogins: {},
                 expenseReport: report,
+                expenseReportTransactions: [transaction],
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
@@ -2821,6 +2875,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 submitterLogin: undefined,
                 personalDetailsByLogins: {},
                 expenseReport,
+                expenseReportTransactions: [],
                 policy: {
                     ...createRandomPolicy(Number(policyID)),
                     id: policyID,
@@ -3244,6 +3299,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 submitterLogin: undefined,
                 personalDetailsByLogins: {},
                 expenseReport,
+                expenseReportTransactions: [],
                 policy: undefined,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -3284,6 +3340,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 submitterLogin: undefined,
                 personalDetailsByLogins: {},
                 expenseReport,
+                expenseReportTransactions: [],
                 policy: undefined,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
@@ -3910,6 +3967,88 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false)).toBeTruthy();
+        });
+
+        it('allows a non-payer admin to pay when a bank account is connected (reimburseYes)', async () => {
+            // Given an approved expense report on a workspace with bank reimbursement enabled.
+            // When an admin who is not the designated payer checks payment eligibility.
+            // Then Pay is available through admin permission without making that admin the payer.
+            const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+                achAccount: {
+                    reimburser: DESIGNATED_PAYER_EMAIL,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: CARLOS_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: -100,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // Rory is an admin but not the designated reimburser, so the Pay option comes from canAdminPayReport rather than isPayer.
+            expect(isPayer(RORY_ACCOUNT_ID, RORY_EMAIL, fakeReport, {}, fakePolicy, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeTruthy();
+        });
+
+        it('does not allow a non-payer admin to pay when reimbursementChoice is not configured', async () => {
+            // Given an approved expense report on a workspace without a configured reimbursement choice.
+            // When a non-payer admin checks payment eligibility.
+            // Then admin permission alone cannot enable payment before reimbursement is configured.
+            const DESIGNATED_PAYER_EMAIL = 'designated-payer@mail.com';
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: undefined,
+                role: CONST.POLICY.ROLE.ADMIN,
+                achAccount: {
+                    reimburser: DESIGNATED_PAYER_EMAIL,
+                    bankAccountID: 1,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: CARLOS_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: -100,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false)).toBeFalsy();
         });
 
         it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {
@@ -4801,7 +4940,52 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
         });
 
+        it('should show no further action in optimistic next step message when admin takes control and approves on a manual reimbursement policy', async () => {
+            // Given an admin who took control of a report on a workspace that reimburses outside Expensify (Indirect)
+            const takeControlAction = {
+                reportActionID: 'takeControl2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+            });
+
+            // When the admin approves the report
+            approveMoneyRequest({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic next step matches the server, which returns no further action because payment happens outside Expensify
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(report?.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+            });
+        });
+
         it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
+            // Given a workspace that reimburses through Expensify (Direct)
+            const directPolicy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${directPolicy.id}`, directPolicy);
+
             // Admin takes control
             const takeControlAction = {
                 reportActionID: 'takeControl2',
@@ -4819,7 +5003,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
-                expenseReportPolicy: policy,
+                expenseReportPolicy: directPolicy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,

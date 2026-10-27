@@ -1,7 +1,9 @@
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import {
+    EMPTY_VIOLATIONS,
     getReportIDForTransaction,
+    getVisibleReportRowViolations,
     isBillableEnabledOnPolicy,
     isEveryReportTransactionSelected,
     isSelectableReportTransaction,
@@ -9,7 +11,7 @@ import {
 } from '@libs/MoneyRequestReportUtils';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -273,6 +275,46 @@ describe('MoneyRequestReportUtils', () => {
             const reportLoadingState: ReportLoadingState = {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false};
 
             expect(shouldWaitForTransactions(reportBaseMock, [], reportLoadingState, false, false)).toBe(true);
+        });
+    });
+
+    describe('getVisibleReportRowViolations', () => {
+        const CURRENT_USER_ACCOUNT_ID = 1;
+        const CURRENT_USER_EMAIL = 'test@test.com';
+        const ownReport: Report = {reportID: 'report1', type: CONST.REPORT.TYPE.IOU, currency: CONST.CURRENCY.USD, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
+        const missingCategoryViolations: TransactionViolations = [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}];
+
+        it('should return the violations the current user can see', () => {
+            // Given a transaction on the current user's report with a missing category violation
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, missingCategoryViolations, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then the row shows that violation
+            expect(violations).toEqual(missingCategoryViolations);
+        });
+
+        it('should return the shared empty reference when the transaction has no violations', () => {
+            // Given a transaction whose violations key holds an empty list
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, [], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it gets the shared empty array, so its props stay referentially stable across renders
+            expect(violations).toBe(EMPTY_VIOLATIONS);
+        });
+
+        it('should return the shared empty reference when no violations are loaded', () => {
+            // Given a transaction whose violations key is not in Onyx
+            const transaction = createMock<Transaction>({transactionID: '1', reportID: ownReport.reportID});
+
+            // When the row asks for its visible violations
+            const violations = getVisibleReportRowViolations(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, ownReport, CURRENT_USER_EMAIL, undefined);
+
+            // Then it still gets the shared empty array
+            expect(violations).toBe(EMPTY_VIOLATIONS);
         });
     });
 });

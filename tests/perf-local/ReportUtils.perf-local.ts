@@ -9,7 +9,7 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportPreviewReportActionMessage,
+    getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
@@ -38,7 +38,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -96,7 +96,7 @@ describe('ReportUtils', () => {
         });
 
         await waitForBatchedUpdates();
-        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, openOnAdminRoom));
+        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, false, openOnAdminRoom));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
@@ -105,7 +105,7 @@ describe('ReportUtils', () => {
         const reportAction = createMock<ReportAction>({...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1, undefined, undefined));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1, undefined, undefined, undefined));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -151,7 +151,9 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewReportActionMessage(
+            getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
                 {
                     reportOrID: report,
                     iouReportAction: reportAction,
@@ -159,7 +161,7 @@ describe('ReportUtils', () => {
                     isPreviewMessageForParentChatReport,
                     policy,
                 },
-                getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             ),
         );
     });
