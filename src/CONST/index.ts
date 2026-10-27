@@ -8763,6 +8763,7 @@ const CONST = {
             MERCHANT: 'merchant',
             DESCRIPTION: 'description',
             FROM: 'from',
+            JACK: 'jacks',
             TO: 'to',
             PAYER: 'payer',
             PAID_BY: 'paidBy',
