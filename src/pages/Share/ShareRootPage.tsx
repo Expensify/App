@@ -86,6 +86,17 @@ function ShareRootPage() {
     const shareFileMimeTypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    const errorTitleRef = useRef<string | undefined>(undefined);
+
+    const setShareError = (title: string, message: string) => {
+        if (errorTitleRef.current) {
+            return;
+        }
+
+        errorTitleRef.current = title;
+        setErrorTitle(title);
+        setErrorMessage(message);
+    };
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -98,7 +109,7 @@ function ShareRootPage() {
     const handleProcessFiles = () => {
         ShareActionHandler.processFiles()
             .then((processedFiles: ShareTempFile[]) => {
-                if (errorTitle) {
+                if (errorTitleRef.current) {
                     return;
                 }
                 const tempFile = processedFiles.at(0);
@@ -106,13 +117,11 @@ function ShareRootPage() {
                     if (isFileReady) {
                         return;
                     }
-                    setErrorTitle(translate('attachmentPicker.attachmentError'));
-                    setErrorMessage(translate('attachmentView.attachmentNotFound'));
+                    setShareError(translate('attachmentPicker.attachmentError'), translate('attachmentView.attachmentNotFound'));
                     return;
                 }
                 if (!tempFile.mimeType || !shareFileMimeTypes.includes(tempFile.mimeType)) {
-                    setErrorTitle(translate('attachmentPicker.wrongFileType'));
-                    setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
+                    setShareError(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
                     return;
                 }
 
@@ -121,13 +130,11 @@ function ShareRootPage() {
                 if (mimeType !== 'txt' && !isImage) {
                     getFileSize(tempFile.content).then((size) => {
                         if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                            setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                            setErrorMessage(translate('attachmentPicker.sizeExceeded'));
+                            setShareError(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
                         }
 
                         if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                            setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                            setErrorMessage(translate('attachmentPicker.sizeNotMet'));
+                            setShareError(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
                         }
                     });
                 }
@@ -138,8 +145,7 @@ function ShareRootPage() {
                 if (isImage && !shouldValidateFile(tempFile)) {
                     const fileObject: FileObject = {name: tempFile.id, uri: tempFile.content, type: mimeType};
                     validateImageForCorruption(fileObject).catch(() => {
-                        setErrorTitle(translate('attachmentPicker.attachmentError'));
-                        setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                        setShareError(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                     });
                 }
 
@@ -158,8 +164,7 @@ function ShareRootPage() {
             })
             .catch((error: unknown) => {
                 Log.warn('[ShareRootPage] Failed to process shared files', {error});
-                setErrorTitle(translate('attachmentPicker.attachmentError'));
-                setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                setShareError(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
             });
     };
 
