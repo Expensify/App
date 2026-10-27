@@ -16493,6 +16493,17 @@ describe('getMatchingFilters', () => {
         expect(matchingFilters).toEqual([[PAID, PAID_BY]]);
     });
 
+    it('matches the words of the search value in any order', () => {
+        // Given filters whose labels share the word "paid"
+        const filters = [[SUBMITTED, PAID, PAID_BY]];
+
+        // When they are matched against the words of "Paid by" swapped around
+        const matchingFilters = SearchUIUtils.getMatchingFilters(filters, CONST.SEARCH.DATA_TYPES.EXPENSE, 'by paid', translateLocal);
+
+        // Then only Paid by is kept, because only its label holds both words
+        expect(matchingFilters).toEqual([[PAID_BY]]);
+    });
+
     it('returns no section when no filter label contains the search value', () => {
         // Given a search value no filter label contains
         // When the filters are matched against it

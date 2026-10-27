@@ -221,6 +221,7 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
+import tokenizedSearch from './tokenizedSearch';
 import {
     getAmount,
     getAttendees,
@@ -6395,14 +6396,14 @@ function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: S
 }
 
 function isLabelMatchingSearchValue(label: string, searchValue: string): boolean {
-    return label.toLowerCase().includes(searchValue.trim().toLowerCase());
+    return tokenizedSearch([label], searchValue, (item) => [item]).length > 0;
 }
 
 function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
     return isLabelMatchingSearchValue(translate(getFilterViewLabelKey(filterKey, type)), searchValue);
 }
 
-/** Keeps the filters whose label contains the search value, dropping the sections left empty. */
+/** Keeps the filters whose label contains every word of the search value, dropping the sections left empty. */
 function getMatchingFilters(
     filters: Array<Array<SearchFilter['key']>>,
     type: SearchDataTypes | undefined,
