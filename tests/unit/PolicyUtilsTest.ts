@@ -26,6 +26,7 @@ import {
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasCompanyAddress,
     hasReadOnlyAllReportsAccess,
@@ -138,6 +139,7 @@ import {
     isXeroVendorMatchingActive,
     settingsPendingAction,
     shouldHideDynamicExternalWorkflowPeople,
+    shouldHideExpensifyTeamCardholder,
     shouldShowPolicy,
     sortPoliciesByName,
     getDefaultVendorID,
@@ -1511,10 +1513,12 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('allows People Admins to assign the approve-only role', () => {
-                const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+            it('blocks assigning the approve-only role', () => {
+                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
 
-                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(true);
+                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
             });
 
             it('gives approve-only members read-only access like members', () => {
@@ -4010,6 +4014,8 @@ describe('PolicyUtils', () => {
                 ['escapes a plain colon', 'Plain:Colon', 'Plain\\:Colon'],
                 ['keeps an already escaped colon unchanged', 'Parent\\: Child', 'Parent\\: Child'],
                 ['escapes consecutive colons', 'a::b', 'a\\:\\:b'],
+                ['escapes a colon preceded by an escaped backslash', 'parent\\\\:child', 'parent\\\\\\:child'],
+                ['keeps a colon preceded by an escaped backslash and an escaped colon unchanged', 'a\\\\\\:b', 'a\\\\\\:b'],
                 ['returns a tag without colons unchanged', 'Engineering', 'Engineering'],
             ])('%s', (_description, tag, expected) => {
                 // Given a tag name typed by the user
@@ -4040,6 +4046,20 @@ describe('PolicyUtils', () => {
 
                 // Then it stays one tag level instead of being split into `Parent\\` and ` Child`
                 expect(result).toEqual(['Parent\\: Child']);
+            });
+
+            it.each([
+                ['an escaped backslash before a colon', 'parent\\\\:child', 'parent\\\\\\:child'],
+                ['an escaped backslash and an escaped colon', 'a\\\\\\:b', 'a\\\\\\:b'],
+            ])('keeps a tag with %s as a single tag level', (_description, tag, expected) => {
+                // Given a tag whose colon is preceded by backslashes
+                const escapedTag = escapeTagName(tag);
+
+                // When the saved tag is split into tag levels
+                const result = getTagArrayFromName(escapedTag);
+
+                // Then it stays one tag level, because every saved colon has an odd number of backslashes before it
+                expect(result).toEqual([expected]);
             });
         });
 
@@ -5622,6 +5642,40 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('shouldHideExpensifyTeamCardholder', () => {
+            const customerOwner = 'owner@test.com';
+
+            it('hides Expensify team logins on a customer workspace', () => {
+                // Given a customer-owned workspace viewed by a customer admin
+                // When checking an Expensify team login that is not the current cardholder
+                // Then it is hidden, matching the Workspace Members page
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, customerOwner, employeeEmail)).toBe(true);
+            });
+
+            it('keeps non-Expensify logins and missing logins visible', () => {
+                // Given a customer-owned workspace viewed by a customer admin
+                // When checking a customer login or no login at all
+                // Then neither is hidden, because only Expensify team logins are filtered
+                expect(shouldHideExpensifyTeamCardholder(employeeEmail, undefined, customerOwner, employeeEmail)).toBe(false);
+                expect(shouldHideExpensifyTeamCardholder(undefined, undefined, customerOwner, employeeEmail)).toBe(false);
+            });
+
+            it('keeps the current cardholder visible even if they are on the Expensify team', () => {
+                // Given an Expensify team login that is already the cardholder being edited
+                // When checking whether to hide it
+                // Then it stays visible so editing the assignment doesn't blank out the selection
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, guideEmail, customerOwner, employeeEmail)).toBe(false);
+            });
+
+            it('shows Expensify team logins on Expensify-owned workspaces or to Expensify staff', () => {
+                // Given a workspace owned by Expensify, or a viewer on the Expensify team
+                // When checking an Expensify team login
+                // Then it is not hidden, matching the Workspace Members page behavior
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, 'owner@expensify.com', employeeEmail)).toBe(false);
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, customerOwner, 'support@team.expensify.com')).toBe(false);
+            });
+        });
+
         describe('getMemberAccountIDsForWorkspace', () => {
             it('maps every member email to its accountID from personal details', () => {
                 // Given a workspace whose members all have personal details
@@ -7114,7 +7168,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy', () => {
+        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
@@ -7176,6 +7230,19 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
+            });
+
+            it('lists the workspaces that have the vendor feature', () => {
+                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
+                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the workspace IDs are listed with and without the vendorMatching beta
+                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
+                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
+
+                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
+                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
+                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 

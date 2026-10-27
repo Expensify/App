@@ -37,6 +37,9 @@ type BankAccountAdditionalData = {
     /** The business's Wise onboarding as every holder of the account sees it: the status only, the answers are the admin's */
     wise?: Pick<WiseBusinessOnboarding, 'status'>;
 
+    /** Whether the account is set up for global reimbursements. The backend rejects payments from a USD business account where this is false */
+    isGlobalReimbursementEnabled?: boolean;
+
     /** Verification statuses returned by the backend, mirroring how Classic determines status */
     verifications?: {
         /** Present once the account is set up with Corpay for Global Reimbursement */

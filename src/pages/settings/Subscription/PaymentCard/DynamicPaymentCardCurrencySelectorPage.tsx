@@ -23,7 +23,7 @@ import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
@@ -52,18 +52,14 @@ function DynamicPaymentCardCurrencySelectorPage() {
     const [draftCurrency, setDraftCurrency] = useState<Currency>();
     const selectedCurrency = draftCurrency ?? currentCurrency;
 
-    const currencyOptions = useMemo(
-        () =>
-            (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Currency[])
-                .filter((currency) => currency !== CONST.PAYMENT_CARD_CURRENCY.EUR || canUseEurBilling)
-                .map((currency) => ({
-                    text: currency,
-                    value: currency,
-                    keyForList: currency,
-                    isSelected: currency === selectedCurrency,
-                })),
-        [selectedCurrency, canUseEurBilling],
-    );
+    const currencyOptions = (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Currency[])
+        .filter((currency) => currency !== CONST.PAYMENT_CARD_CURRENCY.EUR || canUseEurBilling)
+        .map((currency) => ({
+            text: currency,
+            value: currency,
+            keyForList: currency,
+            isSelected: currency === selectedCurrency,
+        }));
 
     const saveAndGoBack = () => {
         if (isChangeBillingCurrencyFlow) {
