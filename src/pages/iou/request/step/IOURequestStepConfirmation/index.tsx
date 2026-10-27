@@ -29,7 +29,7 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestBillable, setMoneyRequestDraftHasUserEdits, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -570,10 +570,12 @@ function IOURequestStepConfirmationContent({
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(currentTransactionID, billable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+        setMoneyRequestDraftHasUserEdits(currentTransactionID);
     };
 
     // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
