@@ -13,8 +13,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import {useCurrencyListState} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
@@ -67,8 +65,8 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     // Helps to avoid unnecessary recalculations when user open report details screen. React Compiler does not provide same result.
-    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [workspaceCardFeeds, userCardList]);
+    const taxRates = getAllTaxRates(policies);
+    const allCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
     const {exportedToFilterOptions} = useExportedToFilterOptions();
 
     const formValues = queryJSON

@@ -24,7 +24,7 @@ import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
 import {deleteAgent} from '@libs/actions/Agent';
-import {disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {DISCONNECT_RESULT, disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,7 +41,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
@@ -94,99 +94,16 @@ function SecuritySettingsPage() {
         openSecuritySettingsPage();
     }, []);
 
-    const securityMenuItems = useMemo(() => {
-        const baseMenuItems: BaseMenuItemType[] = [];
+    const baseMenuItems: BaseMenuItemType[] = [];
 
-        // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
-        if (isAgentAccount === false) {
-            baseMenuItems.push({
-                translationKey: 'twoFactorAuth.headerTitle',
-                icon: icons.Shield,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
-                action: () => {
-                    if (isActingAsDelegate) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-                    if (isAccountLocked) {
-                        showLockedAccountModal();
-                        return;
-                    }
-                    Navigation.navigate(getTwoFactorAuthRoute());
-                },
-            });
-        }
-
-        if (isAgentAccount === false && hasEverRegisteredForMultifactorAuthentication) {
-            baseMenuItems.push({
-                translationKey: 'multifactorAuthentication.revoke.title',
-                icon: icons.Fingerprint,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.REVOKE_MFA,
-                action: () => {
-                    Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
-                },
-            });
-        }
-
-        // Merging accounts doesn't apply to agent accounts, so hide it when copiloting into an agent.
-        if (!isCopilotingIntoAgent) {
-            baseMenuItems.push({
-                translationKey: 'mergeAccountsPage.mergeAccount',
-                icon: icons.ArrowCollapse,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
-                action: () => {
-                    if (isAccountLocked) {
-                        showLockedAccountModal();
-                        return;
-                    }
-                    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
-                        Navigation.navigate(
-                            ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
-                        );
-                        return;
-                    }
-
-                    Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
-                },
-            });
-        }
-
-        if (isAccountLocked) {
-            baseMenuItems.push({
-                translationKey: 'lockAccountPage.unlockAccount',
-                icon: icons.UserLock,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
-            });
-        } else {
-            baseMenuItems.push({
-                translationKey: 'lockAccountPage.reportSuspiciousActivity',
-                icon: icons.UserLock,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
-            });
-        }
-
-        // Device management applies to a real user's own logged-in devices, not to an agent, so hide it when copiloting into an agent.
-        if (!isCopilotingIntoAgent) {
-            const deviceManagementBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-            baseMenuItems.push({
-                translationKey: 'deviceManagementPage.title',
-                icon: icons.Monitor,
-                brickRoadIndicator: deviceManagementBrickRoadIndicator,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
-            });
-        }
-
+    // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
+    if (isAgentAccount === false) {
         baseMenuItems.push({
-            translationKey: 'closeAccountPage.closeAccount',
-            icon: icons.ClosedSign,
-            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
-            action: async () => {
-                // Copiloting into an agent is also a delegate session and must fall through to the
-                // agent-delete flow below, so only plain delegates are blocked here.
-                if (isActingAsDelegate && !isCopilotingIntoAgent) {
+            translationKey: 'twoFactorAuth.headerTitle',
+            icon: icons.Shield,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
+            action: () => {
+                if (isActingAsDelegate) {
                     showDelegateNoAccessModal();
                     return;
                 }
@@ -194,93 +111,145 @@ function SecuritySettingsPage() {
                     showLockedAccountModal();
                     return;
                 }
-                // When copiloting into an agent, "close account" deletes the agent and ends the copilot session
-                // instead of running the usual close-account flow (which targets a real user's account).
-                if (isCopilotingIntoAgent) {
-                    // Ending the copilot session is a network side-effect request (DisconnectAsDelegate) that isn't
-                    // persisted to the SequentialQueue, so it can't be queued and retried while offline. Require a
-                    // connection before starting the flow instead of letting it stall.
-                    if (isOffline) {
-                        showConfirmModal({
-                            title: translate('common.youAppearToBeOffline'),
-                            prompt: translate('common.thisFeatureRequiresInternet'),
-                            confirmText: translate('common.buttonConfirm'),
-                            shouldShowCancelButton: false,
-                        });
-                        return;
-                    }
-                    const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
-                    if (ruleBotEnforcedPolicy) {
-                        showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
-                        return;
-                    }
-                    const result = await showConfirmModal({
-                        title: translate('editAgentPage.deleteAgentTitle'),
-                        prompt: translate('editAgentPage.deleteAgentMessage'),
-                        confirmText: translate('common.delete'),
-                        cancelText: translate('common.cancel'),
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                    });
-                    if (result.action !== ModalActions.CONFIRM) {
-                        return;
-                    }
-                    // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
-                    // authenticated as the agent itself. So capture the agent's identity, end the copilot session
-                    // (which restores the owner's session and auth token), and only then delete the agent as the
-                    // owner. If the disconnect fails the owner's session was never restored, so skip the delete.
-                    const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    const agentLogin = currentUserPersonalDetails.login;
-                    const didDisconnect = await disconnect({stashedCredentials, stashedSession});
-                    if (!didDisconnect) {
-                        return;
-                    }
-                    deleteAgent(agentAccountID, agentLogin, allPolicies, false);
-                    return;
-                }
-                clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
-                Navigation.navigate(ROUTES.SETTINGS_CLOSE);
+                Navigation.navigate(getTwoFactorAuthRoute());
             },
         });
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey),
-            icon: item.icon,
-            onPress: item.action,
-            shouldShowRightIcon: true,
-            link: '',
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            sentryLabel: item.sentryLabel,
-            brickRoadIndicator: item.brickRoadIndicator,
-        }));
-    }, [
-        icons.ArrowCollapse,
-        icons.ClosedSign,
-        icons.UserLock,
-        icons.Shield,
-        icons.Fingerprint,
-        icons.Monitor,
-        isAccountLocked,
-        isActingAsDelegate,
-        isAgentAccount,
-        isCopilotingIntoAgent,
-        getTwoFactorAuthRoute,
-        showDelegateNoAccessModal,
-        showLockedAccountModal,
-        showConfirmModal,
-        showRuleBotGuardModal,
-        session?.accountID,
-        stashedCredentials,
-        stashedSession,
-        allPolicies,
-        isOffline,
-        privateSubscription?.type,
-        currentUserPersonalDetails.login,
-        waitForNavigate,
-        translate,
-        styles.sectionMenuItemTopDescription,
-        hasEverRegisteredForMultifactorAuthentication,
-        hasDeviceManagementErrorValue,
-    ]);
+    }
+    if (isAgentAccount === false && hasEverRegisteredForMultifactorAuthentication) {
+        baseMenuItems.push({
+            translationKey: 'multifactorAuthentication.revoke.title',
+            icon: icons.Fingerprint,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.REVOKE_MFA,
+            action: () => {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
+            },
+        });
+    }
+
+    // Merging accounts doesn't apply to agent accounts, so hide it when copiloting into an agent.
+    if (!isCopilotingIntoAgent) {
+        baseMenuItems.push({
+            translationKey: 'mergeAccountsPage.mergeAccount',
+            icon: icons.ArrowCollapse,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
+            action: () => {
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    Navigation.navigate(
+                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                    );
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+            },
+        });
+    }
+    if (isAccountLocked) {
+        baseMenuItems.push({
+            translationKey: 'lockAccountPage.unlockAccount',
+            icon: icons.UserLock,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+        });
+    } else {
+        baseMenuItems.push({
+            translationKey: 'lockAccountPage.reportSuspiciousActivity',
+            icon: icons.UserLock,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
+        });
+    }
+
+    // Device management applies to a real user's own logged-in devices, not to an agent, so hide it when copiloting into an agent.
+    if (!isCopilotingIntoAgent) {
+        const deviceManagementBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        baseMenuItems.push({
+            translationKey: 'deviceManagementPage.title',
+            icon: icons.Monitor,
+            brickRoadIndicator: deviceManagementBrickRoadIndicator,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
+        });
+    }
+    baseMenuItems.push({
+        translationKey: 'closeAccountPage.closeAccount',
+        icon: icons.ClosedSign,
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
+        action: async () => {
+            // Copiloting into an agent is also a delegate session and must fall through to the
+            // agent-delete flow below, so only plain delegates are blocked here.
+            if (isActingAsDelegate && !isCopilotingIntoAgent) {
+                showDelegateNoAccessModal();
+                return;
+            }
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            // When copiloting into an agent, "close account" deletes the agent and ends the copilot session
+            // instead of running the usual close-account flow (which targets a real user's account).
+            if (isCopilotingIntoAgent) {
+                // Ending the copilot session is a network side-effect request (DisconnectAsDelegate) that isn't
+                // persisted to the SequentialQueue, so it can't be queued and retried while offline. Require a
+                // connection before starting the flow instead of letting it stall.
+                if (isOffline) {
+                    showConfirmModal({
+                        title: translate('common.youAppearToBeOffline'),
+                        prompt: translate('common.thisFeatureRequiresInternet'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+                const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
+                if (ruleBotEnforcedPolicy) {
+                    showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
+                    return;
+                }
+                const result = await showConfirmModal({
+                    title: translate('editAgentPage.deleteAgentTitle'),
+                    prompt: translate('editAgentPage.deleteAgentMessage'),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
+                // authenticated as the agent itself. So capture the agent's identity, end the copilot session
+                // (which restores the owner's session and auth token), and only then delete the agent as the
+                // owner. Skip the delete unless the owner was restored with fresh tokens.
+                const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                const agentLogin = currentUserPersonalDetails.login;
+                const disconnectResult = await disconnect({
+                    stashedCredentials,
+                    stashedSession,
+                });
+                if (disconnectResult !== DISCONNECT_RESULT.RESTORED) {
+                    return;
+                }
+                deleteAgent(agentAccountID, agentLogin, allPolicies, false);
+                return;
+            }
+            clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+            Navigation.navigate(ROUTES.SETTINGS_CLOSE);
+        },
+    });
+    const securityMenuItems = baseMenuItems.map((item) => ({
+        key: item.translationKey,
+        title: translate(item.translationKey),
+        icon: item.icon,
+        onPress: item.action,
+        shouldShowRightIcon: true,
+        link: '',
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: item.sentryLabel,
+        brickRoadIndicator: item.brickRoadIndicator,
+    }));
 
     if (isAgentAccount === undefined) {
         return null;

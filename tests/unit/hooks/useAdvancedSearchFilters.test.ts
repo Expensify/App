@@ -7,6 +7,7 @@ import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTagLists} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -14,6 +15,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Log');
@@ -173,6 +175,43 @@ describe('useAdvancedSearchFilters', () => {
             await waitFor(() => {
                 const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+            });
+        });
+    });
+
+    describe('vendor filter visibility', () => {
+        it('hides the vendor filter when no workspace has the vendor feature', async () => {
+            // Given a workspace with no accounting connection
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {connections: undefined}));
+
+            // When the advanced filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
+
+            // Then the vendor filter is hidden because no workspace has vendors to pick from, while other filters still show
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR);
+            });
+        });
+
+        it('shows the vendor filter when a workspace exports QBO card expenses as credit card transactions', async () => {
+            // Given a workspace that exports QBO card expenses as credit card transactions, which is when expenses get a vendor
+            const connections = createMock<Connections>({
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: []},
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {connections}));
+
+            // When the advanced filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined), {wrapper});
+
+            // Then the vendor filter is shown so those expenses can be filtered by vendor
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR);
             });
         });
     });

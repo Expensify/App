@@ -103,6 +103,7 @@ describe('useFilterFormValues selectors', () => {
         });
 
         it('extracts only the fields needed for exported-to options', () => {
+            // Given a policy with currency, role and card settings used by exported-to options
             const connections = {quickbooksOnline: {config: {}, lastSync: {isConnected: true}}};
             const exportLayouts = {template1: {name: 'Template 1'}};
             const policies: OnyxCollection<Policy> = {
@@ -110,6 +111,10 @@ describe('useFilterFormValues selectors', () => {
                     id: '1',
                     name: 'Policy 1',
                     connections,
+                    outputCurrency: 'USD',
+                    role: 'admin',
+                    areCompanyCardsEnabled: true,
+                    areExpensifyCardsEnabled: false,
                     exportLayouts,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     employeeList: {'a@b.com': {email: 'a@b.com', role: 'user'}},
@@ -118,9 +123,19 @@ describe('useFilterFormValues selectors', () => {
                 }),
             };
 
+            // When the production selector reduces the policy subscription
             const result = exportedToPoliciesSelector(policies);
 
-            expect(result?.[POLICY_KEY]).toEqual({id: '1', name: 'Policy 1', connections});
+            // Then every consumed field survives while unrelated metadata is omitted
+            expect(result?.[POLICY_KEY]).toEqual({
+                id: '1',
+                name: 'Policy 1',
+                connections,
+                outputCurrency: 'USD',
+                role: 'admin',
+                areCompanyCardsEnabled: true,
+                areExpensifyCardsEnabled: false,
+            });
             expect(result?.[POLICY_KEY]).not.toHaveProperty('exportLayouts');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('employeeList');
             expect(result?.[POLICY_KEY]).not.toHaveProperty('taxRates');
@@ -207,6 +222,7 @@ describe('useFilterFormValues selectors', () => {
         });
 
         it('extracts all fields needed for advanced search filter checks', () => {
+            // Given an archived policy whose archive date affects advanced search filter checks
             const employeeList =
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 {'a@b.com': {email: 'a@b.com', role: 'admin'}};
@@ -222,6 +238,7 @@ describe('useFilterFormValues selectors', () => {
                     employeeList,
                     owner: 'a@b.com',
                     avatarURL: 'https://example.com/avatar.png',
+                    archivedDate: '2024-01-01 00:00:00',
                     isJoinRequestPending: false,
                     pendingAction: undefined,
                     errors: {},
@@ -239,8 +256,10 @@ describe('useFilterFormValues selectors', () => {
                 }),
             };
 
+            // When the production selector projects the fields needed by advanced search
             const result = advancedSearchPoliciesSelector(policies);
 
+            // Then archive state and every existing search field survive without heavy metadata
             expect(result?.[POLICY_KEY]).toEqual({
                 id: '1',
                 name: 'Policy 1',
@@ -249,6 +268,7 @@ describe('useFilterFormValues selectors', () => {
                 employeeList,
                 owner: 'a@b.com',
                 avatarURL: 'https://example.com/avatar.png',
+                archivedDate: '2024-01-01 00:00:00',
                 isJoinRequestPending: false,
                 pendingAction: undefined,
                 errors: {},

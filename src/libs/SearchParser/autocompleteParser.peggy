@@ -87,6 +87,7 @@ autocompleteKey "key"
       / total
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / from
@@ -111,10 +112,13 @@ autocompleteKey "key"
       / view
       / reimbursable
       / billable
+      / declined
+      / held
       / policyID
       / action
       / date
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo

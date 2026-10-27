@@ -1,5 +1,5 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 
 import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
@@ -22,13 +22,48 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
 ];
 
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
+
+/** The generated parser also produces non-canonical keys. Only prove the fields used by ordinary query consumers. */
+function isAutocompleteParserResult(value: unknown): value is AutocompleteParserResult {
+    'worklet';
+
+    if (typeof value !== 'object' || value === null || !('autocomplete' in value) || !('ranges' in value) || !Array.isArray(value.ranges)) {
+        return false;
+    }
+
+    const parsedRanges: unknown[] = value.ranges;
+    const ranges = value.autocomplete === null ? parsedRanges : [...parsedRanges, value.autocomplete];
+    for (const range of ranges) {
+        if (
+            typeof range !== 'object' ||
+            range === null ||
+            !('key' in range) ||
+            typeof range.key !== 'string' ||
+            !('value' in range) ||
+            typeof range.value !== 'string' ||
+            !('start' in range) ||
+            typeof range.start !== 'number' ||
+            !('length' in range) ||
+            typeof range.length !== 'number'
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Parses given query using the autocomplete parser.
  * This is a smaller and simpler version of search parser used for autocomplete displaying logic.
  */
 function parseForAutocomplete(text: string) {
     try {
-        const parsedAutocomplete = parse(text) as SearchAutocompleteResult;
+        const parsedAutocomplete: unknown = parse(text);
+        if (!isAutocompleteParserResult(parsedAutocomplete)) {
+            throw new Error('Invalid autocomplete parser result');
+        }
         return parsedAutocomplete;
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
@@ -152,7 +187,7 @@ const userFriendlyStatusList = Object.values({
 
 const userFriendlyColumnList = new Set(
     Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
-        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).includes(key as SearchColumnType))
+        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).some((column) => column === key))
         .map(([, value]) => value),
 );
 
@@ -161,7 +196,7 @@ const userFriendlyColumnList = new Set(
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
 function filterOutRangesWithCorrectValue(
-    range: SearchAutocompleteQueryRange,
+    range: AutocompleteParserRange,
     substitutionMap: SubstitutionMap,
     userLogins: SharedValue<string[]>,
     currencyList: SharedValue<string[]>,
@@ -251,10 +286,13 @@ function filterOutRangesWithCorrectValue(
             return viewList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
@@ -265,6 +303,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
             return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
             return exportedToList.get().includes(range.value);
@@ -307,7 +346,10 @@ function parseForLiveMarkdown(
 ): MarkdownRange[] {
     'worklet';
 
-    const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
+    const parsedAutocomplete: unknown = parse(input);
+    if (!isAutocompleteParserResult(parsedAutocomplete)) {
+        return [];
+    }
     const ranges = parsedAutocomplete.ranges;
     const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;

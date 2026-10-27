@@ -13,6 +13,7 @@ import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@compo
 import Text from '@components/Text';
 import UserPill from '@components/UserPill';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -46,7 +47,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type TaskViewProps = {
@@ -73,9 +74,10 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     }, [report]);
 
     const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
-    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitleWithoutPre);
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
-    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre);
+    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre, {accountIDToName});
     const isCompletedFromOnyx = isCompletedTaskReport(report);
     const shouldDisableCompletedOnboardingTaskLink =
         isCompletedFromOnyx && [introSelected?.addWorkEmail, introSelected?.validateEmail, introSelected?.joinWorkspace].includes(report?.reportID);
@@ -104,27 +106,21 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    const contextMenuStateValue = useMemo(
-        () => ({
-            anchor: null,
-            report,
-            action,
-            transactionThreadReport: undefined,
-            isDisabled: true,
-            shouldDisplayContextMenu: false,
-        }),
-        [report, action],
-    );
+    const contextMenuStateValue = {
+        anchor: null,
+        report,
+        action,
+        transactionThreadReport: undefined,
+        isDisabled: true,
+        shouldDisplayContextMenu: false,
+    };
 
-    const contextMenuActionsValue = useMemo(
-        () => ({
-            checkIfContextMenuActive: () => {},
-            onShowContextMenu: (callback: () => void) => callback(),
-        }),
-        [],
-    );
+    const contextMenuActionsValue = {
+        checkIfContextMenuActive: () => {},
+        onShowContextMenu: (callback: () => void) => callback(),
+    };
 
-    const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
+    const attachmentContextValue = {type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID};
 
     return (
         <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
