@@ -336,6 +336,10 @@ function useColumnResize({
     const handlePointerDown = (columnKey: string, event: React.PointerEvent<HTMLDivElement>) => {
         const handle = event.currentTarget;
 
+        // The drag cancels pointerdown, which would otherwise keep the press from focusing the edge for the arrow keys. Focused
+        // before the drag starts, so the edge losing focus hides its line.
+        handle.focus({preventScroll: true});
+
         pointerDrag.startDrag(event, () => {
             const pendingFitColumnKey = cancelPendingFit();
             const isSecondClick = pendingFitColumnKey === columnKey;

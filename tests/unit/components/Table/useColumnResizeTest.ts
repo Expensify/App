@@ -993,4 +993,18 @@ describe('useColumnResize', () => {
         // Then the line reaches the new last row, instead of keeping the length measured when the edge was focused
         expect(readLineHeight()).toBe('400px');
     });
+
+    it('focuses an edge when it is pressed, so the arrow keys reach it', () => {
+        // Given a resizable column whose edge doesn't have focus
+        const {handleElement, getHandleProps} = renderColumnResize();
+        const focus = jest.spyOn(handleElement, 'focus');
+
+        // When the edge is pressed, which cancels the browser's own focusing so the drag selects no text
+        act(() => {
+            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
+        });
+
+        // Then the edge takes focus without scrolling the table, so a following arrow key resizes this column
+        expect(focus).toHaveBeenCalledWith({preventScroll: true});
+    });
 });
