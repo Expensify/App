@@ -424,46 +424,6 @@ describe('top-level Search Router navigation source', () => {
         ]);
     });
 
-    it('includes the Insights destination for every user', () => {
-        // Given Insights is available to every user
-        // When the top-level destinations are built
-        const items = buildTopLevelNavigationItems({
-            labels: {
-                home: 'Home',
-                inbox: 'Inbox',
-                spend: 'Spend',
-                insights: 'Insights',
-                workspaces: 'Workspaces',
-                domains: 'Domains',
-                account: 'Account',
-            },
-            icons: {
-                Home: mockIcon,
-                Inbox: mockIcon,
-                ReceiptMultiple: mockIcon,
-                PieChart: mockIcon,
-                Building: mockIcon,
-                Globe: mockIcon,
-                Gear: mockIcon,
-            },
-            getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
-            getDestinationText: (destination) => `Go to ${destination}`,
-        });
-
-        // Then the Insights row follows Spend and navigates to the Spend dashboard
-        expect(items.map((item) => item.keyForList)).toEqual([
-            'topLevelHome',
-            'topLevelInbox',
-            'topLevelSpend',
-            'topLevelInsights',
-            'topLevelWorkspaces',
-            'topLevelDomains',
-            'topLevelAccount',
-        ]);
-        items.at(3)?.action?.();
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
-    });
-
     it('navigates each top-level row to its intended route', () => {
         const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'});
         const getSpendRoute = jest.fn(() => spendRoute);

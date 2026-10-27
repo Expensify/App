@@ -1,6 +1,5 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 
-import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,7 +44,6 @@ function useNativeTabNavigator() {
     const tabWithoutBarItem = NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const isFocusedRouteTabRoot = useNavigationState((state) => TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(findFocusedRoute(state)?.name ?? ''));
@@ -65,7 +63,6 @@ function useNativeTabNavigator() {
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: accountIndicatorStatus ? accountIndicatorColor : undefined,
     };
     const tabLabels: Record<string, string> = {
         [SCREENS.HOME]: translate('common.home'),
@@ -73,7 +70,6 @@ function useNativeTabNavigator() {
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
         [SCREENS.INSIGHTS]: translate('common.insights'),
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: translate('initialSettingsPage.account'),
     };
 
     useEffect(() => {
@@ -105,7 +101,7 @@ function useNativeTabNavigator() {
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, isAccountAvatarShown: false, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;
