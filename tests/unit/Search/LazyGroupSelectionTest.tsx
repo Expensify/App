@@ -10,6 +10,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, resolveGroupCount} from '@components/Search/selectionBuilders';
+import * as selectionBuilders from '@components/Search/selectionBuilders';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -644,14 +645,13 @@ describe('Lazily loaded group selection', () => {
         const {result} = renderSelection();
         const [firstChild] = loadedChildren;
 
-        // Given a group selected while it was still collapsed, whose children have since loaded and been registered, which writes the selection out onto them
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
         await act(async () => {
             result.current.toggle(categoryGroup, []);
             expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
-        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
-        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
 
         // When one of those children, which renders as selected through the group, is clicked
         await act(async () => {
@@ -3444,6 +3444,31 @@ describe('Lazily loaded group selection', () => {
 
             // Then the count and total take the two rows still selected, not the group's three and 300
             expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual([keptRow.keyForList, laterRow.keyForList].sort());
+        });
+
+        it('does not rebuild the selection when a group opens whose rows match its count', async () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}travel`;
+            const rows = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            pagingGroup = {...buildCategoryGroup(groupKey, rows), count: 2, hasMoreTransactions: false};
+            const {result} = renderSelection(PagingWrapper);
+
+            // Given a group whose own search returned the two expenses its count holds, checked from its header while closed
+            await act(async () => {
+                result.current.toggle(pagingGroup, rows);
+                await waitForBatchedUpdatesWithAct();
+            });
+            const buildEntrySpy = jest.spyOn(selectionBuilders, 'mapTransactionItemToSelectedEntry');
+
+            // When it opens, which measures it by the rows it shows
+            await act(async () => {
+                result.current.addGroupToRange(groupKey);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // Then no row's selection is rebuilt, since those rows and the group-by count give the same count, so opening the group changes nothing the selection rests on.
+            // Scrolling past open groups opens and closes them as the list recycles its rows, so with Select all on each rebuild would cover every loaded row.
+            expect(buildEntrySpy).not.toHaveBeenCalled();
+            buildEntrySpy.mockRestore();
         });
 
         describe('a group whose own search has returned every expense while its count still holds one that left it', () => {

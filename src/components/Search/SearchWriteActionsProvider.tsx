@@ -44,10 +44,9 @@ import {
     applyShiftRangeBatchToSelection,
     buildShiftRangeSource,
     getCoveredGroupCount,
+    getGroupByCount,
     getGroupClaims,
     getRemainingSearchGroupCount,
-    getSearchGroupCount,
-    getSearchGroupCountByKey,
     getSelectedRowKeysByGroupKey,
     isGroupSelected,
     isRowChecked,
@@ -172,8 +171,8 @@ function resolveTransactionRefs(item: TransactionListItemType, transactions: Ony
  * Rebuilds `selectedTransactions` whenever the underlying data changes (e.g. an Onyx push adds rows to a
  * selected report) so the selection stays in sync with what is on screen, then atomically commits it via
  * `applySelection`. Ported verbatim from the former `<Search>` refresh-selection effect: it reads
- * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/open-group/focus/select-all
- * changes, and keeps the deep-equality bail-out that prevents the #89588 infinite-update loop.
+ * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/focus/select-all changes and
+ * on a group opening or closing where that changes its count, and keeps the deep-equality bail-out that prevents the #89588 infinite-update loop.
  */
 function useReconcileSelectionWithData({
     isFocused,
@@ -194,6 +193,18 @@ function useReconcileSelectionWithData({
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+
+    // Opening or closing a group changes its count only when the rows it shows and the group-by count disagree, so only those groups re-run the reconcile.
+    const openGroupKeysMeasuredByRows = isGroupedItemArray(filteredData)
+        ? filteredData
+              .filter(
+                  (group) =>
+                      openGroupKeys.has(group.keyForList) &&
+                      resolveGroupCount(group, true, searchResultsData, group.keyForList) !== getGroupByCount(group, searchResultsData, group.keyForList),
+              )
+              .map((group) => group.keyForList)
+              .join()
+        : '';
 
     useEffect(() => {
         const shouldReconcileMovedExcludedTransaction =
@@ -533,9 +544,19 @@ function useReconcileSelectionWithData({
         });
         // `selectedTransactions` and `excludedTransactions` are intentionally omitted from the deps and read from
         // closure instead (see the hook doc above): including them would re-run this reconcile on every checkbox
-        // press. We only want it to run when the underlying data, the open groups, focus, or select-all state changes.
+        // press. `openGroupKeys` is read from closure as well, since only the open groups measured by their rows change the result.
+        // We only want it to run when the underlying data, those groups, focus, or select-all state changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, openGroupKeys, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, shouldReconcileExcludedTransactions]);
+    }, [
+        filteredData,
+        openGroupKeysMeasuredByRows,
+        applySelection,
+        areAllMatchingItemsSelected,
+        isFocused,
+        outstandingReportsByPolicyID,
+        isExpenseReportType,
+        shouldReconcileExcludedTransactions,
+    ]);
 }
 
 /** Turn mobile selection mode off once nothing is selected and the selection asked to exit the mode. */
@@ -665,16 +686,18 @@ function SearchWriteActionsProvider({
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
     const groupByKey = new Map(isGroupedItemArray(filteredData) ? filteredData.map((group) => [group.keyForList, group]) : []);
-    const getGroupCount = (groupKey: string, group?: TransactionGroupListItemType) =>
-        resolveGroupCount(group ?? groupByKey.get(groupKey), openGroupKeysRef.current.has(groupKey), searchResultsData, groupKey);
 
     // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
-    const readGroupLookups = () => ({
-        groupKeyByChildKey: groupKeyByChildKeyRef.current,
-        childrenByGroupKey: childrenByGroupKeyRef.current,
-        buildSelectedEntry,
-        getGroupCount,
-    });
+    const readGroupLookups = () => {
+        const openGroupKeysAtClick = openGroupKeysRef.current;
+        return {
+            groupKeyByChildKey: groupKeyByChildKeyRef.current,
+            childrenByGroupKey: childrenByGroupKeyRef.current,
+            buildSelectedEntry,
+            getGroupCount: (groupKey: string, group?: TransactionGroupListItemType) =>
+                resolveGroupCount(group ?? groupByKey.get(groupKey), openGroupKeysAtClick.has(groupKey), searchResultsData, groupKey),
+        };
+    };
 
     // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
     const groupSelectionParams = (
@@ -683,13 +706,14 @@ function SearchWriteActionsProvider({
         selectedTransactions = getSelectedTransactions(),
         excludedTransactions = getExcludedTransactions(),
         areAllMatchingItemsSelected = getAreAllMatchingItemsSelected(),
+        lookups = readGroupLookups(),
     ) => ({
         groupKey,
         children: groupChildren,
         selectedTransactions,
         excludedTransactions,
         areAllMatchingItemsSelected,
-        groupCount: groupKey ? getGroupCount(groupKey) : undefined,
+        groupCount: groupKey ? lookups.getGroupCount(groupKey) : undefined,
     });
 
     const applyShiftRangeBatch = (batch: ShiftRangeBatch<SearchData[number]>) => {
@@ -834,7 +858,7 @@ function SearchWriteActionsProvider({
                     return stampGroupCoverageFlags({
                         selectedTransactions: updatedTransactions,
                         groupKey,
-                        groupCount: groupKey ? getGroupCount(groupKey, parentGroup) : undefined,
+                        groupCount: groupKey ? lookups.getGroupCount(groupKey, parentGroup) : undefined,
                         loadedRows: loadedChildren,
                     });
                 }
@@ -846,7 +870,7 @@ function SearchWriteActionsProvider({
 
         // Under select-all-matching, unchecking a group that has not loaded every row excludes the group itself, since excluding only its loaded rows would leave the rest selected.
         // The group-by count decides even for an open group whose rows are all in, since excluding the group also takes out any expense those rows have not caught up with.
-        const groupCount = getSearchGroupCount(item) ?? getSearchGroupCountByKey(searchResultsData, item.keyForList);
+        const groupCount = getGroupByCount(item, searchResultsData, item.keyForList);
         const isUncheckingPartlyLoadedGroup =
             type === CONST.SEARCH.DATA_TYPES.EXPENSE &&
             getAreAllMatchingItemsSelected() &&
@@ -860,6 +884,7 @@ function SearchWriteActionsProvider({
             deselectedWithoutEntry[groupKey] = groupEntry;
         }
 
+        const lookups = readGroupLookups();
         applySelection(
             (selectedTransactions, {excludedTransactions, areAllMatchingItemsSelected}) => {
                 if (groupTransactions.length === 0 && item.keyForList) {
@@ -886,7 +911,7 @@ function SearchWriteActionsProvider({
                 // A report carries all of its expenses, so an expense that still names one has moved to another report and keeps its selection there.
                 const getSelectedGroupRowKeys = () => (groupKey && isGroupEntry(groupKey) ? (getSelectedRowKeysByGroupKey(selectedTransactions).get(groupKey) ?? []) : []);
 
-                if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected))) {
+                if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, lookups))) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];
@@ -927,7 +952,7 @@ function SearchWriteActionsProvider({
                         ),
                     },
                     groupKey,
-                    groupCount: groupKey ? getGroupCount(groupKey, item) : undefined,
+                    groupCount: groupKey ? lookups.getGroupCount(groupKey, item) : undefined,
                     loadedRows: groupTransactions,
                 });
                 // A report row's own selection is derived from `selectedReports`, so this one commit has to re-derive it.
@@ -944,6 +969,7 @@ function SearchWriteActionsProvider({
         } else {
             rangeApi.seedFullRange();
         }
+        const lookups = readGroupLookups();
         applySelection(
             () => {
                 if (isClearing) {
@@ -968,7 +994,7 @@ function SearchWriteActionsProvider({
                             stampGroupCoverageFlags({
                                 selectedTransactions: Object.fromEntries(entries),
                                 groupKey: item.keyForList,
-                                groupCount: getGroupCount(item.keyForList, item),
+                                groupCount: lookups.getGroupCount(item.keyForList, item),
                                 loadedRows: item.transactions,
                             }),
                         );

@@ -36,6 +36,11 @@ function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, 
     return getSearchGroupCount(searchData[groupKey]);
 }
 
+/** The group-by search's count for a group, read from the search results by key when the list does not carry the group. */
+function getGroupByCount(group: TransactionGroupListItemType | undefined, searchData?: SearchResultDataType, groupKey?: string): number | undefined {
+    return getSearchGroupCount(group) ?? getSearchGroupCountByKey(searchData, groupKey);
+}
+
 /**
  * How many expenses a group holds when deciding what its selection covers. An open group's own search runs again each time the page comes back into view, which the
  * group-by search does not, so once it has returned every expense, the rows it shows are the whole group even while the group-by count still holds one that left it.
@@ -46,7 +51,7 @@ function resolveGroupCount(group: TransactionGroupListItemType | undefined, isOp
     if (group && isOpen && group.hasMoreTransactions === false) {
         return group.transactions.length;
     }
-    return getSearchGroupCount(group) ?? getSearchGroupCountByKey(searchData, groupKey);
+    return getGroupByCount(group, searchData, groupKey);
 }
 
 /**
@@ -716,7 +721,7 @@ type GroupLookups = {
     /** Supplied by the provider, which is what reads Onyx for a row's action flags */
     buildSelectedEntry: (item: TransactionListItemType) => [string, SelectedTransactionInfo];
 
-    /** The group's total on the server, which can be more than the rows it has loaded */
+    /** How many expenses the group holds, measured with the groups open at the click, which can be more or fewer than the rows it has loaded */
     getGroupCount: (groupKey: string) => number | undefined;
 };
 
@@ -924,6 +929,7 @@ export {
     isRowChecked,
     getSearchGroupCount,
     getSearchGroupCountByKey,
+    getGroupByCount,
     resolveGroupCount,
     getClaimedGroupKey,
     getGroupClaims,
