@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import ConfirmAgreements from './subSteps/ConfirmAgreements';
 
@@ -34,12 +34,12 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
-    const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         acceptACHContractForBankAccount(
             bankAccountID,
             {
@@ -51,16 +51,7 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
             policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
         markSubmitting();
-    }, [
-        bankAccountID,
-        values.isAuthorizedToUseBankAccount,
-        values.certifyTrueInformation,
-        values.acceptTermsAndConditions,
-        reimbursementAccount?.achData?.acceptTerms,
-        policyID,
-        lastPaymentMethod,
-        markSubmitting,
-    ]);
+    };
 
     return (
         <InteractiveStepWrapper

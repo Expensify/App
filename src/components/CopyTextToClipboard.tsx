@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import type {PressableWithDelayToggleProps} from './Pressable/PressableWithDelayToggle';
 
@@ -38,9 +38,9 @@ function CopyTextToClipboard({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
-    const copyToClipboard = useCallback(() => {
+    const copyToClipboard = () => {
         Clipboard.setString(urlToCopy || text || '');
-    }, [text, urlToCopy]);
+    };
 
     return (
         <PressableWithDelayToggle

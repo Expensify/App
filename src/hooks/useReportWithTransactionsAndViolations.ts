@@ -6,8 +6,6 @@ import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -22,10 +20,7 @@ function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<R
     const allReportTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const {transactions, violations} = allReportTransactionsAndViolations?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {transactions: DEFAULT_TRANSACTIONS, violations: DEFAULT_VIOLATIONS};
     const {isOffline} = useNetwork();
-    const filteredTransactions = useMemo(
-        () => Object.values(transactions).filter((transaction) => isOffline || transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [transactions, isOffline],
-    );
+    const filteredTransactions = Object.values(transactions).filter((transaction) => isOffline || transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     return [report, filteredTransactions ?? DEFAULT_FILTERED_TRANSACTIONS, violations];
 }

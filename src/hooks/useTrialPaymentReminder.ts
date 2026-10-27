@@ -13,7 +13,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -222,52 +222,21 @@ function useTrialPaymentReminder() {
         return () => clearInterval(interval);
     }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID]);
 
-    const isEligibleToShow = useMemo(() => {
-        if (!hasLoadedApp) {
-            return false;
-        }
-        if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
-            return false;
-        }
-        if (isLoadingOnyxValue(billingFundIDResult)) {
-            return false;
-        }
-        if (doesUserHavePaymentCardAdded(billingFundID)) {
-            return false;
-        }
-        if (readinessState !== READINESS_STATE.READY) {
-            return false;
-        }
-        if (!getOwnedPaidPolicies(policies, currentUserAccountID).some((policy) => !isPendingDeletePolicy(policy))) {
-            return false;
-        }
-        if (isLoadingOnyxValue(dismissedTimestampResult)) {
-            return false;
-        }
-        if (!currentVariation) {
-            return false;
-        }
-        if (dismissedTimestamp) {
-            const windowStart = getVariationWindowStart(currentVariation.id, firstDayFreeTrial, lastDayFreeTrial);
-            const dismissedMs = new Date(dismissedTimestamp).getTime();
-            if (windowStart !== null && Number.isFinite(dismissedMs) && dismissedMs >= windowStart) {
-                return false;
-            }
-        }
-        return true;
-    }, [
-        hasLoadedApp,
-        firstDayFreeTrial,
-        lastDayFreeTrial,
-        billingFundID,
-        billingFundIDResult,
-        readinessState,
-        currentVariation,
-        dismissedTimestamp,
-        dismissedTimestampResult,
-        policies,
-        currentUserAccountID,
-    ]);
+    let isEligibleToShow =
+        hasLoadedApp &&
+        isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) &&
+        !isLoadingOnyxValue(billingFundIDResult) &&
+        !doesUserHavePaymentCardAdded(billingFundID) &&
+        readinessState === READINESS_STATE.READY &&
+        getOwnedPaidPolicies(policies, currentUserAccountID).some((policy) => !isPendingDeletePolicy(policy)) &&
+        !isLoadingOnyxValue(dismissedTimestampResult) &&
+        !!currentVariation;
+
+    if (isEligibleToShow && dismissedTimestamp && currentVariation) {
+        const windowStart = getVariationWindowStart(currentVariation.id, firstDayFreeTrial, lastDayFreeTrial);
+        const dismissedMs = new Date(dismissedTimestamp).getTime();
+        isEligibleToShow = windowStart === null || !Number.isFinite(dismissedMs) || dismissedMs < windowStart;
+    }
 
     // Run the 1s countdown only while the countdown modal is actually eligible to show, so we don't tick every
     // second in the background when it isn't rendered.
@@ -294,12 +263,12 @@ function useTrialPaymentReminder() {
         return () => clearInterval(interval);
     }, [isEligibleToShow, currentVariation?.variant, lastDayFreeTrial]);
 
-    const dismiss = useCallback(() => {
+    const dismiss = () => {
         if (!currentVariation) {
             return;
         }
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER, new Date().toISOString(), dismissedTimestamp ?? '');
-    }, [currentVariation, dismissedTimestamp]);
+    };
 
     return {isEligibleToShow, currentVariation, countdownTime, dismiss};
 }

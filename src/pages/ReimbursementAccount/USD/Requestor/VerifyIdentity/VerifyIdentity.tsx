@@ -15,7 +15,7 @@ import {clearOnfidoToken, updateReimbursementAccountDraft, verifyIdentityForBank
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type VerifyIdentityProps = {
     /** Goes to the previous step */
@@ -50,14 +50,11 @@ function VerifyIdentity({onBackButtonPress, onSubmit}: VerifyIdentityProps) {
         onSubmitRef.current?.();
     }, []);
 
-    const handleOnfidoSuccess = useCallback(
-        (onfidoData: OnfidoData) => {
-            verifyIdentityForBankAccount(Number(bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
-            updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
-            onSubmit?.();
-        },
-        [bankAccountID, onfidoApplicantID, policyID, onSubmit],
-    );
+    const handleOnfidoSuccess = (onfidoData: OnfidoData) => {
+        verifyIdentityForBankAccount(Number(bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
+        updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
+        onSubmit?.();
+    };
 
     const handleOnfidoError = () => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
