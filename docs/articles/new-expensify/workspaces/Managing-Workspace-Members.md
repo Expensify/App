@@ -35,6 +35,8 @@ To invite someone to your workspace:
 
 **Note:** Workspace admins and People admins can invite members. People admins can only invite members as **Members**, **Guests**, or **Auditors** — they cannot assign admin roles.
 
+**Note:** The search results only include agents you can manage, such as your personal agents and company agents owned by a workspace or domain you admin. To create an agent that belongs to the workspace, [create a company agent](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
+
 ---
 
 # Filter Workspace Members by Role
