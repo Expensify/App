@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import type {ListItem} from './SelectionList/types';
 
@@ -89,18 +89,15 @@ function ApproverSelectionList({
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
-    const handleSearchChange = useCallback(
-        (term: string) => {
-            setSearchTerm(term);
-            if (onSearchChange) {
-                onSearchChange(term);
-            }
-        },
-        [onSearchChange, setSearchTerm],
-    );
+    const handleSearchChange = (term: string) => {
+        setSearchTerm(term);
+        if (onSearchChange) {
+            onSearchChange(term);
+        }
+    };
 
-    const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
-    const selectedApproverKeys = useMemo(() => selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean), [selectedMembers]);
+    const selectedMembers = allApprovers.filter((approver) => approver.isSelected);
+    const selectedApproverKeys = selectedMembers.map((approver) => approver.value?.toString() ?? '').filter(Boolean);
     const initialSelectedApproverKeys = useInitialSelection(selectedApproverKeys, {isVisible: !shouldShowLoadingPlaceholder && allApprovers.length > 0, resetOnFocus: true});
     const initiallyFocusedApproverKey = allApprovers.find((approver) => initialSelectedApproverKeys.includes(String(approver.value)))?.keyForList;
     const selectionListKey = initialSelectedApproverKeys.join(',');
@@ -108,12 +105,9 @@ function ApproverSelectionList({
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) || (shouldRequirePolicyAdmin && !isPolicyAdmin(policy)) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
 
-    const data = useMemo(() => {
-        const sortedApprovers = sortAlphabetically(allApprovers, 'text', localeCompare);
-        const orderedApprovers = moveInitialSelectionToTop(sortedApprovers, initialSelectedApproverKeys);
-
-        return tokenizedSearch(orderedApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? '']);
-    }, [allApprovers, debouncedSearchTerm, countryCode, localeCompare, initialSelectedApproverKeys]);
+    const sortedApprovers = sortAlphabetically(allApprovers, 'text', localeCompare);
+    const orderedApprovers = moveInitialSelectionToTop(sortedApprovers, initialSelectedApproverKeys);
+    const data = tokenizedSearch(orderedApprovers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (option) => [option.text ?? '', option.login ?? '']);
 
     const shouldShowListEmptyContent = !debouncedSearchTerm && !data.length && shouldShowListEmptyContentProp;
 
@@ -132,31 +126,25 @@ function ApproverSelectionList({
         }
     };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={lazyIllustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={listEmptyContentSubtitle}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10, lazyIllustrations.TurtleInShell],
+    const listEmptyContent = (
+        <BlockingView
+            icon={lazyIllustrations.TurtleInShell}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workflowsPage.emptyContent.title')}
+            subtitle={listEmptyContentSubtitle}
+            subtitleStyle={styles.textSupporting}
+            containerStyle={styles.pb10}
+            contentFitImage="contain"
+        />
     );
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: shouldShowListEmptyContent ? undefined : translate('selectionList.findMember'),
-            value: searchTerm,
-            onChangeText: handleSearchChange,
-            headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
-        }),
-        [shouldShowListEmptyContent, translate, searchTerm, handleSearchChange, data?.length],
-    );
+    const textInputOptions = {
+        label: shouldShowListEmptyContent ? undefined : translate('selectionList.findMember'),
+        value: searchTerm,
+        onChangeText: handleSearchChange,
+        headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
+    };
 
     return (
         <ScreenWrapper

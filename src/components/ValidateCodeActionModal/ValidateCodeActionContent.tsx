@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {ValidateCodeActionContentProps} from './type';
@@ -62,10 +62,10 @@ function ValidateCodeActionContent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sendValidateCode, validateCodeActionMetadata]);
 
-    const hide = useCallback(() => {
+    const hide = () => {
         clearError();
         onClose?.();
-    }, [onClose, clearError]);
+    };
 
     return (
         <ScreenWrapper

@@ -28,13 +28,13 @@ function isNamedActionPayload(payload: unknown): payload is ActionPayload & {nam
  * addresses nothing below that route, which is where a descent stops.
  */
 function getNestedAction(action: NavigationAction, nestedState: State): Writable<NavigationAction> {
-    const params = isNamedActionPayload(action.payload) ? action.payload.params : undefined;
+    const params = isNamedActionPayload(action.payload) && isRecord(action.payload.params) ? action.payload.params : undefined;
     return {
         type: action.type,
         payload: {
-            name: params?.screen,
-            params: params?.params,
-            path: params?.path,
+            name: typeof params?.screen === 'string' ? params.screen : undefined,
+            params: isRecord(params?.params) ? params.params : undefined,
+            path: typeof params?.path === 'string' ? params.path : undefined,
         },
         target: nestedState.key,
     };

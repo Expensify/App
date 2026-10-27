@@ -32,7 +32,7 @@ import type {Ref} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import type {InputHandle} from './LoginForm/types';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
@@ -310,7 +310,7 @@ function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     // Read the ref at call time (via a stable callback) instead of during render, so both React
     // Compilers can memoize this component. LoginForm calls this optionally, so an always-defined
     // callback that no-ops until the layout ref is attached is equivalent to passing the raw method.
-    const scrollPageToTop = useCallback(() => signInPageLayoutRef.current?.scrollPageToTop(), []);
+    const scrollPageToTop = () => signInPageLayoutRef.current?.scrollPageToTop();
 
     const navigateBack = () => {
         if (

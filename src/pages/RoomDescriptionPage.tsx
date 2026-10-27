@@ -57,33 +57,30 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     const {translate} = useLocalize();
     const reportIsArchived = useReportIsArchived(report?.reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const handleReportDescriptionChange = useCallback((value: string) => {
+    const handleReportDescriptionChange = (value: string) => {
         setDescription(value);
-    }, []);
+    };
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
-    }, [backPath]);
+    };
 
-    const submitForm = useCallback(() => {
+    const submitForm = () => {
         const newValue = description.trim();
 
         updateDescription(report, newValue, currentUserAccountID, reportIDToName, accountIDToName);
         goBack();
-    }, [report, description, goBack, currentUserAccountID, reportIDToName, accountIDToName]);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
-            const errors: Errors = {};
-            const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
-            if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM>): Errors => {
+        const errors: Errors = {};
+        const descriptionLength = values[INPUT_IDS.REPORT_DESCRIPTION].trim().length;
+        if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+            errors.reportDescription = translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     useFocusEffect(
         useCallback(() => {

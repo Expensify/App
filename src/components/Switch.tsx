@@ -7,7 +7,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import Animated, {cancelAnimation, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -109,12 +109,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, pending = false, 
 
     // Announce the locked state whenever the switch is disabled or shows the lock icon (e.g. a pressable switch that routes to an upgrade)
     const isLocked = !!disabled || !!showLockIcon;
-    const enhancedAccessibilityLabel = useMemo(() => {
-        if (isLocked) {
-            return `${accessibilityLabel}, ${translate('common.locked')}`;
-        }
-        return accessibilityLabel;
-    }, [accessibilityLabel, isLocked, translate]);
+    const enhancedAccessibilityLabel = isLocked ? `${accessibilityLabel}, ${translate('common.locked')}` : accessibilityLabel;
 
     return (
         <PressableWithFeedback

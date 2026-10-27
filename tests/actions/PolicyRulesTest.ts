@@ -104,6 +104,26 @@ describe('actions/PolicyRules', () => {
             expect(finalRule?.errors).toBeFalsy();
         });
 
+        it('optimistically adds the title of the agent rule when it is known', async () => {
+            // Given a rule title that is known before the server generates one, for example from a suggestion
+            const fakePolicy = createRandomPolicy(0);
+            const agentRuleID = 'agentRuleWithTitle';
+            const prompt = 'Hold any expense over $75 without a receipt';
+            const title = 'Hold expenses without a receipt';
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the rule is added with the title
+            addPolicyAgentRule(fakePolicy.id, agentRuleID, prompt, title);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic rule has the title, so the list shows it instead of the prompt before the server responds
+            const policy = await getPolicy(fakePolicy.id);
+            expect(policy?.rules?.agentRules?.[agentRuleID]?.title).toBe(title);
+            await mockFetch?.resume?.();
+        });
+
         it('sets an error on the agent rule when the request fails', async () => {
             const fakePolicy = createRandomPolicy(0);
             const agentRuleID = 'agentRule2';
