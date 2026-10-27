@@ -11,10 +11,9 @@ import {createTaskFromMarkdown} from '@libs/actions/Task';
 import {rand64} from '@libs/NumberUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, generateReportID, isConciergeChatReport} from '@libs/ReportUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
 import getSendMessageSource from '@libs/telemetry/getSendMessageSource';
-import {getSendMessageVisibleSpanID} from '@libs/telemetry/sendMessageSpans';
+import {startSendMessageVisibleSpan} from '@libs/telemetry/sendMessageSpans';
 
 import {useActionListContext} from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
@@ -116,6 +115,7 @@ function useComposerSubmit(reportID: string) {
         }
 
         const optimisticReportActionID = rand64();
+        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         const isScrolledToBottom = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         if (isScrolledToBottom) {
             const {reportActionCount, moneyRequestPreviewCount} = getSendMessageListWeight(getAllReportActions(reportID), reportID, canUserPerformWriteAction(report, isReportArchived));
@@ -126,13 +126,12 @@ function useComposerSubmit(reportID: string) {
                 [CONST.TELEMETRY.ATTRIBUTE_REPORT_ACTION_COUNT]: reportActionCount,
                 [CONST.TELEMETRY.ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT]: moneyRequestPreviewCount,
             };
-            startSpan(getSendMessageVisibleSpanID(optimisticReportActionID), {
+            startSendMessageVisibleSpan(optimisticReportActionID, conciergeThreadReportID ?? reportID, {
                 name: 'send-message-visible',
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
                 attributes,
             });
         }
-        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         addComment({
             report: targetReport,
             notifyReportID: reportID,
