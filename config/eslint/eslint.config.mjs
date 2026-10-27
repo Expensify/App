@@ -180,8 +180,7 @@ const restrictedImportPatterns = [
 
 const restrictedReportNameImportPatterns = [
     {
-        group: ['**/ReportNameUtils', '**/libs/ReportNameUtils'],
-        importNames: ['computeReportName'],
+        group: ['**/computeReportName', '**/libs/computeReportName'],
         message: 'Do not import computeReportName. Use getReportName instead, which properly uses derived report attributes.',
     },
 ];

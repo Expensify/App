@@ -3,16 +3,15 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import computeReportName from '@libs/computeReportName';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {translate as translateForLocale} from '@libs/Localize';
-import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getIsOffline} from '@libs/NetworkState';
 import {format, formatToParts} from '@libs/NumberFormatUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyFieldListEmpty} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, isActionableCardFraudAlert, isDeletedAction} from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
 import {
     generateIsEmptyReport,
     generateReportAttributes,
@@ -749,7 +748,6 @@ export default createOnyxDerivedValueConfig({
                               pendingDeleteMemberAccountIDs,
                               formatPhoneNumber,
                               rules,
-                              getModifiedExpenseMessage: getForReportAction,
                           }),
                     isEmpty: generateIsEmptyReport(report, isReportArchived),
                     brickRoadStatus,

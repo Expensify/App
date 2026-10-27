@@ -1,21 +1,16 @@
 /**
  * Readers for a report action's message: pull the message entry, its html/text, and the normalized original message.
  */
-import CONST from '@src/CONST';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import type {PartialReportAction} from './ReportUtils';
 
 import {replaceAttachmentAnchorsWithText} from './AttachmentAnchorUtils';
 import Parser from './Parser';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
-import {isModifiedExpenseAction} from './ReportActionTypeGuards';
 
 function getReportActionMessage(reportAction: PartialReportAction) {
     return Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : reportAction?.message;
@@ -51,13 +46,4 @@ function getTextFromHtml(html?: string, reportActionID?: string): string {
     return html ? Parser.htmlToText(replaceAttachmentAnchorsWithText(html, reportActionID)) : '';
 }
 
-function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
-    if (!isModifiedExpenseAction(reportAction)) {
-        return undefined;
-    }
-    const reportActionOriginalMessage = getOriginalMessage(reportAction);
-
-    return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
-}
-
-export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml, getMovedReportID};
+export {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml};

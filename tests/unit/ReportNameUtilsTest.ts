@@ -1,7 +1,8 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+// eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
+import computeReportNameOriginal from '@libs/computeReportName';
 import {translate} from '@libs/Localize';
-import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {
     getAddedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
@@ -12,8 +13,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import {
     buildReportNameFromParticipantNames,
-    // eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
-    computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,
     getInvoicesChatName,
@@ -75,7 +74,6 @@ describe('ReportNameUtils', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             rules: undefined,
-            getModifiedExpenseMessage: getForReportAction,
         });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
@@ -379,7 +377,6 @@ describe('ReportNameUtils', () => {
                 reportTransactions: {},
                 formatPhoneNumber,
                 rules: undefined,
-                getModifiedExpenseMessage: getForReportAction,
             });
             // temporaryGetDisplayNameOrDefault lowercases the "you" postfix sourced from translate('common.you').
             expect(name).toBe('Lagertha Lothbrok (you marker)');
@@ -509,7 +506,6 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
-                getModifiedExpenseMessage: getForReportAction,
             });
         };
 
@@ -893,7 +889,6 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
-                getModifiedExpenseMessage: getForReportAction,
             });
 
             expect(name).toContain('Cost Center');
@@ -2641,7 +2636,6 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
-                getModifiedExpenseMessage: getForReportAction,
             });
             expect(nameWithMatchingID).toBe(CONST.CONCIERGE_DISPLAY_NAME);
 
@@ -2661,7 +2655,6 @@ describe('ReportNameUtils', () => {
                 isTrackIntentUser: false,
                 formatPhoneNumber,
                 rules: undefined,
-                getModifiedExpenseMessage: getForReportAction,
             });
             expect(nameWithDifferentID).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });

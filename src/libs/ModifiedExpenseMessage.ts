@@ -9,7 +9,7 @@ import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {Entries} from 'type-fest';
+import type {Entries, ValueOf} from 'type-fest';
 
 import isEmpty from 'lodash/isEmpty';
 
@@ -165,6 +165,15 @@ function getForExpenseMovedFromSelfDM(
         return translate('iou.changedTheExpense');
     }
     return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
+}
+
+function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {
+    if (!isModifiedExpenseAction(reportAction)) {
+        return undefined;
+    }
+    const reportActionOriginalMessage = getOriginalMessage(reportAction);
+
+    return type === CONST.REPORT.MOVE_TYPE.TO ? reportActionOriginalMessage?.movedToReportID : reportActionOriginalMessage?.movedFromReport;
 }
 
 function getMovedFromOrToReportMessage(
@@ -566,4 +575,4 @@ function getForReportAction({
     return `${message.substring(1, message.length)}`;
 }
 
-export {getForReportAction, getMovedFromOrToReportMessage};
+export {getForReportAction, getMovedReportID, getMovedFromOrToReportMessage};

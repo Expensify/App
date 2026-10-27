@@ -1,5 +1,4 @@
-import type ModifiedExpenseMessage = require('@libs/ModifiedExpenseMessage');
-import type ReportNameUtils = require('@libs/ReportNameUtils');
+import type ComputeReportName = require('@libs/computeReportName');
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
@@ -42,8 +41,9 @@ jest.mock('@libs/SidebarUtils', () => ({
     },
 }));
 
-jest.mock('@libs/ReportNameUtils', () => ({
-    computeReportName: jest.fn(() => 'Test Report'),
+jest.mock('@libs/computeReportName', () => ({
+    __esModule: true,
+    default: jest.fn(() => 'Test Report'),
 }));
 
 const basePolicy = createMock<Policy>({
@@ -306,23 +306,6 @@ describe('reportAttributes compute — policy change code flow', () => {
         expect(result?.reports).toHaveProperty('r2');
     });
 
-    it('passes the modified expense message builder to computeReportName', () => {
-        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
-        computeReportNameMock.mockClear();
-        const {getForReportAction} = jest.requireActual<typeof ModifiedExpenseMessage>('@libs/ModifiedExpenseMessage');
-
-        // Given reports whose names have not been computed yet
-        // When the derived value computes them on a cold start
-        config.compute(buildArgs(), {
-            currentValue: undefined,
-            sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
-            triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
-        });
-
-        // Then each name is built with the real builder, because ReportNameUtils can't import ModifiedExpenseMessage itself and names expense-change threads with it
-        expect(computeReportNameMock).toHaveBeenCalledWith(expect.objectContaining({getModifiedExpenseMessage: getForReportAction}));
-    });
-
     it('scopes the first policy load to reports referencing the loaded policies when currentValue is already populated', () => {
         // Reproduces the ReconnectApp-after-open case: attributes were already computed, then ~1k policies
         // land. Only reports whose policy actually arrived should recompute — not every report.
@@ -429,7 +412,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ComputeReportName>('@libs/computeReportName').default);
         computeReportNameMock.mockClear();
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -469,7 +452,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+        const computeReportNameMock = jest.mocked(jest.requireMock<typeof ComputeReportName>('@libs/computeReportName').default);
         computeReportNameMock.mockReturnValue('New Name');
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -931,7 +914,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             ['no card list', undefined],
         ])('recomputes persisted fraud alert green dots on the first compute after app start with %s', (_, cardList: CardList | undefined) => {
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
-            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ComputeReportName>('@libs/computeReportName').default);
             computeReportNameMock.mockClear();
 
             // Given REPORT_ATTRIBUTES restored from disk with a fraud alert green dot no card points at anymore, and an approval green dot
@@ -955,7 +938,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             ['a locale change', ONYXKEYS.NVP_PREFERRED_LOCALE],
             ['a currency list load', ONYXKEYS.CURRENCY_LIST],
         ])('recomputes the fraud alert report name when %s runs in the same compute as a card change', (_, triggeredKey: OnyxKey) => {
-            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ReportNameUtils>('@libs/ReportNameUtils').computeReportName);
+            const computeReportNameMock = jest.mocked(jest.requireMock<typeof ComputeReportName>('@libs/computeReportName').default);
             computeReportNameMock.mockClear();
 
             // Given a stored fraud alert report with a stale name that the card's live fraud points at

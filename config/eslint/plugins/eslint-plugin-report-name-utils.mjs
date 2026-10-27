@@ -3,14 +3,14 @@
  *
  * `getReportName` must remain a pure read-only function — it reads from
  * pre-computed `reportAttributesDerivedValue` and must never call other
- * functions. All computation belongs in `computeReportName`.
+ * functions. All computation belongs in `computeReportName` (src/libs/computeReportName.ts).
  */
 
 const noFunctionCallInGetReportName = {
     meta: {
         type: 'problem',
-        docs: {description: 'getReportName must be a pure read-only function. Move any computation to computeReportName instead.'},
-        messages: {noFunctionCall: 'getReportName must be a pure read-only function. Move any computation to computeReportName instead.'},
+        docs: {description: 'getReportName must be a pure read-only function. Move any computation to computeReportName (src/libs/computeReportName.ts) instead.'},
+        messages: {noFunctionCall: 'getReportName must be a pure read-only function. Move any computation to computeReportName (src/libs/computeReportName.ts) instead.'},
         schema: [],
     },
     create(context) {

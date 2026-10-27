@@ -26,9 +26,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveContextMenuFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getMovedReportID} from '@libs/ReportActionMessageUtils';
 import {
     getLinkedTransactionID,
     getOneTransactionThreadReportAction,
