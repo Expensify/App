@@ -46,6 +46,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import {suppressFlowDiscardPrompt} from '@libs/Navigation/helpers/discardPromptState';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getOdometerImageIdentity} from '@libs/OdometerUtils';
@@ -622,6 +623,7 @@ function IOURequestStepDistanceOdometer({
 
         if (!hasAnyInput) {
             await clearOdometerDraft();
+            suppressFlowDiscardPrompt();
             Navigation.closeRHPFlow();
             return;
         }
@@ -639,6 +641,8 @@ function IOURequestStepDistanceOdometer({
             setFormError(translate('iou.error.failedToSaveOdometerDraft'));
             return;
         }
+        // The readings are saved for later, so closing the flow loses nothing
+        suppressFlowDiscardPrompt();
         Navigation.closeRHPFlow();
     };
 
