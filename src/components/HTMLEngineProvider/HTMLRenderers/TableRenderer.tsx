@@ -2,7 +2,7 @@ import variables from '@styles/variables';
 
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 
-import {useContext, useMemo} from 'react';
+import {useContext} from 'react';
 import {useContentWidth} from 'react-native-render-html';
 
 import type {CellHorizontalAlignment} from './TableColumnAlignmentContext';
@@ -32,8 +32,8 @@ function getColumnAlignments(tableNode: TNode): CellHorizontalAlignment[] {
 }
 
 function TableRenderer({tnode}: CustomRendererProps<TBlock>) {
-    const columnAlignments = useMemo(() => getColumnAlignments(tnode), [tnode]);
-    const linkColumnIndex = useMemo(() => getLinkColumnIndex(tnode), [tnode]);
+    const columnAlignments = getColumnAlignments(tnode);
+    const linkColumnIndex = getLinkColumnIndex(tnode);
 
     // The comment-level width fills the message exactly; fall back to the HTML content width when the table is rendered
     // outside a comment. A concrete number is required because the scroller needs a fixed viewport and content width.
