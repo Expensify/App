@@ -7314,6 +7314,19 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+/**
+ * The search snapshot can lack a report's actions (grouped searches) or hold only part of them, so the live collection fills the gaps for the
+ * forwarded-since-last-submit check. The snapshot wins for the actions it has, as elsewhere on the search page.
+ */
+function getReportActionsForDeleteCheck(
+    reportID: string | undefined,
+    currentSearchResults: SearchResults['data'] | undefined,
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
+): OnyxTypes.ReportActions {
+    const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+    return {...allReportActions?.[key], ...currentSearchResults?.[key]};
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -7322,6 +7335,7 @@ function shouldShowDeleteOption(
     // The full list is needed because each pass below resolves a different report owner.
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     cardList: OnyxEntry<OnyxTypes.CardList>,
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7333,8 +7347,7 @@ function shouldShowDeleteOption(
               if (!fullReport) {
                   return false;
               }
-              const reportActionsData = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
-              const reportActionsArray = Object.values(reportActionsData ?? {});
+              const reportActionsArray = Object.values(getReportActionsForDeleteCheck(selectedReport.reportID, currentSearchResults, allReportActions));
               const reportTransactions: OnyxTypes.Transaction[] = [];
               const searchData = currentSearchResults ?? {};
               for (const key of Object.keys(searchData)) {
@@ -7366,10 +7379,12 @@ function shouldShowDeleteOption(
               }
               const parentReportID = transaction.reportID;
               const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-              const snapshotReportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
               const rowReportAction = selectedTransactions[id].reportAction;
               // Grouped searches carry no report actions in the snapshot, so the row's own IOU action is kept for the ownership check
-              const parentReportActions = Object.values({...snapshotReportActions, ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {})});
+              const parentReportActions = Object.values({
+                  ...getReportActionsForDeleteCheck(parentReportID, currentSearchResults, allReportActions),
+                  ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {}),
+              });
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
               return canDeleteMoneyRequestReport(
