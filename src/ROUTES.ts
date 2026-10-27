@@ -102,6 +102,7 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
     SCREENS.HOME,
     SCREENS.SEARCH.ROOT,
     SCREENS.SETTINGS.WALLET.ROOT,
+    SCREENS.WORKSPACE.WORKFLOWS,
 ] as const;
 
 const DYNAMIC_ROUTES = {
@@ -229,7 +230,7 @@ const DYNAMIC_ROUTES = {
     },
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
-        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS],
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
         getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
@@ -244,12 +245,7 @@ const DYNAMIC_ROUTES = {
     },
     CARD_AUTHENTICATION: {
         path: 'card-authentication',
-        entryScreens: [
-            SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
-            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
-            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
-            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
-        ],
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
     },
     OWNER_SELECTOR: {
         path: 'owner-selector',
@@ -293,12 +289,7 @@ const DYNAMIC_ROUTES = {
     },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
-        entryScreens: [
-            SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY,
-            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
-            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
-            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
-        ],
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
@@ -353,7 +344,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.HOME,
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
         getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
@@ -372,7 +363,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.HOME,
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.SETTINGS.WALLET.DOMAIN_CARD,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
         getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
@@ -1022,10 +1013,10 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
-            SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
+            SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
             SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT,
         ],
@@ -1040,20 +1031,19 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
-            SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT,
+            SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
             SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT,
             SCREENS.IOU_SEND.ENABLE_PAYMENTS,
             SCREENS.ENABLE_PAYMENTS_ROOT,
             SCREENS.REIMBURSEMENT_ACCOUNT_USD,
             SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD,
-            SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO,
+            SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO,
             SCREENS.SETTINGS.ADD_DEBIT_CARD,
-            SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD,
-            SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD,
+            SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD,
             SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
             SCREENS.IOU_SEND.ADD_DEBIT_CARD,
         ],
@@ -1517,6 +1507,114 @@ const DYNAMIC_ROUTES = {
     KEYBOARD_SHORTCUTS: {
         path: 'keyboard-shortcuts',
         entryScreens: ['*'],
+    },
+    APP_DOWNLOAD_LINKS: {
+        path: 'app-download-links',
+        entryScreens: ['*'],
+    },
+    ADD_PAYMENT_CARD: {
+        path: 'add-payment-card',
+        entryScreens: ['*'],
+    },
+    PERSONAL_CARD_DETAILS: {
+        path: 'personal-card/:cardID',
+        entryScreens: ['*'],
+        getRoute: (cardID: string | undefined) => {
+            if (!cardID) {
+                Log.warn('Invalid cardID is used to build the PERSONAL_CARD_DETAILS route');
+            }
+            return `personal-card/${cardID}` as const;
+        },
+    },
+    PERSONAL_CARD_EDIT_NAME: {
+        path: 'edit-card-name',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
+    },
+    PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: {
+        path: 'edit-transaction-start-date',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
+    },
+    PERSONAL_CARD_FIX_CONNECTION: {
+        path: 'fix-connection',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
+    },
+    WALLET_DOMAIN_CARD: {
+        path: 'card/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.HOME],
+        getRoute: (cardID: string) => `card/${cardID}` as const,
+    },
+    WALLET_CARD_ACTIVATE: {
+        path: 'activate/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `activate/${cardID}` as const,
+    },
+    WALLET_CARD_REVEAL_VALIDATE_CODE: {
+        path: 'reveal-validate-code/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
+        getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
+    },
+    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        path: 'digital-details/update-address',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
+    },
+    WALLET_CARD_CHANGE_PIN: {
+        path: 'change-pin/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `change-pin/${cardID}` as const,
+    },
+    WALLET_CARD_CHANGE_PIN_ATM: {
+        path: 'change-pin-atm',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+    },
+    WALLET_CARD_REPORT_FRAUD: {
+        path: 'report-virtual-fraud/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-virtual-fraud/${cardID}` as const,
+    },
+    WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT: {
+        path: 'fraud-validate-code',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD],
+    },
+    WALLET_CARD_REPORT_FRAUD_CONFIRMATION: {
+        path: 'report-virtual-fraud-confirm/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-virtual-fraud-confirm/${cardID}` as const,
+    },
+    WALLET_CARD_REPORT_LOST_OR_DAMAGED: {
+        path: 'report-card-lost-or-damaged/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-card-lost-or-damaged/${cardID}` as const,
+    },
+    WALLET_CARD_REPLACE_VALIDATE_CODE: {
+        path: 'replace-validate-code/:reason',
+        entryScreens: [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED],
+        getRoute: (reason: ReplacementReason) => `replace-validate-code/${reason}` as const,
+    },
+    ADD_US_BANK_ACCOUNT: {
+        path: 'add-us-bank-account/:subPage?/:action?',
+        entryScreens: ['*'],
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `add-us-bank-account${subPagePart}${actionPart}` as const;
+        },
+    },
+    ADD_US_BANK_ACCOUNT_ENTRY_POINT: {
+        path: 'add-us-bank-account/entry-point',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+    },
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
+        path: 'enter-signer-info/:subPage?/:action?',
+        entryScreens: ['*'],
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean, subPage?: string, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
+            }
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return getUrlWithParams(`enter-signer-info${subPagePart}${actionPart}`, {policyID, bankAccountID, isCompleted: String(isCompleted)});
+        },
+        queryParams: ['policyID', 'bankAccountID', 'isCompleted'],
     },
     BETA_OVERRIDES: {
         path: 'beta-overrides',
@@ -2348,6 +2446,7 @@ const ROUTES = {
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TALK_TO_HUMAN: 'settings/help/talk-to-human',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
@@ -2381,17 +2480,6 @@ const ROUTES = {
             // TODO this backTo comes from drilling it through bank account form screens
             // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
             return getUrlWithBackToParam(`bank-account/new${queryString}`, backTo);
-        },
-    },
-    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
-        route: 'bank-account/enter-signer-info/:subPage?/:action?',
-        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean, subPage?: string, action?: 'edit') => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
-            }
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
-            return `bank-account/enter-signer-info${subPagePart}${actionPart}?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
     BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
@@ -2452,7 +2540,6 @@ const ROUTES = {
     },
     SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
     SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE: 'settings/subscription/details/expensify-code',
-    SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
@@ -2512,36 +2599,10 @@ const ROUTES = {
         getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/validate-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
-    SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_DOMAIN_CARD: {
-        route: 'settings/wallet/card/:cardID?',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
-    },
     SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES: {
         route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
         getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
-    },
-    SETTINGS_WALLET_PERSONAL_CARD_DETAILS: {
-        route: 'settings/wallet/personal-card/:cardID',
-        getRoute: (cardID: string | undefined) => {
-            if (!cardID) {
-                Log.warn('Invalid cardID is used to build the SETTINGS_WALLET_PERSONAL_CARD_DETAILS route');
-            }
-            return `settings/wallet/personal-card/${cardID}` as const;
-        },
-    },
-    SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME: {
-        route: 'settings/wallet/personal-card/:cardID/edit/name',
-        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/name` as const,
-    },
-    SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: {
-        route: 'settings/wallet/personal-card/:cardID/edit/transaction-start-date',
-        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/edit/transaction-start-date` as const,
-    },
-    SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
-        route: 'settings/wallet/card/:cardID/confirm-validate-code',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/confirm-validate-code` as const,
     },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
@@ -2554,18 +2615,6 @@ const ROUTES = {
     SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
         route: 'settings/card/:cardID/confirm-validate-code',
         getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
-    },
-    SETTINGS_REPORT_FRAUD: {
-        route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
-    },
-    SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT: {
-        route: `settings/wallet/card/:cardID/report-virtual-fraud/${VERIFY_ACCOUNT}`,
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud/${VERIFY_ACCOUNT}` as const,
-    },
-    SETTINGS_REPORT_FRAUD_CONFIRMATION: {
-        route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud-confirm` as const,
     },
     SETTINGS_DOMAIN_CARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
@@ -2582,15 +2631,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
         },
     },
-    SETTINGS_ADD_US_BANK_ACCOUNT: {
-        route: 'settings/wallet/add-us-bank-account/:subPage?/:action?',
-        getRoute: (subPage?: string, action?: 'edit') => {
-            const subPagePart = subPage ? `/${subPage}` : '';
-            const actionPart = action ? `/${action}` : '';
-            return `settings/wallet/add-us-bank-account${subPagePart}${actionPart}` as const;
-        },
-    },
-    SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT: 'settings/wallet/add-us-bank-account/entry-point',
     SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT: {
         route: 'settings/wallet/update-personal-bank-account/:subPage?',
         getRoute: (subPage?: string) => {
@@ -2653,16 +2693,8 @@ const ROUTES = {
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
     },
     SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
-    SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION: {
-        route: 'settings/wallet/personal-card/:cardID/fix-connection',
-        getRoute: (cardID: string) => `settings/wallet/personal-card/${cardID}/fix-connection` as const,
-    },
     SETTINGS_WALLET_PERSONAL_CARD_UPGRADE: 'settings/wallet/add-personal-card/upgrade',
     SETTINGS_WALLET_PERSONAL_CARD_WARNING: 'settings/wallet/add-personal-card/warning',
-    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        route: 'settings/wallet/card/:domain/digital-details/update-address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
-    },
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
     SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
@@ -2686,33 +2718,11 @@ const ROUTES = {
             return 'settings/wallet/transactions-imported' as const;
         },
     },
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
-        getRoute: (cardID: string, isFromDomainCardDetail?: boolean) =>
-            `settings/wallet/card/${cardID}/report-card-lost-or-damaged${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
-    },
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged/:reason/confirm-validate-code',
-        getRoute: (cardID: string, reason: ReplacementReason, isFromDomainCardDetail?: boolean) =>
-            `settings/wallet/card/${cardID}/report-card-lost-or-damaged/${reason}/confirm-validate-code${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
-    },
-    SETTINGS_WALLET_CARD_CHANGE_PIN: {
-        route: 'settings/wallet/card/:cardID/change-pin',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin` as const,
-    },
-    SETTINGS_WALLET_CARD_CHANGE_PIN_ATM: {
-        route: 'settings/wallet/card/:cardID/change-pin-atm',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/change-pin-atm` as const,
-    },
     SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
         route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
         getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/add-to-digital-wallet`, backTo),
-    },
-    SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/card/:cardID/activate',
-        getRoute: (cardID: string, isFromDomainCardDetail?: boolean) => `settings/wallet/card/${cardID}/activate${isFromDomainCardDetail ? '?isFromDomainCardDetail=true' : ''}` as const,
     },
     SETTINGS_WALLET_CARD_ADDED_TO_WALLET: {
         route: 'settings/wallet/card/:cardID/added-to-wallet',
@@ -2787,7 +2797,6 @@ const ROUTES = {
     SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
-    SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD: 'settings/teachersunite/add-payment-card',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
