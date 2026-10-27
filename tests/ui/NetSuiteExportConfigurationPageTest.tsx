@@ -62,7 +62,6 @@ const travelBillingSettings = {
 
 async function renderPage() {
     const props = createMock<ComponentProps<typeof NetSuiteExportConfigurationPage>>({});
-    // eslint-disable-next-line react/jsx-props-no-spreading
     render(<NetSuiteExportConfigurationPage {...props} />);
     await waitForBatchedUpdatesWithAct();
 }
