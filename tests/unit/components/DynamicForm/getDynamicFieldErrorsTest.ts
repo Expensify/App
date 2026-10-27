@@ -88,6 +88,20 @@ describe('getDynamicFieldErrors', () => {
         });
     });
 
+    it('caps a legal name at the length the profile legal name allows', () => {
+        // Given a legal name field and a name one character over the profile legal name's limit
+        const legalName: DynamicFormField = {key: 'legalName', type: 'text', required: true, rule: 'legalName'};
+        const name = 'A'.repeat(CONST.LEGAL_NAME.MAX_LENGTH + 1);
+
+        // When the form is validated
+        const errors = getDynamicFieldErrors([legalName], {legalName: name}, translateLocal);
+
+        // Then the name is rejected with the character count, as on the profile legal name page
+        expect(errors).toEqual({
+            legalName: translateLocal('common.error.characterLimitExceedCounter', name.length, CONST.LEGAL_NAME.MAX_LENGTH),
+        });
+    });
+
     it('rejects a number answer that is not a finite number', () => {
         // Given a number field answered with text
         const yearsInBusiness: DynamicFormField = {key: 'yearsInBusiness', type: 'number', required: false};

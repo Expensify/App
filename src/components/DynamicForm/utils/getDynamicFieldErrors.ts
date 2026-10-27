@@ -14,6 +14,7 @@ import {
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 
+import CONST from '@src/CONST';
 import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -139,6 +140,10 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         const messages = getFormatErrors(field, value, translate);
         if (field.rule === 'legalName' && !isValidLegalName(value)) {
             messages.push(translate('privatePersonalDetails.error.hasInvalidCharacter'));
+        }
+        // Held to the profile legal name's limit, so a name accepted in one place is accepted in the other
+        if (field.rule === 'legalName' && value.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+            messages.push(translate('common.error.characterLimitExceedCounter', value.length, CONST.LEGAL_NAME.MAX_LENGTH));
         }
         if (field.rule === 'phone' && !isValidPhoneInternational(value)) {
             messages.push(translate('common.error.phoneNumber'));
