@@ -592,6 +592,50 @@ describe('useSearchSnapshot', () => {
         ]);
     });
 
+    it('records, for each group, whether its own search has more expenses to load', () => {
+        const searchResults = makeSearchResults();
+        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
+        const pagingGroupHash = 11;
+        const completeGroupHash = 22;
+        const pagingGroupData = {[`${ONYXKEYS.COLLECTION.TRANSACTION}a`]: {transactionID: 'a'}};
+        const completeGroupData = {[`${ONYXKEYS.COLLECTION.TRANSACTION}b`]: {transactionID: 'b'}};
+        const groups = [
+            {keyForList: 'group0', transactions: [], transactionsQueryJSON: {hash: pagingGroupHash}},
+            {keyForList: 'group1', transactions: [], transactionsQueryJSON: {hash: completeGroupHash}},
+            {keyForList: 'group2', transactions: [], transactionsQueryJSON: {hash: 33}},
+        ];
+        mockGroupSnapshots = {
+            [String(pagingGroupHash)]: {data: pagingGroupData, search: {hasMoreResults: true}},
+            [String(completeGroupHash)]: {data: completeGroupData, search: {hasMoreResults: false}},
+        };
+        mockGetSections.mockImplementation(({data}: {data: unknown}) => {
+            if (data === pagingGroupData) {
+                return [[{transactionID: 'a'}], 1, false];
+            }
+            if (data === completeGroupData) {
+                return [[{transactionID: 'b'}], 1, false];
+            }
+            return [groups, groups.length, false];
+        });
+
+        // Given a group whose own search has more to load, one whose own search has returned every expense, and one never opened
+        // When the grouped search is projected
+        const {result} = renderHook(() =>
+            useSearchSnapshot({
+                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
+                searchResults,
+                transactions: undefined,
+                reportActions: undefined,
+            }),
+        );
+
+        // Then each loaded group carries its own search's answer, so the selection can tell a group whose rows are all in from one with more to load, and the unopened group carries none
+        const [pagingGroup, completeGroup, unopenedGroup] = result.current.filteredData;
+        expect(pagingGroup).toEqual(expect.objectContaining({keyForList: 'group0', hasMoreTransactions: true}));
+        expect(completeGroup).toEqual(expect.objectContaining({keyForList: 'group1', hasMoreTransactions: false}));
+        expect(unopenedGroup).not.toHaveProperty('hasMoreTransactions');
+    });
+
     it('does not spend visibleRowLimit on rows being deleted online', () => {
         // Given a live list capped at two rows, whose first two rows are being deleted while online
         const searchResults = makeSearchResults();

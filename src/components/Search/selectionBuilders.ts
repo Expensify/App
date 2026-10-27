@@ -37,6 +37,15 @@ function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, 
 }
 
 /**
+ * How many expenses a group holds when deciding what its selection covers. An open group runs its own search again each time the page comes back into view, and the
+ * group-by search does not, so once that search has returned every expense, the rows it shows are the whole group while the group-by count can still hold one that left it.
+ * A closed group's rows can be stale, so it is measured by the group-by count, as is a group with more to load.
+ */
+function resolveGroupCount(group: TransactionGroupListItemType, isOpen: boolean): number | undefined {
+    return isOpen && group.hasMoreTransactions === false ? group.transactions.length : getSearchGroupCount(group);
+}
+
+/**
  * Snapshot `count` is not decremented when a child is pending-delete, so drop those loaded children before
  * comparing. A `limit:` that left children unloaded still leaves `count` larger than the remaining selectable
  * rows, so that case stays a partial selection.
@@ -807,12 +816,15 @@ function applyShiftRangeBatchToSelection(
             return;
         }
         if (isTransactionGroupListItemType(row)) {
-            // A group can hold an entry under its own key as well as under its children's, including children a refresh left off the loaded page.
+            // A group can hold an entry under its own key as well as under its children's, and a group-by group also holds children a refresh left off its loaded page.
+            // A report carries all of its expenses, so an expense that still names one has moved to another report and keeps its selection there.
             if (row.keyForList) {
                 dropKey(row.keyForList);
-                selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
-                for (const key of selectedRowKeysByGroupKey.get(row.keyForList) ?? []) {
-                    dropKey(key);
+                if (isGroupEntry(row.keyForList)) {
+                    selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
+                    for (const key of selectedRowKeysByGroupKey.get(row.keyForList) ?? []) {
+                        dropKey(key);
+                    }
                 }
             }
             for (const child of row.transactions ?? []) {
@@ -908,6 +920,7 @@ export {
     isRowChecked,
     getSearchGroupCount,
     getSearchGroupCountByKey,
+    resolveGroupCount,
     getClaimedGroupKey,
     getGroupClaims,
     getSelectedRowKeysByGroupKey,

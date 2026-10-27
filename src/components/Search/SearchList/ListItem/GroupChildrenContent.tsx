@@ -1,4 +1,4 @@
-import {getSearchGroupCount} from '@components/Search/selectionBuilders';
+import {resolveGroupCount} from '@components/Search/selectionBuilders';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
@@ -49,7 +49,7 @@ function GroupChildrenContent({
     const {transactions} = useGroupChildren({
         groupKey: groupItem.groupKeyForList,
         groupTransactions: groupItem.transactions,
-        groupCount: getSearchGroupCount(groupItem),
+        groupCount: resolveGroupCount(groupItem, isExpanded),
     });
 
     const isEmpty = transactions.length === 0;

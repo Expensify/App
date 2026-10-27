@@ -9,7 +9,7 @@ import type {
     TransactionReportGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
-import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
+import {getGroupCheckboxState, isRowChecked, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, resolveGroupCount} from '@components/Search/selectionBuilders';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
@@ -2327,6 +2327,33 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.areAllMatchingItemsSelected).toBe(true);
     });
 
+    it('keeps a checked expense that moved to another report checked when the report it came from is unchecked', async () => {
+        const {result, rerender} = renderReportSelection();
+
+        // Given the first report checked
+        await act(async () => {
+            result.current.toggle(firstReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When one of its expenses moves to the second report, as changing an expense's report does, so its entry still names the report it came from
+        const sourceReport = makeExpenseReport('report-1', ['report-1-transaction-2']);
+        reportFilteredData = [sourceReport, makeExpenseReport('report-2', ['report-2-transaction-1', 'report-1-transaction-1'])];
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+        expect(result.current.selectedTransactions['report-1-transaction-1']?.groupKey).toBe('report-1');
+
+        // And the report it came from is unchecked
+        await act(async () => {
+            result.current.toggle(sourceReport);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then only that report's own expense leaves the selection, and the moved one stays checked in the report it now sits in
+        expect(result.current.selectedTransactions['report-1-transaction-2']).toBeUndefined();
+        expect(result.current.selectedTransactions['report-1-transaction-1']?.isSelected).toBe(true);
+    });
+
     it('excludes a selected expense after it moves into an excluded report', async () => {
         const {result, rerender} = renderReportSelection();
 
@@ -3416,6 +3443,113 @@ describe('Lazily loaded group selection', () => {
 
             // Then the count and total take the two rows still selected, not the group's three and 300
             expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual([keptRow.keyForList, laterRow.keyForList].sort());
+        });
+
+        describe('a group whose own search has returned every expense while its count still holds one that left it', () => {
+            const groupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}advertising`;
+            const shownRows = [buildChild(1, '1', groupKey), buildChild(2, '2', groupKey)];
+            const [firstRow, secondRow] = shownRows;
+            const submittedRow = buildChild(5, '5', groupKey);
+
+            // The group-by search's figures, which still count the submitted expense until that search runs again
+            const searchData: SearchResultDataType = {};
+            searchData[groupKey] = {category: groupKey, count: 3, total: 300, currency: CONST.CURRENCY.USD};
+
+            beforeEach(() => {
+                // The group's own search returned all three expenses, and the list hides the one whose report was submitted under a drafts filter
+                pagingGroup = {...buildCategoryGroup(groupKey, shownRows), count: 3, hasMoreTransactions: false, hiddenTransactionIDs: [submittedRow.transactionID]};
+            });
+
+            const readHeader = (result: ReturnType<typeof renderSelection>['result'], isOpen: boolean) =>
+                getGroupCheckboxState({
+                    groupKey,
+                    children: shownRows,
+                    selectedTransactions: result.current.selectedTransactions,
+                    excludedTransactions: result.current.excludedTransactions,
+                    areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+                    groupCount: resolveGroupCount(pagingGroup, isOpen),
+                });
+
+            async function openGroup(result: ReturnType<typeof renderSelection>['result']) {
+                await act(async () => {
+                    result.current.addGroupToRange(groupKey);
+                    await waitForBatchedUpdatesWithAct();
+                });
+            }
+
+            it('checks the expenses an open group shows from its header as the whole group', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given the group open
+                await openGroup(result);
+
+                // When its header is checked
+                await act(async () => {
+                    result.current.toggle(pagingGroup, shownRows);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then its two expenses are the whole group, so the count is two and the actions that need each expense stay offered, rather than one entry counting the stale three
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual(
+                    [firstRow.keyForList, secondRow.keyForList].sort(),
+                );
+                expect(readHeader(result, true)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('reads an open group as checked once each expense it shows is checked one by one', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given the group open
+                await openGroup(result);
+
+                // When each expense it shows is checked on its own
+                for (const row of shownRows) {
+                    await act(async () => {
+                        result.current.toggle(row);
+                        await waitForBatchedUpdatesWithAct();
+                    });
+                }
+
+                // Then its header reads checked, since no expense in it is left unchecked
+                expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(readHeader(result, true)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('goes by the group-by count while the group is closed, since a closed group keeps rows it loaded earlier', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given the group closed
+                // When its header is checked
+                await act(async () => {
+                    result.current.toggle(pagingGroup, shownRows);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then it stands for the group-by search's whole group, so an expense its cached rows have not caught up with is not left out
+                expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false))).toEqual([groupKey]);
+                expect(readHeader(result, false)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('takes the group itself out of Select all when an open group is unchecked from its header', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given every matching item selected and the group open
+                await act(async () => {
+                    result.current.selectAllMatchingItems(true);
+                    await waitForBatchedUpdatesWithAct();
+                });
+                await openGroup(result);
+
+                // When its header is unchecked
+                await act(async () => {
+                    result.current.toggle(pagingGroup, shownRows);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then the group is excluded whole, not only the two expenses it shows, so an expense its rows have not caught up with leaves the selection too
+                expect(Object.hasOwn(result.current.excludedTransactions, groupKey)).toBe(true);
+            });
         });
 
         describe('a partly loaded group taken out of Select all', () => {

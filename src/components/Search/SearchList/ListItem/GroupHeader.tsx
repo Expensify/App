@@ -4,7 +4,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
-import {getSearchGroupCount} from '@components/Search/selectionBuilders';
+import {resolveGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -186,7 +186,7 @@ function GroupHeader({
     const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({
         groupKey: item.groupKeyForList,
         groupTransactions: groupItem.transactions,
-        groupCount: getSearchGroupCount(groupItem),
+        groupCount: resolveGroupCount(groupItem, isExpanded),
     });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
