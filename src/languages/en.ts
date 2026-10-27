@@ -2400,6 +2400,28 @@ const translations = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'on the last day of the month',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'at the end of your trip',
         },
+        scheduleEta: {
+            weekly: {
+                monday: 'on Monday',
+                tuesday: 'on Tuesday',
+                wednesday: 'on Wednesday',
+                thursday: 'on Thursday',
+                friday: 'on Friday',
+                saturday: 'on Saturday',
+                sunday: 'on Sunday',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `on the ${firstDay} and ${secondDay} of each month`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `on the ${firstDay} and the last day of each month`,
+            monthlyLastWeekday: {
+                monday: 'on the last Monday of the month',
+                tuesday: 'on the last Tuesday of the month',
+                wednesday: 'on the last Wednesday of the month',
+                thursday: 'on the last Thursday of the month',
+                friday: 'on the last Friday of the month',
+                saturday: 'on the last Saturday of the month',
+                sunday: 'on the last Sunday of the month',
+            },
+        },
     },
     profilePage: {
         profile: 'Profile',
