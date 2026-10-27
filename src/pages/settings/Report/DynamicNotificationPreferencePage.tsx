@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type DynamicNotificationPreferencePageProps = WithReportOrNotFoundProps;
 
@@ -47,9 +47,9 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
         }));
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     const saveNotificationPreference = () => {
         updateNotificationPreference(report.reportID, currentUserNotificationPreference, selectedNotificationPreference, currentUserAccountID, undefined, undefined);
