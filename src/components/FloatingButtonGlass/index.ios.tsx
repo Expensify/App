@@ -13,7 +13,7 @@ import type FloatingButtonGlassProps from './types';
 const isFloatingButtonGlassAvailable = isLiquidGlassAvailable();
 
 /** The liquid glass a floating button is drawn with in place of its solid fill, tinted with the button's color. */
-function FloatingButtonGlass({tintColor}: FloatingButtonGlassProps) {
+function FloatingButtonGlass({tintColor, tintOpacity = variables.floatingButtonGlassTintOpacity}: FloatingButtonGlassProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -21,7 +21,7 @@ function FloatingButtonGlass({tintColor}: FloatingButtonGlassProps) {
         return null;
     }
 
-    const {backgroundColor: glassTintColor} = StyleUtils.getBackgroundColorWithOpacityStyle(tintColor, variables.floatingButtonGlassTintOpacity);
+    const {backgroundColor: glassTintColor} = StyleUtils.getBackgroundColorWithOpacityStyle(tintColor, tintOpacity);
 
     return (
         <GlassView

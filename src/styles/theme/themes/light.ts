@@ -42,7 +42,6 @@ const lightTheme = {
     success: colors.green400,
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
-    successGlassTint: colors.green500,
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
