@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useIsPlatformMuted from '@hooks/useIsPlatformMuted';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -21,14 +22,13 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {capturePhotoToPath} from '@libs/cameraCapture';
+import downscalePhoto from '@libs/cameraCapture/downscalePhoto';
 import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
 import selectWideCameraDevice from '@libs/cameraCapture/selectWideCameraDevice';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import isInLandscapeMode from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {logCameraCaptureFailed, logCameraRuntimeError} from '@libs/telemetry/ReceiptObservability';
@@ -83,8 +83,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const isLandscape = isInLandscapeMode(windowWidth, windowHeight);
+    const isInLandscapeMode = useIsInLandscapeMode();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
     const isPlatformMuted = useIsPlatformMuted();
@@ -104,7 +103,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
     const device = selectWideCameraDevice(cameraDevices, cameraPosition, defaultDevice);
     const canFlipCamera = cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back');
 
-    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput('balanced', isLandscape);
+    const {photoOutput, cameraAspectRatio, updatePhotoResolution} = useReceiptPhotoOutput('balanced', isInLandscapeMode);
     const hasFlash = !!device?.hasFlash;
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(cameraRef, !!device?.supportsFocusMetering && !capturedPhoto);
@@ -178,18 +177,33 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
             .then((photo) => {
                 if (!isActiveRef.current) {
                     discardPhoto(photo.path);
-                    return;
+                    return undefined;
                 }
-                const uri = getPhotoSource(photo.path);
-                const fileName = getFileName(photo.path) || `photo_${Date.now()}.jpg`;
+                return downscalePhoto(photo)
+                    .catch((error: unknown) => {
+                        Log.warn('[AttachmentCamera] could not shrink the captured photo, using the original', {error: error instanceof Error ? error.message : String(error)});
+                        return undefined;
+                    })
+                    .then((downscaledPhoto) => {
+                        if (downscaledPhoto) {
+                            discardPhoto(photo.path);
+                        }
+                        const finalPhoto = downscaledPhoto ?? photo;
+                        if (!isActiveRef.current) {
+                            discardPhoto(finalPhoto.path);
+                            return;
+                        }
+                        const uri = getPhotoSource(finalPhoto.path);
+                        const fileName = getFileName(finalPhoto.path) || `photo_${Date.now()}.jpg`;
 
-                setCapturedPhoto({
-                    uri,
-                    fileName,
-                    type: 'image/jpeg',
-                    width: photo.width,
-                    height: photo.height,
-                });
+                        setCapturedPhoto({
+                            uri,
+                            fileName,
+                            type: 'image/jpeg',
+                            width: finalPhoto.width,
+                            height: finalPhoto.height,
+                        });
+                    });
             })
             .catch((error: Error) => {
                 if (!isActiveRef.current) {
@@ -273,11 +287,11 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                     </PressableWithFeedback>
                 </View>
 
-                <View style={[styles.flex1, isLandscape && styles.flexRow]}>
+                <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
                     <View style={styles.flex1}>
                         {cameraPermissionStatus !== RESULTS.GRANTED && (
                             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                                <View style={[styles.cameraView, isLandscape ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
+                                <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
                                     <ImageSVG
                                         contentFit="contain"
                                         src={lazyIllustrations.Hand}
@@ -311,7 +325,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                         {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
                             <View style={[styles.cameraView, styles.alignItemsCenter]}>
                                 <GestureDetector gesture={tapGesture}>
-                                    <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isLandscape)}>
+                                    <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
                                         <VisionCamera
                                             ref={cameraRef}
                                             device={device}
@@ -345,10 +359,10 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                     </View>
 
                     {capturedPhoto ? (
-                        <View style={[styles.justifyContentCenter, styles.gap3, styles.p3, !isLandscape && styles.flexRow]}>
+                        <View style={[styles.justifyContentCenter, styles.gap3, styles.p3, !isInLandscapeMode && styles.flexRow]}>
                             <Button
                                 size={CONST.BUTTON_SIZE.LARGE}
-                                style={!isLandscape && styles.flex1}
+                                style={!isInLandscapeMode && styles.flex1}
                                 accessibilityLabel={translate('attachmentPicker.retake')}
                                 onPress={retakePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.RETAKE}
@@ -358,7 +372,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                             <Button
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}
-                                style={!isLandscape && styles.flex1}
+                                style={!isInLandscapeMode && styles.flex1}
                                 accessibilityLabel={translate('attachmentPicker.usePhoto')}
                                 onPress={usePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAMERA.USE_PHOTO}
@@ -367,7 +381,7 @@ function AttachmentCamera({isVisible, onCapture, onClose, onModalHide}: Attachme
                             </Button>
                         </View>
                     ) : (
-                        <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isLandscape && styles.flexRow]}>
+                        <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isInLandscapeMode && styles.flexRow]}>
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.flash')}

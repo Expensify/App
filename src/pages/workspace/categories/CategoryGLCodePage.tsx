@@ -27,7 +27,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type EditCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE>
@@ -46,34 +46,28 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE;
     const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const value = values[INPUT_IDS.GL_CODE];
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+        const value = values[INPUT_IDS.GL_CODE];
 
-            if (value.length > CONST.MAX_LENGTH_256) {
-                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
-            }
+        if (value.length > CONST.MAX_LENGTH_256) {
+            errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editGLCode = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newGLCode = values.glCode.trim();
-            if (newGLCode !== glCode) {
-                setPolicyCategoryGLCode(policyID, categoryName, newGLCode, policyCategories);
-            }
-            Navigation.goBack(
-                isQuickSettingsFlow
-                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
-                    : workspaceBackPath,
-            );
-        },
-        [glCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories, workspaceBackPath],
-    );
+    const editGLCode = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        const newGLCode = values.glCode.trim();
+        if (newGLCode !== glCode) {
+            setPolicyCategoryGLCode(policyID, categoryName, newGLCode, policyCategories);
+        }
+        Navigation.goBack(
+            isQuickSettingsFlow
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
+                : workspaceBackPath,
+        );
+    };
 
     return (
         <AccessOrNotFoundWrapper

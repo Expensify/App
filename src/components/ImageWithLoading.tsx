@@ -182,5 +182,5 @@ function ImageWithLoading({
 
 ImageWithLoading.displayName = 'ImageWithLoading';
 
-export default React.memo(ImageWithLoading);
+export default ImageWithLoading;
 export type {ImageWithSizeLoadingProps};
