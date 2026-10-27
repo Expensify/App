@@ -5,16 +5,13 @@ import useTheme from '@hooks/useTheme';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-import {isGroupPolicyExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isProcessingReport} from '@libs/ReportUtils';
 import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
@@ -29,9 +26,12 @@ type MoneyReportHeaderStatusBarSectionProps = {
     reportID: string | undefined;
     statusBarType: ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE> | undefined;
     iouTransactionID: string | undefined;
+
+    /** Shows a chevron on the status bar, for a bar that opens the report history */
+    shouldShowCaret: boolean;
 };
 
-function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransactionID}: MoneyReportHeaderStatusBarSectionProps) {
+function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransactionID, shouldShowCaret}: MoneyReportHeaderStatusBarSectionProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
@@ -48,8 +48,6 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
         return null;
     }
 
-    const openReportHistory = isGroupPolicyExpenseReport(moneyRequestReport, policy?.type) ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path)) : undefined;
-
     const getStatusIcon = (src: IconAsset) => (
         <Icon
             src={src}
@@ -64,7 +62,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={translate('iou.reject.rejectedStatus')}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -74,7 +72,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={translate('iou.bookingPendingDescription')}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -84,7 +82,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Box)}
                 description={translate('iou.bookingArchivedDescription')}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -94,7 +92,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Stopwatch)}
                 description={translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold')}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -104,7 +102,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Flag)}
                 description={translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport))}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -134,7 +132,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={translate('iou.pendingMatchWithCreditCardDescription')}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -145,7 +143,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.CreditCardHourglass)}
                 description={pendingDescription}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }
@@ -155,7 +153,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.ReceiptScan)}
                 description={translate('iou.receiptScanInProgressDescription')}
-                onPress={openReportHistory}
+                shouldShowCaret={shouldShowCaret}
             />
         );
     }

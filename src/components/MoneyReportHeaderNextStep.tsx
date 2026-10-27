@@ -2,13 +2,11 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
 
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import CONST from '@src/CONST';
 
 import React from 'react';
 
+import MoneyReportHeaderHistoryButton from './MoneyReportHeaderHistoryButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 
@@ -29,10 +27,9 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
 
     if (showNextStepBar) {
         return (
-            <MoneyReportHeaderStatusBar
-                nextStep={optimisticNextStep}
-                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path))}
-            />
+            <MoneyReportHeaderHistoryButton sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}>
+                <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />
+            </MoneyReportHeaderHistoryButton>
         );
     }
 

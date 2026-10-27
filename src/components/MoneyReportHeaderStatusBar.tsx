@@ -19,20 +19,16 @@ import {View} from 'react-native';
 
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep | undefined;
-
-    /** Opens the report history */
-    onPress: () => void;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -58,29 +54,21 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
     }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
     return (
-        <PressableWithFeedback
-            onPress={onPress}
-            wrapperStyle={[styles.w100, styles.justifyContentCenter, styles.headerStatusBarContainer]}
-            accessibilityLabel={translate('reportHistoryPage.title')}
-            role={CONST.ROLE.BUTTON}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}
-        >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
-                <View style={[styles.mr3]}>
-                    <Icon
-                        src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
-                        height={variables.iconSizeSmall}
-                        width={variables.iconSizeSmall}
-                        fill={nextStep?.iconFill ?? theme.icon}
-                    />
-                </View>
-                <CaretWrapper style={styles.flexShrink1}>
-                    <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
-                        <RenderHTML html={messageContent} />
-                    </View>
-                </CaretWrapper>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
+            <View style={[styles.mr3]}>
+                <Icon
+                    src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
+                    height={variables.iconSizeSmall}
+                    width={variables.iconSizeSmall}
+                    fill={nextStep?.iconFill ?? theme.icon}
+                />
             </View>
-        </PressableWithFeedback>
+            <CaretWrapper style={styles.flexShrink1}>
+                <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                    <RenderHTML html={messageContent} />
+                </View>
+            </CaretWrapper>
+        </View>
     );
 }
 
