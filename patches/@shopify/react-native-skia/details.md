@@ -156,9 +156,9 @@
     Untransformed canvases keep the previous ratio, so nothing else changes.
     ```
 
-- Upstream PR/issue:
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/4084 was closed as not a Skia bug: the maintainer considers a canvas painted under a CSS transform an app concern, and said neither https://github.com/Shopify/react-native-skia/pull/4085 (this approach) nor https://github.com/Shopify/react-native-skia/pull/4105 (an opt-in pixelDensity prop) is the way to fix it. No upstream fix is planned, so this patch has to be carried across Skia upgrades unless the charts stop being fitted with a transform.
 - E/App issue: https://github.com/Expensify/App/issues/95221
-- PR introducing patch:
+- PR introducing patch: https://github.com/Expensify/App/pull/101291
 
 ### [@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch)
 

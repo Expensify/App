@@ -73,8 +73,15 @@ type DynamicFormSubPageProps = SubPageProps &
 
         onPageSubmit: (page: DynamicFormPage, pageValues: DynamicFormValues) => void;
 
+        onOpenListItemEditor: NonNullable<DynamicFormFieldsProps['onOpenListItemEditor']>;
+
+        onListItemsChange: NonNullable<DynamicFormFieldsProps['onListItemsChange']>;
+
         /** The last page submits the form, since no confirmation page follows */
         isLastPage: boolean;
+
+        /** Saves a list entry from its editor page. Without `itemID` it adds a new entry. */
+        onListItemSave: (listKey: string, itemID: string | undefined, answers: DynamicFormValues) => void;
     };
 
 export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormLayout, DynamicFormSubPageProps, DynamicFormValues};

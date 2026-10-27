@@ -51,6 +51,9 @@ jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
@@ -1089,6 +1092,94 @@ describe('getPrimaryAction', () => {
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
+    it('should return PAY for non-payer admin when a bank account is connected (reimburseYes)', async () => {
+        // Given a non-payer admin viewing an approved expense report.
+        // When the primary payment action is resolved.
+        // Then configured reimbursement allows Pay without making the admin the designated payer.
+        const payerEmail = 'payer@vba-test.com';
+        const submitterEmail = 'member@vba-test.com';
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 10,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -300,
+            isWaitingOnBankAccount: false,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: payerEmail,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            achAccount: {reimburser: payerEmail},
+            employeeList: {
+                [CURRENT_USER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN},
+                [payerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                [submitterEmail]: {role: CONST.POLICY.ROLE.USER},
+            },
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: submitterEmail,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+                rules: undefined,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for expense report waiting for the cancelled payment to finish processing', async () => {
+        // Given a closed expense report whose cancelled payment is still being sent back to the payer
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
+            isWaitingForCancelledReimbursement: true,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the primary action is calculated for the admin
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        // Then PAY is not offered because the backend rejects paying until that money posts
+        expect(primaryAction).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
     it('should return PAY for non-reimburser payments admin in manual reimbursement mode when owner is payer', async () => {
         const ownerEmail = 'owner@manual-test.com';
         const report = createMock<Report>({
@@ -1344,6 +1435,42 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should return empty string for expense report with only non-reimbursable transactions when preventPayoutNonReimbursableReports is true', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -3000,
+            nonReimbursableTotal: -3000,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            preventPayoutNonReimbursableReports: true,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            reimbursable: false,
+        });
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+                rules: undefined,
+            }),
+        ).toBe('');
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {

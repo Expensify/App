@@ -42,6 +42,7 @@ type NavigationTabBarProps = {
 };
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -66,7 +67,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         }
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
-        });
+        }, session);
     };
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
@@ -161,7 +162,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
-                    wrapperStyle={styles.flex1}
+                    wrapperStyle={styles.navigationTabBarSlot}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
@@ -169,6 +170,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                        numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton

@@ -6,10 +6,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 
 /** Params this hook fills in itself */
-type SharedOpenReportParams = 'introSelected' | 'conciergeChat' | 'currentUserAccountID' | 'isSelfTourViewed' | 'hasCompletedGuidedSetupFlow';
+type SharedOpenReportParams = 'introSelected' | 'conciergeChat' | 'currentUserAccountID' | 'isSelfTourViewed' | 'hasCompletedGuidedSetupFlow' | 'delegateAccountID';
 
 type UseOpenReportParams = Omit<OpenReportActionParams, SharedOpenReportParams>;
 
@@ -20,6 +21,7 @@ function useOpenReport() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const delegateAccountID = useDelegateAccountID();
 
     return (params: UseOpenReportParams) => {
         openReport({
@@ -27,6 +29,7 @@ function useOpenReport() {
             introSelected,
             conciergeChat,
             currentUserAccountID,
+            delegateAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });

@@ -45,19 +45,25 @@ jest.mock('@hooks/useReportScrollManager', () => ({
 
 // --- useReportUnreadMessageScrollTracking ---
 const mockSetIsFloatingMessageCounterVisible = jest.fn();
+const mockSetIsActionBadgeAboveViewport = jest.fn();
 const mockTrackVerticalScrolling = jest.fn();
 const mockOnViewableItemsChanged = jest.fn();
 let mockIsFloatingMessageCounterVisible = false;
 let mockIsActionBadgeAboveViewport = false;
+let mockShouldDisablePillTracking: boolean | undefined;
 jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
     __esModule: true,
-    default: () => ({
-        isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
-        setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
-        isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
-        trackVerticalScrolling: mockTrackVerticalScrolling,
-        onViewableItemsChanged: mockOnViewableItemsChanged,
-    }),
+    default: ({shouldDisablePillTracking}: {shouldDisablePillTracking?: boolean}) => {
+        mockShouldDisablePillTracking = shouldDisablePillTracking;
+        return {
+            isFloatingMessageCounterVisible: mockIsFloatingMessageCounterVisible,
+            setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
+            isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
+            setIsActionBadgeAboveViewport: mockSetIsActionBadgeAboveViewport,
+            trackVerticalScrolling: mockTrackVerticalScrolling,
+            onViewableItemsChanged: mockOnViewableItemsChanged,
+        };
+    },
 }));
 
 // --- useReportActionsNewActionLiveTail ---
@@ -239,6 +245,7 @@ describe('useReportActionsScroll', () => {
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
+        mockShouldDisablePillTracking = undefined;
         mockIsScrollToBottomEnabled = false;
         mockIsTransactionThread = false;
         mockIsSentMoneyReportAction = false;
@@ -404,6 +411,59 @@ describe('useReportActionsScroll', () => {
             });
 
             expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it('leaves the pills to viewability tracking when the composer is not expanded', async () => {
+            // Given a valid action badge target with the composer at its normal size
+            const {result} = await renderScroll({actionBadgeTargetIndex: 5});
+
+            // When the action badge pill is pressed
+            act(() => {
+                result.current.scrollToActionBadgeTarget();
+            });
+
+            // Then the pills are not hidden directly because the target scrolls into view and viewability tracking hides the pill
+            expect(mockSetIsActionBadgeAboveViewport).not.toHaveBeenCalled();
+            expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
+        });
+
+        it('hides both pills on press when the composer is expanded', async () => {
+            // Given a valid action badge target while the expanded composer covers the list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
+            const {result} = await renderScroll({actionBadgeTargetIndex: 5});
+
+            // When the action badge pill is pressed
+            act(() => {
+                result.current.scrollToActionBadgeTarget();
+            });
+
+            // Then both pills are hidden directly because the target can never become viewable to hide them, and the list still scrolls
+            expect(mockSetIsActionBadgeAboveViewport).toHaveBeenCalledWith(false);
+            expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
+            expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+    });
+
+    describe('pill tracking', () => {
+        it('keeps scroll-based pill tracking enabled when the composer is not expanded', async () => {
+            // Given the composer at its normal size and no linked message to position
+
+            // When the hook renders
+            await renderScroll();
+
+            // Then scroll-based pill tracking stays enabled so the Latest messages pill follows scrolling
+            expect(mockShouldDisablePillTracking).toBe(false);
+        });
+
+        it('disables scroll-based pill tracking while the composer is expanded', async () => {
+            // Given the expanded composer covers the list
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
+
+            // When the hook renders
+            await renderScroll();
+
+            // Then scroll-based pill tracking is disabled so scrolling the hidden list cannot bring the Latest messages pill back
+            expect(mockShouldDisablePillTracking).toBe(true);
         });
     });
 

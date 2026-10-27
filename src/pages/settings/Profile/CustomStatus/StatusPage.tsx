@@ -1,5 +1,4 @@
 import Button from '@components/Button';
-import DelegatorList from '@components/DelegatorList';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,7 +10,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,11 +25,9 @@ import {isMobileChrome} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import focusAfterModalClose from '@libs/focusAfterModalClose';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
-import {clearVacationDelegateError} from '@userActions/VacationDelegate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +37,7 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const initialEmoji = '💬';
@@ -66,8 +62,6 @@ function StatusPage() {
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const hasActiveDelegations = !!vacationDelegate?.delegatorFor?.length;
     const isFormLoading = !!formState?.isLoading;
 
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
@@ -76,45 +70,35 @@ function StatusPage() {
     const draftEmojiCode = draftStatus?.emojiCode;
     const draftText = draftStatus?.text;
     const draftClearAfter = draftStatus?.clearAfter;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultText = draftText || currentUserStatusText;
 
-    const customClearAfter = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
-    }, [draftClearAfter, currentUserClearAfter, translate, dateFnsLocale]);
+    const dataToShow = draftClearAfter || currentUserClearAfter;
+    const customClearAfter = DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
 
-    const isValidClearAfterDate = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isValidClearAfterDate = () => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
         if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER || clearAfterTime === '') {
             return true;
         }
 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
-    }, [draftClearAfter, currentUserClearAfter]);
+    };
 
-    const updateStatus = useCallback(
-        ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
-            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
-            if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
-                setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-                return;
-            }
-            updateCustomStatus(currentUserPersonalDetails.accountID, {
-                text: statusText,
-                emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
-                clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
-            });
-            Navigation.goBack(undefined, {afterTransition: () => clearDraftCustomStatus()});
-        },
-        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, currentUserPersonalDetails.accountID],
-    );
+    const updateStatus = ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
+        const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
+        const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
+        if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
+            setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            return;
+        }
+        updateCustomStatus(currentUserPersonalDetails.accountID, {
+            text: statusText,
+            emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
+            clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
+        });
+        Navigation.goBack(undefined, {afterTransition: () => clearDraftCustomStatus()});
+    };
 
     const clearStatus = () => {
         clearCustomStatus(currentUserPersonalDetails.accountID);
@@ -140,36 +124,30 @@ function StatusPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const validateForm = useCallback(
-        ({statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
-            if (brickRoadIndicator) {
-                return {clearAfter: ''};
-            }
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
-            if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
-                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
-            }
-            return errors;
-        },
-        [brickRoadIndicator, translate],
-    );
+    const validateForm = ({statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
+        if (brickRoadIndicator) {
+            return {clearAfter: ''};
+        }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
+        if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
+            errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
+        }
+        return errors;
+    };
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const saveButton = useMemo(
-        () => (
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={CONST.BUTTON_SIZE.LARGE}
-                style={styles.w100}
-                onPress={() => formRef.current?.submit()}
-                isLoading={isFormLoading}
-            >
-                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
-                <Button.Text>{translate('statusPage.save')}</Button.Text>
-            </Button>
-        ),
-        [translate, isFormLoading, styles.w100],
+    const saveButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={styles.w100}
+            onPress={() => formRef.current?.submit()}
+            isLoading={isFormLoading}
+        >
+            <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+            <Button.Text>{translate('statusPage.save')}</Button.Text>
+        </Button>
     );
 
     return (
@@ -243,27 +221,6 @@ function StatusPage() {
                         />
                     )}
                 </View>
-                <View style={[styles.mb2, styles.mt6]}>
-                    <Text style={[styles.headerText, styles.mh5, styles.mb2]}>{translate('common.vacationDelegate')}</Text>
-                    {hasActiveDelegations ? (
-                        <DelegatorList
-                            delegators={vacationDelegate?.delegatorFor}
-                            message={translate('statusPage.cannotSetVacationDelegate')}
-                        />
-                    ) : (
-                        <>
-                            <Text style={[styles.mh5, styles.mb1]}>{translate('statusPage.setVacationDelegate')}</Text>
-                            <VacationDelegateMenuItem
-                                vacationDelegate={vacationDelegate}
-                                errors={getVacationDelegateErrors(vacationDelegate)}
-                                pendingAction={vacationDelegate?.pendingAction}
-                                onCloseError={() => clearVacationDelegateError(vacationDelegate?.previousDelegate)}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE)}
-                            />
-                        </>
-                    )}
-                </View>
-
                 {isInLandscapeMode && saveButton}
             </FormProvider>
 

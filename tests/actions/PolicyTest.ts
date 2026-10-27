@@ -2706,6 +2706,64 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('getCashExpenseReimbursableMode', () => {
+        // The Rules page and the expense creation path both read `defaultReimbursable`. When they disagree
+        // about an ABSENT value the page advertises a rule that new expenses never apply, so these cases
+        // pin the absent value to "reimbursable" on both sides.
+        it('reads an absent defaultReimbursable as reimbursable when the field is not locked', () => {
+            // Given a workspace whose policy blob has no defaultReimbursable and no lock
+            const policy = {...createRandomPolicy(0), defaultReimbursable: undefined, disabledFields: {reimbursable: false}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows "reimbursable by default" rather than claiming the non-reimbursable rule is on
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.REIMBURSABLE_DEFAULT);
+        });
+
+        it('reads an absent defaultReimbursable as reimbursable when the field is locked', () => {
+            // Given a workspace with a locked reimbursable field but no stored defaultReimbursable
+            const policy = {...createRandomPolicy(0), defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows "always reimbursable", matching the value new expenses are actually created with
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_REIMBURSABLE);
+        });
+
+        it('reports always non-reimbursable only when defaultReimbursable is explicitly false and locked', () => {
+            // Given a workspace explicitly set to "cash expenses are always non-reimbursable"
+            const policy = {...createRandomPolicy(0), defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows the always non-reimbursable rule
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.ALWAYS_NON_REIMBURSABLE);
+        });
+
+        it('reports non-reimbursable by default when defaultReimbursable is explicitly false and unlocked', () => {
+            // Given a workspace defaulting to non-reimbursable without locking the field
+            const policy = {...createRandomPolicy(0), defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(policy);
+
+            // Then it shows the non-reimbursable default
+            expect(mode).toBe(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES.NON_REIMBURSABLE_DEFAULT);
+        });
+
+        it('returns undefined when there is no policy', () => {
+            // Given no policy
+            // When resolving the cash expense mode
+            const mode = Policy.getCashExpenseReimbursableMode(undefined);
+
+            // Then there is no mode to show
+            expect(mode).toBeUndefined();
+        });
+    });
+
     describe('setPolicyReimbursableMode', () => {
         it('should update reimbursable mode to REIMBURSABLE_DEFAULT optimistically and succeed', async () => {
             // Given a workspace with default reimbursable as false and disabled as true
@@ -3380,7 +3438,7 @@ describe('actions/Policy', () => {
             expect(policy?.eReceipts).toBe(fakePolicy.eReceipts);
         });
 
-        it('upgradeToCorporate should optimistically set receipt defaults but not max expense age/amount', async () => {
+        it('upgradeToCorporate should not optimistically set receipt defaults or max expense age/amount', async () => {
             // Given a Collect policy with expense limits disabled (empty in Rules UI)
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
@@ -3406,12 +3464,34 @@ describe('actions/Policy', () => {
             });
 
             // Then age/amount stay disabled (API leaves them empty — avoids #74401 flash),
-            // while receipt thresholds get Control defaults (matches post-upgrade Rules UI).
+            // and receipt thresholds stay disabled too, because the API never saves Control defaults for them (#101524)
             expect(policy?.maxExpenseAge).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
             expect(policy?.maxExpenseAmount).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
-            expect(policy?.maxExpenseAmountNoReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT);
-            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_ITEMIZED_RECEIPT);
+            expect(policy?.maxExpenseAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
             expect(policy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('upgradeToCorporate should re-apply receipt thresholds the policy already had', async () => {
+            // Given a Collect policy that already requires receipts above custom amounts
+            const receiptAmount = 5000;
+            const itemizedAmount = 10000;
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                maxExpenseAmountNoReceipt: receiptAmount,
+                maxExpenseAmountNoItemizedReceipt: itemizedAmount,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When upgrading to corporate
+            Policy.upgradeToCorporate(fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            // Then the existing thresholds are kept, so the Rules row does not flash "Don't require receipts" while the upgrade syncs
+            expect(policy?.maxExpenseAmountNoReceipt).toBe(receiptAmount);
+            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(itemizedAmount);
         });
     });
 
@@ -5781,6 +5861,39 @@ describe('actions/Policy', () => {
             expect(apiWriteSpy).not.toHaveBeenCalled();
             apiWriteSpy.mockRestore();
         });
+
+        it('should mark the connections as fetched when it turns Connections on for a workspace that is still being created', async () => {
+            // Given a workspace whose create request hasn't finished, so it can't have connections yet
+            const policy: PolicyType = {
+                ...createRandomPolicy(20, CONST.POLICY.TYPE.CORPORATE),
+                areConnectionsEnabled: false,
+                connections: undefined,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the open Connections page has nothing to fetch, so it keeps showing instead of a loader
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBe(true);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`))?.areConnectionsEnabled).toBe(true);
+        });
+
+        it('should leave the connections to be fetched for an existing workspace', async () => {
+            // Given an existing workspace with Connections off, which can still hold connections that haven't loaded,
+            // like an integration only supported on OldDot
+            const policy: PolicyType = {...createRandomPolicy(21, CONST.POLICY.TYPE.CORPORATE), areConnectionsEnabled: false, connections: undefined, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When connecting an integration from the Connections page turns Connections on
+            Policy.enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+            await waitForBatchedUpdates();
+
+            // Then the connections are not marked as fetched, so the page still loads any that exist
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`)).toBeUndefined();
+        });
     });
 
     describe('enablePolicyTaxes', () => {
@@ -6350,6 +6463,54 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.preventSelfApproval).toBe(false);
             expect(updatedPolicy?.pendingFields?.preventSelfApproval).toBeUndefined();
             expect(updatedPolicy?.errorFields?.preventSelfApproval).toBeTruthy();
+        });
+    });
+
+    describe('setPolicyPreventPayoutNonReimbursableReports', () => {
+        it('should update preventPayoutNonReimbursableReports optimistically and succeed', async () => {
+            // Given a workspace with preventPayoutNonReimbursableReports disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                preventPayoutNonReimbursableReports: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When enabling preventPayoutNonReimbursableReports
+            Policy.setPolicyPreventPayoutNonReimbursableReports(policy.id, true, policy.preventPayoutNonReimbursableReports);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.preventPayoutNonReimbursableReports).toBe(true);
+            expect(updatedPolicy?.pendingFields?.preventPayoutNonReimbursableReports).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.preventPayoutNonReimbursableReports).toBeUndefined();
+        });
+
+        it('should revert preventPayoutNonReimbursableReports when fail', async () => {
+            // Given a workspace with preventPayoutNonReimbursableReports disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                preventPayoutNonReimbursableReports: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When enabling preventPayoutNonReimbursableReports but fail
+            mockFetch.fail();
+            Policy.setPolicyPreventPayoutNonReimbursableReports(policy.id, true, policy.preventPayoutNonReimbursableReports);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.preventPayoutNonReimbursableReports).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.preventPayoutNonReimbursableReports).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.preventPayoutNonReimbursableReports).toBeTruthy();
         });
     });
 
@@ -7259,6 +7420,62 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('toggleCollectDepositAccounts', () => {
+        it('should enable collecting deposit accounts optimistically without changing the reimbursement countries', async () => {
+            // Given a policy that isn't collecting deposit accounts but already has a reimbursement country
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: false,
+                reimbursement: {countries: {GB: {}}},
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle on
+            mockFetch.pause();
+            Policy.toggleCollectDepositAccounts(policyID, true, false);
+            await waitForBatchedUpdates();
+
+            // Then the flag flips optimistically with a pending update, and the countries stay as they were, because
+            // the toggle only controls the flag, like Classic
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.reimbursement?.countries).toEqual({GB: {}});
+
+            // When the request succeeds
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the pending update is cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+        });
+
+        it('should revert the flag and show an error when the request fails', async () => {
+            // Given a policy that is collecting deposit accounts
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle off and the request fails
+            mockFetch.fail();
+            Policy.toggleCollectDepositAccounts(policyID, false, true);
+            await waitForBatchedUpdates();
+
+            // Then the flag goes back to its previous value so the toggle reflects the saved setting, with an error to explain why
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+            expect(updatedPolicy?.errorFields?.isCollectDepositAccountsEnabled).toBeDefined();
+        });
+    });
+
     describe('updateMemberCustomField', () => {
         it('should update member custom field optimistically and succeed', async () => {
             // Given a policy with an employee and a custom field value
@@ -7323,6 +7540,22 @@ describe('actions/Policy', () => {
             // Then the custom field should be reverted
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.employeeList?.[employeeLogin]?.[CONST.CUSTOM_FIELD_KEYS[customFieldType]]).toBe(initialValue);
+        });
+
+        it('should not call the API when the member login is empty', async () => {
+            // Given a member page that could not find the member login, so it passes an empty login
+            const policyID = '1';
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            // When updateMemberCustomField is called with that empty login
+            Policy.updateMemberCustomField(policyID, '', 'customField1', 'San Francisco', undefined);
+            await waitForBatchedUpdates();
+
+            // Then no request is sent, because the backend rejects an empty email, and no employee is written under an empty key
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['']).toBeUndefined();
+            apiWriteSpy.mockRestore();
         });
     });
 

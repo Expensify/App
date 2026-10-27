@@ -12,13 +12,13 @@ import React from 'react';
 // Expose the row press handler (showReportPage) without rendering the full LHN option list.
 jest.mock('@components/LHNOptionsList/LHNOptionsList', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    return function MockLHNOptionsList({data, onSelectRow}: {data: Report[]; onSelectRow: (option: Report) => void}) {
-        const [firstOption] = data;
-        if (!firstOption) {
+    return function MockLHNOptionsList({data, onSelectRow}: {data: string[]; onSelectRow: (option: Report) => void}) {
+        const [firstReportID] = data;
+        if (!firstReportID) {
             return null;
         }
 
-        return ReactModule.createElement('button', {testID: 'lhn-row', onPress: () => onSelectRow(firstOption)}, 'row');
+        return ReactModule.createElement('button', {testID: 'lhn-row', onPress: () => onSelectRow({reportID: firstReportID} as Report)}, 'row');
     };
 });
 
@@ -28,6 +28,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isInLandscapeMode: false}),
 }));
 
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScrollProps', () => () => ({}));
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@hooks/useStyleUtils', () => ({__esModule: true, default: () => ({getSafeAreaMargins: () => ({marginBottom: 0})})}));
 jest.mock('@hooks/useSidebarOrderedReports', () => ({useSidebarOrderedReportsActions: () => ({setStickyReportID: jest.fn()})}));
@@ -53,7 +54,7 @@ function renderSidebarLinks() {
     render(
         <SidebarLinks
             insets={{top: 0, left: 0, right: 0, bottom: 0}}
-            optionListItems={[{reportID: REPORT_ID} as Report]}
+            reportIDs={[REPORT_ID]}
             hasReportData
         />,
     );

@@ -1101,6 +1101,23 @@ describe('TagsOptionsListUtils', () => {
         });
     });
 
+    it('groups tags into Recent and All sections once the count reaches a custom searchInputThreshold', () => {
+        // Given fewer enabled tags than the default limit, but as many as the custom threshold
+        const tags = {
+            Alpha: {name: 'Alpha', enabled: true},
+            Beta: {name: 'Beta', enabled: true},
+            Gamma: {name: 'Gamma', enabled: true},
+        };
+
+        // When building sections with the default threshold and with a threshold matching the tag count
+        const defaultSections = getTagListSections({tags, recentlyUsedTags: ['Alpha'], localeCompare, translate: translateLocal});
+        const customSections = getTagListSections({tags, recentlyUsedTags: ['Alpha'], localeCompare, translate: translateLocal, searchInputThreshold: 3});
+
+        // Then the default keeps a single untitled list, while the custom threshold splits it so the list matches the visible search input
+        expect(defaultSections.map((section) => section.title)).toEqual(['']);
+        expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
+    });
+
     describe('getUpdatedTransactionTag', () => {
         const dependentPolicyTags: PolicyTagLists = {
             company: {

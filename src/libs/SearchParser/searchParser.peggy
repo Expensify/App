@@ -216,6 +216,10 @@ filter = @(standardFilter / defaultFilter / freeTextFilter)
 
 defaultFilter
   = _ key:defaultKey _ op:operator _ value:identifier {
+      // The "contains" operator is only supported for the merchant field
+      if (op === "contains") {
+        return buildFilter("eq", "keyword", text().trim());
+      }
       updateDefaultValues(key, value);
       return {...buildFilter(op, key, value), isDefault: true};
     }
@@ -233,11 +237,21 @@ freeTextFilter
     }
 
 standardFilter
-  = _ neg:"-"? field:filterKey _ op:filterOperator _ values:identifier {
+  = _ neg:"-"? field:filterKey _ op:searchFilterOperator _ values:identifier {
       expectingNestedQuote = false; nameOperator = false;
 
       const key = field;
-      let operator = op;
+      let operator = op.value;
+
+      // Positive `merchant:` filters predate explicit match types, so they must retain contains semantics.
+      if (!neg && key === "merchant" && op.token === ":") {
+        operator = "contains";
+      }
+
+      // The "contains" operator is only supported for the merchant field
+      if (operator === "contains" && (neg || key !== "merchant")) {
+        return buildFilter("eq", "keyword", text().trim());
+      }
 
       // Apply negation only when "-" is present and the key can be negated
       if (neg && !nonNegatableKeys.has(key)) {
@@ -248,6 +262,9 @@ standardFilter
 
       return buildFilter(operator, key, values);
     }
+
+searchFilterOperator
+  = value:filterOperator { return {value, token: text()}; }
 
 reportFieldDynamic
   = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
@@ -272,6 +289,7 @@ key "key"
       / groupCurrency
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / cardID
@@ -289,6 +307,7 @@ key "key"
       / paidStatus
       / withdrawalID
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo
@@ -304,6 +323,8 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / declined
+      / held
       / action
       / has
       / is

@@ -1,3 +1,4 @@
+import BulkActionStatusManager from '@components/BulkActionStatusManager';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
@@ -65,7 +66,6 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
-import AIFeaturesPromoModalNavigator from './Navigators/AIFeaturesPromoModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
@@ -176,6 +176,7 @@ function AuthScreens() {
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
             <ExportDownloadStatusManager />
+            <BulkActionStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
@@ -279,6 +280,12 @@ function AuthScreens() {
                             listeners={modalScreenListeners}
                         />
                         <RootStack.Screen
+                            name={SCREENS.BILLING_RECEIPT}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
                             name={SCREENS.TRANSACTION_RECEIPT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
@@ -335,11 +342,6 @@ function AuthScreens() {
                             name={NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={SubmitPlanWelcomeModalNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.centeredModalNavigator}
-                            component={AIFeaturesPromoModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}

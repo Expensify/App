@@ -149,9 +149,18 @@ describe('HeaderView', () => {
         const joinButton = screen.getByText('Join');
         expect(joinButton).toBeTruthy();
 
-        // Then the joinRoom action should be called when the user presses the Join button
+        // Then the joinRoom action should be called with the fields it joins by. The header subscribes to a projection without
+        // the chat heartbeat fields (`last*`), so the call gets that projection rather than the stored object.
         fireEvent.press(joinButton);
-        expect(joinRoom).toHaveBeenCalledWith(report, currentUserAccountID);
+        expect(joinRoom).toHaveBeenCalledWith(
+            expect.objectContaining({
+                reportID: report.reportID,
+                parentReportID: report.parentReportID,
+                parentReportActionID: report.parentReportActionID,
+                participants: report.participants,
+            }),
+            currentUserAccountID,
+        );
     });
 
     it('should display correct title for report with CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS parent action', async () => {

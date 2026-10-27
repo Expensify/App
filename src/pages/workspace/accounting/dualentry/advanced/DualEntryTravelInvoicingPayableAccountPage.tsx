@@ -62,7 +62,7 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             shouldBeBlocked={shouldBeBlocked}
-            title="workspace.dualEntry.travelInvoicingPayableAccount.label"
+            title="workspace.dualEntry.travelBillingPayableAccount.label"
             displayName="DualEntryTravelInvoicingPayableAccountSelectPage"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}

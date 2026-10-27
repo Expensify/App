@@ -41,6 +41,7 @@ import type {
     HasFilterValues,
     IsFilterValue,
     IsFilterValues,
+    MerchantMatchType,
     ReceiptTypeValue,
     TransactionStatusValue,
     SearchAdvancedFiltersKey,
@@ -53,7 +54,24 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import {
+    addDays,
+    endOfMonth,
+    endOfQuarter,
+    endOfWeek,
+    endOfYear,
+    format,
+    parse,
+    startOfMonth,
+    startOfQuarter,
+    startOfWeek,
+    startOfYear,
+    subDays,
+    subMonths,
+    subQuarters,
+    subWeeks,
+    subYears,
+} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
@@ -104,6 +122,58 @@ const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.AND]: ',' as const,
     [CONST.SEARCH.SYNTAX_OPERATORS.OR]: ' ' as const,
 };
+const EXPLICIT_EQUAL_TO_OPERATOR = '=' as const;
+
+const DEFAULT_MERCHANT_OPERATOR = CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
+
+function getMerchantOperator(operator: MerchantMatchType | undefined): MerchantMatchType {
+    return operator ?? DEFAULT_MERCHANT_OPERATOR;
+}
+
+/**
+ * Builds the Merchant part of the query. The form has one Merchant field, so a changed condition updates every Merchant clause from flatFilters.
+ */
+function buildMerchantFilterQuery(
+    value: string,
+    prefix: string,
+    isNegated: boolean,
+    isMerchantNegated: boolean,
+    merchantOperator: MerchantMatchType | undefined,
+    flatFilters: QueryFilters | undefined,
+): string {
+    const merchantFilters = flatFilters?.filter((filter) => filter.key === FILTER_KEYS.MERCHANT) ?? [];
+    const positiveMerchantFilters = merchantFilters.filter((filter) => !filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    const negativeMerchantFilters = merchantFilters.filter((filter) => filter.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO));
+    const wasMerchantNegated = negativeMerchantFilters.length > 0;
+    const hasMerchantNegationChanged = wasMerchantNegated !== isMerchantNegated;
+    const lastVisibleMerchantFilter = (wasMerchantNegated ? negativeMerchantFilters : positiveMerchantFilters).at(-1);
+    const selectedMerchantOperator = getMerchantOperator(merchantOperator);
+    const originalMerchantFilters = isNegated ? negativeMerchantFilters : positiveMerchantFilters;
+    const lastMerchantFilter = hasMerchantNegationChanged ? lastVisibleMerchantFilter : originalMerchantFilters.at(-1);
+    const isMerchantValueUnchanged = value === lastMerchantFilter?.filters.map((item) => item.value.toString()).join(',');
+    if (lastMerchantFilter && isMerchantValueUnchanged) {
+        const currentMerchantOperator = positiveMerchantFilters.at(-1)?.filters.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+            ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+            : DEFAULT_MERCHANT_OPERATOR;
+        const hasMerchantOperatorChanged = !isMerchantNegated && selectedMerchantOperator !== currentMerchantOperator;
+        const hasMerchantConditionChanged = hasMerchantNegationChanged || hasMerchantOperatorChanged;
+        const filtersToUpdate = hasMerchantConditionChanged ? merchantFilters : originalMerchantFilters;
+        const updatedOperator = isNegated ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : selectedMerchantOperator;
+        // The single field cannot represent every clause or distinguish lists from names containing commas.
+        const merchantClauses = filtersToUpdate.map((filter) => {
+            const clauseFilters = hasMerchantConditionChanged ? filter.filters.map((item) => ({...item, operator: updatedOperator})) : filter.filters;
+            return buildFilterValuesString(FILTER_KEYS.MERCHANT, clauseFilters).trim();
+        });
+        // Different operators can become identical clauses after the change.
+        return [...new Set(merchantClauses)].join(' ');
+    }
+
+    let operator: ValueOf<typeof operatorToCharMap> | typeof EXPLICIT_EQUAL_TO_OPERATOR = operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO];
+    if (!isNegated) {
+        operator = selectedMerchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? EXPLICIT_EQUAL_TO_OPERATOR : operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS];
+    }
+    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}${operator}${sanitizeSearchValue(value)}`;
+}
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
@@ -387,7 +457,6 @@ function sanitizeIncompleteQuotedValue(str: string) {
     const sanitized = sanitizeSearchValue(str);
     return sanitized.startsWith('"') ? sanitized : `"${sanitized}"`;
 }
-
 /**
  * Escapes each keyword that would otherwise be re-interpreted as query syntax by wrapping it in quotes.
  * A keyword that looks like a filter (e.g. `type:expense`) becomes `"type:expense"` so it is matched as a
@@ -594,13 +663,16 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
     const allowedOps = new Set<string>([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]);
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+        allowedOps.add(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+    }
 
     let filterValueString = '';
     for (const [index, queryFilter] of queryFilters.entries()) {
         const previousValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
-        // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
+        // If the previous queryFilter has the same operator and that operator supports comma-delimited values, append the current value
         if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filterValueString += `${delimiter}${escapeKeyword(sanitizeSearchValue(queryFilter.value.toString()))}`;
         } else if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
@@ -618,7 +690,10 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
                 filterValueString += ` ${filterName}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]}${sanitizeSearchValue(rangeBoundaries.to)}`;
             }
         } else {
-            const operatorChar = operatorToCharMap[queryFilter.operator];
+            const operatorChar =
+                filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                    ? EXPLICIT_EQUAL_TO_OPERATOR
+                    : operatorToCharMap[queryFilter.operator];
             if (!operatorChar) {
                 continue;
             }
@@ -929,12 +1004,6 @@ function getQueryHashes(query: SearchQueryJSON) {
     }
 
     const filterSet = new Set<string>(orderedQuery);
-    const exactMatchFilterKeys = [...(query.exactMatchFilterKeys ?? [])].sort();
-    if (exactMatchFilterKeys.length > 0) {
-        const exactMatchIdentity = `exactMatch:${exactMatchFilterKeys.join(',')}`;
-        orderedQuery += ` ${exactMatchIdentity}`;
-        filterSet.add(exactMatchIdentity);
-    }
 
     // Certain filters shouldn't affect whether two searchers are similar or not, since they dont
     // actually filter out results
@@ -1003,17 +1072,6 @@ function getQueryHashes(query: SearchQueryJSON) {
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash, similarSearchHash};
-}
-
-function withExactMatchFilterKeys(queryJSON: Readonly<SearchQueryJSON>, exactMatchFilterKeys: SearchFilterKey[]): SearchQueryJSON {
-    const queryWithExactMatches = {...queryJSON, exactMatchFilterKeys};
-    const {primaryHash, recentSearchHash, similarSearchHash} = getQueryHashes(queryWithExactMatches);
-    return {
-        ...queryWithExactMatches,
-        hash: primaryHash,
-        recentSearchHash,
-        similarSearchHash,
-    };
 }
 
 /**
@@ -1180,7 +1238,14 @@ const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
-const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+// Keys whose change alone doesn't offer Save. The Spend footer's selections are still saved with a search, but changing
+// them is undone from the footer's own Reset, so they offer neither Save nor Reset in the header.
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1268,6 +1333,8 @@ type BuildQueryStringOptions = {
     sortBy?: string;
     sortOrder?: string;
     limit?: number;
+    /** Original query filters, including predicates that cannot fit in a single form field. */
+    flatFilters?: QueryFilters;
 };
 
 /**
@@ -1305,7 +1372,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, ...otherFilters} = supportedFilterValues;
+    const {type, groupBy, view, columns, limit, footerCount, footerTotal, footerCurrency, [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator, ...otherFilters} = supportedFilterValues;
     const filtersString: string[] = [];
 
     if (options?.sortBy) {
@@ -1370,6 +1437,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.DESCRIPTION ||
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
+                    filterKey === FILTER_KEYS.DECLINED ||
+                    filterKey === FILTER_KEYS.HELD ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
                     filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
@@ -1383,7 +1452,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
-                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                    const value = filterValue as string;
+                    if (filterKey === FILTER_KEYS.MERCHANT) {
+                        return buildMerchantFilterQuery(value, prefix, isNegated, !!supportedFilterValues.merchantNot, merchantOperator, options?.flatFilters);
+                    }
+                    return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]}${sanitizeSearchValue(value)}`;
                 }
             }
             if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
@@ -1460,6 +1533,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
@@ -1531,12 +1605,7 @@ function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is Onyx
     return !!data;
 }
 
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]> {
+function getAllPolicyValues<TValue>(policyID: Filter | undefined, key: OnyxCollectionKey, policyData: OnyxCollection<TValue>, policies?: OnyxCollection<OnyxTypes.Policy>): TValue[] {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1545,16 +1614,13 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
-        return Object.keys(policyData).reduce(
-            (acc, curr) => {
-                const id = curr.replace(key, '');
-                if (!resolvedValues.includes(id) && policyData[curr]) {
-                    acc.push(policyData[curr]);
-                }
-                return acc;
-            },
-            [] as Array<OnyxCollectionValuesMapping[T]>,
-        );
+        return Object.keys(policyData).reduce<TValue[]>((acc, curr) => {
+            const id = curr.replace(key, '');
+            if (!resolvedValues.includes(id) && policyData[curr]) {
+                acc.push(policyData[curr]);
+            }
+            return acc;
+        }, []);
     }
 
     return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
@@ -1654,44 +1720,31 @@ function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
             const presetRange = getDateRangeForPreset(equalToValue);
             start = presetRange.start;
             end = presetRange.end;
-        } else if (isValidDate(equalToValue)) {
-            start = equalToValue;
-            end = equalToValue;
+        } else {
+            start = getInclusiveRangeBoundary(equalToValue);
+            end = start;
         }
     }
 
+    // Typed dates can drop leading zeros, like 2026-1-5, so each boundary is zero-padded before it is compared with other dates
     const greaterThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
     if (greaterThanOrEqualToFilter) {
-        const filterValue = greaterThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            start = getLaterDate(start, filterValue);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanOrEqualToFilter.value.toString()));
     }
 
     const greaterThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
     if (greaterThanFilter) {
-        const filterValue = greaterThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const nextDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), 1), 'yyyy-MM-dd');
-            start = getLaterDate(start, nextDay);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanFilter.value.toString(), 1));
     }
 
     const lowerThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
     if (lowerThanOrEqualToFilter) {
-        const filterValue = lowerThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            end = getEarlierDate(end, filterValue);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanOrEqualToFilter.value.toString()));
     }
 
     const lowerThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
     if (lowerThanFilter) {
-        const filterValue = lowerThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const previousDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), -1), 'yyyy-MM-dd');
-            end = getEarlierDate(end, previousDay);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanFilter.value.toString(), -1));
     }
 
     return {start, end};
@@ -1725,9 +1778,23 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
     const now = new Date();
     let start: Date;
     let end: Date;
+    const lastWeek = subWeeks(now, 1);
     const lastMonth = subMonths(now, 1);
+    const lastQuarter = subQuarters(now, 1);
+    const lastYear = subYears(now, 1);
+
+    // Weeks start on Sunday regardless of locale, matching the week buckets of group-by:week.
+    const weekOptions = {weekStartsOn: 0} as const;
 
     switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_WEEK:
+            start = startOfWeek(now, weekOptions);
+            end = endOfWeek(now, weekOptions);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_WEEK:
+            start = startOfWeek(lastWeek, weekOptions);
+            end = endOfWeek(lastWeek, weekOptions);
+            break;
         case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
             start = startOfMonth(now);
             end = endOfMonth(now);
@@ -1736,9 +1803,37 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
             start = startOfMonth(lastMonth);
             end = endOfMonth(lastMonth);
             break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_QUARTER:
+            start = startOfQuarter(now);
+            end = endOfQuarter(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_QUARTER:
+            start = startOfQuarter(lastQuarter);
+            end = endOfQuarter(lastQuarter);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_YEAR:
+            start = startOfYear(now);
+            end = endOfYear(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_YEAR:
+            start = startOfYear(lastYear);
+            end = endOfYear(lastYear);
+            break;
         case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
             start = startOfYear(now);
             end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS:
+            start = subDays(now, 29);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS:
+            start = subDays(now, 89);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS:
+            start = startOfMonth(subMonths(now, 5));
+            end = endOfMonth(now);
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
             start = startOfMonth(subMonths(now, 11));
@@ -1763,7 +1858,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1797,6 +1892,11 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
+            if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated) {
+                filtersForm[FILTER_KEYS.MERCHANT_OPERATOR] = filterList.some((item) => item.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+                    ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                    : DEFAULT_MERCHANT_OPERATOR;
+            }
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID ||
@@ -1921,6 +2021,10 @@ function buildFilterFormValuesFromQuery(
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
                 ?.map((filter) => {
@@ -1994,7 +2098,12 @@ function buildFilterFormValuesFromQuery(
                     ?.value.toString() ?? filtersForm[negatedKey];
         }
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
+        ) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[addNegation(filterKey, isNegated)] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
@@ -2883,7 +2992,7 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
-    currentQueryOptions: {sortBy?: string; sortOrder?: string},
+    currentQueryOptions: BuildQueryStringOptions,
     policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
     const resetSort = shouldResetSort({
@@ -2902,6 +3011,7 @@ function buildFilterQueryWithSortDefaults(
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
         sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
         sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
+        flatFilters: currentQueryOptions.flatFilters,
     });
 
     if (!resetSort && !resetSortForViewChange) {
@@ -2974,30 +3084,27 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Set of filter keys that represent free-text fields where the default `:` (eq) operator
- * should be treated as a substring/partial match (`contains`) when querying the backend.
- * This allows searches like `merchant:coffee` to match "Coffee shop".
+ * Fields where `eq` should still be sent to the backend as `contains`.
+ * Merchant is excluded because the parser preserves legacy `merchant:` as contains and uses `merchant=` for exact matches.
  */
 function isTextSearchField(key: string): key is SearchFilterKey {
-    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
+    return key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION;
 }
 
 /**
  * Recursively traverses a search AST and replaces the `eq` operator with `contains`
- * for free-text filter fields (merchant, description). This enables partial/substring
- * matching on the backend for text searches while preserving the user-facing `:` syntax.
- * Keys in `exactMatchFilterKeys` keep their original `eq` operator.
+ * for fields that still use partial matching on the backend (description).
+ * Merchant is excluded because its parser output already distinguishes legacy contains from explicit exact matches.
  */
-function applyContainsOperatorToTextFields(node: ASTNode, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): ASTNode {
-    const filterKey = typeof node.left === 'string' && isTextSearchField(node.left) ? node.left : undefined;
-    if (filterKey && !exactMatchFilterKeys?.has(filterKey) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
+    if (typeof node.left === 'string' && isTextSearchField(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
         return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
     }
 
     return {
         ...node,
-        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left, exactMatchFilterKeys) : node.left,
-        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right, exactMatchFilterKeys) : node.right,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
     };
 }
 
@@ -3017,16 +3124,15 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
 
 /**
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
- * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
- * so all backend commands use consistent partial-match semantics — matching what the search view shows.
- * Keys in `exactMatchFilterKeys` keep exact-match semantics for generated filters.
+ * Applies text-field operator normalization (`eq` → `contains`) for `description` so all backend
+ * commands use consistent partial-match semantics, while preserving parsed merchant operators.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
-function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>): string {
-    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters, exactMatchFilterKeys) : queryData.filters;
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
-              if (isTextSearchField(filter.key) && !exactMatchFilterKeys?.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+              if (isTextSearchField(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                   return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
               }
               return filter;
@@ -3067,6 +3173,16 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
 }
 
 /**
+ * Builds the Merchant filter form values. A negated Merchant filter always uses the not-equal operator, so its match type is cleared.
+ */
+function getMerchantFilterFormValues(value: string | undefined, isNegated: boolean, merchantOperator: MerchantMatchType): Partial<SearchAdvancedFiltersForm> {
+    return {
+        ...getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value, isNegated),
+        [FILTER_KEYS.MERCHANT_OPERATOR]: isNegated ? undefined : merchantOperator,
+    };
+}
+
+/**
  * Checks whether a query still matches a default query: it contains all of the default query's filter keys and has the same type.
  * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
  */
@@ -3076,7 +3192,9 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     }
 
     const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
-    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+    // The Spend footer's keys pick what the footer shows, not which rows match, and a default choice is left out of the
+    // query. So they never decide whether a last query still belongs to its default one.
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key).filter((key) => !FOOTER_FILTER_KEYS.has(key)));
 
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
@@ -3118,7 +3236,6 @@ export {
     hasFooterSelections,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
-    withExactMatchFilterKeys,
     isSearchDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,
@@ -3169,6 +3286,7 @@ export {
     isFilterNegatable,
     removeNegation,
     getFilterFormValues,
+    getMerchantFilterFormValues,
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
