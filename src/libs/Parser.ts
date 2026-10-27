@@ -37,7 +37,7 @@ type Extras = {
 class ExpensiMarkWithContext extends ExpensiMark {
     htmlToMarkdown(htmlString: string, extras?: Extras): string {
         return super.htmlToMarkdown(htmlString, {
-            reportIDToName: extras?.reportIDToName ?? reportIDToNameMap,
+            reportIDToName: extras?.reportIDToName,
             accountIDToName: extras?.accountIDToName ?? getAccountIDToNameMap(),
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
