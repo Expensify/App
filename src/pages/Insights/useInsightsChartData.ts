@@ -53,7 +53,6 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     }
 
     if (compare === CONST.SEARCH.COMPARE.AVERAGE) {
-        // Like compared rows, a missing average is still on its way, or can't arrive while offline
         if (averageTotal === undefined) {
             return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING, comparison: undefined};
         }

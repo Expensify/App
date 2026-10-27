@@ -47,7 +47,7 @@ type ChartAverage = {
 /** What the chart is compared against, drawn as a second series */
 type ChartComparison = ChartComparedRows | ChartAverage;
 
-/** Names what each grouping's average is taken over, the bucket of a time grouping or every group of any other */
+/** Tooltip label of the average for each group-by */
 const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.compare.dailyAverage',
     [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.compare.weeklyAverage',
