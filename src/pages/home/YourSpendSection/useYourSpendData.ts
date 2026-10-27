@@ -22,7 +22,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 
 import {YOUR_SPEND_CARD_KIND, YOUR_SPEND_ROW_STATE} from './const';
 import {buildAwaitingApprovalQuery, buildCardGroupQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
@@ -428,10 +428,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
-    const pendingSpendBuckets = useMemo(
-        () => getYourSpendPendingBuckets(reportsSignature ?? EMPTY_SPEND_REPORTS_SIGNATURE, [...(queuedSpendRequests ?? []), ...(ongoingSpendRequests ?? [])]),
-        [reportsSignature, queuedSpendRequests, ongoingSpendRequests],
-    );
+    const pendingSpendBuckets = getYourSpendPendingBuckets(reportsSignature ?? EMPTY_SPEND_REPORTS_SIGNATURE, [...(queuedSpendRequests ?? []), ...(ongoingSpendRequests ?? [])]);
 
     // Destructure here so downstream memos depend only on the sub-records, not on
     // the parent value that's rebuilt on every CARD_FEED_ERRORS tick.
@@ -439,61 +436,51 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Memo anchor: the compiler does not auto-cache these calls, so downstream
     // memos would invalidate every render without it.
-    const expensifyCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
-    const thirdPartyCards = useMemo(
-        () => getDisplayableThirdPartyCards(cardList, {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection}),
-        [cardList, cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection],
-    );
+    const expensifyCards = getDisplayableExpensifyCards(cardList);
+    const thirdPartyCards = getDisplayableThirdPartyCards(cardList, {cardsWithBrokenFeedConnection, personalCardsWithBrokenConnection});
 
     // Ordering invariant: Expensify Card rows first, then third-party rows.
-    const displayableCards = useMemo<TaggedCard[]>(
-        () => [
-            ...expensifyCards.map((card): TaggedCard => ({card, kind: YOUR_SPEND_CARD_KIND.EXPENSIFY})),
-            ...thirdPartyCards.map((card): TaggedCard => ({card, kind: YOUR_SPEND_CARD_KIND.THIRD_PARTY})),
-        ],
-        [expensifyCards, thirdPartyCards],
-    );
+    const displayableCards: TaggedCard[] = [
+        ...expensifyCards.map((card): TaggedCard => ({card, kind: YOUR_SPEND_CARD_KIND.EXPENSIFY})),
+        ...thirdPartyCards.map((card): TaggedCard => ({card, kind: YOUR_SPEND_CARD_KIND.THIRD_PARTY})),
+    ];
 
     const cardGroupQueryJSON = displayableCards.length > 0 ? buildSearchQueryJSON(buildCardGroupQuery(accountID)) : undefined;
     const [cardTotalsByCardID] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${cardGroupQueryJSON?.hash}`, {selector: getCardTotalsByCardID});
 
-    const cardRows: YourSpendCardRow[] = useMemo(
-        () =>
-            displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
-                const totals = cardTotalsByCardID?.[card.cardID];
-                if (!totals) {
-                    return acc;
-                }
+    const cardRows: YourSpendCardRow[] = displayableCards.reduce<YourSpendCardRow[]>((acc, {card, kind}) => {
+        const totals = cardTotalsByCardID?.[card.cardID];
+        if (!totals) {
+            return acc;
+        }
 
-                // Fallback for third-party cards with empty `lastFourPAN` and digits in `cardName`
-                // (e.g. "CREDIT CARD...1234". No-space names fall through to ""). Ternary so
-                // empty-string `lastFourPAN` also falls through.
-                const lastFour = card.lastFourPAN ? card.lastFourPAN : lastFourNumbersFromCardName(card.cardName);
-                if (!lastFour) {
-                    return acc;
-                }
+        // Fallback for third-party cards with empty `lastFourPAN` and digits in `cardName`
+        // (e.g. "CREDIT CARD...1234". No-space names fall through to ""). Ternary so
+        // empty-string `lastFourPAN` also falls through.
+        const lastFour = card.lastFourPAN ? card.lastFourPAN : lastFourNumbersFromCardName(card.cardName);
+        if (!lastFour) {
+            return acc;
+        }
 
-                let spentFraction: number | undefined;
-                if (kind === YOUR_SPEND_CARD_KIND.EXPENSIFY) {
-                    const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
-                    spentFraction = unapprovedExpenseLimit ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : undefined;
-                }
-                acc.push({
-                    cardID: card.cardID,
-                    lastFour,
-                    query: buildRecentCardTransactionsQuery(accountID, card.cardID),
-                    total: totals.total,
-                    currency: totals.currency,
-                    spentFraction,
-                    kind,
-                    bank: card.bank,
-                    fundID: card.fundID,
-                    isPersonal: isPersonalCard(card),
-                });
-                return acc;
-            }, []),
-        [displayableCards, cardTotalsByCardID, accountID],
-    );
+        let spentFraction: number | undefined;
+        if (kind === YOUR_SPEND_CARD_KIND.EXPENSIFY) {
+            const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
+            spentFraction = unapprovedExpenseLimit ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : undefined;
+        }
+        acc.push({
+            cardID: card.cardID,
+            lastFour,
+            query: buildRecentCardTransactionsQuery(accountID, card.cardID),
+            total: totals.total,
+            currency: totals.currency,
+            spentFraction,
+            kind,
+            bank: card.bank,
+            fundID: card.fundID,
+            isPersonal: isPersonalCard(card),
+        });
+        return acc;
+    }, []);
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
     const paymentRowStateRaw = getYourSpendRowState({isApplicable: isPaymentApplicable, isOffline, searchResults: paymentSearchResults});

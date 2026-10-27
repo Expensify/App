@@ -23,7 +23,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import RenderHTML from './RenderHTML';
@@ -60,7 +60,7 @@ export default function PriorityModeController() {
     const hasSwitched = useRef(false);
     const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
 
-    const handleShowModal = useCallback(() => {
+    const handleShowModal = () => {
         if (isModalShown.current) {
             return;
         }
@@ -81,7 +81,7 @@ export default function PriorityModeController() {
         }).then(() => {
             isModalShown.current = false;
         });
-    }, [StyleUtils, illustrations.ThreeLeggedLaptopWoman, priorityModePageUrl, showConfirmModal, styles, translate]);
+    };
 
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {

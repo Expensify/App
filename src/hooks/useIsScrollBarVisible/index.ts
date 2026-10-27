@@ -1,15 +1,15 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 const useIsScrollBarVisible = (ref: React.RefObject<HTMLDivElement | HTMLTextAreaElement | null>, value: string) => {
     const [isScrollBarVisible, setIsScrollBarVisible] = useState(false);
 
-    const handleResize = useCallback(() => {
+    const handleResize = () => {
         if (!ref.current) {
             return;
         }
         const {scrollHeight, clientHeight} = ref.current;
         setIsScrollBarVisible(scrollHeight > clientHeight);
-    }, [ref]);
+    };
 
     useEffect(() => {
         if (!ref.current || !('ResizeObserver' in (window || {}))) {
