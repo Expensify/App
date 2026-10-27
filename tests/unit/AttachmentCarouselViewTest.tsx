@@ -57,18 +57,7 @@ jest.mock('react-native-reanimated', () => {
     const animated = jest.requireActual<typeof Reanimated>('react-native-reanimated/mock');
     return {
         ...animated,
-        default: {
-            ...animated.default,
-            FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Mirror the carousel wrapper so its list props can be inspected.
-            createAnimatedComponent: (...args: Parameters<typeof animated.default.createAnimatedComponent>) => {
-                if (args[0] === jest.requireActual<{FlatList: typeof FlatList}>('react-native').FlatList) {
-                    return (props: FlatListProps<Attachment>) => mockFlatList(props);
-                }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Preserve the mock factory for components other than the carousel.
-                return animated.default.createAnimatedComponent(...args);
-            },
-        },
+        default: {...animated.default, FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props)},
         useAnimatedRef: () => mockScrollRef,
     };
 });
@@ -310,33 +299,6 @@ describe('AttachmentCarouselView web', () => {
         expect(dismiss).toHaveBeenCalledTimes(4);
         expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
         dismiss.mockRestore();
-    });
-
-    it('forwards descendant focus to the list cell retention callback', () => {
-        // Given the web cell renderer used by the carousel and VirtualizedList's focus callback
-        renderCarousel();
-        const Cell = mockFlatList.mock.calls.at(-1)?.[0].CellRendererComponent;
-        const onFocusCapture = jest.fn();
-        if (!Cell) {
-            throw new Error('Expected the web carousel cell renderer');
-        }
-        render(
-            <Cell
-                cellKey="pdf"
-                index={0}
-                item={{source: 'protected.pdf'}}
-                style={undefined}
-                onFocusCapture={onFocusCapture}
-            >
-                <Text>password input</Text>
-            </Cell>,
-        );
-
-        // When a descendant receives the bubbling focus event supported by react-native-web
-        fireEvent(screen.getByText('password input'), 'focus', {nativeEvent: new FocusEvent('focus')});
-
-        // Then VirtualizedList is notified so its focused-cell render region can retain the PDF during resize
-        expect(onFocusCapture).toHaveBeenCalledTimes(1);
     });
 
     it('returns before keyboard, page or navigation effects during fullscreen', () => {
