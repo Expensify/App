@@ -1,13 +1,15 @@
 context platform=web
-# @desc   Complete onboarding with minimal choices (skip work email, pick "Something else" purpose, enter generic name). Lands on Home. Sets a 900px-tall viewport: the purpose chooser sizes to the window, and shorter viewports push "Something else" below the fold.
+# @desc   Complete onboarding with minimal choices (skip work email, pick "Something else" purpose, enter generic name). Lands on Home.
 # @pre    text="What’s your work email?"
 # @post   role="heading" label="Home"
 # @post   role="button" label="Search"
 # @param  FIRST_NAME First name to enter on onboarding profile step.
 # @param  LAST_NAME Last name to enter on onboarding profile step.
+# @param  VIEWPORT_WIDTH Web viewport width in pixels. Optional.
+# @param  VIEWPORT_HEIGHT Web viewport height in pixels. Optional.
 
 press "role=\"button\" label=\"Skip\" || label=\"Skip\""
-viewport 1280 900
+viewport ${VIEWPORT_WIDTH:-1920} ${VIEWPORT_HEIGHT:-1080}
 wait "role=\"button\" label=\"Something else\"" 15000
 press "role=\"button\" label=\"Something else\" || label=\"Something else\""
 wait "role=\"textbox\" label=\"First name\"" 15000
