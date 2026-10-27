@@ -10441,6 +10441,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Zaksięgowane',
                 hint: 'Dotyczy tylko transakcji kartą.',
             },
+            searchFilters: 'Filtry wyszukiwania',
+            noFiltersSelected: 'Nie wybrano filtrów',
         },
         display: {
             label: 'Wyświetl',

@@ -10412,6 +10412,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Postado',
                 hint: 'Aplica-se apenas a transações com cartão.',
             },
+            searchFilters: 'Filtros de busca',
+            noFiltersSelected: 'Nenhum filtro selecionado',
         },
         display: {
             label: 'Exibir',

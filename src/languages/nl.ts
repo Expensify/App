@@ -10419,6 +10419,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Geboekt',
                 hint: 'Alleen van toepassing op kaarttransacties.',
             },
+            searchFilters: 'Zoekfilters',
+            noFiltersSelected: 'Geen filters geselecteerd',
         },
         display: {
             label: 'Weergave',

@@ -10496,6 +10496,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Gebucht',
                 hint: 'Gilt nur für Kartentransaktionen.',
             },
+            searchFilters: 'Suchfilter',
+            noFiltersSelected: 'Keine Filter ausgewählt',
         },
         display: {
             label: 'Anzeige',

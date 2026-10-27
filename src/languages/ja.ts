@@ -10298,6 +10298,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '記帳済み',
                 hint: 'カードの取引にのみ適用されます。',
             },
+            searchFilters: '検索フィルター',
+            noFiltersSelected: 'フィルターが選択されていません',
         },
         display: {
             label: '表示',
