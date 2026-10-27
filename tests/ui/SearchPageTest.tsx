@@ -1101,6 +1101,28 @@ describe('SearchPageNarrow', () => {
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
         });
 
+        it('asks for its first page exactly once when its preloaded tab is opened', async () => {
+            // Given the idle preload built the to-do search in a hidden tab, which holds its request
+            await seedTodoReports(3);
+            mockIsFocused.mockReturnValue(false);
+            const {rerender} = renderPage(TODO_QUERY, true);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            expect(mockSearch).not.toHaveBeenCalled();
+
+            // When the user opens the tab
+            mockIsFocused.mockReturnValue(true);
+            rerender(getSearchPage(TODO_QUERY, false));
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the first page goes out once, as on a normal visit, since the page-level setup leaves live searches to Search
+            expect(mockSearch).toHaveBeenCalledTimes(1);
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: 0, searchKey: CONST.SEARCH.SEARCH_KEYS.SUBMIT}));
+        });
+
         it('asks the server for the next page when the list reaches its end', async () => {
             // The cursor only pages once the device already holds a full page of live rows.
             await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
