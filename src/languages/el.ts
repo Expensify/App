@@ -7386,6 +7386,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 continue: 'Συνέχεια χωρίς μέλη',
                 description: 'Η αντιγραφή ροών εργασίας χωρίς μέλη δεν θα αντιγράψει τις ροές εργασίας έγκρισης. Οι ρυθμίσεις υποβολής και πληρωμής θα αντιγραφούν κανονικά.',
             },
+            confirmMembers: {
+                title: 'Αντιγραφή μελών',
+                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
+                    `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη του ${targetWorkspaceName} με τα μέλη αυτού του χώρου εργασίας;`,
+                promptMultiple: ({count}: {count: number}) => `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη ${count} χώρων εργασίας με τα μέλη αυτού του χώρου εργασίας;`,
+            },
             upgrade: {
                 title: 'Ορισμένες δυνατότητες απαιτούν πρόγραμμα Control',
                 description: ({workspaceName, features}: {workspaceName: string; features: string}) => `Το ${workspaceName} χρησιμοποιεί ${features}, που απαιτούν πρόγραμμα Control.

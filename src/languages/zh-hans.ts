@@ -6956,6 +6956,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 continue: '继续且无成员',
                 description: '在不包含成员的情况下复制工作流时，将不会复制审批工作流。但提交和付款设置仍会被复制。',
             },
+            confirmMembers: {
+                title: '复制成员',
+                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) => `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
+                promptMultiple: ({count}: {count: number}) => `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
+            },
             progress: {
                 copyInProgressTitle: '正在复制中…',
                 copyInProgressDescription: '你可以选择等待流程完成，或者由 Concierge 在完成后通知你。',

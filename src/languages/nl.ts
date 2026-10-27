@@ -7208,6 +7208,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 continue: 'Doorgaan zonder leden',
                 description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
             },
+            confirmMembers: {
+                title: 'Leden kopiëren',
+                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
+                    `Weet je zeker dat je de leden van ${targetWorkspaceName} wilt vervangen door de leden van deze werkruimte?`,
+                promptMultiple: ({count}: {count: number}) => `Weet je zeker dat je de leden van ${count} werkruimtes wilt vervangen door de leden van deze werkruimte?`,
+            },
             progress: {
                 copyInProgressTitle: 'Kopie wordt gemaakt...',
                 copyInProgressDescription: 'Je kunt wachten tot het proces is voltooid, of Concierge kan je laten weten wanneer het klaar is.',

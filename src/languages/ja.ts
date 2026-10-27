@@ -7130,6 +7130,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 continue: 'メンバーなしで続行',
                 description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             },
+            confirmMembers: {
+                title: 'メンバーをコピー',
+                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) => `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                promptMultiple: ({count}: {count: number}) => `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+            },
             progress: {
                 copyInProgressTitle: 'コピーを実行中です...',
                 copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',

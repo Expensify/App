@@ -293,17 +293,42 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
+    const isMembersPart = (part: Part) => part === CONST.POLICY.POLICY_FEATURE.MEMBERS;
+
+    const confirmCopyMembers = () => {
+        const targetNames = targetPolicies.map((policy) => policy?.name).filter((name): name is string => !!name);
+        const prompt =
+            targetNames.length === 1
+                ? translate('workspace.copyPolicySettings.confirmMembers.prompt', {targetWorkspaceName: targetNames.at(0) ?? ''})
+                : translate('workspace.copyPolicySettings.confirmMembers.promptMultiple', {count: targetNames.length});
+
+        return showConfirmModal({
+            title: translate('workspace.copyPolicySettings.confirmMembers.title'),
+            prompt,
+            confirmText: translate('common.confirm'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => result.action === ModalActions.CONFIRM);
+    };
+
     const toggleFeature = (item: FeatureListItem) => {
         const part = item.keyForList;
         if (isFeatureDisabled(part)) {
             return;
         }
-        setSelectedFeatures((prev) => {
-            const current = prev ?? resolvedSelectedFeatures;
-            if (current.includes(part)) {
-                return current.filter((selectedPart) => selectedPart !== part);
+        const isSelected = (selectedFeatures ?? resolvedSelectedFeatures).includes(part);
+        if (isSelected || !isMembersPart(part)) {
+            setSelectedFeatures((prev) => {
+                const current = prev ?? resolvedSelectedFeatures;
+                return isSelected ? current.filter((selectedPart) => selectedPart !== part) : [...current, part];
+            });
+            return;
+        }
+        confirmCopyMembers().then((isConfirmed) => {
+            if (!isConfirmed) {
+                return;
             }
-            return [...current, part];
+            setSelectedFeatures((prev) => [...(prev ?? resolvedSelectedFeatures), part]);
         });
     };
 
@@ -313,7 +338,15 @@ function CopyPolicySettingsSelectFeaturesPage() {
             setSelectedFeatures([]);
             return;
         }
-        setSelectedFeatures(Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures])));
+        const nextSelection = Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures]));
+        const isAddingMembers = selectableFeatures.some(isMembersPart) && !selectedAvailableFeatures.some(isMembersPart);
+        if (!isAddingMembers) {
+            setSelectedFeatures(nextSelection);
+            return;
+        }
+        confirmCopyMembers().then((isConfirmed) => {
+            setSelectedFeatures(isConfirmed ? nextSelection : nextSelection.filter((part) => !isMembersPart(part)));
+        });
     };
 
     const saveAndNavigate = () => {
