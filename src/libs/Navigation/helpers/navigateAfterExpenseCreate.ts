@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
-import {isFullScreenName} from './isNavigatorName';
+import getModalRouteOnTop from './getModalRouteOnTop';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
@@ -118,11 +118,8 @@ function navigateAfterExpenseCreate({
 
     const queryString = buildCannedSearchQuery({type});
 
-    // Matches REPLACE_FULLSCREEN_UNDER_RHP, which reveals under any modal, not only the RHP.
-    const isModalOnTop = () => {
-        const topRouteName = navigationRef.getRootState()?.routes?.at(-1)?.name;
-        return !!topRouteName && !isFullScreenName(topRouteName);
-    };
+    // Uses the same check as REPLACE_FULLSCREEN_UNDER_RHP, which reveals under any modal, not only the RHP.
+    const isModalOnTop = () => !!getModalRouteOnTop(navigationRef.getRootState());
     const navigateToSearch = () => {
         // On the fast path, onConfirm already cleared the flag and dismissed the modal,
         // so this branch is only reached on the slow path (user submitted before the

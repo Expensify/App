@@ -479,8 +479,8 @@ function IOURequestStepConfirmationContent({
             : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
         const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
 
-        // getTopmostReportId also returns a pre-mounted report that is still hidden, so it is trusted only when nothing is pre-mounted.
-        if (!payDestinationReportID || (!Navigation.getIsFullscreenPreInsertedUnderRHP() && Navigation.getTopmostReportId() === payDestinationReportID)) {
+        // getTopmostReportId also returns a wide pre-mounted report that is still hidden, so it is trusted only without a wide pre-mount.
+        if (!payDestinationReportID || (!Navigation.getPreMountedFullscreenRouteKey() && Navigation.getTopmostReportId() === payDestinationReportID)) {
             sendMoney(paymentMethod, {resolvedReportIDs});
             return;
         }

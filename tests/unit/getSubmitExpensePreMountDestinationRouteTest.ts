@@ -411,6 +411,29 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123', undefined, undefined, undefined, undefined, true));
     });
 
+    it('skips the wide pre-mount of a new chat for Pay, which reveals the plain report route', () => {
+        // Given a wide layout and a Pay to a new optimistic chat, whose pre-mount route carries the pending-creation flag
+        mockGetIsNarrowLayout.mockReturnValue(false);
+
+        // When submission chooses a route to pre-mount
+        const route = getSubmitExpensePreMountDestinationRoute({
+            isTransactionReady: true,
+            destinationReportID: '123',
+            destinationReport: undefined,
+            isFromGlobalCreate: true,
+            canPreInsertSearch: false,
+            iouType: CONST.IOU.TYPE.PAY,
+            isCreatingTrackExpense: false,
+            isSelfDMDestination: false,
+            isOptimisticNewChatDestination: true,
+            isLookingAroundUser: false,
+            isMovingTransactionFromTrackExpense: false,
+        });
+
+        // Then nothing is pre-mounted, because the Pay reveal asks for the plain route and would never show it
+        expect(route).toBeUndefined();
+    });
+
     it('returns undefined when report is already topmost', () => {
         // Given the final destination report is already visible
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);

@@ -1,6 +1,5 @@
-import useIsHiddenWideTabPreMount from '@hooks/useIsHiddenWideTabPreMount';
-import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsReportOutOfSight from '@hooks/useIsReportOutOfSight';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {clearAllReportActionDrafts, clearReportActionDrafts} from '@libs/actions/Report';
@@ -23,9 +22,7 @@ function useClearReportActionDraftsOnReportChange(reportID: string | undefined) 
     const isDockedSidePanel = isInSidePanel && isExtraLargeScreenWidth;
 
     // A screen mounted out of sight (preloaded tab, wide submit pre-mount) must not wipe the drafts of the report the user is editing.
-    const isInPreloadedTab = useIsInPreloadedTab();
-    const isHiddenPreMount = useIsHiddenWideTabPreMount();
-    const isOutOfSight = isInPreloadedTab || isHiddenPreMount;
+    const isOutOfSight = useIsReportOutOfSight();
 
     // A report already cleared in sight keeps its drafts when it comes back from out of sight, e.g. after a cancelled pre-mount.
     const lastClearedInSightKeyRef = useRef<string | undefined>(undefined);

@@ -14,6 +14,7 @@ import {isFullScreenName} from './isNavigatorName';
 import {
     clearLiveWideTabPreMountKeys,
     createWideTabPreMountRouteKey,
+    keepWideTabPreMountPreloadedRouteKey,
     markWideTabPreMountRouteKeyRevealed,
     setLiveWideTabPreMountPreloadedRouteKey,
     setLiveWideTabPreMountRouteKey,
@@ -155,7 +156,10 @@ function buildCancelledWideTabPreMount(tabState: TabStateWithPreloads, preMount:
         const index = preMountedIndex < nestedState.index ? nestedState.index - 1 : Math.min(nestedState.index, routes.length - 1);
         restoredTabRoute = {...targetTabRoute, state: {...nestedState, routes, index}};
     }
-    const preloadedRouteKeys = preMount.addedPreloadedRouteKey ? tabState.preloadedRouteKeys?.filter((key) => key !== preMount.addedPreloadedRouteKey) : tabState.preloadedRouteKeys;
+    // A tab that already had a stack keeps its preload mark, or its screens would take losing it as the user opening the tab
+    // and mark reports read. Focusing the tab drops the mark like any preload. A tab built only for the pre-mount drops it now.
+    const shouldDropPreload = !!preMount.addedPreloadedRouteKey && !!preMount.originalTabRoute;
+    const preloadedRouteKeys = shouldDropPreload ? tabState.preloadedRouteKeys?.filter((key) => key !== preMount.addedPreloadedRouteKey) : tabState.preloadedRouteKeys;
     return {...tabState, routes: tabState.routes.map((route) => (route.name === preMount.tabName ? restoredTabRoute : route)), ...(preloadedRouteKeys ? {preloadedRouteKeys} : {})};
 }
 
@@ -246,11 +250,16 @@ function cancelWideTabPreMount() {
     livePreMount = undefined;
     const tabState = getPreMountTabState(preMount.tabStateKey);
     const cancelledTabState = tabState ? buildCancelledWideTabPreMount(tabState, preMount) : undefined;
+    if (preMount.addedPreloadedRouteKey && !preMount.originalTabRoute) {
+        keepWideTabPreMountPreloadedRouteKey(preMount.addedPreloadedRouteKey);
+    }
+
+    // The tab key is cleared before the dispatch, so the tab freezes again on that state change. The screen key is cleared
+    // after it, so the screen stays unfrozen until React commits its removal.
+    setLiveWideTabPreMountTabRouteKey(undefined);
     if (tabState && cancelledTabState) {
         navigationRef.dispatch({...CommonActions.reset(cancelledTabState), target: tabState.key});
     }
-
-    // Live keys are cleared after the dispatch, so the screen stays unfrozen until React commits its removal.
     clearLiveWideTabPreMountKeys();
 }
 

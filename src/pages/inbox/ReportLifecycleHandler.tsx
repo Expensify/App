@@ -1,8 +1,7 @@
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
-import useIsHiddenWideTabPreMount from '@hooks/useIsHiddenWideTabPreMount';
-import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
+import useIsReportOutOfSight from '@hooks/useIsReportOutOfSight';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 
@@ -37,9 +36,7 @@ function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
     const isTopMostReportId = currentReportIDValue === reportID;
 
     // A report mounted out of sight (preloaded tab, wide submit pre-mount) can be the topmost one while the user never opened it.
-    const isInPreloadedTab = useIsInPreloadedTab();
-    const isHiddenPreMount = useIsHiddenWideTabPreMount();
-    const isOutOfSight = isInPreloadedTab || isHiddenPreMount;
+    const isOutOfSight = useIsReportOutOfSight();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onyxReportID}`);
     useBankAccountUnlockEffect(report);

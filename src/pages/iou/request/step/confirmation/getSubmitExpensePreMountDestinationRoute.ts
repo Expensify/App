@@ -99,7 +99,10 @@ function getSubmitExpensePreMountDestinationRoute({
     // An optimistic new chat is the one exception: it has no report row yet, but that's fine since submit
     // will create it under this same ID.
     const isDestinationReportLoaded = isOptimisticNewChatDestination || isDestinationReportRenderable;
-    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
+    // A wide Pay reveals the plain report route, so a wide pre-mount of a new chat, built with the pending-creation flag, would
+    // never match it and only be mounted for nothing.
+    const isWidePayToNewChat = iouType === CONST.IOU.TYPE.PAY && isOptimisticNewChatDestination && !getIsNarrowLayout();
+    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport && !isWidePayToNewChat;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
         return undefined;

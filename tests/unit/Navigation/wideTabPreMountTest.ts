@@ -7,6 +7,7 @@ import {
     preMountWideDestinationInTab,
 } from '@libs/Navigation/helpers/wideTabPreMount';
 import type {LiveWideTabPreMount, TabStateWithPreloads} from '@libs/Navigation/helpers/wideTabPreMount';
+import {isLiveWideTabPreMountTabRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -22,6 +23,7 @@ const PRE_MOUNT_KEY = 'Report-wide-pre-mount-1';
 
 // The root state the lifecycle reads and dispatches to. A dispatched RESET replaces the tab navigator state, like React Navigation.
 let mockRootState: NavigationState | undefined;
+let mockOnDispatch: (() => void) | undefined;
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {
@@ -30,6 +32,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
             if (!mockRootState || action.type !== 'RESET' || !action.payload) {
                 return;
             }
+            mockOnDispatch?.();
             const routes = mockRootState.routes.map((route) => (route.state?.key === action.target ? {...route, state: action.payload} : route));
             mockRootState = {...mockRootState, routes};
         },
@@ -183,7 +186,7 @@ describe('buildCancelledWideTabPreMount', () => {
         expect(result?.routes.at(1)?.state?.index).toBe(1);
     });
 
-    it('takes a screen off a covered tab and drops only the preload the pre-mount added', () => {
+    it('takes a screen off a covered tab and keeps the preload the pre-mount added', () => {
         // Given report B pre-mounted on top of the covered Reports tab, which the pre-mount marked preloaded
         const reportB: TestRoute = {key: PRE_MOUNT_KEY, name: SCREENS.REPORT, params: {reportID: 'B'}};
         const tabState = makeTabState(
@@ -195,13 +198,13 @@ describe('buildCancelledWideTabPreMount', () => {
         // When the pre-mount is cancelled
         const result = buildCancelledWideTabPreMount(tabState, makeLivePreMount({addedPreloadedRouteKey: 'reports-key'}));
 
-        // Then the tab is back to its sidebar and freezes again when covered, while other preloads stay
+        // Then the tab is back to its sidebar and stays preloaded, so its screens do not act as if the user opened the tab
         expect(getNestedKeys(result, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)).toEqual(['inbox-key']);
         expect(result?.routes.at(1)?.state?.index).toBe(0);
-        expect(result?.preloadedRouteKeys).toEqual(['other-key']);
+        expect(result?.preloadedRouteKeys).toEqual(['other-key', 'reports-key']);
     });
 
-    it('leaves a reused screen in place and only drops the preload', () => {
+    it('leaves a reused screen in place and keeps the preload', () => {
         // Given a covered tab whose already shown report B was reused for the pre-mount
         const reportB: TestRoute = {key: 'b-key', name: SCREENS.REPORT, params: {reportID: 'B'}};
         const tabState = makeTabState(
@@ -213,9 +216,9 @@ describe('buildCancelledWideTabPreMount', () => {
         // When the pre-mount is cancelled
         const result = buildCancelledWideTabPreMount(tabState, makeLivePreMount({routeKey: 'b-key', isExistingRoute: true, addedPreloadedRouteKey: 'reports-key'}));
 
-        // Then the screen the user had open stays, because it was never added by the pre-mount
+        // Then the screen the user had open stays, because it was never added by the pre-mount, and it is not marked read
         expect(getNestedKeys(result, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)).toEqual(['inbox-key', 'b-key']);
-        expect(result?.preloadedRouteKeys).toEqual([]);
+        expect(result?.preloadedRouteKeys).toEqual(['reports-key']);
     });
 
     it('puts back the original route of a tab the pre-mount had to create a stack for', () => {
@@ -327,7 +330,25 @@ describe('wide pre-mount lifecycle and browser history RESET', () => {
         expect(getNestedKeys(tabState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)).toEqual(['inbox-key', 'a-key']);
     });
 
-    it('drops a cancelled pre-mount and the tab preload it added when a browser history RESET restores them', () => {
+    it('lets the covered tab freeze again on the state change that cancels its pre-mount', () => {
+        // Given Home focused and report B pre-mounted on top of the covered Reports tab, which stays unfrozen while it is live
+        setRootTabState(makeTabState(SCREENS.HOME, [HOME_ROUTE, {key: 'reports-key', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, state: makeStack('reports-stack', [INBOX_ROUTE])}]));
+        preMountWideDestinationInTab(reportTarget('B'));
+        expect(isLiveWideTabPreMountTabRouteKey('reports-key')).toBe(true);
+        let isTabKeptUnfrozenDuringCancel: boolean | undefined;
+        mockOnDispatch = () => {
+            isTabKeptUnfrozenDuringCancel = isLiveWideTabPreMountTabRouteKey('reports-key');
+        };
+
+        // When the submit is cancelled
+        cancelWideTabPreMount();
+        mockOnDispatch = undefined;
+
+        // Then the tab is no longer kept unfrozen when its state changes, because the freeze is only recomputed on a state change
+        expect(isTabKeptUnfrozenDuringCancel).toBe(false);
+    });
+
+    it('drops a cancelled pre-mount but keeps the tab preload when a browser history RESET restores them', () => {
         // Given Home focused and report B pre-mounted on top of the covered Reports tab, which the pre-mount marked preloaded
         setRootTabState(makeTabState(SCREENS.HOME, [HOME_ROUTE, {key: 'reports-key', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, state: makeStack('reports-stack', [INBOX_ROUTE])}]));
         const routeKey = preMountWideDestinationInTab(reportTarget('B'));
@@ -341,8 +362,8 @@ describe('wide pre-mount lifecycle and browser history RESET', () => {
         cancelWideTabPreMount();
         const tabState = getResetTabState(removeStalePreMountsFromResetAction(CommonActions.reset(savedRootState)));
 
-        // Then both the screen and the preload are gone, or the covered tab would stay rendered and unfrozen for good
+        // Then the screen is gone, while the preload stays as the cancel left it, until the user opens the tab
         expect(getNestedKeys(tabState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)).toEqual(['inbox-key']);
-        expect(tabState?.preloadedRouteKeys).toEqual([]);
+        expect(tabState?.preloadedRouteKeys).toEqual(['reports-key']);
     });
 });

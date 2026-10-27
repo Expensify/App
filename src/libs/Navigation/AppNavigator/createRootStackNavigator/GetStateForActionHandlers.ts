@@ -3,6 +3,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
+import getModalRouteOnTop from '@libs/Navigation/helpers/getModalRouteOnTop';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -623,8 +624,8 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // Only operates when a modal (e.g. RHP) sits on top of the stack.
-    const rhpRoute = state.routes.at(-1);
-    if (!rhpRoute || isFullScreenName(rhpRoute.name)) {
+    const rhpRoute = getModalRouteOnTop(state);
+    if (!rhpRoute) {
         return null;
     }
 
@@ -657,11 +658,11 @@ function handleReplaceFullscreenUnderRHP(
         // Writing module state from the router is safe here: the dispatch is synchronous and a wide pre-mount keeps every
         // root route key, so beforeRemove cannot reject the state after the outcome is written.
         lastPreMountReplaceOutcome = preMountedRouteKey ? {routeKey: preMountedRouteKey, isRevealed: !!preMountedTabState} : undefined;
-        let updatedTabState = builtTabState;
-        if (preMountedTabState) {
-            updatedTabState = preMountedTabState;
-        } else if (preMountedRouteKey) {
-            updatedTabState = withoutFocusedTabPreload(withoutPreMountedRoute(builtTabState, preMountedRouteKey));
+        // The target tab is focused now, so its preload mark (e.g. from the idle Reports tab preload) is dropped as a tab
+        // switch would drop it. A screen in a still preloaded tab holds work that assumes the user is looking.
+        let updatedTabState = preMountedTabState;
+        if (!updatedTabState) {
+            updatedTabState = withoutFocusedTabPreload(preMountedRouteKey ? withoutPreMountedRoute(builtTabState, preMountedRouteKey) : builtTabState);
         }
 
         // The remount guards against a push-transition flash on narrow layout (#90985). Wide renders split screens without a

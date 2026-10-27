@@ -592,6 +592,27 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
         expect(resultTabState?.preloadedRouteKeys).toEqual([]);
     });
 
+    it('stops keeping the Reports tab preloaded when a wide reveal without a pre-mount focuses it', () => {
+        // Given the Search tab focused and the Reports tab marked preloaded by the idle tab preload, with nothing pre-mounted
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+        mockStubbedParsedState = makeReportsParsedState('B');
+        const existing = makeExistingReportsState([makeRoute(SCREENS.INBOX, undefined, undefined, 'inbox-key')], 0, false);
+        const tabNavigatorState = existing.routes.at(0)?.state;
+        if (tabNavigatorState) {
+            Object.assign(tabNavigatorState, {preloadedRouteKeys: ['reports-split-key']});
+        }
+
+        // When report B is revealed under the RHP, e.g. after a submit made before any pre-mount ran
+        const result = handleReplaceFullscreenUnderRHP(existing, makeReportsAction('B'), CONFIG_OPTIONS, stackRouter);
+        const resultTabState: {index?: number; preloadedRouteKeys?: string[]} | undefined = result?.routes.at(0)?.state;
+
+        // Then the focused Reports tab is no longer preloaded, so report B is marked read and fetched like an opened report
+        expect(resultTabState?.index).toBe(0);
+        expect(getReportIDs(result)).toEqual([undefined, 'B']);
+        expect(resultTabState?.preloadedRouteKeys).toEqual([]);
+    });
+
     it('adds the destination tab to the tab history on wide layout, like a tab switch', () => {
         // Given a wide layout with the Search tab focused and in the tab history, and report B pre-mounted in the covered Reports tab
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);

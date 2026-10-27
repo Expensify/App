@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
 import {setIsRevealingPreMountedFullscreen, takePreMountedFullscreenForReveal} from '@libs/Navigation/helpers/preMountBuffer';
 import {finishWideTabPreMountReveal} from '@libs/Navigation/helpers/wideTabPreMount';
-import {getLiveWideTabPreMountRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
+import {isLiveWideTabPreMountRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -490,7 +490,7 @@ describe('Navigation pre-mount buffer', () => {
         expect(getWideTabState()?.index).toBe(0);
         expect(getWideTabState()?.preloadedRouteKeys).toEqual(['reports-key']);
         expect(mockRootState?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]);
-        expect(getLiveWideTabPreMountRouteKey()).toBe(preMountedRouteKey);
+        expect(isLiveWideTabPreMountRouteKey(preMountedRouteKey)).toBe(true);
         expect(Navigation.getPreInsertedFullscreenRouteName()).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     });
 
@@ -529,10 +529,10 @@ describe('Navigation pre-mount buffer', () => {
         // When another route asks for the key
         // Then it gets nothing, so revealing a different destination never shows the wrong screen
         expect(Navigation.getPreMountedFullscreenRouteKey(ROUTES.REPORT_WITH_ID.getRoute('43'))).toBeUndefined();
-        expect(Navigation.getPreMountedFullscreenRouteKey()).toBe(getLiveWideTabPreMountRouteKey());
+        expect(isLiveWideTabPreMountRouteKey(Navigation.getPreMountedFullscreenRouteKey())).toBe(true);
     });
 
-    it('wide layout: cancel takes the pre-mount out and drops the preload it added', () => {
+    it('wide layout: cancel takes the pre-mount out and keeps the preload it added', () => {
         // Given a wide pre-mount on top of the covered Reports tab
         preMountOnWide();
         const preMountedRouteKey = Navigation.getPreMountedFullscreenRouteKey();
@@ -541,12 +541,13 @@ describe('Navigation pre-mount buffer', () => {
         // When the user backs out without submitting
         Navigation.removePreInsertedFullscreenIfNeeded();
 
-        // Then the Reports tab is back to how it was, and a later browser forward restoring the pre-mount sees it as stale
+        // Then the Reports stack is back to how it was and stays preloaded until opened, and a later browser forward restoring
+        // the pre-mount sees it as stale
         expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key']);
-        expect(getWideTabState()?.preloadedRouteKeys).toEqual([]);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual(['reports-key']);
         expect(restoreAnimationSpy).not.toHaveBeenCalled();
         expect(Navigation.getIsFullscreenPreInsertedUnderRHP()).toBe(false);
-        expect(getLiveWideTabPreMountRouteKey()).toBeUndefined();
+        expect(isLiveWideTabPreMountRouteKey(preMountedRouteKey)).toBe(false);
         expect(isStaleWideTabPreMountRouteKey(preMountedRouteKey)).toBe(true);
         restoreAnimationSpy.mockRestore();
     });
@@ -561,7 +562,7 @@ describe('Navigation pre-mount buffer', () => {
 
         // Then the covered tab navigator still gets its Reports tab back, so a later back to it shows no leftover hidden screen
         expect(getReportsStack()?.routes.map((route) => route.key)).toEqual(['inbox-key']);
-        expect(getWideTabState()?.preloadedRouteKeys).toEqual([]);
+        expect(getWideTabState()?.preloadedRouteKeys).toEqual(['reports-key']);
     });
 
     it('wide layout: clearFullscreenPreInsertedFlag drops a pre-mount that was never revealed', () => {
@@ -599,7 +600,7 @@ describe('Navigation pre-mount buffer', () => {
             type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
             payload: {route: ROUTES.REPORT_WITH_ID.getRoute('42'), preMountedRouteKey},
         });
-        expect(getLiveWideTabPreMountRouteKey()).toBeUndefined();
+        expect(isLiveWideTabPreMountRouteKey(preMountedRouteKey)).toBe(false);
         expect(isStaleWideTabPreMountRouteKey(preMountedRouteKey)).toBe(false);
         rafSpy.mockRestore();
     });
