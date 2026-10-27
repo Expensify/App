@@ -8880,7 +8880,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggestions',
-                writeTab: 'Modifier',
+                writeTab: 'Personnalisé',
                 findSuggestion: 'Trouver une règle',
                 emptySuggestionsTitle: 'Aucune suggestion disponible',
                 emptySuggestionsSubtitle: 'Essayez d’écrire votre propre règle.',

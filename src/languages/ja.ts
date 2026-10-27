@@ -8694,7 +8694,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。<br><br>エージェントの詳細は <a href="${agentsRoute}">「アカウント」&gt;「エージェント」</a> で編集できます。</muted-text>`,
                 suggestionsTab: 'おすすめ',
-                writeTab: '編集',
+                writeTab: 'カスタム',
                 findSuggestion: 'ルールを探す',
                 emptySuggestionsTitle: '利用可能な提案はありません',
                 emptySuggestionsSubtitle: '独自のルールを作成してみてください。',

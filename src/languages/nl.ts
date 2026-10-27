@@ -8783,7 +8783,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggesties',
-                writeTab: 'Bewerken',
+                writeTab: 'Aangepast',
                 findSuggestion: 'Zoek een regel',
                 emptySuggestionsTitle: 'Geen suggesties beschikbaar',
                 emptySuggestionsSubtitle: 'Probeer je eigen regel te schrijven.',

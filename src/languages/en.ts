@@ -9627,7 +9627,7 @@ const translations = {
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggested',
-                writeTab: 'Edit',
+                writeTab: 'Custom',
                 findSuggestion: 'Find a rule',
                 emptySuggestionsTitle: 'No suggestions available',
                 emptySuggestionsSubtitle: 'Try writing your own rule.',
