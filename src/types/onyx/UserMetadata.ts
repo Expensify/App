@@ -25,9 +25,6 @@ type UserMetadata = {
 
     /** When the user gave their most recent NPS score, in ISO 8601 */
     npsResponseDate?: string;
-
-    /** When the user last moved to New Expensify, in ISO 8601. Not set while they use Expensify Classic */
-    newDotMigratedDate?: string;
 };
 
 export default UserMetadata;

@@ -42,7 +42,6 @@ describe('FullstoryUtils', () => {
                 paidMember: true,
                 npsScore: 9,
                 npsResponseDate: '2026-05-03 09:30:00',
-                newDotMigratedDate: '2026-03-01 10:15:30',
             },
         });
 
@@ -65,7 +64,6 @@ describe('FullstoryUtils', () => {
         expect(userVars.days_till_trial_end).toBeGreaterThan(0);
         expect(userVars.free_trial_end_date?.toISOString()).toBe('2099-05-31T23:59:59.000Z');
         expect(userVars.nps_response_date?.toISOString()).toBe('2026-05-03T09:30:00.000Z');
-        expect(userVars.new_dot_migrated_date?.toISOString()).toBe('2026-03-01T10:15:30.000Z');
     });
 
     it('builds page viewed event metadata', () => {

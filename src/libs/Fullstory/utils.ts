@@ -204,7 +204,6 @@ function buildFullstoryUserVars({
             paid_member: userMetadata?.paidMember,
             nps_score: userMetadata?.npsScore,
             nps_response_date: getUTCDate(userMetadata?.npsResponseDate),
-            new_dot_migrated_date: getUTCDate(userMetadata?.newDotMigratedDate),
         } satisfies FullstoryUserVars,
         (_key, value) => value !== undefined,
     );
@@ -229,10 +228,9 @@ function buildPageViewedEvent(screenName: string, currentPath: string, entryPoin
 }
 
 /* eslint-disable @typescript-eslint/naming-convention -- The comparable snapshot preserves FullStory's external snake_case field names. */
-type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date' | 'nps_response_date' | 'new_dot_migrated_date'> & {
+type ComparableFullstoryUserVars = Omit<FullstoryUserVars, 'free_trial_end_date' | 'nps_response_date'> & {
     free_trial_end_date?: string;
     nps_response_date?: string;
-    new_dot_migrated_date?: string;
 };
 
 function getComparableFullstoryUserVars(userVars: FullstoryUserVars): ComparableFullstoryUserVars {
@@ -240,7 +238,6 @@ function getComparableFullstoryUserVars(userVars: FullstoryUserVars): Comparable
         ...userVars,
         free_trial_end_date: userVars.free_trial_end_date?.toISOString(),
         nps_response_date: userVars.nps_response_date?.toISOString(),
-        new_dot_migrated_date: userVars.new_dot_migrated_date?.toISOString(),
     };
 }
 /* eslint-enable @typescript-eslint/naming-convention */
