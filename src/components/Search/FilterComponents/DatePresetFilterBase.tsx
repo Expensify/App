@@ -26,6 +26,9 @@ import RangeDatePicker from './RangeDatePicker';
 
 type CustomDateModifier = Exclude<SearchDateModifier, typeof CONST.SEARCH.DATE_MODIFIERS.RANGE>;
 
+/** Presets that start a new group (previous periods, then rolling ranges), so a divider is shown above them */
+const PRESET_GROUP_STARTS = new Set<SearchDatePreset>([CONST.SEARCH.DATE_PRESETS.LAST_WEEK, CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]);
+
 const normalizeDateValues = (dateValues: Partial<SearchDateValues> | SearchDateValues): SearchDateValues => ({
     ...getEmptyDateValues(),
     ...dateValues,
@@ -377,22 +380,29 @@ function DatePresetFilterBase({
         return (
             <>
                 <View onBlur={() => setFocusedPresetKey(null)}>
-                    {presets?.map((preset) => (
-                        <SingleSelectListItem
-                            key={preset}
-                            showTooltip
-                            item={{
-                                keyForList: preset,
-                                text: translate(`search.filters.date.presets.${preset}`),
-                                isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
-                            }}
-                            onSelectRow={() => setExclusiveDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
-                            wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
-                            isFocused={focusedPresetKey === preset}
-                            isFocusVisible={focusedPresetKey === preset}
-                            onFocus={() => setFocusedPresetKey(preset)}
-                            shouldSyncFocus={false}
-                        />
+                    {presets?.map((preset, index) => (
+                        <React.Fragment key={preset}>
+                            {index > 0 && PRESET_GROUP_STARTS.has(preset) && (
+                                <SpacerView
+                                    shouldShow
+                                    style={[StyleUtils.getBorderColorStyle(theme.border), styles.mh3]}
+                                />
+                            )}
+                            <SingleSelectListItem
+                                showTooltip
+                                item={{
+                                    keyForList: preset,
+                                    text: translate(`search.filters.date.presets.${preset}`),
+                                    isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                                }}
+                                onSelectRow={() => setExclusiveDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
+                                wrapperStyle={[styles.flexReset, styles.optionRowCompact]}
+                                isFocused={focusedPresetKey === preset}
+                                isFocusVisible={focusedPresetKey === preset}
+                                onFocus={() => setFocusedPresetKey(preset)}
+                                shouldSyncFocus={false}
+                            />
+                        </React.Fragment>
                     ))}
                 </View>
                 {shouldShowHorizontalRule && (

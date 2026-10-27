@@ -214,7 +214,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
         isUnifiedConnectionsBetaEnabled,
         convertToDisplayString,
     }).map((item) => ({

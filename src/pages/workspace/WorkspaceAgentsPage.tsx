@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -48,8 +47,6 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isCompanyAgentsBetaEnabled = isBetaEnabled(CONST.BETAS.COMPANY_AGENTS);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -158,7 +155,6 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.AGENTS}
-            shouldBeBlocked={!isCompanyAgentsBetaEnabled}
         >
             <WorkspacePageWithSections
                 headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}

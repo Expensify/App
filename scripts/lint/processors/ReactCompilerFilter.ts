@@ -3,19 +3,17 @@ import path from 'node:path';
 
 import type {LintMessage, ProcessorContext} from '../types';
 
+// eslint-disable-next-line import/extensions
+import {shouldSkipReactCompiler} from '../../../config/reactCompiler/checkWithOxc.mjs';
+// eslint-disable-next-line import/extensions
+import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../../config/reactCompiler/suppressedRules.mjs';
 import WorkerPool from '../../utils/WorkerPool';
 import Processor from '../Processor';
 
-const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
 const MANUAL_MEMOIZATION_RULE = 'rulesdir/no-manual-memoization';
-const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 const CACHE_DIR = 'node_modules/.cache/react-compiler';
 const REACT_COMPILER_FINGERPRINT_FILES = [
-    'babel.config.js',
-    'config/babel/reactCompilerConfig.js',
     'config/babel/oxcReactCompilerConfig.js',
-    'config/reactCompiler/checkBoth.mjs',
-    'config/reactCompiler/checkWithBabel.mjs',
     'config/reactCompiler/checkWithOxc.mjs',
     'config/rsbuild/rsbuild.common.ts',
     'package-lock.json',
@@ -31,10 +29,6 @@ function isSuppressibleMessage(message: LintMessage): boolean {
         return true;
     }
     return message.ruleID === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(message.message);
-}
-
-function shouldSkipCompiler(filename: string): boolean {
-    return filename.includes('/tests/') || filename.includes('node_modules/');
 }
 
 function cachePath(projectRoot: string, hash: string): string {
@@ -75,8 +69,8 @@ async function readCache(cacheFilePath: string): Promise<boolean | undefined> {
 const CACHE_HIT = '1';
 const CACHE_MISS = '0';
 
-async function writeCache(cacheFilePath: string, bothMemoized: boolean): Promise<void> {
-    await Bun.write(cacheFilePath, bothMemoized ? CACHE_HIT : CACHE_MISS);
+async function writeCache(cacheFilePath: string, memoized: boolean): Promise<void> {
+    await Bun.write(cacheFilePath, memoized ? CACHE_HIT : CACHE_MISS);
 }
 
 type Candidate = {
@@ -86,29 +80,29 @@ type Candidate = {
 
 type CompilerWorkerResponse = {
     filename: string;
-    bothMemoized: boolean;
+    memoized: boolean;
     cacheable: boolean;
 };
 
 function conservativeFallback(candidate: Candidate): CompilerWorkerResponse {
-    return {filename: candidate.filename, bothMemoized: false, cacheable: false};
+    return {filename: candidate.filename, memoized: false, cacheable: false};
 }
 
 function shouldPersistCompilerCache(verdict: CompilerWorkerResponse | undefined): boolean {
     return verdict?.cacheable === true;
 }
 
-async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: CompilerCheck | undefined, workerCount: number): Promise<Map<string, CompilerWorkerResponse>> {
+async function checkCandidatesWithPool(candidates: Candidate[], checkCompiler: CompilerCheck | undefined, workerCount: number): Promise<Map<string, CompilerWorkerResponse>> {
     const verdicts = new Map<string, CompilerWorkerResponse>();
     if (candidates.length === 0) {
         return verdicts;
     }
 
-    if (checkBoth) {
+    if (checkCompiler) {
         await Promise.all(
             candidates.map(async (candidate) => {
                 try {
-                    verdicts.set(candidate.filename, {filename: candidate.filename, bothMemoized: await checkBoth(candidate.source, candidate.filename), cacheable: true});
+                    verdicts.set(candidate.filename, {filename: candidate.filename, memoized: await checkCompiler(candidate.source, candidate.filename), cacheable: true});
                 } catch {
                     // Conservative: keep the message rather than aborting the whole lint.
                     verdicts.set(candidate.filename, conservativeFallback(candidate));
@@ -127,8 +121,8 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkBoth: Compi
 }
 
 /**
- * Drop redundant messages and enforce no-manual-memoization only after both
- * compilers memoize the file. Files with no compiler-dependent message are skipped
+ * Drop redundant messages and enforce no-manual-memoization only after the
+ * compiler memoizes the file. Files with no compiler-dependent message are skipped
  * entirely (~60× fewer compiler invocations than the ESLint processor).
  *
  * Cache is one file per compiler fingerprint and content hash so concurrent
@@ -138,21 +132,21 @@ class ReactCompilerFilter extends Processor {
     readonly name = 'react-compiler-filter';
 
     constructor(
-        private readonly checkBoth?: CompilerCheck,
+        private readonly checkCompiler?: CompilerCheck,
         private readonly workerCount = navigator.hardwareConcurrency || 4,
     ) {
         super();
     }
 
     process(messages: LintMessage[], context: ProcessorContext): Promise<LintMessage[]> {
-        return filterReactCompilerMessages(messages, context.projectRoot, this.checkBoth, this.workerCount);
+        return filterReactCompilerMessages(messages, context.projectRoot, this.checkCompiler, this.workerCount);
     }
 }
 
 async function filterReactCompilerMessages(
     messages: LintMessage[],
     projectRoot: string,
-    checkBoth?: CompilerCheck,
+    checkCompiler?: CompilerCheck,
     workerCount = navigator.hardwareConcurrency || 4,
 ): Promise<LintMessage[]> {
     const byFile = new Map<string, LintMessage[]>();
@@ -164,7 +158,7 @@ async function filterReactCompilerMessages(
 
     const candidateNames: string[] = [];
     for (const [filename, fileMessages] of byFile) {
-        if (shouldSkipCompiler(filename)) {
+        if (shouldSkipReactCompiler(filename)) {
             continue;
         }
         if (fileMessages.some((message) => isSuppressibleMessage(message) || message.ruleID === MANUAL_MEMOIZATION_RULE)) {
@@ -178,12 +172,12 @@ async function filterReactCompilerMessages(
 
     const uncached: Candidate[] = [];
     const memoized = new Map<string, boolean>();
-    const reactCompilerFingerprint = checkBoth ? undefined : await getReactCompilerFingerprint(projectRoot);
+    const reactCompilerFingerprint = checkCompiler ? undefined : await getReactCompilerFingerprint(projectRoot);
 
     await Promise.all(
         candidateNames.map(async (filename) => {
             let source = '';
-            if (!checkBoth) {
+            if (!checkCompiler) {
                 try {
                     source = await file(filename).text();
                 } catch {
@@ -204,16 +198,16 @@ async function filterReactCompilerMessages(
         }),
     );
 
-    const computed = await checkCandidatesWithPool(uncached, checkBoth, workerCount);
+    const computed = await checkCandidatesWithPool(uncached, checkCompiler, workerCount);
     await Promise.all(
         uncached.map(async (candidate) => {
             const verdict = computed.get(candidate.filename) ?? conservativeFallback(candidate);
-            memoized.set(candidate.filename, verdict.bothMemoized);
-            if (checkBoth || !shouldPersistCompilerCache(verdict)) {
+            memoized.set(candidate.filename, verdict.memoized);
+            if (checkCompiler || !shouldPersistCompilerCache(verdict)) {
                 return;
             }
             try {
-                await writeCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, candidate.filename, candidate.source)), verdict.bothMemoized);
+                await writeCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, candidate.filename, candidate.source)), verdict.memoized);
             } catch {
                 // Conservative: skip the cache write rather than abort the lint.
             }
