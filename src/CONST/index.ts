@@ -3588,6 +3588,9 @@ const CONST = {
             SET_PROPERTIES: 'setProperties',
             SHUTDOWN: 'shutdown',
         },
+        EVENT: {
+            CONCIERGE_MESSAGE_SENT: 'Concierge_message_sent',
+        },
     },
 
     CONCIERGE_DISPLAY_NAME: 'Concierge',
