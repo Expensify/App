@@ -78,7 +78,7 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
 
     const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
-    const {onLongPressRow, modal} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
+    const {onLongPressRow} = useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isMobileSelectionModeEnabled});
 
     // In mobile selection mode a row tap toggles selection. This must live inside the providers (not in the
     // router) because the `toggle` it reads is the default no-op outside SearchWriteActionsProvider; here it
@@ -124,7 +124,6 @@ function useSearchListViewState({data, listData = data, isMobileSelectionModeEna
         ownerBillingGracePeriodEnd,
         handleUndelete,
         onLongPressRow,
-        modal,
         handleSelectRow,
         scrollToListIndex,
     };

@@ -54,7 +54,7 @@ function ChatSearchView({
 }: ChatSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, modal, handleSelectRow, scrollToListIndex} =
+    const {isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, onLongPressRow, handleSelectRow, scrollToListIndex} =
         useSearchListViewState({
             data,
             isMobileSelectionModeEnabled,
@@ -132,7 +132,6 @@ function ChatSearchView({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }
