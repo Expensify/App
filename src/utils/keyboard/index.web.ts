@@ -11,8 +11,15 @@ type Orientation = 'portrait' | 'landscape';
 
 let isVisible = false;
 
-/** Tallest viewport height seen per orientation, i.e. the height without the keyboard. */
-const viewportHeightsWithoutKeyboard: Partial<Record<Orientation, number>> = {};
+type ViewportHeightSample = {
+    /** Tallest viewport height seen in the orientation. */
+    height: number;
+
+    /** Whether the keyboard was open at that height, i.e. the height without the keyboard isn't known yet. */
+    isKeyboardOpen: boolean;
+};
+
+const viewportHeightSamples: Partial<Record<Orientation, ViewportHeightSample>> = {};
 
 /** Based on the width, which the keyboard doesn't change. */
 function getOrientation(): Orientation {
@@ -25,9 +32,27 @@ function getOrientation(): Orientation {
 /** Also records the height. Under 152px of difference can be a smart banner or offline indicator, not the keyboard. */
 function isKeyboardVisibleAt(viewportHeight: number): boolean {
     const orientation = getOrientation();
-    const heightWithoutKeyboard = Math.max(viewportHeightsWithoutKeyboard[orientation] ?? 0, viewportHeight);
-    viewportHeightsWithoutKeyboard[orientation] = heightWithoutKeyboard;
-    return heightWithoutKeyboard - viewportHeight > CONST.SMART_BANNER_HEIGHT;
+    const sample = viewportHeightSamples[orientation];
+
+    // The keyboard stays open through a rotation, so the first height in a new orientation can be reduced by it
+    if (!sample) {
+        viewportHeightSamples[orientation] = {height: viewportHeight, isKeyboardOpen: isVisible};
+        return isVisible;
+    }
+
+    if (viewportHeight - sample.height > CONST.SMART_BANNER_HEIGHT) {
+        viewportHeightSamples[orientation] = {height: viewportHeight, isKeyboardOpen: false};
+        return false;
+    }
+
+    // The keyboard opened, so it was closed at the sampled height after all
+    if (sample.height - viewportHeight > CONST.SMART_BANNER_HEIGHT) {
+        sample.isKeyboardOpen = false;
+        return true;
+    }
+
+    sample.height = Math.max(sample.height, viewportHeight);
+    return sample.isKeyboardOpen;
 }
 
 const initialViewportHeight = window?.visualViewport?.height;
