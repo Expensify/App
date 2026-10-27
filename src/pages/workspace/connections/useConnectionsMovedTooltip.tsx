@@ -10,13 +10,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 
 import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 /**
- * The tooltip on the workspace menu's Connections item telling users their integrations moved there. Leaving the page
- * it was first shown on counts as dismissing it, so it only shows once.
+ * The tooltip on the workspace menu's Connections item telling users their integrations moved there. Reaching
+ * Connections, or leaving the page it was first shown on, counts as dismissing it, so it only shows once.
  */
 function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | undefined, isWorkspacesTabFocused: boolean) {
     const theme = useTheme();
@@ -25,8 +26,14 @@ function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | u
     const {translate} = useLocalize();
     const {shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED, shouldShow);
     const shownOnRouteRef = useRef<string | undefined>(undefined);
+    const isOnConnectionsPage = activeRoute === SCREENS.WORKSPACE.CONNECTIONS;
 
     useEffect(() => {
+        if (shouldShowProductTrainingTooltip && isOnConnectionsPage) {
+            shownOnRouteRef.current = undefined;
+            dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED);
+            return;
+        }
         if (shouldShowProductTrainingTooltip && !shownOnRouteRef.current) {
             shownOnRouteRef.current = activeRoute;
         }
@@ -36,7 +43,7 @@ function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | u
         }
         shownOnRouteRef.current = undefined;
         dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED);
-    }, [activeRoute, isWorkspacesTabFocused, shouldShowProductTrainingTooltip]);
+    }, [activeRoute, isOnConnectionsPage, isWorkspacesTabFocused, shouldShowProductTrainingTooltip]);
 
     // Going back from the workspace removes the page without changing the route seen above
     useBeforeRemove(() => {
@@ -64,7 +71,7 @@ function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | u
         </View>
     );
 
-    return {shouldShowTooltip: shouldShowProductTrainingTooltip, hideTooltip, renderTooltipContent};
+    return {shouldShowTooltip: shouldShowProductTrainingTooltip && !isOnConnectionsPage, hideTooltip, renderTooltipContent};
 }
 
 export default useConnectionsMovedTooltip;
