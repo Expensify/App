@@ -8,7 +8,7 @@ noindex: true
 sitemap: false
 ---
 
-# Manage Vendor Matching for Business Central
+# Manage Vendor Matching for Dynamics 365 Business Central
 
 Dynamics 365 Business Central vendor matching lets workspace admins review and update the vendor assigned to non-reimbursable company card expenses before they export to Business Central. Expensify imports your Business Central vendor list, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in Business Central.
 
