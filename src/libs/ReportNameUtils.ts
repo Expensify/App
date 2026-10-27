@@ -1,5 +1,5 @@
 /**
- * This file contains utility functions for managing and computing report names
+ * This file contains utility functions for managing report names
  */
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 

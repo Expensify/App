@@ -1,5 +1,5 @@
 /**
- * Only the reportAttributes derived value may import this.
+ * Only the reportAttributes derived value may import this outside tests.
  * It lives outside ReportNameUtils because it uses ModifiedExpenseMessage, which imports ReportNameUtils.
  */
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
