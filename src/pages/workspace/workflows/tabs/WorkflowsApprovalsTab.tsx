@@ -43,7 +43,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -134,27 +134,27 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    const confirmDisableApprovals = useCallback(() => {
+    const confirmDisableApprovals = () => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
             transactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
             personalDetailsList: personalDetails,
         });
-    }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
+    };
 
     const approvalWorkflowSource = getApprovalWorkflowSource(policy, policyID);
     const isWorkflowFromIntegration = !!approvalWorkflowSource;
     const workflowSourceName = approvalWorkflowSource?.providerName ?? '';
     const workflowSourceSettingsRoute = approvalWorkflowSource?.settingsRoute;
 
-    const navigateToWorkflowSourceSettings = useCallback(() => {
+    const navigateToWorkflowSourceSettings = () => {
         if (!workflowSourceSettingsRoute) {
             return;
         }
         Navigation.navigate(workflowSourceSettingsRoute);
-    }, [workflowSourceSettingsRoute]);
+    };
 
-    const promptConfigureApprovalsInIntegration = useCallback(async () => {
+    const promptConfigureApprovalsInIntegration = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
             prompt: translate('workflowsPage.integrationApprovalWorkflowLockedPrompt', {
@@ -169,14 +169,14 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             return;
         }
         navigateToWorkflowSourceSettings();
-    }, [navigateToWorkflowSourceSettings, workflowSourceName, showConfirmModal, translate]);
+    };
 
-    const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
+    const navigateToSubmitWorkspaceApprovalsUpgrade = () => {
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
-    }, [policyID]);
+    };
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
-    const addApprovalAction = useCallback(() => {
+    const addApprovalAction = () => {
         setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers,
@@ -200,7 +200,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         }
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-    }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    };
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const isRecruitingAdvancedModeEnabled = isRecruitingAdvancedMode(policy);
@@ -256,10 +256,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // Trim before deciding so a whitespace-only input doesn't drop pagination while searchFilteredWorkflows is still unfiltered.
     const isSearchingWorkflows = workflowSearchInput.trim().length > 0;
     // Memoize so a stable reference reaches the render below; otherwise the slice() allocates a new array each render.
-    const displayedWorkflows = useMemo(
-        () => (isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)),
-        [isWorkflowListExpanded, isSearchingWorkflows, searchFilteredWorkflows],
-    );
+    const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
@@ -271,22 +268,18 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
-    const approvalSubtitle = useMemo(() => {
-        if (!isWorkflowFromIntegration) {
-            return translate('workflowsPage.addApprovalsDescription');
-        }
-
-        return (
-            <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
-                {translate('workflowsPage.addApprovalsDescription')}{' '}
-                <TextLink onPress={navigateToWorkflowSourceSettings}>
-                    {translate('workflowsPage.configureViaProvider', {
-                        provider: workflowSourceName,
-                    })}
-                </TextLink>
-            </Text>
-        );
-    }, [isWorkflowFromIntegration, workflowSourceName, navigateToWorkflowSourceSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
+    const approvalSubtitle = !isWorkflowFromIntegration ? (
+        translate('workflowsPage.addApprovalsDescription')
+    ) : (
+        <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
+            {translate('workflowsPage.addApprovalsDescription')}{' '}
+            <TextLink onPress={navigateToWorkflowSourceSettings}>
+                {translate('workflowsPage.configureViaProvider', {
+                    provider: workflowSourceName,
+                })}
+            </TextLink>
+        </Text>
+    );
 
     const approvalOptionSubtitle = isWorkflowFromIntegration || !isApprovalsLockedBySmartLimit ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;

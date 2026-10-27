@@ -25,7 +25,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {canMemberWrite, canRoleCreateExpenses, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    canRoleCreateExpenses,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    shouldHideExpensifyTeamCardholder,
+} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -43,7 +51,7 @@ import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
@@ -92,11 +100,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         excludedUsers[login] = true;
     }
 
-    const {
-        assignedGuideEmail,
-        accountManagerLogin,
-        exclusions: softExclusions,
-    } = useMemo(() => getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails), [policy, account?.accountManagerAccountID, personalDetails]);
+    const {assignedGuideEmail, accountManagerLogin, exclusions: softExclusions} = getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails);
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -215,10 +219,17 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
+    // Hide Expensify staff from member and search results, but keep the current cardholder visible while editing.
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldHideExpensifyTeamCardholder(login, initialAssigneeEmail, policy?.owner, session?.email);
+
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
+                continue;
+            }
+
+            if (isHiddenExpensifyStaff(email)) {
                 continue;
             }
 
@@ -265,11 +276,13 @@ function AssigneeStep({route}: AssigneeStepProps) {
               ]
             : filteredOptions;
 
-        assignees = options.map((option) => ({
-            ...option,
-            keyForList: option.keyForList ?? option.login ?? '',
-            isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
-        }));
+        assignees = options
+            .filter((option) => !isHiddenExpensifyStaff(option.login))
+            .map((option) => ({
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+                isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
+            }));
     } else if (debouncedSearchTerm) {
         assignees = [];
     }

@@ -4,14 +4,13 @@ import type {WorkspaceCardsList} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {buildFeedKeysWithAssignedCards} from '@selectors/Card';
-import {useCallback} from 'react';
 
 import useOnyx from './useOnyx';
 
 type FeedKeysWithAssignedCards = Record<string, true>;
 
 function useFeedKeysWithAssignedCards(): FeedKeysWithAssignedCards | undefined {
-    const feedKeysWithCardsSelector = useCallback((allWorkspaceCards: OnyxCollection<WorkspaceCardsList>) => buildFeedKeysWithAssignedCards(allWorkspaceCards), []);
+    const feedKeysWithCardsSelector = (allWorkspaceCards: OnyxCollection<WorkspaceCardsList>) => buildFeedKeysWithAssignedCards(allWorkspaceCards);
     const [feedKeysWithCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
         selector: feedKeysWithCardsSelector,
     });

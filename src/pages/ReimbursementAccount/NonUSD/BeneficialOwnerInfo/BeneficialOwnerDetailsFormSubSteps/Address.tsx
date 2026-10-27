@@ -10,7 +10,7 @@ import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {SafeString} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -45,14 +45,8 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '',
     );
 
-    const stepFieldsWithState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
-    );
-    const stepFieldsWithoutState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.street, inputKeys.zipCode],
-    );
+    const stepFieldsWithState = [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey];
+    const stepFieldsWithoutState = [inputKeys.street, inputKeys.city, inputKeys.zipCode, countryInputKey];
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
 
