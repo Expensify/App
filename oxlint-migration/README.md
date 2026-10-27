@@ -66,16 +66,16 @@ All twelve `rc/*` rules are on. Some of them report less (or more) than ESLint d
 left on anyway: a rule whose count differs shows up as a number in `npm run compare-oxlint`, while a
 rule switched off reads exactly like a clean codebase.
 
-Measured whole-repo on `oxc-transform-react` 0.152.0 and oxlint 1.86.0:
+Measured whole-repo on 2026-10-27, from the seatbelt totals after a full run of each linter:
 
 | rule | ESLint | oxlint | |
 | --- | --- | --- | --- |
-| `set-state-in-effect` | 120 | 120 | exact, same locations |
-| `refs` | 210 | 189 | bridge collapses ESLint's duplicate reports (see below) |
-| `purity` | 0 | 35 | all `Date`-during-render; ESLint's compiler build misses them, kept on purpose |
-| `preserve-manual-memoization` | 4 | 54 | over-reports through the bridge |
+| `set-state-in-effect` | 117 | 118 | one extra in `src/components/MapView/MapViewImpl.web.tsx`, not yet explained |
+| `refs` | 202 | 183 | bridge collapses ESLint's duplicate reports (see below) |
+| `purity` | 0 | 29 | all `Date`-during-render; ESLint's compiler build misses them, kept on purpose |
+| `preserve-manual-memoization` | 2 | 2 | exact since the compiler started validating manual memo dependencies itself |
 | `immutability` | 6 | 7 | one extra |
-| `globals` | 0 | 1 | one extra |
+| `globals` | 0 | 2 | two extra |
 | `static-components` | 2 | 2 | exact |
 | the other five | 0 | 0 | latent in this repo |
 
