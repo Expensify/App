@@ -201,7 +201,7 @@ function useNavigateToForcedTransactionReview() {
             }
 
             Log.info(`${config.logPrefix} Navigating!`, undefined, {transactionID});
-            addBreadcrumb(config, 'Navigating to authorize transaction', {transactionID});
+            addBreadcrumb(config, 'Navigating to review screen', {transactionID});
 
             // If the transaction still awaits review, navigate the user to its review screen
             Navigation.navigate(config.getReviewScreenRoute(transactionID));
@@ -216,4 +216,4 @@ function useNavigateToForcedTransactionReview() {
 }
 
 export default useNavigateToForcedTransactionReview;
-export {getFirstSortedTransactionPending3DSReview as sortTransactionsPending3DSReview};
+export {getFirstSortedTransactionPending3DSReview as sortTransactionsPending3DSReview, getPending3DSReviewToShow};

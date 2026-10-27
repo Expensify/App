@@ -38,7 +38,7 @@ function useForcedReviewScreen({transactionID, isTransactionPendingReview, isSub
         // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButton, so we handle navigation manually when offline.
         // Offline mode isn't supported in MFA; navigate users away immediately without showing the confirmation modal.
         if (isOffline) {
-            addBreadcrumb('Offline back-navigation (no deny sent)', {transactionID}, 'warning');
+            addBreadcrumb('Offline back-navigation (no answer sent)', {transactionID}, 'warning');
             allowNavigatingAway();
             Navigation.closeRHPFlow();
             return;
