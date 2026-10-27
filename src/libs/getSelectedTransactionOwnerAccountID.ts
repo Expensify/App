@@ -43,7 +43,7 @@ function getSelectedTransactionOwnerAccountID(
         }
     }
 
-    return getReportOrDraftReport(selection.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selection.reportID}`])?.ownerAccountID;
+    return getReportOrDraftReport({reportID: selection.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selection.reportID}`]})?.ownerAccountID;
 }
 
 export default getSelectedTransactionOwnerAccountID;
