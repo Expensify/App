@@ -1197,6 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
+        compliance: 'Conformité',
+        runningTotal: 'Total cumulé',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2517,7 +2519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Voulez-vous vraiment fusionner les comptes ?',
-            lossOfUnsubmittedData: (login: string) => `La fusion de vos comptes est irréversible et entraînera la perte de toutes les dépenses non soumises pour <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `La fusion de vos comptes est irréversible. Toutes les dépenses et notes de frais de <strong>${login}</strong>, y compris les brouillons et les dépenses non déclarées, seront déplacées vers le compte que vous conservez.`,
             enterSecurityCode: (login: string) => `Pour continuer, veuillez saisir le code de sécurité envoyé à <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
@@ -2865,6 +2868,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
+            payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },
@@ -3024,6 +3028,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
+        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
+        collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6796,6 +6802,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             provisioningError:
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Le plafond de dépenses mensuel par membre ne peut pas dépasser le plafond de voyage actuel de ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configurer un nouveau flux de voyage',
                         feedSelectorIntro:
@@ -7533,6 +7541,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7781,6 +7791,18 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Synchronisation des règlements de carte';
                         case 'campfireSyncTravelSettlements':
                             return 'Synchronisation des règlements de voyage';
+                        case 'digitsSyncTitle':
+                            return 'Synchronisation des données Digits';
+                        case 'digitsSyncConnection':
+                            return 'Initialisation de la connexion à Digits';
+                        case 'digitsSyncImportData':
+                            return 'Chargement des données';
+                        case 'digitsSyncPayments':
+                            return 'Synchronisation des paiements fournisseurs';
+                        case 'digitsSyncCardSettlements':
+                            return 'Synchronisation des règlements de carte';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Synchronisation des règlements de voyage';
                         case 'businessCentralSyncTitle':
                             return 'Synchronisation des données Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7830,6 +7852,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Pour le déverrouiller, définissez un compte pour vos exports.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Pour le déverrouiller, activez la synchronisation automatique.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Le rapprochement continu est configuré par flux de carte. Sélectionnez un flux pour changer celui que vous configurez.</muted-text-label>',
@@ -8939,11 +8962,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs automatiquement',
                 flagForReview: 'Marquer pour examen',
                 flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies',
-                requireFields: 'Définir les exigences des champs',
-                requireFieldsShort: 'Exiger des champs',
+                requireFields: 'Exiger des champs',
                 requireFieldsDescription: 'Reçus, catégories, etc.',
-                createAgentRule: 'Décrire la règle de l’agent',
-                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeItBelow: 'Ou décrivez-la simplement ci-dessous',
                 describeRulePlaceholder: 'Bloquer toutes les dépenses supérieures à 2 000 $',
                 selectTemplateOrDescribe: 'Sélectionnez un modèle ou décrivez une règle pour continuer',
@@ -10411,6 +10431,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Depuis le début de l’année',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Cette semaine',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Semaine dernière',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Ce trimestre',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Trimestre dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Cette année',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Année dernière',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: '30 derniers jours',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: '90 derniers jours',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: '6 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
                 customDay: 'Jour personnalisé',
@@ -10547,6 +10576,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
+        noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
         receiptTypeValues: {
@@ -11722,6 +11752,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 one: '1 utilisateur actif',
                 other: `${count} utilisateurs actifs`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 membre',
+                other: `${count} membres`,
+            }),
             state: {paid: 'Payé', cleared: 'Compensé', failed: 'Échec', refunded: 'Remboursé', disputed: 'Contesté', balanceTransfer: 'Virement de solde'},
             details: 'Détails du paiement',
             badge: {
@@ -11736,6 +11770,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             billedTo: 'Facturé à',
             activity: 'Activité',
             findActiveUser: 'Rechercher un utilisateur actif',
+            findMember: 'Rechercher un membre',
             viewReceipt: 'Voir le reçu',
             viewInvoice: 'Voir la facture',
         },
@@ -12033,6 +12068,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
         currentView: 'Vue actuelle',
+        currentViewGroupsOnly: 'Vue actuelle (groupes uniquement)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',
