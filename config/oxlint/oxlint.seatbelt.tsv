@@ -41,7 +41,6 @@
 "../../scripts/compareKnipReports.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/createOrUpdateDeployChecklist.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/generateTranslations.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
-"../../scripts/react-compiler-compliance-check.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../scripts/react-compiler-compliance-check.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/sentry/release-adoption-older-than.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/utils/Git.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
