@@ -149,6 +149,7 @@ function buildChartSeries({
         const shortLabel = getShortLabel?.(item);
         const inProgressLabel = getInProgressLabel?.(item);
         const isInProgress = inProgressLabel !== undefined;
+        const isLater = !!isLaterPeriod?.(item);
         const compared = comparison ? getCompared(item) : undefined;
         const bucketLabels = compared?.bucketLabels;
         const primarySeriesLabel = bucketLabels?.seriesLabels.primary;
@@ -169,10 +170,10 @@ function buildChartSeries({
                 },
             }),
             ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal, [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
-            isInProgress: isInProgress || !!isLaterPeriod?.(item),
+            isInProgress: isInProgress || isLater,
         };
 
-        return {row: {point, item}, counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
+        return {row: {point, item}, isEmptyLaterPeriod: isLater && !item.count, counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
     });
 
     /** Builds a point for a compared bucket no current bucket pairs with, like January 31 against February, which only the compared line reaches */
@@ -199,14 +200,16 @@ function buildChartSeries({
             : [];
 
     // Sorted by where each bucket sits in the current period. Stable, so a current bucket stays ahead of a compared one sharing its date.
-    const rows: SearchChartDataRow[] = [...pairedRows, ...unpairedRows]
-        .sort((first, second) => {
-            if (first.sortDate === second.sortDate) {
-                return 0;
-            }
-            return first.sortDate < second.sortDate ? -1 : 1;
-        })
-        .map(({row}) => row);
+    const sortedRows: Array<{row: SearchChartDataRow; isEmptyLaterPeriod?: boolean; sortDate: string}> = [...pairedRows, ...unpairedRows].sort((first, second) => {
+        if (first.sortDate === second.sortDate) {
+            return 0;
+        }
+        return first.sortDate < second.sortDate ? -1 : 1;
+    });
+
+    // Ends the chart at the last period that has expenses or hasn't ended.
+    const lastPlottedIndex = sortedRows.findLastIndex((sortedRow) => !!sortedRow.row.item && !sortedRow.isEmptyLaterPeriod);
+    const rows = sortedRows.filter((sortedRow, index) => index <= lastPlottedIndex || !sortedRow.isEmptyLaterPeriod).map(({row}) => row);
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
 

@@ -459,6 +459,72 @@ describe('buildChartSeries', () => {
         expect(rows.map((row) => row.point.isInProgress)).toEqual([false, true, true]);
         expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026', 'Q3 so far', 'Q4 2026']);
     });
+
+    it('plots empty periods up to today as $0 but leaves out the empty periods after it', () => {
+        // Given an empty finished quarter, an empty quarter in progress, and two later quarters with no expenses yet
+        const data = [1, 2, 3, 4].map((quarter) => ({...quarterGroup(quarter, 0), count: 0}));
+
+        // When the series is built knowing which quarter is in progress and which come later
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
+            getCurrencyDecimals,
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2,
+        });
+
+        // Then the finished and current quarters are real $0s, while the later ones have no data yet, so the line doesn't reach them
+        expect(rows.map((row) => row.point.label)).toEqual(['Q1 2026', 'Q2 2026']);
+        expect(rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 0}, {[CHART_SERIES_KEY.PRIMARY]: 0}]);
+    });
+
+    it('keeps an empty later period that comes before a later period with expenses', () => {
+        // Given two later quarters, where only the last one holds future-dated expenses
+        const data = [quarterGroup(2, 100000), {...quarterGroup(3, 0), count: 0}, quarterGroup(4, 5000)];
+
+        // When the series is built knowing which quarters come later
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
+            getCurrencyDecimals,
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2,
+        });
+
+        // Then Q3 stays as $0, since the line passes through it on its way to Q4
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([1000, 0, 50]);
+    });
+
+    it('leaves out an empty later period along with its compared period', () => {
+        // Given this year in its third quarter with nothing dated later, against last year, which spent in every quarter
+        const rows = [quarterGroup(3, 300000), {...quarterGroup(4, 0), count: 0}];
+        const previousRows = [quarterGroup(3, 30000, 2025), quarterGroup(4, 40000, 2025)];
+
+        // When the two periods are plotted against each other
+        const model = buildChartSeries({
+            data: rows,
+            comparison: {data: previousRows, color: themeColors.green200, periods: {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4,
+        });
+
+        // Then the chart ends at Q3, since this year's Q4 has no data yet to compare last year's against
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300}]);
+    });
 });
 
 describe('getSliceColorsByDataIndex', () => {
