@@ -211,9 +211,17 @@ You can also combine filters with a keyword search for even more precision. For 
 
 **Note**: If no filters are applied, the page defaults to showing all your unreported expenses.
 
+## How to filter by archived workspaces on the Spend page
+
+Archived workspaces appear in the **Workspace** filter. When you have archived workspaces, the filter shows separate **Active** and **Archived** sections. Use **Select all** in either section to filter by all active or all archived workspaces with one selection.
+
+Reports from archived workspaces appear only when you search for them or filter for them on the **Spend** page, and they always rank below reports from active workspaces. To keep working on a report from an archived workspace, select it and use **Change workspace** to move it to an active workspace. You can move several reports at once from the selection bar. [Learn more about archived workspaces](/articles/new-expensify/workspaces/Archive-a-Workspace).
+
 ## How to export from the Spend page
 
 The **Current view** option within the **Export** menu lets you download a CSV of exactly what you're currently seeing on the Spend page—your active filters, column configuration, and ordering are all preserved. The exported file is named `Expensify_<current_view>_<unique id>.csv`. Once you initiate the export, you can choose to wait for the download to finish or have **Concierge** send it to you once it's ready.
+
+Reports from archived workspaces export with the archived workspace name, not a blank workspace name.
 
 For more detail on every export method, see [how to export from the Spend page](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
 

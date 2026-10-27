@@ -46,7 +46,7 @@ The email link doesn't create a duplicate workspace:
 - If you already belong to a workspace where you can submit expenses, no new workspace is created and nothing else about your account changes.
 - If you haven't finished setting up your Expensify account yet, the link takes you through the normal account setup instead, where you can select **Submit expenses to my employer**.
 
-Clicking the link again while you still have the workspace doesn't create a second one. If you delete the workspace and then click the link again, a new Submit workspace is created.
+Clicking the link again while you still have the workspace doesn't create a second one. If you archive the workspace and then click the link again, a new Submit workspace is created.
 
 ## What happens after you create a Submit workspace
 
@@ -195,11 +195,11 @@ If they don't upgrade:
 
 ## Can I downgrade a paid workspace back to a Submit workspace?
 
-No. Once a workspace is upgraded to Collect or Control, it can't be downgraded back to Submit. To use a Submit workspace again, delete the upgraded workspace and create a new Submit workspace.
+No. Once a workspace is upgraded to Collect or Control, it can't be downgraded back to Submit. To use a Submit workspace again, archive the upgraded workspace and create a new Submit workspace.
 
 ## Why do I have a Submit workspace I didn't create?
 
-If you clicked a link in an email from Expensify inviting you to start submitting expenses, a Submit workspace was created for you so you could start submitting right away. There's no cost to keep it. If you don't want it, [learn how to delete a workspace](/articles/new-expensify/workspaces/Delete-a-Workspace). After you delete it, don't click the same email link again — that creates a new Submit workspace.
+If you clicked a link in an email from Expensify inviting you to start submitting expenses, a Submit workspace was created for you so you could start submitting right away. There's no cost to keep it. If you don't want it, [learn how to archive a workspace](/articles/new-expensify/workspaces/Archive-a-Workspace). After you archive it, don't click the same email link again — that creates a new Submit workspace.
 
 ## Why can't I see other members' expenses in my Submit workspace?
 

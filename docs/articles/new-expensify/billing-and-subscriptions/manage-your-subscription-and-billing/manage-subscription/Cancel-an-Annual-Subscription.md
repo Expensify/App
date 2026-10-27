@@ -22,7 +22,7 @@ For more details, see [When You Can Change Your Subscription](/articles/new-expe
 
 Only the Workspace owner can request a cancellation, and only when the workspace is on an **Annual** subscription. **Cancel subscription** appears under **Account > Subscription** after your free trial ends and once a payment card has been added or you've been billed at least once.
 
-If your workspace is already on Pay-per-use, there's no subscription to cancel. To stop billing in that case, delete the workspace instead.
+If your workspace is already on Pay-per-use, there's no subscription to cancel. To stop most billing in that case, archive the workspace instead. You're still billed for activity earlier in the month and for any report a member exports from the archived workspace. [Learn how archiving a workspace affects billing](/articles/new-expensify/workspaces/Archive-a-Workspace#how-archiving-a-workspace-affects-billing).
 
 ---
 
@@ -52,7 +52,12 @@ If your request is approved automatically, you'll see a **Subscription canceled*
 
 Once the Annual subscription is canceled, your workspace continues automatically on **Pay-per-use** and is billed month-to-month. You don't need to take any other action to switch.
 
-Canceling does not stop future charges. As long as the workspace exists, you'll be billed for any active members each month. To prevent all future activity and charges, **delete the workspace**—note that you'll still be billed for any activity already incurred during the current calendar month.
+Canceling does not stop future charges. You'll be billed for any active members each month. To stop most future activity, archive the workspace. Archiving doesn't switch billing off, because Expensify bills for report activity, not for having an active workspace:
+
+- **Pay-per-use subscription:** You're billed only for members who take billable activity that month, such as exporting a report from the archived workspace. Activity from earlier in the month, before you archived the workspace, is still billed.
+- **Collect plan (billed per unique member):** Members of an archived workspace aren't billed unless they take a report action on it, such as exporting a report.
+
+Archiving every workspace doesn't end an Annual subscription. The commitment continues through the end of the term.
 
 ---
 
@@ -76,4 +81,6 @@ No. Canceling only ends the annual commitment. Your workspace, expenses, and rep
 
 ## How do I stop being billed entirely?
 
-Delete the workspace to stop future billing. Canceling an Annual subscription only switches the workspace to Pay-per-use, where monthly charges continue while the workspace remains active.
+Archive the workspace to stop most future activity. Archiving doesn't guarantee that charges stop, because Expensify bills for report activity, not for having an active workspace. Members can still export reports from an archived workspace, and an export counts as billable activity.
+
+Canceling an Annual subscription only switches the workspace to Pay-per-use. If every workspace is archived, your Annual subscription still runs to the end of its term. If you try to switch to pay-per-use before then, you'll see "You can’t downgrade during your annual subscription," with your subscription size and the date you can switch. To switch at the end of the term, disable auto-renew. [Learn how archiving a workspace affects billing](/articles/new-expensify/workspaces/Archive-a-Workspace#how-archiving-a-workspace-affects-billing).

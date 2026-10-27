@@ -37,7 +37,7 @@ These permissions include:
 - Managing the Workspace subscription
 - Resolving billing issues
 - Canceling the subscription
-- Deleting the Workspace
+- Archiving and unarchiving the Workspace
 
 The Workspace owner also receives billing receipts and subscription-related notifications.
 

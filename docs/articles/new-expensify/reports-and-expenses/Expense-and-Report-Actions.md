@@ -65,6 +65,10 @@ Use this guide to understand:
 - Print
 - Mark as exported
 
+**Reports in an archived workspace**
+
+None of the status-change actions, such as Submit, Approve, or Pay, are available on a report in an archived workspace. To take these actions, move the report to an active workspace first. [Learn what actions are available on reports in an archived workspace](/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions#what-actions-are-available-on-reports-in-an-archived-workspace).
+
 ---
 
 ## What actions each role can take

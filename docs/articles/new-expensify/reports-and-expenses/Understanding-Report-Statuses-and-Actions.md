@@ -46,6 +46,21 @@ The grey **More** button is always visible in the report header. Tap it to acces
 - Delete
 - Reject
 
+## What actions are available on reports in an archived workspace
+Reports in an archived workspace are read-only. The workspace name on the report shows **(Archived)**, and the next step reads "Change the report's workspace for further actions."
+
+The **More** menu is limited to:
+
+- Export (excluding accounting exports)
+- Duplicate report
+- Duplicate expense
+- Download report (PDF)
+- Print
+- Change workspace
+- View details
+
+Actions that create, split, or change the status of a report are hidden, and **Pay** is disabled. **Duplicate report** and **Duplicate expense** create the copy in your current default workspace. To take any other action, move the report to an active workspace with **More > Change workspace**. [Learn more about archived workspaces](/articles/new-expensify/workspaces/Archive-a-Workspace).
+
 ---
 
 # Context-Specific Buttons

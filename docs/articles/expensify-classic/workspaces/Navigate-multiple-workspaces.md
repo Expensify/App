@@ -18,6 +18,8 @@ Setting a default workspace ensures that new expenses and reports are automatica
 2. Click the **Group** tab on the left.  
 3. To the right of the desired workspace, click **Make Default**, or click the settings icon and select **Make Default**.  
 
+**Note:** You can't set an archived workspace as your default workspace.
+
 ## Submit a Report on a Different Workspace
 
 **If you need to submit a report on a workspace other than your default workspace:**

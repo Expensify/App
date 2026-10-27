@@ -102,7 +102,7 @@ Learn more about [Insights](/articles/new-expensify/insights/Learn-About-Insight
 
 ## What the Workspaces tab is used for
 
-The **Workspaces** tab displays all workspaces you are a member of. 
+The **Workspaces** tab displays all active workspaces you are a member of. Billing owners, workspace admins, and auditors can also find archived workspaces with the **Archived** filter. 
 
 Workspace admins can open a workspace to manage workspace-level settings.
 
