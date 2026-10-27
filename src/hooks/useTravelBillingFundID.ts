@@ -7,8 +7,6 @@ import type {ExpensifyCardSettings} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useDefaultFundID from './useDefaultFundID';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
@@ -42,10 +40,7 @@ function useTravelBillingFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [workspaceCardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
 
-    const linkedFundSelector = useCallback(
-        (cardSettings: OnyxCollection<ExpensifyCardSettings>) => findLinkedTravelBillingFundID(cardSettings, policyID, workspaceAccountID),
-        [policyID, workspaceAccountID],
-    );
+    const linkedFundSelector = (cardSettings: OnyxCollection<ExpensifyCardSettings>) => findLinkedTravelBillingFundID(cardSettings, policyID, workspaceAccountID);
     const [linkedFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {selector: linkedFundSelector});
 
     if (linkedFundID) {
