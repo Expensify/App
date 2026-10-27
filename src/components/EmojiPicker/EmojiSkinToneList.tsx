@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
@@ -26,9 +26,9 @@ function EmojiSkinToneList() {
     const {translate} = useLocalize();
     const [preferredSkinTone, setPreferredSkinTone] = usePreferredEmojiSkinTone();
 
-    const toggleIsSkinToneListVisible = useCallback(() => {
+    const toggleIsSkinToneListVisible = () => {
         setIsSkinToneListVisible((prev) => !prev);
-    }, []);
+    };
 
     /**
      * Set the preferred skin tone in Onyx and close the skin tone picker

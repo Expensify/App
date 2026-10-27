@@ -374,6 +374,28 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
     });
 
+    it('redirects the old Wallet global reimbursements intro path to its dynamic route', () => {
+        // Given a link to the intro page saved before it became a dynamic route, keyed by bank account ID
+        const oldRoute = '/settings/wallet/123/global-reimbursements';
+
+        // When the old link is resolved
+        const newRoute = getMatchingNewRoute(oldRoute);
+
+        // Then it lands on the dynamic suffix appended to Wallet, so back navigation still returns to Wallet
+        expect(newRoute).toBe('/settings/wallet/global-reimbursements/123');
+    });
+
+    it('does not redirect the dynamic global reimbursements intro route', () => {
+        // Given the new dynamic intro path, whose segment order differs from the old pattern
+        const newRoute = '/settings/wallet/global-reimbursements/123';
+
+        // When it is resolved against the old routes
+        const matchedRoute = getMatchingNewRoute(newRoute);
+
+        // Then nothing matches, so it is not rewritten in a loop
+        expect(matchedRoute).toBe(undefined);
+    });
+
     describe('redirects old enable-payments substeps to their new routes', () => {
         const enablePaymentsCases = [
             {oldRoute: '/settings/wallet/enable-payments/plaid', expectedRoute: '/settings/wallet/enable-payments/add-bank-account/plaid'},
@@ -711,5 +733,78 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/789/scan')).toBe(undefined);
         // A 5-segment waypoint URL (no pageIndex) is not a valid legacy waypoint route either.
         expect(getMatchingNewRoute('/create/submit/waypoint/123/456')).toBe(undefined);
+    });
+
+    it('redirects the legacy personal card edit links to their dynamic routes', () => {
+        // Given links saved before these screens became dynamic routes
+        // When they are opened
+        // Then they land on the dynamic route with the wallet as the base
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/name')).toBe('/settings/wallet/personal-card/123/edit-card-name');
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit/transaction-start-date')).toBe('/settings/wallet/personal-card/123/edit-transaction-start-date');
+    });
+
+    it('redirects the legacy signer info link onto Home and keeps its query', () => {
+        // Given a signer info link that put Home under the form before it became a dynamic route
+        // When it is opened
+        // Then it keeps Home as the base, and the policy and bank account params survive
+        expect(getMatchingNewRoute('/bank-account/enter-signer-info?policyID=A&bankAccountID=2&isCompleted=false')).toBe(
+            '/home/enter-signer-info?policyID=A&bankAccountID=2&isCompleted=false',
+        );
+        expect(getMatchingNewRoute('/bank-account/enter-signer-info/job-title?policyID=A&bankAccountID=2&isCompleted=false')).toBe(
+            '/home/enter-signer-info/job-title?policyID=A&bankAccountID=2&isCompleted=false',
+        );
+    });
+
+    it('does not redirect the wallet bank account links or the new dynamic routes', () => {
+        // Given the bank account links, which kept their URLs when they became dynamic routes, and URLs already on the dynamic routes
+        // When they are matched against the legacy patterns
+        // Then none of them is rewritten
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account/entry-point')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/add-us-bank-account')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/personal-card/123/edit-card-name')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/1/enter-signer-info/name?policyID=A')).toBe(undefined);
+    });
+
+    it('redirects legacy Expensify Card child links onto the card suffixes', () => {
+        // Given card child links from before the children became dynamic routes, which carried the card only once
+        // When they are opened
+        // Then the card stays the page's base and the child acts on the same card
+        expect(getMatchingNewRoute('/settings/wallet/card/123/activate')).toBe('/settings/wallet/card/123/activate/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/confirm-validate-code')).toBe('/settings/wallet/card/123/reveal-validate-code/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/change-pin')).toBe('/settings/wallet/card/123/change-pin/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud')).toBe('/settings/wallet/card/123/report-virtual-fraud/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud/verify-account')).toBe('/settings/wallet/card/123/report-virtual-fraud/123/fraud-validate-code');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud-confirm')).toBe('/settings/wallet/card/123/report-virtual-fraud-confirm/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged')).toBe('/settings/wallet/card/123/report-card-lost-or-damaged/123');
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged/stolen/confirm-validate-code')).toBe(
+            '/settings/wallet/card/123/report-card-lost-or-damaged/123/replace-validate-code/stolen',
+        );
+    });
+
+    it('does not redirect the Expensify Card child routes already on their suffixes', () => {
+        // Given card child URLs already in the dynamic shape
+        // When they are matched against the legacy patterns
+        // Then none of them is rewritten again
+        expect(getMatchingNewRoute('/settings/wallet/card/123/activate/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-virtual-fraud/123')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/card/123/report-card-lost-or-damaged/123/replace-validate-code/stolen')).toBe(undefined);
+        expect(getMatchingNewRoute('/settings/wallet/card/123/change-pin-atm')).toBe(undefined);
+    });
+
+    it('redirects bookmarked travel-invoicing accounting pages to their travel-billing paths', () => {
+        // Given bookmarks saved while the Consolidated Travel Billing pages used travel-invoicing paths
+        const staticPath = '/workspaces/ABC/accounting/netsuite/export/travel-invoicing/journal-posting-preference';
+        const nestedDynamicPath = '/workspaces/ABC/accounting/xero/export/xero-travel-invoicing/xero-travel-invoicing-payable-account';
+        const advancedPath = '/workspaces/ABC/accounting/campfire/advanced/travel-invoicing-payable-account?backTo=/home';
+
+        // When the old paths are opened
+        const redirects = [staticPath, nestedDynamicPath, advancedPath].map(getMatchingNewRoute);
+
+        // Then each lands on the renamed page, keeping the workspace and any query
+        expect(redirects).toEqual([
+            '/workspaces/ABC/accounting/netsuite/export/travel-billing/journal-posting-preference',
+            '/workspaces/ABC/accounting/xero/export/xero-travel-billing/xero-travel-billing-payable-account',
+            '/workspaces/ABC/accounting/campfire/advanced/travel-billing-payable-account?backTo=/home',
+        ]);
     });
 });

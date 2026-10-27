@@ -1,3 +1,4 @@
+import Banner from '@components/Banner';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -20,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import Tab from '@libs/actions/Tab';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -60,7 +62,7 @@ function isAgentRuleTab(key: string): key is AgentRuleTab {
 
 function AddAgentRulePage({
     route: {
-        params: {policyID},
+        params: {policyID, generationID},
     },
 }: AddAgentRulePageProps) {
     const {translate} = useLocalize();
@@ -72,9 +74,21 @@ function AddAgentRulePage({
     const [activeTab, setActiveTab] = useState<AgentRuleTab>(CONST.TAB.AGENT_RULE.SUGGESTIONS);
     const [activeTabPolicyID, setActiveTabPolicyID] = useState(policyID);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT);
-    const tabIcons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil']);
+    const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
+    const icons = useMemoizedLazyExpensifyIcons(['Feed', 'Pencil', 'Info']);
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
+    const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestedAgentRule>();
+    const isDraftFromFallback = !!generationID && !selectedSuggestion;
+    const fallbackExplanation = generatedRule?.generationID === generationID ? generatedRule?.explanation : undefined;
+
+    // The draft can load after the first render. Open Write one time only, because the admin must still be able to go
+    // to Suggestions.
+    const [didOpenTabForDraft, setDidOpenTabForDraft] = useState(false);
+    if (!didOpenTabForDraft && hasDraftPrompt) {
+        setDidOpenTabForDraft(true);
+        setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
+    }
 
     // Reset the active tab to Suggestions when the workspace changes.
     if (activeTabPolicyID !== policyID) {
@@ -103,12 +117,12 @@ function AddAgentRulePage({
         {
             key: CONST.TAB.AGENT_RULE.SUGGESTIONS,
             title: translate('workspace.rules.agentRules.suggestionsTab'),
-            icon: tabIcons.Feed,
+            icon: icons.Feed,
         },
         {
             key: CONST.TAB.AGENT_RULE.WRITE,
             title: translate('workspace.rules.agentRules.writeTab'),
-            icon: tabIcons.Pencil,
+            icon: icons.Pencil,
         },
     ];
 
@@ -117,6 +131,7 @@ function AddAgentRulePage({
             return;
         }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
+        setSelectedSuggestion(suggestion);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
     };
 
@@ -128,7 +143,7 @@ function AddAgentRulePage({
     };
 
     const handleBackButtonPress = () => {
-        if (activeTab === CONST.TAB.AGENT_RULE.WRITE) {
+        if (!isDraftFromFallback && activeTab === CONST.TAB.AGENT_RULE.WRITE) {
             setActiveTab(CONST.TAB.AGENT_RULE.SUGGESTIONS);
             return;
         }
@@ -144,8 +159,14 @@ function AddAgentRulePage({
         // When the workspace has no agent rules yet, the backend creates the "RuleBot" agent and adds it as
         // an admin. Surface a one-time modal explaining this side effect before navigating back.
         const isFirstRule = isEmptyObject(policy?.rules?.agentRules);
+        const agentRuleID = rand64();
+        const prompt = values[INPUT_IDS.PROMPT];
+        const title = selectedSuggestion?.title;
         suppressDiscardPrompt();
-        addPolicyAgentRule(policyID, rand64(), values[INPUT_IDS.PROMPT]);
+        addPolicyAgentRule(policyID, agentRuleID, prompt, title);
+        if (isDraftFromFallback) {
+            Log.info('[GenerateRule] Saved agent rule from fallback', false, {policyID, generationID, agentRuleID});
+        }
         clearDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM);
         if (!isFirstRule) {
             navigateBackToAgentsTab();
@@ -233,7 +254,24 @@ function AddAgentRulePage({
                             onSelectSuggestion={selectSuggestion}
                         />
                     </View>
-                    {activeTab === CONST.TAB.AGENT_RULE.WRITE && <AddAgentRuleWriteTab onSave={saveRule} />}
+                    {activeTab === CONST.TAB.AGENT_RULE.WRITE && (
+                        <>
+                            {isDraftFromFallback && (
+                                <Banner
+                                    text={
+                                        fallbackExplanation
+                                            ? translate('workspace.rules.agentRules.fallbackBannerWithExplanation', fallbackExplanation)
+                                            : translate('workspace.rules.agentRules.fallbackBanner')
+                                    }
+                                    icon={icons.Info}
+                                    shouldShowIcon
+                                    containerStyles={[styles.mh5, styles.mb3, styles.p4, styles.br3]}
+                                    textStyles={[styles.breakWord, styles.textSupporting]}
+                                />
+                            )}
+                            <AddAgentRuleWriteTab onSave={saveRule} />
+                        </>
+                    )}
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -13,7 +13,8 @@ import {error as logError, warn as logWarn} from './Logger';
 
 type ExecOptions = Omit<ExecWithCallbackOptions, 'encoding'> & {cwd?: ExecWithCallbackOptions['cwd']};
 function exec(command: string, options?: ExecOptions) {
-    const optionsWithEncoding = {
+    // The explicit encoding type selects the overload that resolves stdout and stderr as strings.
+    const optionsWithEncoding: ExecWithCallbackOptions & {encoding: BufferEncoding} = {
         encoding: 'utf8',
         cwd: process.cwd(),
         ...options,

@@ -1,4 +1,3 @@
-import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
@@ -6,15 +5,10 @@ import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperW
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -48,18 +42,6 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
 const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
-
-const expenseReportSelector = (reports: OnyxCollection<Report>) => {
-    return Object.fromEntries(
-        Object.entries(reports ?? {}).map(([key, report]) => [
-            key,
-            {
-                reportID: report?.reportID,
-                type: report?.type,
-            },
-        ]),
-    );
-};
 
 // Function to add a Wide/Super Wide RHP route key to the array including wide/super wide RHP route keys
 function showWideRHPRoute(route: NavigationRoute, setAllRHPRouteKeys: React.Dispatch<React.SetStateAction<string[]>>) {
@@ -108,11 +90,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [superWideRHPRouteKeys, setSuperWideRHPRouteKeys] = useState<string[]>([]);
 
     // A reportID maps to at most one hint, making "wide vs super-wide" structurally mutually exclusive.
-    const [reportRHPWidthHints, setReportRHPWidthHints] = useState<Map<string, RHPWidthHint>>(() => new Map());
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: expenseReportSelector,
-    });
+    // A ref, not state: hints are only read in effects, and state would hand every useWideRHPActions consumer new actions on each row press.
+    const reportRHPWidthHintsRef = useRef(new Map<string, RHPWidthHint>());
 
     const isWideRHPClosingRef = useRef(false);
     const isSuperWideRHPClosingRef = useRef(false);
@@ -145,12 +124,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const {isWideRHPBelow, isSuperWideRHPBelow} = getIsRHPDisplayedBelow(focusedRoute?.key, allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
 
     // Updates the Wide RHP visible keys table from the all keys table
-    const syncRHPKeys = useCallback(() => {
+    const syncRHPKeys = () => {
         const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
         setWideRHPRouteKeys(visibleWideRHPRouteKeys);
         setSuperWideRHPRouteKeys(visibleSuperWideRHPRouteKeys);
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
+    };
 
     const clearWideRHPKeys = () => {
         setWideRHPRouteKeys([]);
@@ -217,26 +196,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     /**
      * Sets an optimistic width hint for a reportID before its screen renders, so the right width is
-     * registered on first paint. Invoices and tasks are excluded from the 'wide' hint.
+     * registered on first paint. useRHPWidth ignores a 'wide' hint for invoices and tasks.
      */
     const markReportRHPWidth = (reportID: string | undefined, width: RHPWidthHint) => {
         if (!reportID) {
             return;
         }
-        if (width === 'wide') {
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            if (report?.type === CONST.REPORT.TYPE.INVOICE || report?.type === CONST.REPORT.TYPE.TASK) {
-                return;
-            }
-        }
-        setReportRHPWidthHints((prev) => {
-            if (prev.get(reportID) === width) {
-                return prev;
-            }
-            const next = new Map(prev);
-            next.set(reportID, width);
-            return next;
-        });
+        reportRHPWidthHintsRef.current.set(reportID, width);
     };
 
     /**
@@ -244,21 +210,13 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * current hint; omit to clear unconditionally. Called when a report no longer qualifies for a hint.
      */
     const unmarkReportRHPWidth = (reportID: string, width?: RHPWidthHint) => {
-        setReportRHPWidthHints((prev) => {
-            const current = prev.get(reportID);
-            if (current === undefined) {
-                return prev;
-            }
-            if (width !== undefined && current !== width) {
-                return prev;
-            }
-            const next = new Map(prev);
-            next.delete(reportID);
-            return next;
-        });
+        if (width !== undefined && reportRHPWidthHintsRef.current.get(reportID) !== width) {
+            return;
+        }
+        reportRHPWidthHintsRef.current.delete(reportID);
     };
 
-    const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => reportRHPWidthHints.get(reportID);
+    const getReportRHPWidthHint = (reportID: string): RHPWidthHint | undefined => reportRHPWidthHintsRef.current.get(reportID);
 
     /**
      * Effect that handles responsive RHP width calculation when window dimensions change.
@@ -340,5 +298,6 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    WideRHPStateContext,
 };
 export type {RHPWidth} from './types';
