@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {useContext, useMemo} from 'react';
+import {useContext} from 'react';
 import {StyleSheet} from 'react-native';
 
 import useNetwork from './useNetwork';
@@ -45,52 +45,41 @@ function useBottomSafeSafeAreaPaddingStyle({
     const {isOffline} = useNetwork();
     const {addSafeAreaPadding: isOfflineIndicatorSafeAreaPaddingEnabled} = useContext(ScreenWrapperOfflineIndicatorContext);
 
-    return useMemo<StyleProp<ViewStyle>>(() => {
-        let totalPaddingBottom: number | string = additionalPaddingBottom;
+    let totalPaddingBottom: number | string = additionalPaddingBottom;
 
-        // Add the safe area padding to the total padding if the flag is enabled
-        if (addBottomSafeAreaPadding) {
-            totalPaddingBottom += safeAreaPaddingBottom;
-        }
+    // Add the safe area padding to the total padding if the flag is enabled
+    if (addBottomSafeAreaPadding) {
+        totalPaddingBottom += safeAreaPaddingBottom;
+    }
 
-        if (addOfflineIndicatorBottomSafeAreaPadding && isOffline && isOfflineIndicatorSafeAreaPaddingEnabled) {
-            totalPaddingBottom += CONST.OFFLINE_INDICATOR_HEIGHT;
-        }
+    if (addOfflineIndicatorBottomSafeAreaPadding && isOffline && isOfflineIndicatorSafeAreaPaddingEnabled) {
+        totalPaddingBottom += CONST.OFFLINE_INDICATOR_HEIGHT;
+    }
 
-        // If there is no bottom safe area or additional padding, return the style as is
-        if (totalPaddingBottom === 0) {
+    // If there is no bottom safe area or additional padding, return the style as is
+    if (totalPaddingBottom === 0) {
+        return style;
+    }
+
+    // If a style is provided, flatten the style and add the padding to it
+    if (style) {
+        const contentContainerStyleFlattened = StyleSheet.flatten(style);
+        const styleBottomSafeAreaPadding = contentContainerStyleFlattened?.[styleProperty];
+
+        if (typeof styleBottomSafeAreaPadding === 'number') {
+            totalPaddingBottom += styleBottomSafeAreaPadding;
+        } else if (typeof styleBottomSafeAreaPadding === 'string') {
+            totalPaddingBottom = `calc(${totalPaddingBottom}px + ${styleBottomSafeAreaPadding})`;
+        } else if (styleBottomSafeAreaPadding !== undefined) {
             return style;
         }
 
-        // If a style is provided, flatten the style and add the padding to it
-        if (style) {
-            const contentContainerStyleFlattened = StyleSheet.flatten(style);
-            const styleBottomSafeAreaPadding = contentContainerStyleFlattened?.[styleProperty];
+        // The user of this hook can decide which style property to use for applying the padding.
+        return [style, {[styleProperty]: totalPaddingBottom}];
+    }
 
-            if (typeof styleBottomSafeAreaPadding === 'number') {
-                totalPaddingBottom += styleBottomSafeAreaPadding;
-            } else if (typeof styleBottomSafeAreaPadding === 'string') {
-                totalPaddingBottom = `calc(${totalPaddingBottom}px + ${styleBottomSafeAreaPadding})`;
-            } else if (styleBottomSafeAreaPadding !== undefined) {
-                return style;
-            }
-
-            // The user of this hook can decide which style property to use for applying the padding.
-            return [style, {[styleProperty]: totalPaddingBottom}];
-        }
-
-        // If no style is provided, return the padding as an object
-        return {paddingBottom: totalPaddingBottom};
-    }, [
-        additionalPaddingBottom,
-        addBottomSafeAreaPadding,
-        addOfflineIndicatorBottomSafeAreaPadding,
-        isOffline,
-        isOfflineIndicatorSafeAreaPaddingEnabled,
-        style,
-        safeAreaPaddingBottom,
-        styleProperty,
-    ]);
+    // If no style is provided, return the padding as an object
+    return {paddingBottom: totalPaddingBottom};
 }
 
 export default useBottomSafeSafeAreaPaddingStyle;

@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyDistanceRateNameEditForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 type PolicyDistanceRateNameEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_NAME_EDIT>;
@@ -46,39 +46,33 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
     const rate = customUnit?.rates[rateID];
     const currentRateName = rate?.name;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM> = {};
-            const existingRateNames = Object.values(customUnit?.rates ?? {}).map((existingRate) => existingRate.name ?? '');
-            // The input starts from the name without the hidden date suffix, so check the full name that will be saved
-            const nameToSave = rate ? DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(values.rateName)) : values.rateName;
-            const nameError = getDistanceRateNameError(existingRateNames, nameToSave, currentRateName);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM> = {};
+        const existingRateNames = Object.values(customUnit?.rates ?? {}).map((existingRate) => existingRate.name ?? '');
+        // The input starts from the name without the hidden date suffix, so check the full name that will be saved
+        const nameToSave = rate ? DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(values.rateName)) : values.rateName;
+        const nameError = getDistanceRateNameError(existingRateNames, nameToSave, currentRateName);
 
-            if (nameError) {
-                errors.rateName = getDistanceRateNameErrorMessage(translate, nameError, nameToSave);
-            }
+        if (nameError) {
+            errors.rateName = getDistanceRateNameErrorMessage(translate, nameError, nameToSave);
+        }
 
-            return errors;
-        },
-        [customUnit?.rates, currentRateName, rate, translate],
-    );
+        return errors;
+    };
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM>) => {
-            if (!customUnit || !rate) {
-                return;
-            }
-            const nameToSave = DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(values.rateName));
-            if (currentRateName === nameToSave) {
-                Navigation.goBack();
-                return;
-            }
-            updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: nameToSave}]);
-            Keyboard.dismiss();
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM>) => {
+        if (!customUnit || !rate) {
+            return;
+        }
+        const nameToSave = DistanceRequestUtils.getRateNameWithDateSuffix(rate, StringUtils.sanitizeName(values.rateName));
+        if (currentRateName === nameToSave) {
             Navigation.goBack();
-        },
-        [currentRateName, customUnit, rate, policyID],
-    );
+            return;
+        }
+        updatePolicyDistanceRateName(policyID, customUnit, [{...rate, name: nameToSave}]);
+        Keyboard.dismiss();
+        Navigation.goBack();
+    };
 
     if (!rate) {
         return <NotFoundPage />;

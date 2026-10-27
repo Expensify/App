@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import type {CellRendererProps, ListRenderItemInfo} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 
-import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
@@ -97,7 +97,7 @@ function AttachmentCarouselView({
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
-    // FlatList requires a stable viewability callback, so keep the current selection available without adding it to the callback's dependencies.
+    // Keep the current selection available to viewability callbacks without waiting for a render.
     const activeAttachmentIDRef = useRef(activeAttachmentID);
 
     const scrollRef = useAnimatedRef<FlatList<Attachment>>();
@@ -107,79 +107,65 @@ function AttachmentCarouselView({
     const [cellWidth, setCellWidth] = useState(0);
 
     /** Updates the page state when the user navigates between attachments */
-    const updatePage = useCallback(
-        ({viewableItems}: UpdatePageProps) => {
-            if (isFullScreenRef.current) {
-                return;
-            }
+    const updatePage = ({viewableItems}: UpdatePageProps) => {
+        if (isFullScreenRef.current) {
+            return;
+        }
 
-            // During a resize Safari can expose several old-width cells at once.
-            // A still-visible selected attachment is not a navigation request.
-            if (viewableItems.some((entry) => (entry.item.attachmentID ?? entry.item.source) === activeAttachmentIDRef.current)) {
-                return;
-            }
-            const entry = viewableItems.at(0);
-            // Resizing or scrolling between pages can temporarily leave no item above the visibility threshold.
-            // Keep the current attachment mounted until another attachment becomes viewable.
-            if (!entry || entry.index == null) {
-                return;
-            }
+        // During a resize Safari can expose several old-width cells at once.
+        // A still-visible selected attachment is not a navigation request.
+        if (viewableItems.some((entry) => (entry.item.attachmentID ?? entry.item.source) === activeAttachmentIDRef.current)) {
+            return;
+        }
+        const entry = viewableItems.at(0);
+        // Resizing or scrolling between pages can temporarily leave no item above the visibility threshold.
+        // Keep the current attachment mounted until another attachment becomes viewable.
+        if (!entry || entry.index == null) {
+            return;
+        }
 
-            const item = entry.item;
-            const nextAttachmentID = item.attachmentID ?? item.source;
-            if (activeAttachmentIDRef.current === nextAttachmentID) {
-                return;
-            }
+        const item = entry.item;
+        const nextAttachmentID = item.attachmentID ?? item.source;
+        if (activeAttachmentIDRef.current === nextAttachmentID) {
+            return;
+        }
 
-            Keyboard.dismiss();
-            activeAttachmentIDRef.current = nextAttachmentID;
-            setPage(entry.index);
-            setActiveAttachmentID(nextAttachmentID);
+        Keyboard.dismiss();
+        activeAttachmentIDRef.current = nextAttachmentID;
+        setPage(entry.index);
+        setActiveAttachmentID(nextAttachmentID);
 
-            if (onNavigate) {
-                onNavigate(item);
-            }
-        },
-        [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
-    );
+        if (onNavigate) {
+            onNavigate(item);
+        }
+    };
 
     /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
-    const cycleThroughAttachments = useCallback(
-        (deltaSlide: number) => {
-            if (isFullScreen) {
-                return false;
-            }
+    const cycleThroughAttachments = (deltaSlide: number) => {
+        if (isFullScreen) {
+            return false;
+        }
 
-            const nextIndex = page + deltaSlide;
-            const nextItem = attachments.at(nextIndex);
+        const nextIndex = page + deltaSlide;
+        const nextItem = attachments.at(nextIndex);
 
-            if (!nextItem || nextIndex < 0 || !scrollRef.current) {
-                return false;
-            }
+        if (!nextItem || nextIndex < 0 || !scrollRef.current) {
+            return false;
+        }
 
-            scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
-            return true;
-        },
-        [attachments, canUseTouchScreen, isFullScreen, page, scrollRef],
-    );
+        scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+        return true;
+    };
 
-    const extractItemKey = useCallback(
-        (item: Attachment) =>
-            !!item.attachmentID || (typeof item.source !== 'string' && typeof item.source !== 'number')
-                ? `attachmentID-${item.attachmentID}`
-                : `source-${item.source}|${item.attachmentLink}`,
-        [],
-    );
+    const extractItemKey = (item: Attachment) =>
+        !!item.attachmentID || (typeof item.source !== 'string' && typeof item.source !== 'number') ? `attachmentID-${item.attachmentID}` : `source-${item.source}|${item.attachmentLink}`;
 
     /** Calculate items layout information to optimize scrolling performance */
-    const getItemLayout = useCallback(
-        (data: ArrayLike<Attachment> | null | undefined, index: number) => ({
-            length: cellWidth,
-            offset: cellWidth * index,
-            index,
-        }),
-        [cellWidth],
-    );
+    const getItemLayout = (data: ArrayLike<Attachment> | null | undefined, index: number) => ({
+        length: cellWidth,
+        offset: cellWidth * index,
+        index,
+    });
 
     /** Pan gesture handling swiping through attachments on touch screen devices */
     const pan = usePanGesture({
@@ -218,42 +204,33 @@ function AttachmentCarouselView({
         },
     });
 
-    const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
-        () => ({
-            pagerItems: [{source, index: 0, isActive: true}],
-            activePage: 0,
-            pagerRef: scrollRef,
-            pagerGesture: pan,
-            isPagerScrolling,
-            isScrollEnabled,
-        }),
-        [source, scrollRef, pan, isPagerScrolling, isScrollEnabled],
-    );
+    const stateValue: AttachmentCarouselPagerStateContextType = {
+        pagerItems: [{source, index: 0, isActive: true}],
+        activePage: 0,
+        pagerRef: scrollRef,
+        pagerGesture: pan,
+        isPagerScrolling,
+        isScrollEnabled,
+    };
 
-    const actionsValue = useMemo<AttachmentCarouselPagerActionsContextType>(
-        () => ({
-            onTap: handleTap,
-            onScaleChanged: handleScaleChange,
-            onSwipeDown,
-            onAttachmentError,
-        }),
-        [handleTap, handleScaleChange, onSwipeDown, onAttachmentError],
-    );
+    const actionsValue: AttachmentCarouselPagerActionsContextType = {
+        onTap: handleTap,
+        onScaleChanged: handleScaleChange,
+        onSwipeDown,
+        onAttachmentError,
+    };
 
     /** Defines how a single attachment should be rendered */
-    const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<Attachment>) => (
-            <View style={[styles.h100, {width: cellWidth}]}>
-                <CarouselItem
-                    item={item}
-                    isFocused={activeAttachmentID === (item.attachmentID ?? item.source)}
-                    onPress={canUseTouchScreen ? handleTap : undefined}
-                    isModalHovered={shouldShowArrows}
-                    reportID={report?.reportID}
-                />
-            </View>
-        ),
-        [activeAttachmentID, canUseTouchScreen, cellWidth, handleTap, report?.reportID, shouldShowArrows, styles.h100],
+    const renderItem = ({item}: ListRenderItemInfo<Attachment>) => (
+        <View style={[styles.h100, {width: cellWidth}]}>
+            <CarouselItem
+                item={item}
+                isFocused={activeAttachmentID === (item.attachmentID ?? item.source)}
+                onPress={canUseTouchScreen ? handleTap : undefined}
+                isModalHovered={shouldShowArrows}
+                reportID={report?.reportID}
+            />
+        </View>
     );
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes

@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {LayoutChangeEvent} from 'react-native';
 
@@ -34,7 +34,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     const {hasPhoneNumberLogin, isPhoneNumberLoaded} = useHasPhoneNumberLogin();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
-    const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}`;
+    const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(buildDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path))}`;
     const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(buildDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path))}`;
 
     if (!isLastMobileAppLoginLoaded || !isPhoneNumberLoaded) {
