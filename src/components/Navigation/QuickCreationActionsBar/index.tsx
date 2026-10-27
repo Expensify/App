@@ -104,12 +104,12 @@ function QuickCreationActionsBar() {
     const handleExpense = () =>
         interceptAnonymousUser(() => {
             startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-        });
+        }, session);
 
     const handleDistance = () =>
         interceptAnonymousUser(() => {
             startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
-        });
+        }, session);
 
     const handleBookTravel = () =>
         interceptAnonymousUser(() => {
@@ -122,7 +122,7 @@ function QuickCreationActionsBar() {
                 return;
             }
             Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
-        });
+        }, session);
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>

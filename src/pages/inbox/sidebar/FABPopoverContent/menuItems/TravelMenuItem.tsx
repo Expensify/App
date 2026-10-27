@@ -24,6 +24,7 @@ import React from 'react';
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 
 function TravelMenuItem() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -67,7 +68,7 @@ function TravelMenuItem() {
             title={translate('travel.bookTravel')}
             iconRight={isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined}
             shouldShowRightIcon={!!(isTravelEnabled && shouldOpenTravelDotLinkWeb())}
-            onPress={() => interceptAnonymousUser(() => openTravel())}
+            onPress={() => interceptAnonymousUser(() => openTravel(), session)}
         />
     );
 }
