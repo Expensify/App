@@ -137,14 +137,14 @@ function BaseValidateCodeForm({
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
     const isFirstCountdownRunRef = useRef(true);
 
-    const clearDefaultValidationCodeError = useCallback(() => {
+    const clearDefaultValidationCodeError = () => {
         // Clear "Failed to send validateCode" error
 
         if (isEmptyObject(defaultValidateCodeError)) {
             return;
         }
         clearValidateCodeActionError('actionVerified');
-    }, [defaultValidateCodeError]);
+    };
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -263,26 +263,23 @@ function BaseValidateCodeForm({
     /**
      * Handle text input and clear formError upon text change
      */
-    const onTextInput = useCallback(
-        (text: string) => {
-            setValidateCode(text);
-            setFormError({});
+    const onTextInput = (text: string) => {
+        setValidateCode(text);
+        setFormError({});
 
-            if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
-                // Clear flow specific error
-                clearError();
+        if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
+            // Clear flow specific error
+            clearError();
 
-                // Clear "incorrect validateCode code" error
-                clearValidateCodeActionError(validateCodeActionErrorField);
-            }
-        },
-        [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
-    );
+            // Clear "incorrect validateCode code" error
+            clearValidateCodeActionError(validateCodeActionErrorField);
+        }
+    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         // Clear flow specific error
         clearError();
 
@@ -303,7 +300,7 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError, clearDefaultValidationCodeError]);
+    };
 
     // Only this form's own input validation goes under the input. Server errors from the flow are shown above the submit button, and `account.errors` belongs to sign-in, so a
     // stale sign-in error would otherwise show up here in an unrelated flow.
@@ -311,9 +308,9 @@ function BaseValidateCodeForm({
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
-    const handleCountdownFinish = useCallback(() => {
+    const handleCountdownFinish = () => {
         setIsCountdownRunning(false);
-    }, []);
+    };
 
     // latestValidateCodeError only holds an error related to bad validateCode
     // while validateError holds flow-specific errors

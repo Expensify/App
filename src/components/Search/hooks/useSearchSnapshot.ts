@@ -23,8 +23,6 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useLiveFilteredReportActions from './useLiveFilteredReportActions';
 import useOptimisticSearchTracking from './useOptimisticSearchTracking';
 import useSearchColumnsToShow from './useSearchColumnsToShow';
@@ -91,6 +89,36 @@ type UseSearchSnapshotParams = {
 const EMPTY_DATA: SearchListItem[] = [];
 const EMPTY_HASHES: string[] = [];
 const EMPTY_GROUP_ITEMS: TransactionGroupListItemType[] = [];
+
+type SearchSectionData = {
+    baseFilteredData: SearchListItem[];
+    filteredDataLength: number;
+    allDataLength: number;
+    hasDeletedTransaction: boolean;
+};
+
+function useSearchSections(options: Parameters<typeof getSections>[0] | undefined): SearchSectionData {
+    // This projection has no other hooks, so opt it into compilation explicitly.
+    'use memo';
+
+    if (!options) {
+        return {baseFilteredData: EMPTY_DATA, filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
+    }
+
+    const [filtered, allDataLength, hasDeletedTransaction] = getSections(options);
+    return {baseFilteredData: filtered as SearchListItem[], filteredDataLength: filtered.length, allDataLength, hasDeletedTransaction};
+}
+
+function useSortedSearchSections(shouldComputeSections: boolean, hash: number, sortArgs: Parameters<typeof getSortedSections>): SearchListItem[] {
+    // The hook boundary keeps projection results immutable for the downstream optimistic-state hook.
+    'use memo';
+
+    if (!shouldComputeSections) {
+        return EMPTY_DATA;
+    }
+
+    return getSortedSections(...sortArgs).map((item) => (item.hash === hash ? item : {...item, hash}));
+}
 
 /** How many leading rows the cap keeps: `rowLimit` rows on screen, stretched down to the last ticked row. */
 function getRowLimitEnd(rows: SearchListItem[], rowLimit: number, selectedTransactions: SelectedTransactions | undefined, isOffline: boolean): number {
@@ -193,178 +221,101 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
         !shouldDeferHeavySearchWork && searchResults !== undefined && isDataLoaded && !!searchDataWithOptimisticTransaction && !(validGroupBy && (isChat || isTask));
 
     // Stage 1: base sections from the (optimistically augmented) snapshot.
-    // Memoized explicitly: React Compiler caches the inline callbacks of these projection stages but NOT
-    // the getSections/getSortedSections/getColumnsToShow call results themselves, so without useMemo each
-    // stage returns a fresh array every render. An unstable `data` reference drives
-    // useStableOptimisticSortedData's setState effect into an infinite render loop during the
-    // optimistic-create flow ("Maximum update depth exceeded").
-    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo<{
-        baseFilteredData: SearchListItem[];
-        filteredDataLength: number;
-        allDataLength: number;
-        hasDeletedTransaction: boolean;
-    }>(() => {
-        if (!shouldComputeSections) {
-            return {
-                baseFilteredData: EMPTY_DATA,
-                filteredDataLength: 0,
-                allDataLength: 0,
-                hasDeletedTransaction: false,
-            };
-        }
-
-        const [filtered, allLength, hasDeletedTransactionFromSections] = getSections({
-            dateFnsLocale,
-            type,
-            data: searchDataWithOptimisticTransaction,
-            currentAccountID: accountID,
-            currentUserEmail: email ?? '',
-            translate,
-            formatPhoneNumber,
-            bankAccountList,
-            rules,
-            groupBy: validGroupBy,
-            reportActions: exportReportActions,
-            currentSearch: currentSearchKey,
-            reportNameValuePairs: reportNameValuePairsForSections,
-            queryJSON,
-            isActionLoadingSet,
-            cardFeeds,
-            cardList: personalAndWorkspaceCards,
-            nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
-            isOffline,
-            customCardNames,
-            conciergeReportID,
-            onyxPersonalDetailsList,
-            isAttendeesEnabledForMovingPolicy,
-            convertToDisplayString,
-            reportAttributesDerivedValue: reportAttributesForSections,
-            optimisticTransactionID,
-        });
-        return {
-            baseFilteredData: filtered as SearchListItem[],
-            filteredDataLength: filtered.length,
-            allDataLength: allLength,
-            hasDeletedTransaction: hasDeletedTransactionFromSections,
-        };
-    }, [
-        shouldComputeSections,
-        searchDataWithOptimisticTransaction,
-        type,
-        accountID,
-        email,
-        translate,
-        formatPhoneNumber,
-        bankAccountList,
-        rules,
-        validGroupBy,
-        exportReportActions,
-        currentSearchKey,
-        reportNameValuePairsForSections,
-        queryJSON,
-        isActionLoadingSet,
-        cardFeeds,
-        personalAndWorkspaceCards,
-        nonPersonalAndWorkspaceCards,
-        isOffline,
-        customCardNames,
-        conciergeReportID,
-        onyxPersonalDetailsList,
-        isAttendeesEnabledForMovingPolicy,
-        convertToDisplayString,
-        reportAttributesForSections,
-        optimisticTransactionID,
-        dateFnsLocale,
-    ]);
+    const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useSearchSections(
+        shouldComputeSections
+            ? {
+                  dateFnsLocale,
+                  type,
+                  data: searchDataWithOptimisticTransaction,
+                  currentAccountID: accountID,
+                  currentUserEmail: email ?? '',
+                  translate,
+                  formatPhoneNumber,
+                  bankAccountList,
+                  rules,
+                  groupBy: validGroupBy,
+                  reportActions: exportReportActions,
+                  currentSearch: currentSearchKey,
+                  reportNameValuePairs: reportNameValuePairsForSections,
+                  queryJSON,
+                  isActionLoadingSet,
+                  cardFeeds,
+                  cardList: personalAndWorkspaceCards,
+                  nonPersonalAndWorkspaceCardList: nonPersonalAndWorkspaceCards,
+                  isOffline,
+                  customCardNames,
+                  conciergeReportID,
+                  onyxPersonalDetailsList,
+                  isAttendeesEnabledForMovingPolicy,
+                  convertToDisplayString,
+                  reportAttributesDerivedValue: reportAttributesForSections,
+                  optimisticTransactionID,
+              }
+            : undefined,
+    );
 
     // Stage 2: for grouped views, fetch each group's sub-snapshot and enrich it with its transactions.
     // validGroupBy guarantees these are group containers (chat/task are guarded out above).
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- guarded by validGroupBy
     const groupItems = validGroupBy ? (baseFilteredData as TransactionGroupListItemType[]) : EMPTY_GROUP_ITEMS;
-    const groupByTransactionHashes = useMemo(
-        () => (validGroupBy ? groupItems.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue) : EMPTY_HASHES),
-        [validGroupBy, groupItems],
-    );
+    const groupByTransactionHashes = validGroupBy
+        ? groupItems.map((item) => hashToString(item.transactionsQueryJSON?.hash)).filter((hashValue): hashValue is string => !!hashValue)
+        : EMPTY_HASHES;
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
-    const filteredData = useMemo<SearchData>(() => {
-        if (!validGroupBy || isExpenseReportType) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- snapshot rows are a SearchData subset
-            return baseFilteredData as SearchData;
-        }
-        return groupItems.map((item) => {
-            const subSnapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
-            if (!subSnapshot?.data) {
-                return item;
-            }
-            const [groupTransactions] = getSections({
-                dateFnsLocale,
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                data: subSnapshot.data,
-                currentAccountID: accountID,
-                currentUserEmail: email ?? '',
-                bankAccountList,
-                rules,
-                translate,
-                formatPhoneNumber,
-                isActionLoadingSet,
-                cardFeeds,
-                cardList: personalAndWorkspaceCards,
-                conciergeReportID,
-                onyxPersonalDetailsList,
-                convertToDisplayString,
-                reportActions: exportReportActions,
-                reportAttributesDerivedValue: undefined,
-            });
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-            const typedGroupTransactions = groupTransactions as TransactionListItemType[];
-            return {
-                ...item,
-                transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
-            };
-        });
-    }, [
-        validGroupBy,
-        isExpenseReportType,
-        baseFilteredData,
-        groupItems,
-        groupByTransactionSnapshots,
-        accountID,
-        email,
-        bankAccountList,
-        rules,
-        translate,
-        localeCompare,
-        formatPhoneNumber,
-        isActionLoadingSet,
-        cardFeeds,
-        personalAndWorkspaceCards,
-        conciergeReportID,
-        onyxPersonalDetailsList,
-        convertToDisplayString,
-        dateFnsLocale,
-        exportReportActions,
-    ]);
+    const filteredData: SearchData =
+        !validGroupBy || isExpenseReportType
+            ? // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- snapshot rows are a SearchData subset
+              (baseFilteredData as SearchData)
+            : groupItems.map((item) => {
+                  const subSnapshot = groupByTransactionSnapshots[hashToString(item.transactionsQueryJSON?.hash) ?? ''];
+                  if (!subSnapshot?.data) {
+                      return item;
+                  }
+                  const [groupTransactions] = getSections({
+                      dateFnsLocale,
+                      type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                      data: subSnapshot.data,
+                      currentAccountID: accountID,
+                      currentUserEmail: email ?? '',
+                      bankAccountList,
+                      rules,
+                      translate,
+                      formatPhoneNumber,
+                      isActionLoadingSet,
+                      cardFeeds,
+                      cardList: personalAndWorkspaceCards,
+                      conciergeReportID,
+                      onyxPersonalDetailsList,
+                      convertToDisplayString,
+                      reportActions: exportReportActions,
+                      reportAttributesDerivedValue: undefined,
+                  });
+                  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+                  const typedGroupTransactions = groupTransactions as TransactionListItemType[];
+                  return {
+                      ...item,
+                      transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
+                  };
+              });
 
     // Stage 3: sort the (enriched) data. getSortedSections accepts the full section union; our
     // SearchListItem[] is a compatible subset of that input.
-    const chartData = useMemo<SearchListItem[]>(() => {
-        if (!shouldComputeSections) {
-            return EMPTY_DATA;
-        }
-        const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
-        return getSortedSections(type, sortInput, localeCompare, translate, sortBy, sortOrder, validGroupBy, {
+    const sortInput = filteredData as Parameters<typeof getSortedSections>[1];
+    const chartData = useSortedSearchSections(shouldComputeSections, hash, [
+        type,
+        sortInput,
+        localeCompare,
+        translate,
+        sortBy,
+        sortOrder,
+        validGroupBy,
+        {
             policyCategories,
             policyTags,
             fallbackPolicyID: policyForMovingExpensesID,
-        }).map((item) => {
-            if (item.hash === hash) {
-                return item;
-            }
-
-            return {...item, hash};
-        });
-    }, [shouldComputeSections, type, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, policyCategories, policyTags, policyForMovingExpensesID, hash]);
+        },
+    ]);
 
     // Keep the optimistic row visible across a snapshot-replacement gap for up to
     // OPTIMISTIC_ROLLBACK_GRACE_MS until the new snapshot picks it up or the grace expires.
@@ -377,13 +328,15 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
 
     // Non-grouped views are always fully loaded; grouped views require every group's sub-snapshot to
     // report no further results.
-    const hasLoadedAllTransactions = !validGroupBy
-        ? true
-        : groupItems.every((item) => {
-              const subSnapshot =
-                  item.transactionsQueryJSON?.hash || item.transactionsQueryJSON?.hash === 0 ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
-              return item.transactions.length === 0 || !subSnapshot || !subSnapshot?.search?.hasMoreResults;
-          });
+    let hasLoadedAllTransactions;
+    if (!validGroupBy) {
+        hasLoadedAllTransactions = true;
+    } else {
+        hasLoadedAllTransactions = groupItems.every((item) => {
+            const subSnapshot = item.transactionsQueryJSON?.hash || item.transactionsQueryJSON?.hash === 0 ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            return item.transactions.length === 0 || !subSnapshot || !subSnapshot?.search?.hasMoreResults;
+        });
+    }
 
     // slice after the sort so page 2 continues the order on screen
     const rowLimitEnd = visibleRowLimit === undefined ? stableSortedData.length : getRowLimitEnd(stableSortedData, visibleRowLimit, selectedTransactions, isOffline);

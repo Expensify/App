@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import lazyRetry from '@src/utils/lazyRetry';
 
-import React, {lazy, memo, Suspense} from 'react';
+import React, {lazy, Suspense} from 'react';
 
 const AuthScreens = lazy(() => lazyRetry(() => import(/* webpackChunkName: "authScreens.prefetch" */ './AuthScreens'), 'authScreens'));
 const PublicScreens = lazy(() => lazyRetry(() => import(/* webpackMode: "eager" */ './PublicScreens'), 'publicScreens'));
@@ -34,4 +34,4 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     );
 }
 
-export default memo(AppNavigator);
+export default AppNavigator;

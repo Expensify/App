@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {BusinessTypeItemType, IncorporationType} from './types';
 
@@ -30,16 +30,12 @@ function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTy
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const incorporationTypes = useMemo(
-        () =>
-            Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({
-                value: key,
-                text: translate(`businessInfoStep.incorporationType.${key as IncorporationType}`),
-                keyForList: key,
-                isSelected: key === currentBusinessType,
-            })),
-        [currentBusinessType, translate],
-    );
+    const incorporationTypes = Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({
+        value: key,
+        text: translate(`businessInfoStep.incorporationType.${key as IncorporationType}`),
+        keyForList: key,
+        isSelected: key === currentBusinessType,
+    }));
 
     return (
         <Modal
