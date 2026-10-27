@@ -171,6 +171,7 @@ function FilterList({
             <ScrollView
                 contentContainerStyle={[contentContainerStyle]}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
                 onMouseMove={onPointerMove}
                 onMouseLeave={onPointerLeave}
             >
