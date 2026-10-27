@@ -52,6 +52,7 @@ jest.mock(
         ({children}: {children: React.ReactNode}) =>
             children,
 );
+const mockActiveRoute = jest.fn(() => '');
 const mockPrimaryContactMethod = jest.fn(() => 'user@gmail.com');
 const mockIsUserValidated = jest.fn(() => true);
 
@@ -59,6 +60,7 @@ jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useFocusEffect: (effect: () => void) => jest.requireActual<typeof React>('react').useEffect(effect),
 }));
+jest.mock('@libs/Navigation/helpers/getActiveRoute', () => ({__esModule: true, default: () => mockActiveRoute()}));
 jest.mock('@hooks/usePrimaryContactMethod', () => ({__esModule: true, default: () => mockPrimaryContactMethod()}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [mockIsUserValidated()]}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
@@ -102,20 +104,30 @@ describe('Workspace card add work email pages', () => {
         );
     }
 
-    it('returns company card users to the company card feed selector', () => {
+    it('opens Contact Methods on top of the company card prompt', () => {
+        // Given the company card prompt is the active route
+        const promptRoute = ROUTES.WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL.getRoute(POLICY_ID, 'vcf#123');
+        mockActiveRoute.mockReturnValue(promptRoute);
         renderCompanyCardPage();
 
+        // When the user presses the add work email button
         fireEvent.press(screen.getByTestId('addWorkEmailButton'));
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(POLICY_ID)}/contact-methods`);
+        // Then Contact Methods opens on top of the prompt, so going back pops to it
+        expect(Navigation.navigate).toHaveBeenCalledWith(`${promptRoute}/contact-methods`);
     });
 
-    it('returns Expensify Card users to the Expensify Card feed selector', () => {
+    it('opens Contact Methods on top of the Expensify Card prompt', () => {
+        // Given the Expensify Card prompt is the active route
+        const promptRoute = ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(POLICY_ID, 123);
+        mockActiveRoute.mockReturnValue(promptRoute);
         renderExpensifyCardPage();
 
+        // When the user presses the add work email button
         fireEvent.press(screen.getByTestId('addWorkEmailButton'));
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(POLICY_ID)}/select-feed/contact-methods`);
+        // Then Contact Methods opens on top of the prompt, so going back pops to it
+        expect(Navigation.navigate).toHaveBeenCalledWith(`${promptRoute}/contact-methods`);
     });
 
     it('stays on the company card prompt while the primary contact method is public', () => {

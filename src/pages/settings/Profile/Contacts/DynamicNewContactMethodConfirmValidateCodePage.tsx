@@ -52,7 +52,7 @@ function DynamicNewContactMethodConfirmValidateCodePage() {
                 clearPendingContactActionErrors();
             }}
             onClose={() => {
-                Navigation.goBack();
+                Navigation.goBack(listPath);
             }}
             isLoading={pendingContactAction?.isLoading}
         />
