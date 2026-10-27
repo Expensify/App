@@ -7,11 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 import React from 'react';
 
-function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID: string; isFromDomainCardDetail?: boolean}) {
+function SuccessReportCardLost({cardDetailsPath}: {cardDetailsPath: Route}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -25,8 +25,7 @@ function SuccessReportCardLost({cardID, isFromDomainCardDetail = false}: {cardID
             onButtonPress={() => {
                 // Going back with compareParams: false collapses the flow onto the deleted card route and
                 // replaces its cardID with the replacement card instead of a stale/NotFound route.
-                const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
-                Navigation.goBack(cardDetailRoute, {compareParams: false});
+                Navigation.goBack(cardDetailsPath, {compareParams: false});
             }}
             buttonText={translate('common.buttonConfirm')}
             illustrationStyle={[styles.w100, StyleUtils.getSuccessReportCardLostIllustrationStyle()]}

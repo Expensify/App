@@ -4766,7 +4766,52 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
         });
 
+        it('should show no further action in optimistic next step message when admin takes control and approves on a manual reimbursement policy', async () => {
+            // Given an admin who took control of a report on a workspace that reimburses outside Expensify (Indirect)
+            const takeControlAction = {
+                reportActionID: 'takeControl2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                actorAccountID: adminAccountID,
+                created: '2023-01-01T10:00:00.000Z',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [takeControlAction.reportActionID]: takeControlAction,
+            });
+
+            // When the admin approves the report
+            approveMoneyRequest({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic next step matches the server, which returns no further action because payment happens outside Expensify
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(report?.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+            });
+        });
+
         it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
+            // Given a workspace that reimburses through Expensify (Direct)
+            const directPolicy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${directPolicy.id}`, directPolicy);
+
             // Admin takes control
             const takeControlAction = {
                 reportActionID: 'takeControl2',
@@ -4784,7 +4829,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
-                expenseReportPolicy: policy,
+                expenseReportPolicy: directPolicy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
