@@ -48,6 +48,7 @@ import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
+import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
 import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -1284,7 +1285,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     );
 
     const handleCSVExport = useCallback(
-        async (isBasicExport: boolean) => {
+        async (isBasicExport: boolean, isGroupsOnly = false) => {
             if (hasOnlyEmptyReports) {
                 showEmptyReportsDownloadErrorModal(emptyReports.length);
                 return;
@@ -1294,7 +1295,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
+            const fullExportNameKey = isBasicExport ? 'export.basicExport' : 'export.currentView';
+            const exportName = translate(isGroupsOnly ? 'export.currentViewGroupsOnly' : fullExportNameKey);
 
             if (areAllMatchingItemsSelected) {
                 const supportsAllMatchingExclusions = isExpenseType || isExpenseReportType;
@@ -1317,6 +1319,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
+                    isGroupsOnly,
                 });
 
                 // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
@@ -1339,6 +1342,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
                     isGroupExport,
+                    isGroupsOnly,
                 },
                 () => {
                     didFail = true;
@@ -1379,7 +1383,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     );
 
     const handleBasicExport = useCallback(() => handleCSVExport(true), [handleCSVExport]);
-    const handleExportCurrentView = useCallback(() => handleCSVExport(false), [handleCSVExport]);
+    const handleExportCurrentView = useCallback((isGroupsOnly = false) => handleCSVExport(false, isGroupsOnly), [handleCSVExport]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
         if (isOffline) {
@@ -2496,6 +2500,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 addSeparatorBefore: true,
             });
 
+            if (isGroupedSearch) {
+                exportOptions.push({
+                    text: translate('export.currentViewGroupsOnly'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+                    icon: expensifyIcons.Table,
+                    onSelected: () => {
+                        handleExportCurrentView(true);
+                    },
+                    shouldCloseModalOnSelect: true,
+                    shouldCallAfterModalHide: true,
+                });
+            }
+
             if (!allSelectedAreDeleted && canExportGroupWithTemplates) {
                 // Builds a single export sub-menu item for a template. `isDefaultTemplate` picks the icon and `addSeparatorBefore` draws the divider at the top of each group.
                 const buildExportOption = (template: ExportTemplate, isDefaultTemplate: boolean, addSeparatorBefore: boolean): ExportMenuItem => {
@@ -2587,9 +2604,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!transactionEntry) {
                 continue;
             }
-            const ownerAccountID =
-                transactionEntry.ownerAccountID ??
-                getReportOrDraftReport(transactionEntry.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionEntry.reportID}`])?.ownerAccountID;
+            const ownerAccountID = getSelectedTransactionOwnerAccountID(id, transactionEntry, {cardList, nonPersonalAndWorkspaceCards, allReports, allTransactions});
             if (typeof ownerAccountID === 'number') {
                 moveOwnerAccountIDs.add(ownerAccountID);
             } else {

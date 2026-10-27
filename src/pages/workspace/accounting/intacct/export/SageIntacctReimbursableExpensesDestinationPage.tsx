@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
@@ -46,23 +46,20 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
         isSelected: config?.export.reimbursable === expenseType,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)));
-    }, [backTo, policyID]);
+    };
 
-    const selectDestination = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.export.reimbursable && policyID) {
-                updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value, config?.export.reimbursable);
-                if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
-                    // Employee default mapping value is not allowed when expense type is VENDOR_BILL, so we have to change mapping value to Tag
-                    changeMappingsValueFromDefaultToTag(policyID, config?.mappings);
-                }
+    const selectDestination = (row: MenuListItem) => {
+        if (row.value !== config?.export.reimbursable && policyID) {
+            updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value, config?.export.reimbursable);
+            if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
+                // Employee default mapping value is not allowed when expense type is VENDOR_BILL, so we have to change mapping value to Tag
+                changeMappingsValueFromDefaultToTag(policyID, config?.mappings);
             }
-            goBack();
-        },
-        [config?.export.reimbursable, config?.mappings, policyID, goBack],
-    );
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

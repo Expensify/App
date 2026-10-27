@@ -71,6 +71,7 @@ import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import {trackFullstoryEvent} from '@libs/Fullstory/utils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
@@ -1044,6 +1045,12 @@ function addActions({
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChat) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    // FullStory can't capture keyboard events, so emit a custom event to track every Concierge message, including Enter-key sends
+    if (isConciergeChat) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys.
+        trackFullstoryEvent(CONST.FULLSTORY.EVENT.CONCIERGE_MESSAGE_SENT, {has_attachment: !!file});
     }
 
     if (file) {

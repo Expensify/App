@@ -53,7 +53,7 @@ function getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled: boolean,
 }
 
 /** The page an accounting integration's settings open from, which is the Connections accounting panel while the unified Connections beta is on */
-function getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, policyID: string) {
+function getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, policyID: string | undefined) {
     if (isUnifiedConnectionsBetaEnabled) {
         return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     }

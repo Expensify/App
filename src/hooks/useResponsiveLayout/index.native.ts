@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import {useContext, useMemo} from 'react';
+import {useContext} from 'react';
 
 import type ResponsiveLayoutResult from './types';
 
@@ -56,7 +56,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const navigator = useContext(NavigationContext);
     const currentNavigator = navigator ?? navigationContainerRef;
 
-    const isDisplayedInNarrowModalNavigator = useMemo(() => !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined), [currentNavigator]);
+    const isDisplayedInNarrowModalNavigator = !!currentNavigator?.getParent?.(NAVIGATORS.RIGHT_MODAL_NAVIGATOR as unknown as undefined);
 
     // The component calling this hook is in a "narrow pane modal" if:
     const isInNarrowPaneModal =
