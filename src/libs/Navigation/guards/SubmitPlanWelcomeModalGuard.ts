@@ -37,9 +37,17 @@ let hasLoadedApp = false;
 
 let hasRedirectedToSubmitPlanModal = false;
 
-// Whether the POLICY subscription last saw a workspace where the user can create reports. Undefined until it is
-// computed for an otherwise-eligible user.
-let hadReportablePolicy: boolean | undefined;
+// IDs of the workspaces where the POLICY subscription last saw the user able to create reports. Undefined until it
+// is computed for an otherwise-eligible user.
+let lastReportablePolicyIDs: string[] | undefined;
+
+// The reportable workspaces whose loss opened the modal. A deletion stays pending while offline, but an online
+// deletion the server rejects restores the workspace, so the modal must close again if one of these comes back.
+let lostReportablePolicyIDs: string[] | undefined;
+
+// Set while the modal is closed because a lost workspace came back, so closing it doesn't mark the modal as shown
+// and the user can still see it if they delete that workspace again later.
+let isClosingForRestoredPolicy = false;
 
 // An `intent=submit` deeplink delivers the same outcome as this modal without asking, so the modal must not open on
 // top of it. Recorded outside Onyx because the deeplink can only mark the modal shown from a React effect, which runs
@@ -70,7 +78,22 @@ function getSubmitPlanWelcomeModalRoute(basePath?: string): Route {
 function resetSessionFlag() {
     hasRedirectedToSubmitPlanModal = false;
     hasPendingSubmitDeeplink = false;
-    hadReportablePolicy = undefined;
+    lastReportablePolicyIDs = undefined;
+    lostReportablePolicyIDs = undefined;
+    isClosingForRestoredPolicy = false;
+}
+
+/** Whether the modal should record itself as shown when it closes. */
+function shouldMarkSubmitPlanWelcomeModalShown() {
+    return !isClosingForRestoredPolicy;
+}
+
+/** Closes the modal opened by losing a workspace once that workspace is restored, such as after a rejected delete. */
+function closeModalForRestoredPolicy() {
+    hasRedirectedToSubmitPlanModal = false;
+    lostReportablePolicyIDs = undefined;
+    isClosingForRestoredPolicy = true;
+    Navigation.removeScreenFromNavigationState(NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR);
 }
 
 /**
@@ -120,6 +143,7 @@ function navigateToSubmitPlanWelcomeModalIfReady() {
     }
 
     hasRedirectedToSubmitPlanModal = true;
+    isClosingForRestoredPolicy = false;
     Navigation.navigate(getSubmitPlanWelcomeModalRoute());
 }
 
@@ -155,7 +179,8 @@ Onyx.connectWithoutView({
 // the proactive check. They intentionally do NOT drive navigation: by the time the session/app-load signal
 // fires, every value below has already landed in the same OpenApp batch. Driving navigation from these
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
-// the whole session. The one exception is POLICY losing the user's last reportable workspace, handled below.
+// the whole session. The one exception is POLICY losing the user's last reportable workspace (or getting it back
+// after a rejected delete), handled below.
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
@@ -178,16 +203,31 @@ Onyx.connectWithoutView({
         // Deleting the user's last workspace (for example, while offline) neither navigates nor reloads the app, so
         // nothing else re-checks the modal. To keep this high-churn collection cheap, only users who are otherwise
         // eligible recompute workspace eligibility, and only losing the last reportable workspace triggers a check.
-        if (introSelected?.choice !== CONST.ONBOARDING_CHOICES.EMPLOYER || !hasCompletedGuidedSetupFlow || hasShownSubmitMigrationModal || hasRedirectedToSubmitPlanModal) {
-            hadReportablePolicy = undefined;
+        if (introSelected?.choice !== CONST.ONBOARDING_CHOICES.EMPLOYER || !hasCompletedGuidedSetupFlow || hasShownSubmitMigrationModal) {
+            lastReportablePolicyIDs = undefined;
+            lostReportablePolicyIDs = undefined;
             return;
         }
 
-        const hasReportablePolicy = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).length > 0;
-        if (!hasReportablePolicy && hadReportablePolicy !== false) {
+        if (hasRedirectedToSubmitPlanModal) {
+            // Only a lost workspace coming back closes the modal. An offline deletion keeps the workspace pending
+            // delete until it succeeds, so it never comes back and the modal stays open.
+            const lostPolicyIDs = lostReportablePolicyIDs;
+            if (lostPolicyIDs && getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).some((policy) => lostPolicyIDs.includes(policy.id))) {
+                closeModalForRestoredPolicy();
+            }
+            lastReportablePolicyIDs = undefined;
+            return;
+        }
+
+        const reportablePolicyIDs = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email).map((policy) => policy.id);
+        if (reportablePolicyIDs.length > 0) {
+            lostReportablePolicyIDs = undefined;
+        } else if (lastReportablePolicyIDs?.length !== 0) {
+            lostReportablePolicyIDs = lastReportablePolicyIDs;
             scheduleSubmitPlanWelcomeModalEvaluation();
         }
-        hadReportablePolicy = hasReportablePolicy;
+        lastReportablePolicyIDs = reportablePolicyIDs;
     },
 });
 
@@ -299,6 +339,7 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
         }
 
         hasRedirectedToSubmitPlanModal = true;
+        isClosingForRestoredPolicy = false;
 
         return {
             type: 'REDIRECT',
@@ -308,4 +349,4 @@ const SubmitPlanWelcomeModalGuard: NavigationGuard = {
 };
 
 export default SubmitPlanWelcomeModalGuard;
-export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink};
+export {resetSessionFlag, suppressWelcomeModalForSubmitDeeplink, releaseWelcomeModalForSubmitDeeplink, shouldMarkSubmitPlanWelcomeModalShown};
