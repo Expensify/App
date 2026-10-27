@@ -9,18 +9,22 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
+import useWorkspaceAgentsTable from '@hooks/useWorkspaceAgentsTable';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
+import {openAgentsPage} from '@libs/actions/Agent';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canMemberRead, canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -29,7 +33,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import React from 'react';
+import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -47,11 +51,35 @@ function WorkspaceAgentsPage({route}: WorkspaceAgentsPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
-    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useWorkspaceAgents(policy);
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useWorkspaceAgentsTable(policy);
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
     const canWriteAgents = canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS);
+
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const getWorkspaceMembers = () => {
+        if (!canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS)) {
+            return;
+        }
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
+    };
+    const fetchAgentsAndMembers = () => {
+        openAgentsPage();
+
+        // The OpenAgentsPage is only returning the owned agents
+        // and on deep link the non-owned agents i.e. policy members who happen to be agents
+        // are not displayed unless the user visit the Members page first
+        // Will be removed in https://github.com/Expensify/Expensify/issues/694677
+        getWorkspaceMembers();
+    };
+    const fetchAgentsAndMembersEvent = useEffectEvent(() => fetchAgentsAndMembers());
+
+    useEffect(() => {
+        fetchAgentsAndMembersEvent();
+    }, []);
+    useNetwork({onReconnect: fetchAgentsAndMembers});
 
     useWorkspaceDocumentTitle(policy?.name, 'agentsPage.title');
 

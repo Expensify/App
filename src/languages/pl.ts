@@ -11884,6 +11884,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             aBankAccountIsLocked: 'Konto bankowe jest zablokowane',
             completeHrSetup: 'Dokończ konfigurację HR',
             theresAProblemWithAnHRConnection: 'Wystąpił problem z połączeniem HR',
+            theresAProblemWithYourAgent: 'Wystąpił problem z twoim(i) agentem(ami)',
         },
     },
     emptySearchView: {
