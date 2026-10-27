@@ -13,7 +13,7 @@ import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNative
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
@@ -48,13 +48,12 @@ function unifiedListItemType(item: UnifiedListItem) {
 }
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
-    /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
+    /** Ref to the underlying list, shared via the ActionList context. */
     ref: FlatListRefType;
 };
 
 /**
- * Forwards the shared ActionList context ref to the underlying FlashList. That context slot predates this FlashList-based
- * list and is still shared with the legacy report list, so it is typed for a FlatList. Mirroring InvertedFlashList, the
+ * Forwards the shared ActionList context ref to the underlying FlashList. Mirroring InvertedFlashList, the
  * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
  * needed. The scroll manager relies on the FlashList registering into this slot.
  */
@@ -413,4 +412,4 @@ function MoneyRequestReportUnifiedList({
     );
 }
 
-export default memo(MoneyRequestReportUnifiedList);
+export default MoneyRequestReportUnifiedList;

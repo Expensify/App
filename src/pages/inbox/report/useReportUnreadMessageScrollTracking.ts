@@ -5,7 +5,7 @@ import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 type Args = {
     reportID: string;
@@ -30,6 +30,9 @@ type Args = {
     /** The index of the action badge target report action in the sorted visible actions list (-1 if none) */
     actionBadgeTargetIndex?: number;
 
+    /** Returns the list's visible index range as of now, or undefined before the list has a layout */
+    getVisibleIndexRange?: () => {startIndex: number; endIndex: number} | undefined;
+
     /** Whether the report is aligned to the top. When true, the "Latest messages" pill should never be shown. */
     shouldBeAlignedToTop?: boolean;
 
@@ -46,6 +49,7 @@ export default function useReportUnreadMessageScrollTracking({
     unreadMarkerReportActionIndex,
     isInverted,
     actionBadgeTargetIndex = -1,
+    getVisibleIndexRange,
     shouldBeAlignedToTop = false,
     shouldDisablePillTracking = false,
 }: Args) {
@@ -60,6 +64,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: boolean;
         onUnreadActionVisible: () => void;
         actionBadgeTargetIndex: number;
+        getVisibleIndexRange: Args['getVisibleIndexRange'];
     }>({
         reportID,
         unreadMarkerReportActionIndex,
@@ -67,6 +72,7 @@ export default function useReportUnreadMessageScrollTracking({
         isFocused: true,
         onUnreadActionVisible,
         actionBadgeTargetIndex,
+        getVisibleIndexRange,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
@@ -82,6 +88,10 @@ export default function useReportUnreadMessageScrollTracking({
     useEffect(() => {
         ref.current.onUnreadActionVisible = onUnreadActionVisible;
     }, [onUnreadActionVisible]);
+
+    useEffect(() => {
+        ref.current.getVisibleIndexRange = getVisibleIndexRange;
+    }, [getVisibleIndexRange]);
 
     /**
      * Show/hide the latest message pill when user is scrolling back/forth in the history of messages.
@@ -127,7 +137,7 @@ export default function useReportUnreadMessageScrollTracking({
         updatePillVisibility();
     };
 
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         if (!ref.current.isFocused) {
             return;
         }
@@ -163,19 +173,19 @@ export default function useReportUnreadMessageScrollTracking({
         const badgeTargetIndex = ref.current.actionBadgeTargetIndex;
         if (badgeTargetIndex !== -1) {
             // In an inverted list, higher indexes are "above" (older messages) and lower indexes are "below" (newer messages)
-            const isAbove = isInverted ? badgeTargetIndex > maxIndex : badgeTargetIndex < minIndex;
-            const isBelow = isInverted ? badgeTargetIndex < minIndex : badgeTargetIndex > maxIndex;
+            // FlashList reports a snapshot taken up to 250ms earlier, which can predate the new row's measured layout, so prefer the live range
+            const visibleRange = ref.current.getVisibleIndexRange?.();
+            const startIndex = visibleRange?.startIndex ?? minIndex;
+            const endIndex = visibleRange?.endIndex ?? maxIndex;
+            const isAbove = isInverted ? badgeTargetIndex > endIndex : badgeTargetIndex < startIndex;
+            const isBelow = isInverted ? badgeTargetIndex < startIndex : badgeTargetIndex > endIndex;
             setIsActionBadgeAboveViewport(isAbove);
             setIsActionBadgeBelowViewport(isBelow);
         } else {
             setIsActionBadgeAboveViewport(false);
             setIsActionBadgeBelowViewport(false);
         }
-
-        // FlatList requires a stable onViewableItemsChanged callback for optimal performance.
-        // Therefore, we use a ref to store values instead of adding them as dependencies.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    };
 
     // When unreadMarkerReportActionIndex changes we will manually call onViewableItemsChanged with previousViewableItems to recalculate
     // the state of floating button because onViewableItemsChanged on  FlatList will only be called when viewable items change.

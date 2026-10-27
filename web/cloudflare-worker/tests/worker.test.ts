@@ -478,7 +478,7 @@ describe('test-staging worker', () => {
 });
 
 describe('production worker', () => {
-    const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('production');
+    const {server, addPreviousBuildFiles, cleanup} = createWorkerHarness('production', {vars: {DEV_UPSTREAM: 'http://127.0.0.1:1', DEV_CONNECT_ORIGINS: '["https://dev-only.invalid"]'}});
     const PREVIOUS_CHUNK_PATH = '/main-aaaaaaaaaaaaaaaa.bundle.js';
 
     before(async () => {
@@ -499,6 +499,7 @@ describe('production worker', () => {
         assert.match(csp, /new-expensify:\/\/new\.expensify\.com/);
         assert.match(csp, /font-src data: 'self' https:\/\/www\.expensify\.com/);
         assert.doesNotMatch(csp, /new-expensify:\/\/staging/);
+        assert.doesNotMatch(csp, /localhost|127\.0\.0\.1|expensify\.com\.dev|dev-only\.invalid/);
         assertTemplateInlineScriptsAllowed(csp);
     });
 

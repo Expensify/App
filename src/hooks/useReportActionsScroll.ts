@@ -164,7 +164,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -248,6 +248,16 @@ function useReportActionsScroll({
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
         },
         actionBadgeTargetIndex,
+        getVisibleIndexRange: () => {
+            const list = getListRef()?.current;
+            // getLayout is the one accessor that does not throw before FlashList has laid out
+            if (!list?.getLayout(0)) {
+                return undefined;
+            }
+            const range = list.computeVisibleIndices();
+            // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
+            return range.startIndex < 0 ? undefined : range;
+        },
         shouldBeAlignedToTop,
     });
 
