@@ -607,6 +607,20 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(getCategoryOwnExpenseDefaultRule(collection, POLICY_ID, 'Coffee')?.ruleID).toBe('1');
         });
 
+        it('returns a rule that matches on this category and another', () => {
+            // Given a rule matching two categories and nothing else
+            const twoCategories: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee', 'Travel']},
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(twoCategories)};
+
+            // When each category's own rules are looked up
+            // Then both find it, because the rule is each of their own and hiding it would lose it from every page
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+            expect(getCategoryOwnExpenseDefaultRules(collection, POLICY_ID, 'Travel').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
         it('returns every rule the category decides on its own', () => {
             // Given two rules that each match the category alone, which saving past the duplicate prompt allows
             const second: ExpenseDefaultRule = {

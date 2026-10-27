@@ -573,9 +573,14 @@ type CategoryRuleMatch = {
     conditions: ExpenseDefaultConditionSummary;
 };
 
-/** Whether a match is one the category decides on its own, rather than together with a merchant or a tag. */
+/**
+ * Whether a match is one categories decide on their own, rather than together with a merchant or a tag.
+ *
+ * A rule can match on several categories, and it is each of their own rule, so the count is not checked. The
+ * caller has already established that this category is one of them.
+ */
 function isCategoryOnlyMatch({conditions}: CategoryRuleMatch): boolean {
-    return conditions.merchants.length === 0 && conditions.tags.length === 0 && conditions.categories.length === 1;
+    return conditions.merchants.length === 0 && conditions.tags.length === 0;
 }
 
 /** Every expense default the policy has that matches on the given category. */
