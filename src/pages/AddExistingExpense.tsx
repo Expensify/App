@@ -73,6 +73,8 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const isInLandscapeMode = useIsInLandscapeMode();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
+
+    // Onyx applies the optimistic isLoadingUnreportedTransactions asynchronously, so this ref blocks repeat onEndReached calls until the flag catches up.
     const isFetchingMoreUnreportedTransactionsRef = useRef(false);
 
     const transactionsSelector = (allTransactions: OnyxCollection<Transaction>) =>
