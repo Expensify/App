@@ -56,6 +56,15 @@ type WorkspaceMembersRoleData = {
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
 
+/** Settings the inviter chooses for the members they add. A setting left out keeps the workspace's default. */
+type NewMemberSettings = {
+    /** Whether the members work from an office */
+    hasOfficeWorkArrangement?: boolean;
+
+    /** Whether the members can book travel */
+    canUseTravel?: boolean;
+};
+
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
     return (
         role === CONST.POLICY.ROLE.ADMIN ||
@@ -842,8 +851,7 @@ function buildAddMembersToWorkspaceOnyxData(
     reportActionsList: OnyxCollection<ReportActions> | undefined,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
-    hasOfficeWorkArrangement?: boolean,
-    canUseTravel?: boolean,
+    {hasOfficeWorkArrangement, canUseTravel}: NewMemberSettings = {},
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -996,8 +1004,7 @@ function addMembersToWorkspace(
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
     approverEmail?: string,
-    hasOfficeWorkArrangement?: boolean,
-    canUseTravel?: boolean,
+    {hasOfficeWorkArrangement, canUseTravel}: NewMemberSettings = {},
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1015,8 +1022,7 @@ function addMembersToWorkspace(
         reportActionsList,
         approverEmail,
         undefined,
-        hasOfficeWorkArrangement,
-        canUseTravel,
+        {hasOfficeWorkArrangement, canUseTravel},
     );
 
     const params: AddMembersToWorkspaceParams = {

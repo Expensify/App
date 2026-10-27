@@ -239,7 +239,7 @@ describe('WorkspaceInviteMessageComponent - "+N more" workflow edit', () => {
         await renderAndPressInvite(DIRECT_EXPENSES_FROM_ROUTE);
 
         // Then the invite assigns Dana to Alice while the fast-edit save leaves Dana out so it cannot reassign them to Carol
-        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-3)).toBe(ALICE_EMAIL);
+        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-2)).toBe(ALICE_EMAIL);
         expect(saveFastEditApprovalWorkflowMock).toHaveBeenCalledTimes(1);
         const [params] = saveFastEditApprovalWorkflowMock.mock.calls.at(0) ?? [];
         expect(params?.approvalWorkflow.members.map((member) => member.email)).toEqual([ALICE_EMAIL, BOB_EMAIL]);

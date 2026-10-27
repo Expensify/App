@@ -162,8 +162,8 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
 
         // Then the default approver is forwarded so the backend sets it as the new member's submitsTo
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
-        // The work arrangement and travel access are passed after the approver, so the approver is the third-to-last argument.
-        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-3)).toBe(ADMIN_EMAIL);
+        // The new member settings are passed after the approver, so the approver is the second-to-last argument.
+        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-2)).toBe(ADMIN_EMAIL);
     });
 
     it('hides the Approver row and sends no approver on a DEW workspace with "Hide People Table Columns" set', async () => {
@@ -178,7 +178,7 @@ describe('WorkspaceInviteMessageComponent - Approver row on Dynamic External Wor
 
         // Then no approver is forwarded, so the invite cannot override the external workflow's routing
         expect(addMembersToWorkspaceMock).toHaveBeenCalledTimes(1);
-        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-3)).toBeUndefined();
+        expect(addMembersToWorkspaceMock.mock.lastCall?.at(-2)).toBeUndefined();
     });
 
     it('still shows the Approver row on an Advanced workspace with a stale "Hide People Table Columns" flag', async () => {

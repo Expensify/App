@@ -234,8 +234,10 @@ function WorkspaceInviteMessageComponent({
             },
             filteredReportActions,
             shouldShowApproverRow ? validatedApprover : undefined,
-            shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
-            shouldShowTravelCheckbox ? shouldTurnOnTravel : undefined,
+            {
+                hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
+                canUseTravel: shouldShowTravelCheckbox ? shouldTurnOnTravel : undefined,
+            },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
         clearWorkspaceInviteWorkArrangementDraft(policyID);
