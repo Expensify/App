@@ -81,9 +81,8 @@ If someone no longer needs access to your workspace, you can remove them individ
 
 1. Go to **Workspaces > [Workspace Name] > Members**.
 2. Select the checkboxes next to the members you want to remove.
-3. Click the **green dropdown arrow** in the top-right.
-4. Choose **Remove Member(s)**.
-5. Confirm by clicking **Remove**.
+3. On web, select **Remove members** from the selection bar. On mobile, select **[number] selected** at the top, then select **Remove members**.
+4. Confirm by clicking **Remove**.
 
 ---
 

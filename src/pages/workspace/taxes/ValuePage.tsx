@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxValueForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type ValuePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_VALUE>;
 
@@ -44,19 +44,16 @@ function ValuePage({
     const currentTaxRate = getTaxByID(policy, taxID);
     const defaultValue = currentTaxRate?.value?.replace('%', '');
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
+    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID));
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
-            if (defaultValue === values.value || !policy?.taxRates?.taxes[taxID]) {
-                goBack();
-                return;
-            }
-            updatePolicyTaxValue(policyID, taxID, Number(values.value), policy?.taxRates?.taxes[taxID]);
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
+        if (defaultValue === values.value || !policy?.taxRates?.taxes[taxID]) {
             goBack();
-        },
-        [defaultValue, policyID, taxID, policy?.taxRates, goBack],
-    );
+            return;
+        }
+        updatePolicyTaxValue(policyID, taxID, Number(values.value), policy?.taxRates?.taxes[taxID]);
+        goBack();
+    };
 
     if (!currentTaxRate) {
         return <NotFoundPage />;

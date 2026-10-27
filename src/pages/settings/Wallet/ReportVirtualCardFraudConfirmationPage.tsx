@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ReportVirtualCardFraudConfirmationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION>;
@@ -36,14 +36,14 @@ function ReportVirtualCardFraudConfirmationPage({
     const isCardTerminatedWithoutReplacement = !!physicalCardForm?.cardTerminatedWithoutReplacement;
     const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
 
-    const close = useCallback(() => {
+    const close = () => {
         if (isCardTerminatedWithoutReplacement) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-    }, [cardID, isCardTerminatedWithoutReplacement]);
+    };
 
     return (
         <ScreenWrapper
