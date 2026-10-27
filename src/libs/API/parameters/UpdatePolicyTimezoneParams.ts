@@ -3,8 +3,6 @@ type UpdatePolicyTimezoneParams = {
 
     /** IANA timezone identifier, such as America/Los_Angeles */
     policyTimezone: string;
-
-    lastModified?: string;
 };
 
 export default UpdatePolicyTimezoneParams;

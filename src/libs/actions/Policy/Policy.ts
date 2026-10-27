@@ -1068,7 +1068,7 @@ function setWorkspaceAutoReportingOffset(
     );
 }
 
-function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone'], lastModified: Policy['lastModified']) {
+function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1103,7 +1103,7 @@ function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZon
         },
     ];
 
-    const params: UpdatePolicyTimezoneParams = {policyID, policyTimezone: timeZone, lastModified};
+    const params: UpdatePolicyTimezoneParams = {policyID, policyTimezone: timeZone};
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, params, {optimisticData, successData, failureData});
 }

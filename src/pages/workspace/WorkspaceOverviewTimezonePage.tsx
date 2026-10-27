@@ -36,7 +36,7 @@ function WorkspaceOverviewTimezonePage({policy, route}: WorkspaceOverviewTimezon
 
     const save = (timezone: SelectedTimezone | undefined) => {
         if (timezone && timezone !== savedTimezone) {
-            setWorkspaceTimezone(policyID, timezone, policy?.timeZone, policy?.lastModified);
+            setWorkspaceTimezone(policyID, timezone, policy?.timeZone);
         }
         goBack();
     };
