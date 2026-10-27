@@ -44,6 +44,21 @@ describe('useTravelBillingFundID', () => {
         });
     });
 
+    it('resolves the domain fund even when the last selected card feed is the workspace', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, workspaceFundID);
+        await Onyx.merge(getTravelBillingCardSettingsKey(workspaceFundID), {[CONST.COUNTRY.US]: {paymentBankAccountID: 67890}});
+        await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {[CONST.TRAVEL.PROGRAM_TRAVEL_US]: travelBillingSettings});
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useTravelBillingFundID(policyID));
+        await waitForBatchedUpdates();
+
+        await waitFor(() => {
+            expect(result.current).toBe(domainFundID);
+        });
+    });
+
     it('resolves the workspace fund when only the workspace holds the travel billing feed', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, policyAccountID: workspaceFundID});
         await Onyx.merge(getTravelBillingCardSettingsKey(domainFundID), {[CONST.COUNTRY.US]: {linkedPolicyIDs: [policyID], paymentBankAccountID: 67890}});
