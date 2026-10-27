@@ -6,6 +6,8 @@ import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
@@ -42,14 +44,14 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
  * Builds the configs for the Home insights the current user should see, in display order.
  * The charts and their visibility match the Insights Spend dashboard.
  */
-function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean} {
+function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
-    return {configs, isResolved: areFiltersResolved};
+    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date)};
 }
 
 export default useHomeInsightConfigs;

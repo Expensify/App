@@ -11,5 +11,5 @@
         "isolatedModules": true,
         "verbatimModuleSyntax": true
     },
-    "include": ["src", "worker-configuration.d.ts"]
+    "include": ["src", "worker-configuration.d.ts", "worker-development.d.ts"]
 }

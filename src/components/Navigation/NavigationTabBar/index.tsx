@@ -41,6 +41,7 @@ type NavigationTabBarProps = {
 };
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -63,7 +64,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         }
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
-        });
+        }, session);
     };
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
