@@ -21,15 +21,25 @@ import type {InsightsGraphKey} from '@src/types/onyx';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-const HOME_INSIGHT_ICONS: Record<InsightsGraphKey, SearchTypeMenuItem['icon']> = {
+// Home only shows Spend charts, which also exist as Search menu items
+type HomeInsightGraphKey = Exclude<InsightsGraphKey, typeof CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME>;
+
+type HomeInsightChartSpec = InsightsChartSpec & {graphKey: HomeInsightGraphKey};
+
+const HOME_INSIGHT_ICONS: Record<HomeInsightGraphKey, SearchTypeMenuItem['icon']> = {
     [CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME]: 'CalendarSolid',
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: 'User',
     [CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]: 'Basket',
     [CONST.INSIGHTS.GRAPH.TOP_CATEGORIES]: 'Folder',
 };
 
+/** Whether the chart is one Home can show. */
+function isHomeInsightChart(chart: InsightsChartSpec): chart is HomeInsightChartSpec {
+    return chart.graphKey in HOME_INSIGHT_ICONS;
+}
+
 /** Builds a Home insight that queries the same chart as the Insights page. */
-function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
+function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
     const searchQuery = applyInsightsFilters(chart, filters);
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
 
@@ -66,7 +76,9 @@ function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: bo
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
+    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email)
+        .filter(isHomeInsightChart)
+        .map((chart) => buildInsightConfigFromChart(chart, filters));
     return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date)};
 }
 

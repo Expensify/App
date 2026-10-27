@@ -574,7 +574,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
         enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
-        feedback: {prompt: 'Was dit antwoord nuttig?', useful: 'Nuttig antwoord', notUseful: 'Niet nuttig antwoord', thanks: 'Bedankt voor je feedback!'},
+        feedback: {prompt: 'Was dit nuttig?', useful: 'Nuttig antwoord', notUseful: 'Niet nuttig antwoord', thanks: 'Bedankt voor je feedback!'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1217,6 +1217,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Gestegen met ${percentage}`,
             decrease: (percentage: string) => `Gedaald met ${percentage}`,
         },
+        compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
     },
     allSettingsScreen: {
@@ -10457,6 +10458,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Geboekt',
                 hint: 'Alleen van toepassing op kaarttransacties.',
             },
+            searchFilters: 'Zoekfilters',
+            noFiltersSelected: 'Geen filters geselecteerd',
         },
         display: {
             label: 'Weergave',
@@ -11877,6 +11880,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
             completeHrSetup: 'HR-configuratie voltooien',
             theresAProblemWithAnHRConnection: 'Er is een probleem met een HR-verbinding',
+            theresAProblemWithYourAgent: 'Er is een probleem met je agent(en)',
         },
     },
     emptySearchView: {

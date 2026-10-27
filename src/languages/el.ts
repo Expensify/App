@@ -575,7 +575,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
-        feedback: {prompt: 'Ήταν χρήσιμη αυτή η απάντηση;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
+        feedback: {prompt: 'Ήταν χρήσιμο αυτό;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',
@@ -1262,6 +1262,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
         },
+        compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
     },
     allSettingsScreen: {
@@ -10740,6 +10741,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
                 hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
             },
+            searchFilters: 'Φίλτρα αναζήτησης',
+            noFiltersSelected: 'Δεν έχουν επιλεγεί φίλτρα',
         },
         display: {
             label: 'Εμφάνιση',
@@ -12174,6 +12177,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Ένας τραπεζικός λογαριασμός είναι κλειδωμένος',
             completeHrSetup: 'Ολοκληρώστε τη ρύθμιση HR',
             theresAProblemWithAnHRConnection: 'Υπάρχει πρόβλημα με μια σύνδεση HR',
+            theresAProblemWithYourAgent: 'Υπάρχει πρόβλημα με τον/τους εκπρόσωπό σας',
         },
     },
     emptySearchView: {
