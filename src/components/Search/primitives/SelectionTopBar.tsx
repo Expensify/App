@@ -66,8 +66,8 @@ function SelectionTopBar({
                 styles.searchListHeaderContainerStyle,
                 isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
                 isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
-                // Resize lines hang below the header, so keep them above the rows.
-                !!columnResize && styles.zIndex1,
+                // Resize lines hang below the column header, so keep them above the rows. Without one there are no handles.
+                !!columnResize && !!SearchTableHeader && styles.zIndex1,
             ]}
             // The resize line starts at the row with this marker.
             dataSet={TABLE_ROW_DATA_SET}

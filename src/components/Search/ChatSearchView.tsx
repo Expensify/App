@@ -91,7 +91,6 @@ function ChatSearchView({
         <SearchListViewLayout
             columns={columns}
             type={type}
-            groupBy={queryJSON.groupBy}
             isActionColumnWide={isActionColumnWide}
             columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}

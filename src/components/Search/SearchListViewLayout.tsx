@@ -38,9 +38,6 @@ type SearchListViewLayoutProps = {
     /** Search data type (sizes the action column). */
     type: SearchQueryJSON['type'];
 
-    /** Together with `type`, picks the stored column widths, since each table shape shows its own columns. */
-    groupBy: SearchQueryJSON['groupBy'];
-
     /** Whether the action column uses its wider variant. */
     isActionColumnWide: boolean;
 
@@ -77,7 +74,7 @@ type SearchListViewLayoutProps = {
     children: React.ReactNode;
 };
 
-type SearchListViewLayoutContentProps = Omit<SearchListViewLayoutProps, 'groupBy'> & {
+type SearchListViewLayoutContentProps = SearchListViewLayoutProps & {
     /** `undefined` when the table can't resize its columns. */
     columnResizingID: string | undefined;
 
@@ -233,7 +230,7 @@ function SearchListViewLayoutWithStoredColumnWidths(props: Omit<SearchListViewLa
  * aware container. Purely presentational, each view composes its own header, list, and long-press menu as
  * children so view-specific blocks and list props (grouping, footers) stay with the view.
  */
-function SearchListViewLayout({groupBy, ...props}: SearchListViewLayoutProps) {
+function SearchListViewLayout(props: SearchListViewLayoutProps) {
     const {isBetaEnabled} = usePermissions();
 
     // Saved widths are replayed by content sizing, so only tables that size from their rows can resize.
@@ -254,7 +251,7 @@ function SearchListViewLayout({groupBy, ...props}: SearchListViewLayoutProps) {
     return (
         <SearchListViewLayoutWithStoredColumnWidths
             {...props}
-            columnResizingID={getSearchColumnResizingID(props.type, groupBy)}
+            columnResizingID={getSearchColumnResizingID(props.type)}
         />
     );
 }

@@ -3,8 +3,11 @@ import type {SearchListItem} from '@components/Search/SearchList/ListItem/types'
 import type {SearchColumnType} from '@components/Search/types';
 import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
 import calculateDynamicColumnWidths, {distributeEqualWidths} from '@components/Table/calculateDynamicColumnWidths';
+import type {PersistedColumnLayout} from '@components/Table/columnResize/getPersistedColumnLayout';
+import getPersistedColumnLayout from '@components/Table/columnResize/getPersistedColumnLayout';
 import {getAvailableColumnsWidth} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
+import {isColumnResizable} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,10 +31,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
-
-import type {SearchResizableColumnLayout} from './getSearchResizableColumnLayout';
-
-import getSearchResizableColumnLayout from './getSearchResizableColumnLayout';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
@@ -103,7 +102,7 @@ type SearchColumnWidthsResult = {
     columnWidths: Partial<Record<SearchColumnType, SearchColumnSizing>>;
 
     /** `undefined` unless resizing is enabled and some column resizes. */
-    resizableLayout: SearchResizableColumnLayout | undefined;
+    resizableLayout: PersistedColumnLayout | undefined;
 };
 
 /**
@@ -268,8 +267,8 @@ function useSearchColumnWidths({
 
     const rowChromeWidths = getSearchTableRowChromeWidths(columns.length);
 
-    // Fixed and hugged columns stay headless with a pinned width, so they never resize and the last free-text column
-    // takes the row's leftover room.
+    // Fixed and hugged columns are pinned and passed headless, since the leftover room goes to the last headed column
+    // and it should land on a free-text one rather than a date or a badge. Their real headers still render.
     const resizableColumns: ResizableColumn[] = columns.map((column) => {
         const sizing = columnSizing[column];
 
@@ -281,7 +280,6 @@ function useSearchColumnWidths({
 
         return {
             key: column,
-            // The label only marks the column as headed. It's never rendered.
             label: column,
             declaredWidth: undefined,
             // Uncapped, unlike the scrolled width, so a fit shows the whole value.
@@ -290,6 +288,10 @@ function useSearchColumnWidths({
             maxWidth: Number.POSITIVE_INFINITY,
         };
     });
+
+    if (!resizableColumns.some(isColumnResizable)) {
+        return {columnWidths: columnSizing, resizableLayout: undefined};
+    }
 
     const pinnedColumnsWidth = resizableColumns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
     const freeTextColumnCount = resizableColumns.filter((column) => column.declaredWidth === undefined).length;
@@ -316,7 +318,14 @@ function useSearchColumnWidths({
 
     return {
         columnWidths: columnSizing,
-        resizableLayout: getSearchResizableColumnLayout({columns: resizableColumns, defaultColumnWidths, storedTableColumnWidths, tableWidth, rowChromeWidths}),
+        resizableLayout: getPersistedColumnLayout({
+            columns: resizableColumns,
+            freshColumnWidths: defaultColumnWidths,
+            defaultColumnWidths,
+            storedTableColumnWidths,
+            tableWidth,
+            rowChromeWidths,
+        }),
     };
 }
 

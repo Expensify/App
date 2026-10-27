@@ -10001,7 +10001,7 @@ const CONST = {
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
 
-            /** Prefix of the Search table IDs, one per data type and group-by. See `getSearchColumnResizingID`. */
+            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',
         },
 
