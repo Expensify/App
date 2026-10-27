@@ -2945,7 +2945,7 @@ const translations = {
                 hasNoSSN: "I don't have a social security number or ITIN",
                 hasSSN: 'I have a social security number or ITIN.',
                 idDocument: 'ID verification',
-                idDocumentDescription: 'Please upload a government-issued ID.',
+                idDocumentDescription: 'Please upload a government-issued ID. You can add up to 5 files.',
             },
             business: {
                 title: 'Enter your business info',
