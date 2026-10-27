@@ -22,11 +22,6 @@ type TimezoneSelectionListProps = {
     isDisabled?: boolean;
 };
 
-/**
- * We add the current time to the key to fix a bug where the list options don't update unless the key is updated.
- */
-const getKey = (text: string): string => `${text}-${new Date().getTime()}`;
-
 const isSelectedTimezone = (value: string | undefined): value is SelectedTimezone => TIMEZONES.some((timezone) => timezone === value);
 
 function TimezoneSelectionList({savedTimezone, onSave, isDisabled = false}: TimezoneSelectionListProps) {
@@ -35,7 +30,7 @@ function TimezoneSelectionList({savedTimezone, onSave, isDisabled = false}: Time
         const options = TIMEZONES.filter((tz: string) => !tz.startsWith('Etc/GMT')).map((text: string) => ({
             text,
             value: text,
-            keyForList: getKey(text),
+            keyForList: text,
             isSelected: text === savedTimezone,
         }));
         // Move the currently-selected timezone to the top so it's visible without scrolling when the page opens.
