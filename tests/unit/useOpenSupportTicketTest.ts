@@ -7,18 +7,21 @@ import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
 
 const mockOpenConciergeAnywhere = jest.fn();
+const CONCIERGE_REPORT_ID = '9';
 
 jest.mock('@libs/actions/Report', () => ({
     openSupportTicket: jest.fn(),
     isNoSupportRepAvailableResponse: jest.fn(),
 }));
-jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), getActiveRoute: jest.fn()}));
+jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), getActiveRoute: jest.fn(), getFocusedReportId: jest.fn()}));
 jest.mock('@libs/Growl', () => ({error: jest.fn()}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
+jest.mock('@hooks/useOnyx', () => () => [CONCIERGE_REPORT_ID]);
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: mockOpenConciergeAnywhere}));
 
 const mockOpenSupportTicket = jest.mocked(openSupportTicket);
 const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+const mockGetFocusedReportId = jest.mocked(Navigation.getFocusedReportId);
 
 const CHAT_ROUTE = '/r/1';
 const PENDING_TICKET_ROUTE = '/r/2/?isPendingCreation=true';
@@ -107,6 +110,30 @@ describe('useOpenSupportTicket', () => {
         expect(goBackOptions.afterTransition).toEqual(expect.any(Function));
         goBackOptions.afterTransition?.();
         expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
+    });
+
+    it('does not open Concierge again when the customer is already in the Concierge chat', async () => {
+        // Given a ticket request that finds no rep while the customer is in the Concierge chat
+        mockOpenSupportTicket.mockResolvedValue(undefined);
+        mockIsNoSupportRepAvailableResponse.mockReturnValue(true);
+        mockGetActiveRoute.mockReturnValue(PENDING_TICKET_ROUTE);
+        mockGetFocusedReportId.mockReturnValueOnce(CONCIERGE_REPORT_ID);
+        const {result} = renderHook(() => useOpenSupportTicket());
+
+        // When the callback runs, the request finishes and the ticket screen is left
+        await act(async () => {
+            result.current.openSupportTicketOrConcierge();
+            await Promise.resolve();
+        });
+        const goBackOptions = jest.mocked(Navigation.goBack).mock.calls.at(0)?.at(1);
+        if (typeof goBackOptions !== 'object') {
+            throw new Error('goBack should receive options with an afterTransition callback');
+        }
+        goBackOptions.afterTransition?.();
+
+        // Then the error is shown and Concierge is not opened a second time
+        expect(Growl.error).toHaveBeenCalledWith({bodyText: 'supportTicket.noSupportRepAvailable'});
+        expect(mockOpenConciergeAnywhere).not.toHaveBeenCalled();
     });
 
     it('ignores a failed ticket request', async () => {
