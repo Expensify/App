@@ -22,7 +22,7 @@ import {updatePronouns as updatePronounsPersonalDetails} from '@userActions/Pers
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type PronounEntry = ListItem & {
     value: string;
@@ -56,57 +56,48 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
-    const filteredPronounsList = useMemo((): PronounEntry[] => {
-        const pronouns = CONST.PRONOUNS_LIST.map((value) => {
-            const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${value}`;
+    let filteredPronounsList: PronounEntry[];
+    const pronouns = CONST.PRONOUNS_LIST.map((value) => {
+        const fullPronounKey = `${CONST.PRONOUNS.PREFIX}${value}`;
+        return {
+            text: translate(`pronouns.${value}`),
+            value: fullPronounKey,
+            keyForList: value,
+            isSelected: fullPronounKey === selectedPronouns,
+        };
+    }).sort((a, b) => localeCompare(a.text.toLowerCase(), b.text.toLowerCase()));
 
-            return {
-                text: translate(`pronouns.${value}`),
-                value: fullPronounKey,
-                keyForList: value,
-                isSelected: fullPronounKey === selectedPronouns,
-            };
-        }).sort((a, b) => localeCompare(a.text.toLowerCase(), b.text.toLowerCase()));
-
-        // Pin the frozen initial pronoun to the top of the full list before search filtering, so the pre-selected pronoun stays pinned while searching.
-        const orderedPronouns = moveInitialSelectionToTop(pronouns, initialPronoun ? [initialPronoun] : []);
-
-        const trimmedSearch = searchValue.trim();
-
-        if (trimmedSearch.length === 0) {
-            return [];
-        }
-        return orderedPronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
-    }, [searchValue, selectedPronouns, translate, localeCompare, initialPronoun]);
+    // Pin the frozen initial pronoun to the top of the full list before search filtering, so the pre-selected pronoun stays pinned while searching.
+    const orderedPronouns = moveInitialSelectionToTop(pronouns, initialPronoun ? [initialPronoun] : []);
+    const trimmedSearch = searchValue.trim();
+    if (trimmedSearch.length === 0) {
+        filteredPronounsList = [];
+    } else {
+        filteredPronounsList = orderedPronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
+    }
 
     const selectPronoun = (selectedPronoun: PronounEntry) => {
         setSelectedPronouns(selectedPronoun.value === selectedPronouns ? '' : (selectedPronoun?.value ?? ''));
     };
 
-    const savePronouns = useCallback(() => {
+    const savePronouns = () => {
         updatePronounsPersonalDetails(selectedPronouns, currentUserAccountID);
         Navigation.goBack();
-    }, [selectedPronouns, currentUserAccountID]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: savePronouns,
-        }),
-        [savePronouns, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: savePronouns,
+    };
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('pronounsPage.pronouns'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            placeholder: translate('pronounsPage.placeholderText'),
-            headerMessage: searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '',
-        }),
-        [translate, searchValue, filteredPronounsList?.length],
-    );
+    const textInputOptions = {
+        label: translate('pronounsPage.pronouns'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+        placeholder: translate('pronounsPage.placeholderText'),
+        headerMessage: searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '',
+    };
 
     return (
         <ScreenWrapper

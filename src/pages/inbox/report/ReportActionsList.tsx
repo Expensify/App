@@ -266,6 +266,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             getNativeScrollRef: () => legendListRef.current?.getNativeScrollRef(),
             getScrollableNode: (): unknown => legendListRef.current?.getScrollableNode(),
             getState: () => legendListRef.current?.getState(),
+            computeVisibleIndices: () => {
+                const state = legendListRef.current?.getState();
+                return state ? {startIndex: state.start, endIndex: state.end} : undefined;
+            },
             scrollToEnd: (options) => {
                 legendListRef.current?.scrollToEnd(options);
             },

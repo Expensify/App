@@ -23,6 +23,8 @@ type ActionListRef = {
     scrollToEnd: (params?: ScrollToEndParams) => void;
     getNativeScrollRef?: () => unknown;
     getScrollableNode?: () => unknown;
+    getLayout?: (index: number) => unknown;
+    computeVisibleIndices?: () => {startIndex: number; endIndex: number} | undefined;
     /** Measured item positions supplied by LegendList. Other list implementations can omit this. */
     getState?: () => {positionByKey: (key: string) => number | undefined; scroll?: number; contentLength?: number; scrollLength?: number} | undefined;
 };

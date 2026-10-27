@@ -542,5 +542,38 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
+
+        it.each([true, false])('keeps the action badge hidden despite stale viewable items when inverted is %s', (isInverted) => {
+            // Given a live range containing the target in either list order.
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted,
+                    actionBadgeTargetIndex: 3,
+                    getVisibleIndexRange: () => ({startIndex: 2, endIndex: 4}),
+                }),
+            );
+
+            // When the stale snapshot places the target above the viewport.
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: isInverted ? 0 : 4, key: 'first', isViewable: true, item: {}},
+                        {index: isInverted ? 1 : 5, key: 'middle', isViewable: true, item: {}},
+                        {index: isInverted ? 2 : 6, key: 'last', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            // Then the live range wins and the pill does not flash
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
     });
 });

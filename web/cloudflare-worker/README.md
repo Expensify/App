@@ -24,13 +24,39 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 
 The CSP lives in [`src/csp.ts`](src/csp.ts). The `ENVIRONMENT` variable in [`wrangler.jsonc`](wrangler.jsonc) selects the staging or production policy.
 
-## Running it locally
+## Live development
+
+From the App root, run `npm install`, complete the [web HTTPS/hosts setup](../../contributingGuides/SETUP_WEB.md), then run `npm run web`. The root install includes this package's independently locked dependencies.
+
+The browser opens the Worker at `https://dev.new.expensify.com:8082/`. `wrangler.dev.jsonc` runs the same entry point against live Rsbuild output over loopback HTTP, with no `dist/`, R2, Cloudflare credentials, or ngrok dependency. React Fast Refresh uses WSS through the Worker; Wrangler automatically reloads Worker code and imported modules on edits. Reload the document to test changed CSP headers.
+
+Only the explicit `development` environment can forward to `DEV_UPSTREAM`, which must be an HTTP `127.0.0.1` origin with a port. The launcher supplies that port, and development CSP adds the public HMR origin, existing local backend endpoints, and explicit configured API origins. Live assets are not cached immutably. Staging/production still use static assets, their original CSP, and normal caching/R2 behavior.
+
+`USE_CLOUDFLARE_WORKER=false npm run web` bypasses the Worker but leaves the API proxy enabled. `USE_WEB_PROXY=false` disables only the API proxy. `WEB_PORT`, `WEB_INTERNAL_PORT`, and `WEB_OPEN=false` control isolated sessions and browser automation. Shell values take precedence over `.env`; occupied ports fail clearly. See the web setup guide for local backend settings and troubleshooting.
+
+### Startup and logs
+
+Wrangler starts only after Rsbuild returns its first successful HTTP response, so normal compilation does not produce Worker `503` request logs. The browser opens after the public HTTPS Worker is ready.
+
+Worker `console.log`, `console.warn`, and `console.error` output appears in the terminal running `npm run web`, prefixed with `[worker]`. This is separate from the application's browser console.
+
+Wrangler also exposes a local observability API on the same listener. For the default public port, query recent captured request and console logs with:
+
+```bash
+curl https://127.0.0.1:8082/cdn-cgi/local/explorer/api/local/observability/query \
+  -H 'Content-Type: application/json' \
+  --data '{"sql":"SELECT ts_ms, level, message FROM logs ORDER BY ts_ms DESC LIMIT 20"}'
+```
+
+Use your chosen `WEB_PORT` if different. This is a local API, not a separate hosted Miniflare service; no Cloudflare credentials are required.
+
+## Running a web build locally
 
 `wrangler dev` runs the Worker in workerd, the same runtime Cloudflare uses, and serves `dist/` exactly as a deploy would. No Cloudflare account or credentials are needed.
 
 ### 1. Install
 
-This package has its own dependencies. They are not installed by the root `npm install`.
+Root `npm install` installs these dependencies too. For an independent Worker checkout or CI job, install just this package:
 
 ```bash
 cd web/cloudflare-worker
@@ -74,7 +100,7 @@ Over plain HTTP, a few third-party scripts that load protocol-relative URLs (Con
 
 ### What you can't test locally
 
-The API at `www.expensify.com`, and Google Sign-In, only accept requests from known origins. The app loads to the sign-in page, but signing in fails with CORS errors. Everything the Worker is responsible for can be tested locally; signing in is verified on a deployed test hostname.
+This built-site preview has no API proxy and uses API endpoints and third-party OAuth providers that accept only known origins, so sign-in can fail with CORS errors. This restriction is distinct from live `npm run web`, which retains the existing API proxy or a configured local backend. Do not infer that a successful built-site startup validates authentication, or that an API proxy makes third-party OAuth work on arbitrary origins.
 
 ## Checking the behavior
 
@@ -84,6 +110,8 @@ The API at `www.expensify.com`, and Google Sign-In, only accept requests from kn
 npm test          # integration tests: the real wrangler.jsonc in workerd, against a fake web build
 npm run typecheck # regenerates worker-configuration.d.ts with `wrangler types`, then type-checks src/ and tests/
 ```
+
+The live-mode tests also launch the real `wrangler dev` CLI against an ephemeral HTTP/WebSocket upstream, exercising the same transport used by `npm run web`. Worker source watching is verified separately with the real app and browser: edit the entry point and `src/csp.ts`, verify subsequent responses change without restarting the command, then verify React Fast Refresh still works.
 
 ### Comparing headers with a live host
 
@@ -113,11 +141,11 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | `staging` | `staging-new-expensify-assets` | `staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
 | `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Production |
 
-Every staging and production deploy also deploys the same build to that environment's Worker (the `webDeployWorker` job in `.github/workflows/deploy.yml`). Staging deploys also deploy it to the `test-staging` Worker (`webDeployTestStaging`). They use `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit these three Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
+Every staging and production deploy also deploys the same build to that environment's Worker (the `webDeploy` job in `.github/workflows/deploy.yml`). It uses `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit these three Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
 
-The Worker deploy runs after `webDeploy` and is required: if it fails, or `WEB_STAGING_HOST` or `WEB_PRODUCTION_HOST` doesn't report the new version in `/version.json`, the deploy fails. The version is checked there because both jobs have deployed by then, whichever one serves the host. The `test-staging` deploy is a trial, so its failures don't affect the staging deploy.
+The Worker deploy is required: if it fails, or `WEB_STAGING_HOST` or `WEB_PRODUCTION_HOST` doesn't report the new version in `/version.json`, the deploy fails. A new Worker version takes effect immediately, so no cache needs purging.
 
-`test-staging` serves a staging build on a hostname nobody else uses.
+`test-staging` is for trying Worker changes on a hostname nobody else uses. CI doesn't deploy it, so it serves whatever was last deployed there by hand.
 
 To deploy one by hand, put a staging build in `dist/` and run:
 

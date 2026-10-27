@@ -153,6 +153,8 @@ const mockLegendScrollToEnd = jest.fn();
 const mockLegendPositionByKey = jest.fn(() => 1500);
 const mockLegendGetState = jest.fn(() => ({
     positionByKey: mockLegendPositionByKey,
+    start: 2,
+    end: 4,
     isAtEnd: false,
     contentLength: 1000,
     scrollLength: 500,
@@ -461,7 +463,7 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
-    it('publishes measured positions and the scroll element through the action-list adapter', () => {
+    it('publishes measured positions, the live visible range, and the scroll element through the action-list adapter', () => {
         // Given a mounted LegendList with measured rows and its own scroll element.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const registerListRef = jest.fn<void, [ActionListRefType]>();
@@ -481,12 +483,14 @@ describe('ReportActionsList (body)', () => {
         const adapter = registerListRef.mock.calls.at(-1)?.at(0)?.current;
         const position = adapter?.getState?.()?.positionByKey('linked-action');
         const scrollElement = adapter?.getScrollableNode?.();
+        const visibleRange = adapter?.computeVisibleIndices?.();
 
         // Then measurement recovery and web input cancellation can reach the real list.
         expect(position).toBe(1500);
         expect(mockLegendPositionByKey).toHaveBeenCalledWith('linked-action');
         expect(scrollElement).toEqual({scrollTop: 0});
         expect(mockLegendGetScrollableNode).toHaveBeenCalledTimes(1);
+        expect(visibleRange).toEqual({startIndex: 2, endIndex: 4});
     });
 
     it('corrects the initial end position after the latest row has been measured', async () => {

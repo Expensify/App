@@ -17,7 +17,7 @@ import type {ComponentRef} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 
 import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {BackHandler, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 
@@ -73,7 +73,7 @@ function ReanimatedModal({
 
     const styles = useThemeStyles();
 
-    const onBackButtonPressHandler = useCallback(() => {
+    const onBackButtonPressHandler = () => {
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
         }
@@ -82,17 +82,14 @@ function ReanimatedModal({
             return true;
         }
         return false;
-    }, [isVisibleState, onBackButtonPress, isTransitioning, shouldIgnoreBackHandlerDuringTransition]);
+    };
 
-    const handleEscape = useCallback(
-        (e: KeyboardEvent) => {
-            if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
-                return;
-            }
-            e.stopImmediatePropagation();
-        },
-        [onBackButtonPressHandler],
-    );
+    const handleEscape = (e: KeyboardEvent) => {
+        if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
+            return;
+        }
+        e.stopImmediatePropagation();
+    };
 
     useEffect(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
@@ -148,11 +145,9 @@ function ReanimatedModal({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, isContainerOpen, isTransitioning]);
 
-    const backdropStyle: ViewStyle = useMemo(() => {
-        return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
-    }, [windowWidth, windowHeight, backdropColor]);
+    const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
 
-    const onOpenCallBack = useCallback(() => {
+    const onOpenCallBack = () => {
         setIsTransitioning(false);
         setIsContainerOpen(true);
         if (transitionHandleRef.current) {
@@ -160,9 +155,9 @@ function ReanimatedModal({
             transitionHandleRef.current = null;
         }
         onModalShow();
-    }, [onModalShow]);
+    };
 
-    const onCloseCallBack = useCallback(() => {
+    const onCloseCallBack = () => {
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (transitionHandleRef.current) {
@@ -176,11 +171,9 @@ function ReanimatedModal({
         if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onModalHide();
         }
-    }, [onModalHide]);
+    };
 
-    const modalStyle = useMemo(() => {
-        return {zIndex: StyleSheet.flatten(style)?.zIndex};
-    }, [style]);
+    const modalStyle = {zIndex: StyleSheet.flatten(style)?.zIndex};
 
     const containerView = (
         <Container

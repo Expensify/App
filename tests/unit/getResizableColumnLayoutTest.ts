@@ -10,8 +10,11 @@ const {MIN_WIDTH} = CONST.TABLES.COLUMN_RESIZE;
 /** No selection, gaps, margin or padding, so the row is exactly the column sum. */
 const rowChromeWidths = {selectionColumnWidth: 0, totalGapWidth: 0, rowMarginWidth: 0, rowPaddingWidth: 0};
 
-function column(key: string, {label = key, minWidth = 0, contentWidth = 0}: {label?: string; minWidth?: number; contentWidth?: number} = {}): ResizableColumn {
-    return {key, label, declaredWidth: undefined, contentWidth, minWidth, maxWidth: Number.POSITIVE_INFINITY};
+function column(
+    key: string,
+    {label = key, minWidth = 0, contentWidth = 0, maxWidth = Number.POSITIVE_INFINITY}: {label?: string; minWidth?: number; contentWidth?: number; maxWidth?: number} = {},
+): ResizableColumn {
+    return {key, label, declaredWidth: undefined, contentWidth, minWidth, maxWidth};
 }
 
 describe('getResizableColumnLayout', () => {
@@ -227,5 +230,96 @@ describe('getResizableColumnLayout', () => {
         // the row as it was dragged and the last column still can't shrink away from the table's edge
         expect(resolvedColumnWidths).toEqual({name: 200, role: 320});
         expect(dragMinWidths).toEqual({role: 320});
+    });
+
+    it('fits a column to its content, no narrower than the default drag bound', () => {
+        // Given an overflowing row whose name column's content needs 120px and email column's content only 10px
+        const columns = [column('name', {contentWidth: 120}), column('email', {contentWidth: 10}), column('role')];
+
+        // When the layout is built
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 300, email: 300, role: 300},
+            resizedColumnKeys: [],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then a click fits the name column to its content, and the email column only down to the drag bound, so its edge stays reachable
+        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(120);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(MIN_WIDTH);
+    });
+
+    it('fits the last column no narrower than a drag could take it', () => {
+        // Given three 200px columns filling a 600px table, the last of which needs only 80px for its content
+        const columns = [column('name'), column('email'), column('role', {contentWidth: 80})];
+
+        // When the layout is built
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 200, email: 200, role: 200},
+            resizedColumnKeys: [],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then it stays at 200px, since a narrower width would leave room the last column takes back on the next render
+        expect(getTargetColumnWidth('role', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(200);
+    });
+
+    it('fits no column whose edge does not drag', () => {
+        // Given a trailing headless column
+        const columns = [column('name'), column('arrow', {label: '', contentWidth: 20})];
+
+        // When the layout is built
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 400, arrow: 20},
+            resizedColumnKeys: [],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then it has no fitted width, since it holds fixed-size content
+        expect(getTargetColumnWidth('arrow', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBeUndefined();
+    });
+
+    it('resets a resized column to the width a fresh load gives it while another column stays resized', () => {
+        // Given a 600px table whose name and email columns need 400px each and can squeeze to 100px, where a fresh load
+        // squeezes them to 250px each, and both were resized: name dragged to 300px and email fitted to its 400px content
+        const columns = [column('name', {contentWidth: 400, minWidth: 100}), column('email', {contentWidth: 400, minWidth: 100}), column('role', {contentWidth: 100, minWidth: 100})];
+
+        // When the layout is built
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 300, email: 400, role: 100},
+            resizedColumnKeys: ['name', 'email'],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then resetting email squeezes it back to its fresh 250px rather than keeping the content width a fit gives,
+        // so a reset after a fit visibly changes the column and doesn't leave the row overflowing
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(400);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(250);
+    });
+
+    it('resets a column to its fresh width within its cap, and only a column the user resized', () => {
+        // Given a row with a resized name column whose content is capped at 150px, and an email column nobody resized
+        const columns = [column('name', {contentWidth: 400, maxWidth: 150}), column('email', {contentWidth: 120}), column('role')];
+
+        // When the layout is built
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 300, email: 300, role: 300},
+            resizedColumnKeys: ['name'],
+            tableWidth: 600,
+            rowChromeWidths,
+        });
+
+        // Then the name column goes back to its cap, which a fresh load never sizes past, and the email column has
+        // nothing to reset, since the user never sized it
+        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(150);
+        expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBeUndefined();
     });
 });

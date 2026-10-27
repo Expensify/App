@@ -19,7 +19,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -102,12 +102,12 @@ function useReportActionsNewActionLiveTail({
         setPendingScrollActionID(undefined);
     }
 
-    const setShouldScrollToBottom = useCallback((enabled: boolean) => {
+    const setShouldScrollToBottom = (enabled: boolean) => {
         setIsScrollToBottomEnabled(enabled);
         if (!enabled) {
             setPendingScrollActionID(undefined);
         }
-    }, []);
+    };
 
     const isPendingScrollActionRendered = !!pendingScrollActionID && renderedVisibleReportActions.some((item) => item.reportActionID === pendingScrollActionID);
 
