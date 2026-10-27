@@ -126,7 +126,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAuditor: (...args: Parameters<typeof PolicyUtils.isPolicyAuditor>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAuditor(...args),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
-    isGroupPolicy: jest.fn().mockReturnValue(true),
+    // Answer from the policy type so tests can opt out with a personal policy, even when getTransactionDetails also reaches this mock
+    isGroupPolicy: jest.fn((policy?: Policy) => policy?.type !== 'personal'),
 }));
 
 describe('getSecondaryAction', () => {
@@ -5979,32 +5980,23 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        // getTransactionDetails also calls isGroupPolicy on this path, and with this module's imports that call reaches the mock too, so answer from the policy type instead of a one-shot return value
-        const isGroupPolicyMock = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy);
-        isGroupPolicyMock.mockImplementation((policyToCheck) => policyToCheck?.type !== CONST.POLICY.TYPE.PERSONAL);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         // When the secondary actions for the transaction thread are computed
-        let result: ReturnType<typeof getSecondaryTransactionThreadActions>;
-        try {
-            result = getSecondaryTransactionThreadActions({
-                currentUserLogin: EMPLOYEE_EMAIL,
-                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-                parentReport: report,
-                reportTransaction: transaction,
-                reportAction: actionR14932,
-                originalTransaction: createMock<Transaction>({}),
-                policy,
-                isChatReportArchived: false,
-                rules: undefined,
-                cardList: undefined,
-            });
-        } finally {
-            // Restore the default even if the call throws, since clearAllMocks in beforeEach keeps implementations
-            isGroupPolicyMock.mockReturnValue(true);
-        }
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            reportTransaction: transaction,
+            reportAction: actionR14932,
+            originalTransaction: createMock<Transaction>({}),
+            policy,
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
 
         // Then SPLIT is not offered, because only group policies support splitting expenses
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
