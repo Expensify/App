@@ -40,7 +40,6 @@ function useAutoCreateSubmitWorkspace() {
         hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
-        shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
     const delegateAccountID = useDelegateAccountID();
 
@@ -122,8 +121,7 @@ function useAutoCreateSubmitWorkspace() {
             policyIDForNavigation = existingSubmitPolicyID;
         }
 
-        // Onboarding lands on Expenses with the side panel closed. Already-onboarded callers keep opening it.
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, !shouldCompleteOnboarding);
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation);
     };
 
     return autoCreateSubmitWorkspace;

@@ -10,7 +10,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {setDisableDismissOnEscape} from './actions/Modal';
-import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import Log from './Log';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
@@ -196,11 +195,10 @@ function navigateAfterOnboardingWithMicrotaskQueue(
 }
 
 /**
- * After creating or joining a Submit workspace, navigate to Spend > Expenses.
- * Onboarding passes `shouldOpenSidePanel` as false so the user isn't onboarded in two places at once. Already-onboarded callers still
- * open the side panel so the #admins room is visible in Concierge Anywhere. Those are the Submit plan welcome modal and the `intent=submit` deeplink.
+ * After creating or joining a Submit workspace, navigate to Spend > Expenses with the side panel closed.
+ * This covers onboarding, the Submit plan welcome modal and the `intent=submit` deeplink, so new and existing Employer users get the same experience.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false, shouldOpenSidePanel = true) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string) {
     setDisableDismissOnEscape(false);
 
     if (consumeDeepLinkToOpenAfterOnboarding()) {
@@ -214,15 +212,12 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
-    if (shouldOpenSidePanel) {
-        SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
-    }
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false, shouldOpenSidePanel = true) {
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string) {
     dismissOnboardingModalBeforeExit(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout, shouldOpenSidePanel);
+            navigateToSubmitWorkspaceAfterOnboarding(policyID);
         });
     });
 }

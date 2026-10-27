@@ -60,7 +60,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         isSmallScreenWidth,
-        shouldUseNarrowLayout,
     } = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
@@ -191,8 +190,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         });
 
         if (shouldUseSubmitFlow) {
-            // Onboarding lands on Expenses with the side panel closed, so the user is only onboarded in one place
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout, false);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID);
             return;
         }
 

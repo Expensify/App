@@ -47,39 +47,16 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
-    it('navigates to Spend > Expenses with the expanded side panel when not using narrow layout', () => {
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false);
+    it('navigates to Spend > Expenses without opening the side panel', () => {
+        // Given a user who just created or joined a Submit workspace, from onboarding, the Submit plan welcome modal or the intent=submit link
 
+        // When they are navigated to the workspace
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id');
+
+        // Then they land on Spend > Expenses with the side panel closed, so new and existing Employer users get the same experience.
+        // The rhpAdminsRoom variant is still stored, so admins who open the side panel later see #admins
         expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
         expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
-        );
-        // The side panel shows the #admins room, where the Submit welcome and its suggested responses are posted.
-        expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
-    });
-
-    it('navigates to Spend > Expenses with the collapsed side panel when using narrow layout', () => {
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', true);
-
-        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
-        expect(navigationMock.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
-        );
-        expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(false);
-    });
-
-    it.each([false, true])('navigates to Spend > Expenses without opening the side panel for onboarding exits (narrow layout: %s)', (shouldUseNarrowLayout) => {
-        // Given an onboarding exit that creates or joins a Submit workspace, where Home's Getting started is the only onboarding
-
-        // When an onboarding caller asks it not to open the side panel
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', shouldUseNarrowLayout, false);
-
-        // Then it still lands on Spend > Expenses and stores the rhpAdminsRoom variant, so admins who open the side panel later see #admins,
-        // but the side panel isn't opened on any layout
         expect(navigationMock.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
         );
