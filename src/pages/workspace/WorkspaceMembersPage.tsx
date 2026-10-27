@@ -439,11 +439,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 officeLocationName: shouldShowOfficeLocationColumn ? getMemberOfficeLocation(officeLocations, policyEmployee.officeID)?.name : undefined,
                 bankAccountLastFour: memberBankAccounts?.[accountID]?.bankAccountLastFour,
                 isInteractive: !details.isOptimisticPersonalDetail,
+                // Members who only manage travel can select the members whose travel access they can change
                 isSelectionDisabled:
-                    !canWriteMembers ||
                     accountID === policy?.ownerAccountID ||
                     accountID === session?.accountID ||
-                    !canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role),
+                    !(
+                        (canWriteMembers && canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role)) ||
+                        (canWriteTravel && canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login))
+                    ),
                 shouldShowEmployeeUserID: shouldShowCustomField1Column,
                 shouldShowEmployeePayrollID: shouldShowCustomField2Column,
                 errors: getLatestErrorMessageField(policyEmployee),
@@ -472,6 +475,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         filteredMembers,
         canEditWorkspaceSettings,
         canWriteMembers,
+        canWriteTravel,
         canAssignMemberRole,
         currentUserLogin,
         policy,

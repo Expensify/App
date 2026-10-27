@@ -225,6 +225,61 @@ describe('WorkspaceMembers', () => {
         });
     });
 
+    describe('Travel admins', () => {
+        const makeSelfTravelAdmin = async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.TRAVEL_ADMIN,
+                    travelSettings: {spotnanaCompanyID: 'spotnanaCompanyID', hasAcceptedTerms: true},
+                    employeeList: {[selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.TRAVEL_ADMIN}},
+                });
+            });
+        };
+
+        it('should let a travel admin select a member and offer only Change travel access', async () => {
+            // Given a travel workspace where the current member is a travel admin, who can't otherwise manage members
+            await makeSelfTravelAdmin();
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When they select a member and open the actions
+            selectCheckboxByMemberName('Member');
+            await openBulkActions();
+
+            // Then they can change the member's travel access, but not their role or membership
+            expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.travel.members.changeTravelAccess'))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.changeRole'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should keep a travel admin from selecting workspace admins', async () => {
+            // Given a travel workspace where the current member is a travel admin
+            await makeSelfTravelAdmin();
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // When they look at a workspace admin's row and a member's row
+            const adminRow = screen.getByLabelText(new RegExp(`^${ADMIN_OPTION}, ${adminEmail}`));
+            const memberRow = screen.getByLabelText(new RegExp(`^${USER_OPTION}, ${userEmail}`));
+
+            // Then only the member can be selected, since travel admins can't change an admin's travel access
+            expect(within(adminRow).getByLabelText(TestHelper.translateLocal('common.select'))).toBeDisabled();
+            expect(within(memberRow).getByLabelText(TestHelper.translateLocal('common.select'))).not.toBeDisabled();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     describe('Role selection screen', () => {
         const roleName = (role: ValueOf<typeof CONST.POLICY.ROLE>) => TestHelper.translateLocal('workspace.common.roleName', role);
         const memberRoleName = () => TestHelper.translateLocal('common.member');
