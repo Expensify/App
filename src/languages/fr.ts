@@ -1197,6 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
+        runningTotal: 'Total cumulé',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
