@@ -2,7 +2,7 @@ name: Search filter and column checklist
 
 # Search filters and columns need matching table, sorting, and export support. Remind the author when a PR adds one
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize]
 
 permissions:

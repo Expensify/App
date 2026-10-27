@@ -8762,7 +8762,6 @@ const CONST = {
             DESCRIPTION: 'description',
             FROM: 'from',
             TO: 'to',
-            JACKS_COLUMN: 'JACK',
             PAYER: 'payer',
             PAID_BY: 'paidBy',
             EXPORTER: 'exporter',
