@@ -104,7 +104,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
 
         if (shouldUseLiveData) {
-            // Search requests live (to-do) results itself when it mounts, but a preloaded one mounted while hidden and held it.
+            // Search requests live (to-do) results on mount, which a hidden preloaded tab skips, so its first open requests them here.
             if (isFirstOpenOfPreloadedTab) {
                 isFirstOpenOfPreloadedTabRef.current = false;
                 search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false});

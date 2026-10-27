@@ -58,10 +58,6 @@ describe('SearchLoadingSkeleton', () => {
         mockFocusCallback = undefined;
     });
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
     it('ends the cold spans on its first layout during a normal visit', () => {
         // Given the skeleton mounts on a screen the user just opened, so focus arrives before the first layout
         render(<SearchLoadingSkeleton />);
@@ -81,8 +77,6 @@ describe('SearchLoadingSkeleton', () => {
 
     it('ends the cold spans on focus when it was laid out while its tab was hidden', () => {
         // Given the idle tab preload mounted and laid out the skeleton before the user opened the tab
-        const frameCallbacks: FrameRequestCallback[] = [];
-        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frameCallbacks.push(callback));
         const {rerender} = render(
             <IsInPreloadedTabContext.Provider value>
                 <SearchLoadingSkeleton />
@@ -100,11 +94,7 @@ describe('SearchLoadingSkeleton', () => {
         );
         focusScreen();
 
-        // Then the tap's spans end a frame later, as a cold start, so the render that unfreezes the tab is counted
-        expect(mockEndSpanWithAttributes).not.toHaveBeenCalled();
-        for (const callback of frameCallbacks) {
-            callback(0);
-        }
+        // Then the tap's spans end on that focus, as a cold start, since no new layout will follow
         expectColdSpansEnded(1);
     });
 

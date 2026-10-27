@@ -455,8 +455,8 @@ function Search({
     const isInPreloadedTab = useIsInPreloadedTab();
 
     useEffect(() => {
-        // A preloaded tab holds its request until opened, and useSearchPageSetup sends it then. The migrated-modal and
-        // reconnect branches below skip the focus check, so they would otherwise fire it from the hidden tab.
+        // A preloaded tab sends no request while hidden; useSearchPageSetup sends it on first open. This also covers the
+        // migrated-modal and reconnect branches below, which skip the focus check.
         if (isInPreloadedTab) {
             return;
         }
@@ -584,8 +584,6 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
-    // Laid out while its tab was preloaded at idle, so the first open reveals it with no new layout.
-    const wasLaidOutInPreloadedTabRef = useRef(false);
     const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
     const newNavigateToReportsSpansOnMount = useRef(getNavigateToReportsSpans());
@@ -1150,7 +1148,6 @@ function Search({
         hasHadFirstLayout.current = true;
         // Not visible yet: the submit spans and the pending write wait for the first open, which the focus effect below handles.
         if (isInPreloadedTab) {
-            wasLaidOutInPreloadedTabRef.current = true;
             return;
         }
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
@@ -1213,7 +1210,6 @@ function Search({
         // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
         markPreloadedTabContentReady();
         if (isInPreloadedTab) {
-            wasLaidOutInPreloadedTabRef.current = true;
             return;
         }
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
@@ -1256,20 +1252,11 @@ function Search({
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
-            const endNavigateToReportsSpans = () => {
-                endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-                    [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
-                });
-                endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
-                endNavigateToReportsContentLoad();
-            };
-            // First open of a preloaded tab: focus fires before the render that unfreezes it, so end a frame later to count it.
-            if (wasLaidOutInPreloadedTabRef.current) {
-                wasLaidOutInPreloadedTabRef.current = false;
-                requestAnimationFrame(endNavigateToReportsSpans);
-            } else {
-                endNavigateToReportsSpans();
-            }
+            endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
+            });
+            endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
+            endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushPendingSearchWrite();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),

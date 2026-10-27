@@ -30,14 +30,13 @@ function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const wasLaidOutInPreloadedTabRef = useRef(false);
     const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
 
-    // Laid out while its tab was preloaded, so opening the tab brings no new layout: end the tap's spans on that first focus,
-    // a frame later so the render that unfreezes the tab is counted.
+    // A skeleton laid out in a preloaded tab gets no new layout when the tab opens, so the tap's spans end on its first focus.
     useFocusEffect(() => {
         if (!wasLaidOutInPreloadedTabRef.current) {
             return;
         }
         wasLaidOutInPreloadedTabRef.current = false;
-        requestAnimationFrame(endColdNavigateToReportsSpans);
+        endColdNavigateToReportsSpans();
     });
 
     return (
