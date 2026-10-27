@@ -39,6 +39,9 @@ let mockOnPointerLeave: ((event: {clientX: number}) => void) | undefined;
 let mockSelectedFilter: string | undefined;
 let mockOnSearchValueChange: ((searchValue: string) => void) | undefined;
 
+/** Whether the popup last told the Describe your search content to take the focus. */
+let mockIsDescribeSearchAutoFocused = false;
+
 /** The form served by the useOnyx mock. Reassigned by tests to change filter values. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
@@ -67,7 +70,11 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
 
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent', () => ({
     __esModule: true,
-    default: () => <MockView testID="describe-search-content" />,
+    default: ({autoFocus}: {autoFocus?: boolean}) => {
+        mockIsDescribeSearchAutoFocused = !!autoFocus;
+
+        return <MockView testID="describe-search-content" />;
+    },
 }));
 
 jest.mock('@hooks/usePermissions', () => ({
@@ -320,14 +327,14 @@ describe('SearchAdvancedFiltersPopup', () => {
     });
 
     it('shows the first match once the typing pauses', () => {
-        // Given the popover open on Type
-        // When a search that Type does not match is typed, before the typing pauses
+        // Given the popover open on Describe your search
+        // When a search that Describe your search does not match is typed, before the typing pauses
         act(() => {
             mockOnSearchValueChange?.('status');
         });
 
         // Then the content stays put while the typing may go on
-        expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
 
         // When the typing pauses
         act(() => {
@@ -359,8 +366,8 @@ describe('SearchAdvancedFiltersPopup', () => {
             mockOnSearchValueChange?.('');
         });
 
-        // Then Type, the first row of the full list, takes over at once, the same moment the full list comes back
-        expect(mockSelectedFilter).toBe(FILTER_KEYS.TYPE);
+        // Then Describe your search, the first row of the full list, takes over at once, the same moment the full list comes back
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
     });
 
     it('keeps a filter hovered right after the search is cleared', () => {
@@ -435,13 +442,22 @@ describe('SearchAdvancedFiltersPopup', () => {
         expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
     });
 
-    it('never opens Describe your search as the first match', () => {
-        // Given the popover open on Type
-        // When a search that only Describe your search matches is typed
+    it('opens on Describe your search without taking the focus from the filter search', () => {
+        // Given the popover just opened
+        // Then Describe your search, the first row, is shown, and its input leaves the focus where the popover put it
+        expect(mockSelectedFilter).toBeUndefined();
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
+        expect(mockIsDescribeSearchAutoFocused).toBe(false);
+    });
+
+    it('opens Describe your search as the first match', () => {
+        // Given Type shown
+        hoverAndRest(FILTER_KEYS.TYPE);
+
+        // When a search that Describe your search matches is typed
         search('describe');
 
-        // Then its row is listed but its content stays closed, because its input would take the focus from the search
-        expect(screen.getByLabelText('Describe your search')).toBeOnTheScreen();
-        expect(screen.queryByTestId('describe-search-content')).toBeNull();
+        // Then its content takes over, like any other first match
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
     });
 });

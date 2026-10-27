@@ -140,7 +140,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
     const {windowHeight} = useWindowDimensions();
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
-    const [isDescribeMode, setIsDescribeMode] = useState(false);
+    const [isDescribeMode, setIsDescribeMode] = useState(canUseNLFilters);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const filterContentRef = useRef<ComponentRef<typeof View>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
@@ -229,10 +229,14 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay, filterSearchInputR
     const isDescribeSearchMatching = (searchValue: string) => canUseNLFilters && isLabelMatchingSearchValue(translate('search.filters.describeSearch.title'), searchValue);
 
     // Like a selection list, a search shows its first match. The typing has stopped, so its content loads at once.
-    // Describe your search is never picked as that match, because its input would take the focus from the search.
     const showFirstMatchingFilter = (searchValue: string) => {
+        if (isDescribeSearchMatching(searchValue)) {
+            setIsDescribeMode(true);
+            return;
+        }
+
         const firstMatchingFilter = getMatchingFilters(allFilters, searchAdvancedFiltersForm?.type, searchValue, translate).at(0)?.at(0);
-        if ((isDescribeMode && isDescribeSearchMatching(searchValue)) || !firstMatchingFilter) {
+        if (!firstMatchingFilter) {
             return;
         }
 
