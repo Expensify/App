@@ -134,6 +134,29 @@ describe('TalkToHumanPage', () => {
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 
+    it('uses the connection state from when navigation became ready, not a stale one', async () => {
+        // Given navigation that is not ready yet, and a page that rendered online
+        let resolveNavigationReady = () => {};
+        jest.mocked(Navigation.isNavigationReady).mockReturnValue(
+            new Promise<void>((resolve) => {
+                resolveNavigationReady = resolve;
+            }),
+        );
+        const {rerender} = render(<TalkToHumanPage />);
+
+        // When the device turns out to be offline before navigation is ready
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        rerender(<TalkToHumanPage />);
+        await act(async () => {
+            resolveNavigationReady();
+            await Promise.resolve();
+        });
+
+        // Then the page shows Help and does not try to create a ticket
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP);
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
+    });
+
     it('does not open a second ticket when it re-renders before it is removed', async () => {
         // Given the page has already handled the link
         const {rerender} = await renderPage();

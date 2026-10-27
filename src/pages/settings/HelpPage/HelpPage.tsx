@@ -205,7 +205,7 @@ function HelpPage() {
         icon: icons.ChatBubbles,
         iconType: CONST.ICON_TYPE_ICON,
         onPress: openSupportTicketOrConcierge,
-        isDisabled: isOffline,
+        disabled: isOffline,
         shouldShowRightIcon: true,
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,

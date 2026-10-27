@@ -6,6 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
 
 import {openExternalLink} from '@libs/actions/Link';
 
@@ -31,11 +32,16 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 jest.mock('@libs/actions/Help', () => ({openHelpPage: jest.fn()}));
 jest.mock('@libs/actions/Link', () => ({openExternalLink: jest.fn()}));
+const mockOpenSupportTicketOrConcierge = jest.fn();
+
 jest.mock('@hooks/useOpenConciergeAnywhere', () => () => ({openConciergeAnywhere: jest.fn()}));
+jest.mock('@hooks/useOpenSupportTicket', () => () => ({openSupportTicketOrConcierge: mockOpenSupportTicketOrConcierge}));
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useIsPaidPolicyAdmin', () => () => true);
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 
 const mockUseCurrentUserPersonalDetails = jest.mocked(useCurrentUserPersonalDetails);
+const mockUseNetwork = jest.mocked(useNetwork);
 const mockOpenExternalLink = jest.mocked(openExternalLink);
 
 const ACCOUNT_MANAGER_ACCOUNT_ID = 42;
@@ -49,6 +55,7 @@ describe('HelpPage', () => {
 
     beforeEach(() => {
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1});
+        mockUseNetwork.mockReturnValue({isOffline: false});
     });
 
     afterEach(async () => {
@@ -82,6 +89,25 @@ describe('HelpPage', () => {
         // And pressing it opens the account manager's calendar link
         fireEvent.press(bookCallButton);
         expect(mockOpenExternalLink).toHaveBeenCalledWith(CALENDAR_LINK);
+    });
+
+    it('disables the Talk to a human row while offline, so no ticket is queued to appear after reconnecting', async () => {
+        // Given the Help page while offline
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Talk to a human row is disabled
+        expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).toBeDisabled();
+    });
+
+    it('keeps the Talk to a human row enabled while online', async () => {
+        // Given the Help page while online
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Talk to a human row can be pressed
+        expect(screen.getByText(translateLocal('initialSettingsPage.talkToAHuman'))).not.toBeDisabled();
     });
 
     it('hides the duplicate account manager row when the account manager is Concierge', async () => {
