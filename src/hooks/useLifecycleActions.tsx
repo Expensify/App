@@ -197,6 +197,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             currentUserAccountIDParam: accountID,

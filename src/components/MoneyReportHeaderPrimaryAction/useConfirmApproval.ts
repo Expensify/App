@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -24,6 +25,7 @@ import {loginSelector} from '@selectors/PersonalDetails';
 function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -54,6 +56,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,

@@ -24,6 +24,7 @@ import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 import useReportTransactions from './useReportTransactions';
@@ -64,6 +65,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
@@ -89,6 +91,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
         if (isApprove) {
             approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
                 rules,
