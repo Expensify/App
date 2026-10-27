@@ -1,79 +1,66 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Accessibility from '@libs/Accessibility';
+
 import CONST from '@src/CONST';
 
-import React, {useEffect} from 'react';
-import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import React, {useState} from 'react';
+import Animated, {css, cubicBezier} from 'react-native-reanimated';
 
 type LoadingBarProps = {
     shouldShow: boolean;
 };
 
+const INDICATOR_EASING = cubicBezier(0.65, 0, 0.35, 1);
+const INDICATOR_MIDPOINT = '50%';
+
+const CONTAINER_TRANSITION = {
+    transitionProperty: 'opacity',
+    transitionDuration: `${CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}ms`,
+} as const;
+
+const animations = css.create({
+    indicator: {
+        animationName: css.keyframes({
+            from: {left: '0%', width: '0%', animationTimingFunction: INDICATOR_EASING},
+            [INDICATOR_MIDPOINT]: {left: '0%', width: '100%', animationTimingFunction: INDICATOR_EASING},
+            to: {left: '100%', width: '0%'},
+        }),
+        animationDuration: `${CONST.ANIMATED_PROGRESS_BAR_DURATION * 2}ms`,
+        animationDelay: `${CONST.ANIMATED_PROGRESS_BAR_DELAY}ms`,
+        // Apply the first keyframe during the initial delay so the bar doesn't flash at full width before the animation starts
+        animationFillMode: 'backwards',
+        animationIterationCount: 'infinite',
+    },
+    indicatorIdle: {width: '0%'},
+    containerVisible: {opacity: 1, ...CONTAINER_TRANSITION},
+    containerHidden: {opacity: 0, ...CONTAINER_TRANSITION},
+});
+
 function LoadingBar({shouldShow}: LoadingBarProps) {
-    const left = useSharedValue(0);
-    const width = useSharedValue(0);
-    const opacity = useSharedValue(0);
     const styles = useThemeStyles();
+    const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
-    useEffect(() => {
+    // The indicator keeps moving while the bar fades out, and is detached once the fade-out ends,
+    // so it doesn't run while hidden and restarts from the beginning the next time the bar is shown
+    const [isIndicatorAnimating, setIsIndicatorAnimating] = useState(shouldShow);
+    if (shouldShow && !isIndicatorAnimating) {
+        setIsIndicatorAnimating(true);
+    }
+
+    const stopIndicatorAfterFadeOut = () => {
         if (shouldShow) {
-            left.set(0);
-            width.set(0);
-            opacity.set(withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
-
-            left.set(
-                withDelay(
-                    CONST.ANIMATED_PROGRESS_BAR_DELAY,
-                    withRepeat(
-                        withSequence(
-                            withTiming(0, {duration: 0}),
-                            withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                            withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        ),
-                        -1,
-                        false,
-                    ),
-                ),
-            );
-
-            width.set(
-                withDelay(
-                    CONST.ANIMATED_PROGRESS_BAR_DELAY,
-                    withRepeat(
-                        withSequence(
-                            withTiming(0, {duration: 0}),
-                            withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                            withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        ),
-                        -1,
-                        false,
-                    ),
-                ),
-            );
-        } else {
-            opacity.set(
-                withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}, () => {
-                    cancelAnimation(left);
-                    cancelAnimation(width);
-                }),
-            );
+            return;
         }
-        // we want to update only when shouldShow changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldShow]);
-
-    const animatedIndicatorStyle = useAnimatedStyle(() => ({
-        left: `${left.get()}%`,
-        width: `${width.get()}%`,
-    }));
-
-    const animatedContainerStyle = useAnimatedStyle(() => ({
-        opacity: opacity.get(),
-    }));
+        setIsIndicatorAnimating(false);
+    };
 
     return (
-        <Animated.View style={[styles.progressBarWrapper, animatedContainerStyle]}>
-            <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} />
+        <Animated.View
+            style={[styles.progressBarWrapper, shouldShow ? animations.containerVisible : animations.containerHidden]}
+            onCSSTransitionEnd={stopIndicatorAfterFadeOut}
+        >
+            <Animated.View style={[styles.progressBar, isIndicatorAnimating && !isReducedMotionEnabled ? animations.indicator : animations.indicatorIdle]} />
         </Animated.View>
     );
 }
