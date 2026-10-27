@@ -22,19 +22,10 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], unknown[]>(() => []);
-const mockIsGroupPolicy = jest.fn<void, unknown[]>();
-jest.mock('@libs/PolicyUtils', () => {
-    const actualPolicyUtils = jest.requireActual<typeof PolicyUtilsModule>('@libs/PolicyUtils');
-    return {
-        ...actualPolicyUtils,
-        getGroupPoliciesWhereReportCanBeCreated: (...args: unknown[]) => mockGetGroupPoliciesWhereReportCanBeCreated(...args),
-        // Records calls but keeps the real check, so tests can tell when the POLICY subscription recomputes eligibility
-        isGroupPolicy: (...args: Parameters<typeof actualPolicyUtils.isGroupPolicy>) => {
-            mockIsGroupPolicy(...args);
-            return actualPolicyUtils.isGroupPolicy(...args);
-        },
-    };
-});
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtilsModule>('@libs/PolicyUtils'),
+    getGroupPoliciesWhereReportCanBeCreated: (...args: unknown[]) => mockGetGroupPoliciesWhereReportCanBeCreated(...args),
+}));
 
 const mockNavigate = jest.fn();
 const mockRemoveScreenFromNavigationState = jest.fn();
@@ -50,7 +41,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 const submitPlanWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WELCOME.path, ROUTES.HOME);
 
-/** A Submit workspace the user administers, which counts as an editable group workspace. */
+/** A Submit workspace the user administers, which counts as a workspace where they can create reports. */
 function createEditableSubmitPolicy(policyID: string): Pick<Policy, 'id' | 'type' | 'role'> {
     return {id: policyID, type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.ADMIN};
 }
@@ -104,7 +95,6 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         mockRemoveScreenFromNavigationState.mockClear();
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReset();
         mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
-        mockIsGroupPolicy.mockClear();
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -342,14 +332,14 @@ describe('SubmitPlanWelcomeModalGuard', () => {
             await setUpEligibleUser();
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await markSessionReady({authToken: 'test-token', accountID: 123});
-            mockIsGroupPolicy.mockClear();
+            mockGetGroupPoliciesWhereReportCanBeCreated.mockClear();
 
             // When a workspace update arrives
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {...createEditableSubmitPolicy('policy1'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
             await waitForBatchedUpdates();
 
             // Then the guard skips the eligibility check, so policy churn stays cheap for everyone else
-            expect(mockIsGroupPolicy).not.toHaveBeenCalled();
+            expect(mockGetGroupPoliciesWhereReportCanBeCreated).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
         });
 

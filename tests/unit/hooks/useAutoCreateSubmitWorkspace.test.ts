@@ -113,7 +113,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('creates a Submit workspace with the correct parameters for a new EMPLOYER user', () => {
         // Given a new user going through onboarding with no existing workspace (onboardingPolicyID is undefined,
-        // hasEditableGroupPolicy is false, and policy creation is not restricted)
+        // hasGroupPolicyWhereReportCanBeCreated is false, and policy creation is not restricted)
 
         // When the autoCreateSubmitWorkspace function is invoked during onboarding
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -234,6 +234,26 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
         // Then no Submit workspace should be created because the user already has
         // a paid group workspace and creating another would be redundant
+        expect(createWorkspaceSpy).not.toHaveBeenCalled();
+    });
+
+    it('skips workspace creation when the user is a member who can create reports on a paid group policy', async () => {
+        // Given a user who is a regular member (not an admin) of a paid group policy
+        const existingPaidPolicy = createMock<PolicyType>({
+            id: 'existing-paid-policy-id',
+            name: 'Existing Paid Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPaidPolicy.id}`, existingPaidPolicy);
+        await waitForBatchedUpdates();
+
+        // When onboarding completes
+        const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
+        result.current('Jane', 'Smith');
+
+        // Then no Submit workspace should be created because the user can already create reports there,
+        // matching the check the Submit plan welcome modal guard uses
         expect(createWorkspaceSpy).not.toHaveBeenCalled();
     });
 
