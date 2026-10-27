@@ -310,17 +310,31 @@ describe('OneTransactionThreadRedirectHandler', () => {
         expect(SINGLE_EXPENSE_TABLE_VIEW_BETA).toBe(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW);
     });
 
-    it('keeps the thread route when the user views single-expense reports in the table view', async () => {
+    it('keeps the thread route when it is opened from its row in the table view', async () => {
         // Given the user picked the table view, where the expense is a row the user opens on purpose
         mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE;
 
-        // When the expense's thread opens
+        // When the expense's thread opens from its report, which it carries as backTo
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: `/e/${EXPENSE_REPORT_ID}`};
         render(<OneTransactionThreadRedirectHandler />);
 
         await waitForBatchedUpdatesWithAct();
 
         // Then it stays on the thread instead of bouncing back to the report
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('redirects to the report in the table view when the thread is opened from somewhere else', async () => {
+        // Given the user picked the table view
+        mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE;
+
+        // When the expense's thread opens from Home, as Recently added and the "Expense added" growl do
+        mockRouteParams = {reportID: THREAD_REPORT_ID, backTo: 'home'};
+        render(<OneTransactionThreadRedirectHandler />);
+
+        // Then it's replaced with the report, which shows the table the user picked
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=home`, {forceReplace: true});
     });
 
     it('waits for the single-expense report view to load before redirecting', async () => {
