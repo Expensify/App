@@ -120,6 +120,45 @@ describe('normalizeESLintResults', () => {
 });
 
 describe('filterReactCompilerMessages', () => {
+    it('enforces manual memoization only when both compilers memoize the file', async () => {
+        // Given a diagnostic that depends on automatic memoization being available on both platforms.
+        const messages = [makeMessage({ruleID: 'rulesdir/no-manual-memoization'})];
+
+        // When both compilers memoize the file, or one of them does not.
+        const compiled = await filterReactCompilerMessages(messages, '/tmp', () => true);
+        const skipped = await filterReactCompilerMessages(messages, '/tmp', () => false);
+
+        // Then manual memoization is forbidden only in the compiled file.
+        expect(compiled).toEqual(messages);
+        expect(skipped).toEqual([]);
+    });
+
+    it('does not forbid manual memoization when compilation cannot be checked', async () => {
+        // Given a file whose compiler analysis cannot complete.
+        const messages = [makeMessage({ruleID: 'rulesdir/no-manual-memoization'})];
+
+        // When analysis fails or the source cannot be read.
+        const crashed = await filterReactCompilerMessages(messages, '/tmp', () => {
+            throw new Error('compiler unavailable');
+        });
+        const unreadable = await filterReactCompilerMessages(messages, '/tmp');
+
+        // Then conservatively allow the existing manual memoization.
+        expect(crashed).toEqual([]);
+        expect(unreadable).toEqual([]);
+    });
+
+    it('does not enforce the compiler-only rule in tests', async () => {
+        // Given test code, which is excluded from React Compiler.
+        const messages = [makeMessage({filePath: '/tmp/tests/file.tsx', ruleID: 'rulesdir/no-manual-memoization'})];
+
+        // When filtering diagnostics, even with a successful compiler stub.
+        const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
+
+        // Then no compiler-only restriction applies.
+        expect(result).toEqual([]);
+    });
+
     it('skips the compiler for files with no suppressible message', async () => {
         let called = 0;
         const messages = [makeMessage({ruleID: 'no-console'})];

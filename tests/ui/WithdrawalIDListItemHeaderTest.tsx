@@ -6,11 +6,9 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {TransactionWithdrawalIDGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import WithdrawalIDListItemHeader from '@components/Search/SearchList/ListItem/WithdrawalIDListItemHeader';
-import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
+import type {SearchColumnType} from '@components/Search/types';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-
-import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,8 +17,10 @@ import type {SearchWithdrawalIDGroup} from '@src/types/onyx/SearchResults';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMockSearchContext from '../utils/createMockSearchContext';
 import {makeSettlementGroup} from '../utils/ExpensifyCardStatementTestUtils';
 import MockSearchContextProvider from '../utils/MockSearchContextProvider';
+import testSearchGroupHeader from '../utils/testSearchGroupHeader';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -28,50 +28,6 @@ jest.mock('@libs/Navigation/Navigation');
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
-
-const mockSearchStateContext = {
-    currentSearchHash: 12345,
-    currentSearchKey: undefined,
-    currentSearchQueryJSON: undefined,
-    currentDefaultSearchQueryJSON: undefined,
-    currentDefaultSearchQueryFilterKeys: new Set(),
-    currentSearchResults: undefined,
-    currentSearchTransactionsByReportID: new Map(),
-    currentSearchViolations: undefined,
-    currentSelectedTransactionReportID: undefined,
-    selectedReports: [],
-    selectedTransactionIDs: [],
-    selectedTransactions: {},
-    excludedTransactions: {},
-    shouldTurnOffSelectionMode: false,
-    shouldResetSearchQuery: false,
-    lastSearchType: undefined,
-    areAllMatchingItemsSelected: false,
-    shouldShowFiltersBarLoading: false,
-    shouldUseLiveData: false,
-    currentSimilarSearchHash: -1,
-    suggestedSearches: getSuggestedSearches(),
-    sortedReportIDs: [],
-    hasSelectedTransactions: false,
-} satisfies SearchStateContextValue;
-
-const mockSearchActionsContext = {
-    setLastSearchType: jest.fn(),
-    setCurrentSelectedTransactionReportID: jest.fn(),
-    setSelectedTransactions: jest.fn(),
-    getSelectedTransactions: jest.fn(() => ({})),
-    getExcludedTransactions: () => ({}),
-    getAreAllMatchingItemsSelected: () => false,
-    applySelection: jest.fn(),
-    setSelectedReports: jest.fn(),
-    removeTransaction: jest.fn(),
-    clearSelectedTransactions: jest.fn(),
-    setShouldShowFiltersBarLoading: jest.fn(),
-    selectAllMatchingItems: jest.fn(),
-    setShouldResetSearchQuery: jest.fn(),
-    setSortedReportIDs: jest.fn(),
-    getSearchKeyForQuery: jest.fn(),
-} satisfies SearchActionsContextValue;
 
 const WIDE_COLUMNS: SearchColumnType[] = [
     CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
@@ -91,12 +47,17 @@ const createWithdrawalItem = (overrides: Partial<SearchWithdrawalIDGroup> = {}):
     keyForList: `group_${overrides.entryID ?? 123}`,
 });
 
-const renderHeader = (item: TransactionWithdrawalIDGroupListItemType, onDownArrowClick?: jest.Mock) =>
-    render(
+const renderHeader = (
+    item: TransactionWithdrawalIDGroupListItemType,
+    onDownArrowClick?: jest.Mock,
+    props: Partial<Omit<Parameters<typeof WithdrawalIDListItemHeader>[0], 'withdrawalID'>> = {},
+) => {
+    const {state, actions} = createMockSearchContext();
+    return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <MockSearchContextProvider
-                state={mockSearchStateContext}
-                actions={mockSearchActionsContext}
+                state={state}
+                actions={actions}
             >
                 <WithdrawalIDListItemHeader
                     withdrawalID={item}
@@ -104,10 +65,12 @@ const renderHeader = (item: TransactionWithdrawalIDGroupListItemType, onDownArro
                     onDownArrowClick={onDownArrowClick}
                     isExpanded={false}
                     columns={WIDE_COLUMNS}
+                    {...props}
                 />
             </MockSearchContextProvider>
         </ComposeProviders>,
     );
+};
 
 describe('WithdrawalIDListItemHeader', () => {
     beforeAll(() =>
@@ -138,6 +101,15 @@ describe('WithdrawalIDListItemHeader', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    testSearchGroupHeader({
+        createItem: createWithdrawalItem,
+        createColumnItem: () => createWithdrawalItem({entryID: 456, total: 12345, count: 7}),
+        renderHeader: (item, props, onCheckboxPress) => renderHeader(item, undefined, {canSelectMultiple: true, ...props, onCheckboxPress}),
+        identifyingColumn: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+        identifyingText: '456',
+        cellText: /^(\$123\.45|456|7)$/,
     });
 
     describe('Cash back row', () => {

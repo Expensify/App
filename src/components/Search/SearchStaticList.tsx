@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
@@ -91,6 +92,7 @@ function SearchStaticList({
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -160,6 +162,7 @@ function SearchStaticList({
                 delegateAccountID,
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
+                fullPolicySnapshotLastModifiedByPolicyID,
             });
             if (shouldOpenTransactionThread) {
                 return;

@@ -240,6 +240,22 @@ jobs:
           path: /tmp/ios-artifacts
           merge-multiple: true
 
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
+      - name: Setup Java
+        # v5.2.0
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: oracle
+          java-version: ${{ steps.get-java-version.outputs.version }}
+
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@b70c378d6cfae84f6844379eef3568cb33ea9680
+        with:
+          restrict-gradle: 'true'
+
       - name: Publish to GitHub Packages Maven
         run: ./android/gradlew -p scripts/artifacts-utils/ios/publish publish -PartifactsDir="/tmp/ios-artifacts" -PpatchedVersion="${PATCHED_VERSION}" -PpatchesHash="${PATCHES_HASH}" -PhermesVersion="${HERMES_VERSION}" -PpackageName="${PACKAGE_NAME}"
         env:
