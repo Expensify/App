@@ -7,6 +7,7 @@ import {
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
     setMoneyRequestDistanceRate,
+    setMoneyRequestDraftHasUserEdits,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
 } from '@libs/actions/IOU/MoneyRequest';
@@ -788,6 +789,44 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(draft?.billable).toBe(true);
+        });
+
+        it('setMoneyRequestDraftHasUserEdits keeps the draft marked until a re-init switches its request type', async () => {
+            const draftKey = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}` as const;
+            const initManualRequest = (currentIouRequestType: Transaction['iouRequestType']) =>
+                initMoneyRequest({
+                    reportID: '1',
+                    policy: undefined,
+                    personalPolicy: undefined,
+                    isFromGlobalCreate: true,
+                    currentIouRequestType,
+                    newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    report: undefined,
+                    parentReport: undefined,
+                    currentDate: '2025-04-01',
+                    hasOnlyPersonalPolicies: false,
+                    draftTransactionIDs: [],
+                });
+
+            // Given a manual draft whose category the user picked
+            initManualRequest(undefined);
+            setMoneyRequestDraftHasUserEdits(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+            await waitForBatchedUpdates();
+            expect((await getOnyxValue(draftKey))?.hasUserEdits).toBe(true);
+
+            // When the flow re-initializes the draft with the same request type, which keeps the user's data
+            initManualRequest(CONST.IOU.REQUEST_TYPE.MANUAL);
+            await waitForBatchedUpdates();
+
+            // Then the draft is still marked as edited
+            expect((await getOnyxValue(draftKey))?.hasUserEdits).toBe(true);
+
+            // When switching tabs re-initializes it from another request type, which wipes the draft
+            initManualRequest(CONST.IOU.REQUEST_TYPE.SCAN);
+            await waitForBatchedUpdates();
+
+            // Then the mark goes with the wiped data
+            expect((await getOnyxValue(draftKey))?.hasUserEdits).toBeUndefined();
         });
     });
 });

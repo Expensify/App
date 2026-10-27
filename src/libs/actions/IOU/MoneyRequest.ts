@@ -1058,6 +1058,16 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     });
 }
 
+/**
+ * Marks a create-flow draft as edited by the user, for fields that have no dedicated flag (category, tag, tax, billable, ...).
+ * Call it from user handlers only: auto-fill code writes the same fields and must keep an untouched draft clean.
+ */
+function setMoneyRequestDraftHasUserEdits(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        hasUserEdits: true,
+    });
+}
+
 function clearMoneyRequestRateAutoUpdated(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
@@ -1177,6 +1187,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestBillable,
     setMoneyRequestReimbursable,
+    setMoneyRequestDraftHasUserEdits,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
 };
