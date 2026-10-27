@@ -63,7 +63,6 @@ const SEARCH_TRANSACTION_ROW_ONLY_FIELDS: Record<Exclude<keyof TransactionListIt
     isActionColumnWide: true,
     selectionGroupKey: true,
     filename: true,
-    attendees: true,
     violations: true,
     allActions: true,
     action: true,

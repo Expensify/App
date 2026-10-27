@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type SizeProps = SubPageProps;
@@ -39,21 +39,18 @@ function Size({onNext}: SizeProps) {
         [INPUT_IDS.SUBSCRIPTION_SIZE]: `${privateSubscription?.userCount ?? ''}`,
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE], translate);
-            if (values[INPUT_IDS.SUBSCRIPTION_SIZE] && !isValidSubscriptionSize(values[INPUT_IDS.SUBSCRIPTION_SIZE])) {
-                errors.subscriptionSize = translate('subscription.subscriptionSize.error.size');
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM> => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE], translate);
+        if (values[INPUT_IDS.SUBSCRIPTION_SIZE] && !isValidSubscriptionSize(values[INPUT_IDS.SUBSCRIPTION_SIZE])) {
+            errors.subscriptionSize = translate('subscription.subscriptionSize.error.size');
+        }
 
-            if (Number(values[INPUT_IDS.SUBSCRIPTION_SIZE]) === privateSubscription?.userCount) {
-                errors.subscriptionSize = translate('subscription.subscriptionSize.error.sameSize');
-            }
+        if (Number(values[INPUT_IDS.SUBSCRIPTION_SIZE]) === privateSubscription?.userCount) {
+            errors.subscriptionSize = translate('subscription.subscriptionSize.error.sameSize');
+        }
 
-            return errors;
-        },
-        [privateSubscription?.userCount, translate],
-    );
+        return errors;
+    };
 
     return (
         <FormProvider

@@ -7,7 +7,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 
-import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import React, {lazy, Suspense, useEffect, useState} from 'react';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
 import type BackgroundImageProps from './types';
@@ -29,12 +29,7 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
     const session = useSession();
     const isAnonymous = isAnonymousUser(session);
 
-    const BackgroundComponent = useMemo(() => {
-        if (isSmallScreen) {
-            return BackgroundMobile;
-        }
-        return BackgroundDesktop;
-    }, [isSmallScreen]);
+    const BackgroundComponent = isSmallScreen ? BackgroundMobile : BackgroundDesktop;
 
     useEffect(() => {
         if (!isAnonymous) {

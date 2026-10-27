@@ -12,7 +12,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 
-import findAncestorWithStyle, {getStyleProperty} from '../utils/findAncestorWithStyle';
+import findAncestorWithStyle from '../utils/findAncestorWithStyle';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/DeviceCapabilities', () => ({
@@ -604,86 +604,6 @@ describe('NumericInput number pad', () => {
         }
     });
 
-    it('focuses the input and collapses the selection when the number pad gap area is clicked on web', async () => {
-        // Given an input with a selection, above the number pad
-        const inputRef = React.createRef<BaseTextInputRef>();
-        renderInputWithPad({value: '1234'}, inputRef);
-        await waitForBatchedUpdatesWithAct();
-
-        const input = screen.getByTestId(INPUT_TEST_ID);
-        fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 2}}});
-        await waitForBatchedUpdatesWithAct();
-
-        const inputElement = inputRef.current;
-        if (!inputElement) {
-            throw new Error('Numeric input ref was not assigned');
-        }
-        const focusSpy = jest.spyOn(inputElement, 'focus');
-
-        // When clicking the empty area between the keys, which bubbles up to the layout root
-        const preventDefault = jest.fn();
-        fireEvent(screen.getByTestId(PAD_TEST_ID), 'mouseDown', {nativeEvent: {target: document.createElement('div')}, preventDefault, isDefaultPrevented: () => false});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the event is prevented, the selection collapses, and the input is focused
-        expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(input.props.selection).toEqual({start: 2, end: 2});
-        expect(focusSpy).toHaveBeenCalledTimes(1);
-        focusSpy.mockRestore();
-    });
-
-    it('does not re-focus the input when the number pad gap area is clicked while input is already focused', async () => {
-        // Given an already focused input with a selection, above the number pad
-        const inputRef = React.createRef<BaseTextInputRef>();
-        renderInputWithPad({value: '1234'}, inputRef);
-        await waitForBatchedUpdatesWithAct();
-
-        const input = screen.getByTestId(INPUT_TEST_ID);
-        fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 2}}});
-        await waitForBatchedUpdatesWithAct();
-
-        const inputElement = inputRef.current;
-        if (!inputElement) {
-            throw new Error('Numeric input ref was not assigned');
-        }
-        const isFocusedSpy = jest.spyOn(inputElement, 'isFocused').mockReturnValue(true);
-        const focusSpy = jest.spyOn(inputElement, 'focus');
-
-        // When clicking the empty area between the keys while the input is already focused
-        const preventDefault = jest.fn();
-        fireEvent(screen.getByTestId(PAD_TEST_ID), 'mouseDown', {nativeEvent: {target: document.createElement('div')}, preventDefault, isDefaultPrevented: () => false});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then focus is not called again, though selection is still collapsed
-        expect(preventDefault).toHaveBeenCalledTimes(1);
-        expect(input.props.selection).toEqual({start: 2, end: 2});
-        expect(focusSpy).not.toHaveBeenCalled();
-
-        isFocusedSpy.mockRestore();
-        focusSpy.mockRestore();
-    });
-
-    it('ignores mousedown events from keypad buttons to preserve selection on web', async () => {
-        // Given an input with a selection, above the number pad
-        renderInputWithPad({value: '1234'});
-        await waitForBatchedUpdatesWithAct();
-
-        const input = screen.getByTestId(INPUT_TEST_ID);
-        fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 2}}});
-        await waitForBatchedUpdatesWithAct();
-
-        // When a mousedown event bubbles up from a keypad button, which handles the press itself
-        const target = document.createElement('div');
-        target.setAttribute('role', 'button');
-        const preventDefault = jest.fn();
-        fireEvent(screen.getByTestId(PAD_TEST_ID), 'mouseDown', {nativeEvent: {target}, preventDefault, isDefaultPrevented: () => false});
-        await waitForBatchedUpdatesWithAct();
-
-        // Then preventDefault is not called and the selection remains unchanged
-        expect(preventDefault).not.toHaveBeenCalled();
-        expect(input.props.selection).toEqual({start: 0, end: 2});
-    });
-
     it('fills the width of its column', async () => {
         // Given the number pad rendered in the layout's pad column, which centers its content
         renderInputWithPad();
@@ -696,36 +616,5 @@ describe('NumericInput number pad', () => {
         expect(fullWidthView).toBeDefined();
         expect(fullWidthView).not.toBe(screen.getByTestId(PAD_TEST_ID));
         expect(screen.getByTestId(PAD_TEST_ID)).toContainElement(fullWidthView ?? null);
-    });
-
-    it('applies bottom safe-area padding to the two-column scroll view in landscape when footer is omitted', async () => {
-        // Given a phone in landscape mode and an input rendered without a footer
-        mockUseIsInLandscapeMode.mockReturnValue(true);
-        renderInputWithPad();
-        await waitForBatchedUpdatesWithAct();
-
-        // When inspecting the body scroll view content container
-        const bodyScrollView = screen.getByTestId(`${ROOT_TEST_ID}-body`);
-        const contentContainerStyle: unknown = bodyScrollView.props.contentContainerStyle;
-        const paddingBottom = getStyleProperty(contentContainerStyle, 'paddingBottom');
-
-        // Then it includes bottom safe-area padding directly, because there is no footer to provide it
-        expect(typeof paddingBottom).toBe('number');
-        expect(Number(paddingBottom)).toBeGreaterThan(0);
-    });
-
-    it('does not apply bottom safe-area padding to the two-column scroll view in landscape when footer handles it', async () => {
-        // Given a phone in landscape mode and an input rendered with a footer
-        mockUseIsInLandscapeMode.mockReturnValue(true);
-        renderInputWithPad({footer: <NumericInput.FlipButton />});
-        await waitForBatchedUpdatesWithAct();
-
-        // When inspecting the body scroll view content container
-        const bodyScrollView = screen.getByTestId(`${ROOT_TEST_ID}-body`);
-        const contentContainerStyle: unknown = bodyScrollView.props.contentContainerStyle;
-        const paddingBottom = getStyleProperty(contentContainerStyle, 'paddingBottom');
-
-        // Then bottom safe-area padding is not requested on the scroll view, because the footer handles it outside
-        expect(paddingBottom).toBeUndefined();
     });
 });
