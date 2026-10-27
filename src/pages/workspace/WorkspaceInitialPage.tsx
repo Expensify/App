@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
@@ -83,6 +84,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
@@ -194,6 +196,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         policy,
         policyID,
         currentUserLogin: currentUserLogin ?? undefined,
+        currentUserPersonalDetails,
         icons: expensifyIcons,
         isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
@@ -326,7 +329,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         highlighted={!!item?.highlighted}
                                         focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
                                         role={CONST.ROLE.TAB}
-                                        badgeText={item.badgeText}
+                                        badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
                                         shouldIconUseAutoWidthStyle
                                         sentryLabel={item.sentryLabel}
                                         shouldGreyOutWhenDisabled={hasPolicyCreationError}

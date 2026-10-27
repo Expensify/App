@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -484,6 +484,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'orderDealNumbers':
         case 'debitedCurrency':
         case 'creditedCurrency':
+        case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -493,6 +494,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isDeletedParentAction':
         case 'isWaitingOnBankAccount':
         case 'canCancelReimbursement':
+        case 'isWaitingForCancelledReimbursement':
         case 'hasReportBeenRetracted':
         case 'isCancelledIOU':
         case 'hasReportBeenReopened':
@@ -637,6 +639,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -678,6 +681,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 unheldReimbursableTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isWaitingOnBankAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 canCancelReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isWaitingForCancelledReimbursement: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isCancelledIOU: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenRetracted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1458,7 +1462,6 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
-                isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
                 nights: 'number',
@@ -1609,6 +1612,7 @@ function getReasonAndReportActionForGBRInLHNRow(
     report: OnyxEntry<Report>,
     currentUserLogin: string,
     currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
     isReportArchived = false,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
 ): GBRReasonAndReportAction | null {
@@ -1617,7 +1621,7 @@ function getReasonAndReportActionForGBRInLHNRow(
     }
 
     const {reason, reportAction} =
-        getReasonAndReportActionThatRequiresAttention({optionOrReport: report, currentUserLogin, currentUserAccountID, transactionViolations, isReportArchived}) ?? {};
+        getReasonAndReportActionThatRequiresAttention({optionOrReport: report, currentUserLogin, currentUserAccountID, transactionViolations, isReportArchived, reportMetadata}) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};

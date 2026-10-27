@@ -153,7 +153,7 @@ type ReportActionItemProps = {
     shouldUseThreadDividerLine?: boolean;
     shouldDisplayContextMenu?: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction?: boolean;
 
     linkedTransactionRouteError?: Errors;
@@ -536,7 +536,7 @@ function ReportActionItem({
     const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
     const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
 
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, transactionsOnIOUReport);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, !isEmptyObject(transactionsOnIOUReport));
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction, isAgentProcessingInThread) && !isOnSearch;
 
@@ -634,7 +634,7 @@ function ReportActionItem({
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
                                                 errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
-                                                errorRowStyles={[styles.ml10, styles.mr2]}
+                                                errorRowStyles={styles.ml10}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough
                                             >

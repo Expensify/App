@@ -4,6 +4,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
@@ -77,20 +78,22 @@ function useMoneyRequestReportColumns({report, policy, transactions, reportActio
     // The saved column list is account-wide, so the vendor column only shows on reports whose workspace has the vendor feature.
     const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const savedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
-    const columnsToShow = getColumnsToShow({
-        currentAccountID: currentUserDetails?.accountID,
-        data: transactions,
-        report,
-        visibleColumns: isExpenseReportViewFromIOUReport ? [] : savedColumns,
-        isExpenseReportView: true,
-        isExpenseReportViewFromIOUReport,
-        shouldShowBillableColumn,
-        shouldShowCommentsColumn,
-        shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
-        reportCurrency: report?.currency,
-        isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
-        isVendorColumnAvailable,
-    });
+    const columnsToShow = useStableArrayReference(
+        getColumnsToShow({
+            currentAccountID: currentUserDetails?.accountID,
+            data: transactions,
+            report,
+            visibleColumns: isExpenseReportViewFromIOUReport ? [] : savedColumns,
+            isExpenseReportView: true,
+            isExpenseReportViewFromIOUReport,
+            shouldShowBillableColumn,
+            shouldShowCommentsColumn,
+            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
+            reportCurrency: report?.currency,
+            isPolicyTaxEnabled: isPolicyTaxEnabled(policy),
+            isVendorColumnAvailable,
+        }),
+    );
 
     const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
     const isTaxAmountColumnWide = transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));

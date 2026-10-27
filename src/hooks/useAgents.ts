@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {domainNameSelector} from '@src/selectors/Domain';
 import {groupByPolicyAccountIDPoliciesSelector} from '@src/selectors/Policy';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -51,6 +52,7 @@ function useAgents() {
     const {isOffline} = useNetwork();
     const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -78,15 +80,16 @@ function useAgents() {
         let ownerDisplayName: string | undefined;
         let ownerPolicyID: string | undefined;
         if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.PERSON) {
-            const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
+            const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
             ownerDisplayName = ownerDetails?.displayName ?? ownerDetails?.login;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.WORKSPACE) {
-            const policy = policiesByAccountID.get(agent.ownerAccountID);
+            const policy = agent.ownerAccountID ? policiesByAccountID.get(agent.ownerAccountID) : undefined;
             ownerDisplayName = policy?.name;
             ownerPolicyID = policy?.id;
         } else if (agent.ownerType === CONST.AGENTS.OWNER_TYPE.DOMAIN) {
-            const ownerDetails = personalDetailsList?.[agent.ownerAccountID];
-            ownerDisplayName = ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined;
+            const ownerDetails = agent.ownerAccountID ? personalDetailsList?.[agent.ownerAccountID] : undefined;
+            const domain = agent.ownerAccountID ? allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${agent.ownerAccountID}`] : undefined;
+            ownerDisplayName = domainNameSelector(domain) ?? (ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined);
         }
 
         const mergedErrors = {

@@ -126,6 +126,16 @@ export default {
     nativeTabIconDotRadius: 4,
     /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
     nativeTabIconDotCutout: 2,
+    /** Radius of the emoji status badge drawn into the account icon of a native tab bar. */
+    nativeTabIconEmojiStatusRadius: 6,
+    /** Size of the emoji drawn in that badge. */
+    nativeTabIconEmojiStatusFontSize: 8,
+    /** Radius of that badge on the smaller landscape avatar of the iOS native tab bar, where a full-size badge would run into the status dot. */
+    nativeTabIconEmojiStatusRadiusLandscape: 5,
+    /** Size of the emoji drawn in that landscape badge. */
+    nativeTabIconEmojiStatusFontSizeLandscape: 7,
+    /** How far the emoji status badge of an iOS native tab bar icon sits past the bottom-right corner of the avatar, as the JS badge hangs off its avatar. */
+    nativeTabIconEmojiStatusOffset: 2,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
@@ -378,6 +388,7 @@ export default {
     productMarketingWindowOffset: 20,
     productMarketingWindowOffsetNarrow: 12,
     productMarketingWindowHorizontalOffsetNarrow: 16,
+    wiseGlobalReimbursementsIntroIllustrationSize: 250,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,
@@ -425,6 +436,7 @@ export default {
     rulesNewMenuItemMinHeight: 84,
     agentRulePromptInputHeight: 340,
     describeRulePromptInputHeight: 312,
+    describeNewRulePromptInputHeight: 96,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
@@ -623,4 +635,5 @@ export default {
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
+    pieChartLegendMargin: 32,
 } as const;

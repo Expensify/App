@@ -25,8 +25,8 @@ import {startTestDrive} from '@libs/actions/Tour';
 import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {canSendInvoice} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -64,7 +64,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     activePolicy: OnyxEntry<Policy>;
-    groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     hasSeenTour: boolean;
 };
 
@@ -88,8 +87,6 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, currentUserPersonalDetails?.login);
-
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -104,7 +101,6 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
                 typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 activePolicy={activePolicy}
-                groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 hasSeenTour={hasSeenTour}
                 queryJSON={queryJSON}
                 violationSnapshotStartedAt={violationSnapshotStartedAt}
@@ -129,7 +125,6 @@ function EmptySearchViewContent({
     typeMenuSections,
     allPolicies,
     activePolicy,
-    groupPoliciesWithChatEnabled,
     hasSeenTour,
     queryJSON,
     violationSnapshotStartedAt,
@@ -143,12 +138,11 @@ function EmptySearchViewContent({
     const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {accountID} = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
@@ -159,8 +153,6 @@ function EmptySearchViewContent({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled, activePolicy);
-
     const filteredPolicyID = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     let isFilteredWorkspaceAccessible = true;
     if (filteredPolicyID.value) {
@@ -169,8 +161,8 @@ function EmptySearchViewContent({
         isFilteredWorkspaceAccessible = !!filteredPolicy;
     }
 
-    const handleCreateWorkspaceReport = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        if (!defaultChatEnabledPolicy?.id) {
+    const handleCreateWorkspaceReport = (policy: OnyxEntry<Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policy?.id) {
             return;
         }
 
@@ -178,7 +170,7 @@ function EmptySearchViewContent({
             currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            defaultChatEnabledPolicy,
+            policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
@@ -197,7 +189,6 @@ function EmptySearchViewContent({
 
     const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
         onCreateReport: handleCreateWorkspaceReport,
-        groupPoliciesWithChatEnabled,
     });
 
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {

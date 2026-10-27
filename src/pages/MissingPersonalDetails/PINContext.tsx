@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 
-import React, {createContext, useCallback, useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 
 import type {PINActionsContextType, PINStateContextType} from './types.context';
 
@@ -23,19 +23,19 @@ function PINContextProvider({children}: PINContextProviderProps) {
     const [isConfirmStep, setIsConfirmStepInternal] = useState(false);
     const [isPINHidden, setIsPINHidden] = useState(true);
 
-    const setIsConfirmStep = useCallback((value: boolean) => {
+    const setIsConfirmStep = (value: boolean) => {
         setIsConfirmStepInternal(value);
         setIsPINHidden(true);
-    }, []);
+    };
 
-    const clearPIN = useCallback(() => {
+    const clearPIN = () => {
         setPIN('');
         setIsConfirmStep(false);
-    }, [setIsConfirmStep]);
+    };
 
-    const togglePINVisibility = useCallback(() => {
+    const togglePINVisibility = () => {
         setIsPINHidden((prev) => !prev);
-    }, []);
+    };
 
     useEffect(() => {
         return () => {

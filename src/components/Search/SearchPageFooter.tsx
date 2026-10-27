@@ -12,13 +12,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFooterTotalItems} from '@libs/SearchUIUtils';
+import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
@@ -109,7 +109,7 @@ function SearchPageFooter({
         setLoadedTotalHeight(height);
     };
 
-    const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
+    const valueTextStyle = isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong];
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the footer button is focused,
     // claim Enter at top priority without bubbling so Enter only opens the footer's display menu instead of also opening the expense.
@@ -227,7 +227,7 @@ function SearchPageFooter({
         />
     );
 
-    const countLabel = translate(countType === CONST.SEARCH.FOOTER_COUNT.REPORTS ? 'common.reports' : 'common.expenses');
+    const countLabel = getFooterCountItems(translate).find((item) => item.value === (countType ?? CONST.SEARCH.FOOTER_COUNT.EXPENSES))?.text;
 
     // The default reads as "Total spend" in the footer but as plain "Spend" inside the menu, where the row it sits in is
     // already labelled Total.

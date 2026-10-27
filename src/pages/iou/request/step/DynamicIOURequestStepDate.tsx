@@ -44,7 +44,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -182,16 +182,13 @@ function DynamicIOURequestStepDate({
         saveAndNavigateBack();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM> = {};
-            if (!values[INPUT_IDS.MONEY_REQUEST_CREATED] || values[INPUT_IDS.MONEY_REQUEST_CREATED] === '') {
-                errors[INPUT_IDS.MONEY_REQUEST_CREATED] = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM> = {};
+        if (!values[INPUT_IDS.MONEY_REQUEST_CREATED] || values[INPUT_IDS.MONEY_REQUEST_CREATED] === '') {
+            errors[INPUT_IDS.MONEY_REQUEST_CREATED] = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
     return (
         <StepScreenWrapper
