@@ -2536,6 +2536,54 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(draftTransaction?.category).toBe(DESTINATION_DEFAULT_CATEGORY);
             expect(draftTransaction?.tag).toBe('');
         });
+
+        it('moves every receipt of a multi-scan batch to the selected workspace', async () => {
+            const SECOND_TRANSACTION_ID = '2';
+
+            // Given two scanned receipts confirmed together, both assigned to the source workspace
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`, {
+                    transactionID: SECOND_TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    amount: 0,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    reportID: SOURCE_CHAT_REPORT_ID,
+                    participants: [createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)],
+                    category: 'Source category',
+                    tag: 'Source tag',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+            await renderConfirmationOnSourceWorkspace({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+            });
+
+            // When a different workspace is selected in the participant picker while the first receipt is on screen
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the receipt that isn't on screen is moved too, because submitting sends every receipt in the batch to
+            // the visible receipt's recipient, so a different recipient on another receipt would be silently ignored
+            const secondDraftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            const firstDraftTransaction = await getDraftTransaction();
+            for (const draftTransaction of [firstDraftTransaction, secondDraftTransaction]) {
+                expect(draftTransaction?.participants?.at(0)?.policyID).toBe(DESTINATION_POLICY_ID);
+                expect(draftTransaction?.reportID).toBe(DESTINATION_CHAT_REPORT_ID);
+                expect(draftTransaction?.category).toBe('');
+                expect(draftTransaction?.tag).toBe('');
+            }
+        });
     });
 
     describe('Embedded on IOURequestStartPage', () => {
