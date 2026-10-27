@@ -73,7 +73,7 @@ Measured whole-repo on 2026-10-27, from the seatbelt totals after a full run of 
 | `set-state-in-effect` | 117 | 118 | one extra in `src/components/MapView/MapViewImpl.web.tsx`, not yet explained |
 | `refs` | 202 | 183 | bridge collapses ESLint's duplicate reports (see below) |
 | `purity` | 0 | 29 | all `Date`-during-render; ESLint's compiler build misses them, kept on purpose |
-| `preserve-manual-memoization` | 2 | 2 | exact since the compiler started validating manual memo dependencies itself |
+| `preserve-manual-memoization` | 2 | 2 | same two findings; ESLint anchors on the `useMemo` callback, the bridge on its dependency array |
 | `immutability` | 6 | 7 | one extra |
 | `globals` | 0 | 2 | two extra |
 | `static-components` | 2 | 2 | exact |
