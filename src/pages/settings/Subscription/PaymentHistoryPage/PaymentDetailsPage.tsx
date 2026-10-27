@@ -184,6 +184,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
                 <View style={[styles.w100, styles.flex1]}>
                     <PaymentActivityTable
                         activeUsers={activeUsers}
+                        countsMembers={!!row?.countsMembers}
                         headerComponent={detailsContent}
                     />
                 </View>

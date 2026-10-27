@@ -99,13 +99,19 @@ jest.mock('@components/Banner', () => {
     const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
     return ({text}: {text?: string}) => ReactModule.createElement(Text, null, text);
 });
+const mockSuggestionTitle = 'Hold expenses without a receipt';
+const mockSuggestionPrompt = 'Hold any expense over $75 without a receipt';
+
+// The prompt that the mocked Write tab saves. A test sets it to the suggestion's prompt to save the suggestion unchanged.
+let mockSavedPrompt = 'Hold gift card expenses';
+
 jest.mock('@pages/workspace/rules/AgentRules/AddAgentRuleSuggestionsTab', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable} = jest.requireActual<{Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void}>}>('react-native');
     return ({onSelectSuggestion}: {onSelectSuggestion: (suggestion: {id: string; title: string; prompt: string}) => void}) =>
         ReactModule.createElement(Pressable, {
             accessibilityLabel: 'PickSuggestion',
-            onPress: () => onSelectSuggestion({id: 'suggestion1', title: 'Hold expenses without a receipt', prompt: 'Hold any expense over $75 without a receipt'}),
+            onPress: () => onSelectSuggestion({id: 'suggestion1', title: mockSuggestionTitle, prompt: mockSuggestionPrompt}),
         });
 });
 jest.mock('@pages/workspace/rules/AgentRules/AddAgentRuleWriteTab', () => {
@@ -115,7 +121,7 @@ jest.mock('@pages/workspace/rules/AgentRules/AddAgentRuleWriteTab', () => {
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
     return ({onSave}: {onSave: (values: {prompt: string}) => void}) =>
-        ReactModule.createElement(Pressable, {accessibilityLabel: 'WriteTab', onPress: () => onSave({prompt: 'Hold gift card expenses'})}, ReactModule.createElement(Text, null, 'WriteTab'));
+        ReactModule.createElement(Pressable, {accessibilityLabel: 'WriteTab', onPress: () => onSave({prompt: mockSavedPrompt})}, ReactModule.createElement(Text, null, 'WriteTab'));
 });
 
 type AddAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_NEW>;
@@ -152,6 +158,7 @@ async function setAgentRuleDraft(prompt: string) {
 describe('AddAgentRulePage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockSavedPrompt = PROMPT;
         mockedUsePolicy.mockReturnValue({
             ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
             id: POLICY_ID,
@@ -333,8 +340,37 @@ describe('AddAgentRulePage', () => {
 
         // Then the log joins the saved rule to the offer on the generationID
         const agentRuleID = jest.mocked(addPolicyAgentRule).mock.calls.at(0)?.at(1);
-        expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), PROMPT);
+        expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), PROMPT, undefined);
         expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Saved agent rule from fallback', false, {policyID: POLICY_ID, generationID: GENERATION_ID, agentRuleID});
         logSpy.mockRestore();
+    });
+
+    it('saves the title of a suggestion that the admin saves unchanged', async () => {
+        // Given the admin picked a suggestion and did not edit its prompt
+        mockSavedPrompt = mockSuggestionPrompt;
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('PickSuggestion'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin saves the rule
+        fireEvent.press(screen.getByLabelText('WriteTab'));
+
+        // Then the rule gets the suggestion's title, so the Agents list shows the title right away instead of the prompt
+        expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), mockSuggestionPrompt, mockSuggestionTitle);
+    });
+
+    it('saves the title of a suggestion whose prompt the admin edited', async () => {
+        // Given the admin picked a suggestion and then edited its prompt
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('PickSuggestion'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin saves the edited rule
+        fireEvent.press(screen.getByLabelText('WriteTab'));
+
+        // Then the rule keeps the suggestion's title as a temporary default until the server generates a new title
+        expect(addPolicyAgentRule).toHaveBeenCalledWith(POLICY_ID, expect.any(String), PROMPT, mockSuggestionTitle);
     });
 });

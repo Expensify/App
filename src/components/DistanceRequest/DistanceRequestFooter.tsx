@@ -28,7 +28,7 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const MAX_WAYPOINTS = 25;
@@ -60,10 +60,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const {isOffline} = useNetwork();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'History']);
     const [reusableDistanceRoutes] = useOnyx(ONYXKEYS.REUSABLE_DISTANCE_ROUTES);
-    const hasAvailableReusableRouteSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline).length > 0,
-        [reusableDistanceRoutes, isOffline],
-    );
+    const hasAvailableReusableRouteSelector = (transactions: OnyxCollection<Transaction>) => getAvailableReusableDistanceRoutes(reusableDistanceRoutes, transactions, isOffline).length > 0;
     const [hasAvailableReusableRoute = false] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasAvailableReusableRouteSelector,
     });

@@ -3,7 +3,7 @@ import Navigation, {navigationRef} from '@navigation/Navigation';
 import SCREENS from '@src/SCREENS';
 
 import {useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -23,7 +23,7 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
     /**
      * Return true only when on the initially rendered route or the video is currently playing in attachment modal.
      */
-    const hasRouteRemainedUnchanged = useCallback(() => {
+    const hasRouteRemainedUnchanged = () => {
         if (navigation.isFocused()) {
             return true;
         }
@@ -48,7 +48,7 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
         }
 
         return false;
-    }, [shouldUseNarrowLayout, isInNarrowPaneModal, videoUrl, navigation]);
+    };
 
     // Initialize and check if starting with the attachment modal
     useEffect(() => {

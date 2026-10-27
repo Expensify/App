@@ -28,7 +28,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 import {getReportPolicyID} from '@selectors/Report';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 import RejectReasonFormView from './RejectReasonFormView';
 
@@ -83,17 +83,14 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
         }
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT], translate);
 
-            if (!values.comment) {
-                errors.comment = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [translate],
-    );
+        if (!values.comment) {
+            errors.comment = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
     useEffect(() => {
         clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM);
