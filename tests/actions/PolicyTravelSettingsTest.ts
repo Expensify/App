@@ -1,4 +1,4 @@
-import {setPolicyTravelMemberAccess, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelAutoEnableNewMembers, setPolicyTravelMemberAccess, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
@@ -131,6 +131,53 @@ describe('actions/Policy/Travel', () => {
             expect(failedPolicy?.errorFields?.isCodingSyncEnabled).toBeTruthy();
             expect(failedPolicy?.errorFields?.autoAddTripName).toBeFalsy();
             expect(failedPolicy?.travelSettings?.autoAddTripName).toBe(true);
+        });
+    });
+
+    describe('setPolicyTravelAutoEnableNewMembers', () => {
+        it('sends its own command instead of saving the travel settings, so travel admins can change it', async () => {
+            // Given a travel workspace where new members join with travel off
+            const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: {autoEnableNewMembers: false}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When the setting is turned on
+            mockFetch?.pause?.();
+            setPolicyTravelAutoEnableNewMembers(fakePolicy, true);
+            await waitForBatchedUpdates();
+
+            // Then it shows as on and pending, and goes to the dedicated command rather than SetPolicyTravelSettings
+            const optimisticPolicy = await getPolicy(fakePolicy.id);
+            expect(optimisticPolicy?.travelSettings?.autoEnableNewMembers).toBe(true);
+            expect(optimisticPolicy?.pendingFields?.autoEnableNewMembers).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.SET_POLICY_TRAVEL_AUTO_ENABLE_NEW_MEMBERS, 0, {policyID: fakePolicy.id, enabled: true});
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS, 0);
+
+            // And the pending state clears once it saves
+            const settledPolicy = await getPolicy(fakePolicy.id);
+            expect(settledPolicy?.travelSettings?.autoEnableNewMembers).toBe(true);
+            expect(settledPolicy?.pendingFields?.autoEnableNewMembers).toBeFalsy();
+        });
+
+        it('reverts the setting and shows an error when saving fails', async () => {
+            // Given a travel workspace where new members join with travel on
+            const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: {autoEnableNewMembers: true}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When turning it off fails
+            mockFetch?.pause?.();
+            setPolicyTravelAutoEnableNewMembers(fakePolicy, false);
+            await waitForBatchedUpdates();
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the setting goes back to on with an error on the row
+            const policy = await getPolicy(fakePolicy.id);
+            expect(policy?.travelSettings?.autoEnableNewMembers).toBe(true);
+            expect(policy?.pendingFields?.autoEnableNewMembers).toBeFalsy();
+            expect(policy?.errorFields?.autoEnableNewMembers).toBeTruthy();
         });
     });
 

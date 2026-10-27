@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {EnablePolicyTravelParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
+import type {EnablePolicyTravelParams, SetPolicyTravelAutoEnableNewMembersParams, SetPolicyTravelMemberAccessParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -135,6 +135,56 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS, parameters, onyxData);
 }
 
+/**
+ * Sets whether members get travel turned on as soon as they join the workspace. It has its own command so travel admins,
+ * who can't save other workspace settings, can change it.
+ */
+function setPolicyTravelAutoEnableNewMembers(policy: OnyxEntry<OnyxTypes.Policy>, enabled: boolean) {
+    if (!policy?.id) {
+        return;
+    }
+    const policyID = policy.id;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    travelSettings: {autoEnableNewMembers: enabled},
+                    pendingFields: {autoEnableNewMembers: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {autoEnableNewMembers: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {autoEnableNewMembers: null},
+                    errorFields: {autoEnableNewMembers: null},
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    travelSettings: {autoEnableNewMembers: policy.travelSettings?.autoEnableNewMembers ?? null},
+                    pendingFields: {autoEnableNewMembers: null},
+                    errorFields: {autoEnableNewMembers: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTravelAutoEnableNewMembersParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_AUTO_ENABLE_NEW_MEMBERS, parameters, onyxData);
+}
+
 type TravelMemberAccessTarget = {
     /** The member's login, used as the employeeList key. */
     email: string;
@@ -212,5 +262,5 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS, parameters, onyxData);
 }
 
-export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelMemberAccess};
+export {enablePolicyTravel, setPolicyTravelSettings, setPolicyTravelAutoEnableNewMembers, setPolicyTravelMemberAccess};
 export type {TravelMemberAccessTarget};

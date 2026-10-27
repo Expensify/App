@@ -15,7 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
-import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelAutoEnableNewMembers, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {canMemberRead, canMemberUseTravel, isDeletedPolicyEmployee, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
@@ -74,7 +74,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const autoEnableNewMembers = policy?.travelSettings?.autoEnableNewMembers ?? false;
 
     const toggleAutoEnableNewMembers = (enabled: boolean) => {
-        setPolicyTravelSettings(policy, {autoEnableNewMembers: enabled});
+        setPolicyTravelAutoEnableNewMembers(policy, enabled);
     };
 
     // Count the same members the Members page lists
