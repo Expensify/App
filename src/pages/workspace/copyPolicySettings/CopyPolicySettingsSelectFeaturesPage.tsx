@@ -317,6 +317,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return;
         }
         const isSelected = (selectedFeatures ?? resolvedSelectedFeatures).includes(part);
+        // Copying members replaces the target workspace's existing members, so confirm before selecting it.
         if (isSelected || !isMembersPart(part)) {
             setSelectedFeatures((prev) => {
                 const current = prev ?? resolvedSelectedFeatures;
@@ -339,6 +340,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
             return;
         }
         const nextSelection = Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures]));
+        // Copying members replaces the target workspace's existing members, so confirm when Select all adds it.
         const isAddingMembers = selectableFeatures.some(isMembersPart) && !selectedAvailableFeatures.some(isMembersPart);
         if (!isAddingMembers) {
             setSelectedFeatures(nextSelection);
