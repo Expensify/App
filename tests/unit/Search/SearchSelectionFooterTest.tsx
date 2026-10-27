@@ -765,7 +765,7 @@ describe('SearchSelectionFooter', () => {
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.INVOICE)} />);
             await waitForBatchedUpdates();
 
-            // Then the footer keeps the plain total with no selector, as on main
+            // Then the footer keeps the plain total with no selector
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({shouldShowTotalSelector: false, totalType: undefined}));
         });
 
