@@ -27,12 +27,9 @@ function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
         };
     }, []);
 
-    const value = React.useMemo(
-        () => ({
-            role: activeRoleRef,
-        }),
-        [activeRoleRef],
-    );
+    const value = {
+        role: activeRoleRef,
+    };
 
     return <ActiveElementRoleContext.Provider value={value}>{children}</ActiveElementRoleContext.Provider>;
 }
