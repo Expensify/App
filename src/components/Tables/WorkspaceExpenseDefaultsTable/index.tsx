@@ -89,6 +89,7 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
         if (activeSorting.columnKey === 'rule') {
             return localeCompare(a.ruleDescription, b.ruleDescription) * orderMultiplier;
         }
+        console.log('hi');
 
         return 0;
     };
