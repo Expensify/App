@@ -78,29 +78,37 @@ describe('NetSuiteExportConfigurationPage', () => {
     });
 
     it('shows the travel billing export setting when the travel feed lives on the domain', async () => {
-        // The admin last viewed the workspace's own Expensify Card feed, so the default fund is the workspace account.
+        // Given the admin last viewed the workspace's own card feed while the domain holds the TRAVEL_US program
         await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${POLICY_ID}`, WORKSPACE_ACCOUNT_ID);
         await Onyx.merge(getTravelBillingCardSettingsKey(WORKSPACE_ACCOUNT_ID), {[CONST.COUNTRY.US]: {paymentBankAccountID: 12345}});
         await Onyx.merge(getTravelBillingCardSettingsKey(DOMAIN_ACCOUNT_ID), travelBillingSettings);
 
+        // When the NetSuite export page renders
         await renderPage();
 
+        // Then the travel billing export row is offered
         expect(screen.getByText(TRAVEL_BILLING_ROW)).toBeTruthy();
     });
 
     it('shows the travel billing export setting when the travel feed lives on the workspace', async () => {
+        // Given the workspace holds the TRAVEL_US program
         await Onyx.merge(getTravelBillingCardSettingsKey(WORKSPACE_ACCOUNT_ID), travelBillingSettings);
 
+        // When the NetSuite export page renders
         await renderPage();
 
+        // Then the travel billing export row is offered
         expect(screen.getByText(TRAVEL_BILLING_ROW)).toBeTruthy();
     });
 
     it('hides the travel billing export setting when the policy has no travel feed', async () => {
+        // Given a domain linked only through its US card program
         await Onyx.merge(getTravelBillingCardSettingsKey(DOMAIN_ACCOUNT_ID), {[CONST.COUNTRY.US]: {linkedPolicyIDs: [POLICY_ID], paymentBankAccountID: 12345}});
 
+        // When the NetSuite export page renders
         await renderPage();
 
+        // Then there is no travel billing export row to configure
         expect(screen.queryByText(TRAVEL_BILLING_ROW)).toBeNull();
     });
 });
