@@ -36,7 +36,7 @@ function InsightsSectionContent() {
     const {isBetaEnabled} = usePermissions();
     const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
-    const {configs: insightConfigs, isResolved: isConfigResolved} = useHomeInsightConfigs();
+    const {configs: insightConfigs, isResolved: isConfigResolved, shouldShowRunningTotal} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
@@ -58,6 +58,8 @@ function InsightsSectionContent() {
         Navigation.navigate(
             isInsightsPageEnabled ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND) : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
         );
+
+    const showRunningTotal = isInsightsPageEnabled && shouldShowRunningTotal && config.key === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME && view === CONST.SEARCH.VIEW.LINE;
 
     const widget = (
         <WidgetContainer
@@ -96,6 +98,7 @@ function InsightsSectionContent() {
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
+                        shouldShowRunningTotal={showRunningTotal}
                         shouldShowSinglePointAsBar={isInsightsPageEnabled}
                         shouldUseResponsiveLabels
                         shouldDrillDownOnPress={!isInsightsPageEnabled}
