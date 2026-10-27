@@ -870,7 +870,7 @@ describe('useSearchBulkActions - Approve under Select all', () => {
         // When the bulk actions are built for a reports search
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
-        // Then Approve is still offered, because the backend skips reports it cannot approve
+        // Then Approve is still offered, because the backend leaves held expenses out of the approval
         await waitFor(() => {
             expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.APPROVE)).toBe(true);
         });
