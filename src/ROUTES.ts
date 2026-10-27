@@ -102,6 +102,7 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
     SCREENS.HOME,
     SCREENS.SEARCH.ROOT,
     SCREENS.SETTINGS.WALLET.ROOT,
+    SCREENS.WORKSPACE.WORKFLOWS,
 ] as const;
 
 // Every step of the expense default editor is reachable from the workspace Rules flow and from category settings,
@@ -237,7 +238,7 @@ const DYNAMIC_ROUTES = {
     },
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
-        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS],
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
         getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
