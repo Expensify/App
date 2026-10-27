@@ -2559,7 +2559,6 @@ const ROUTES = {
     SETTINGS_COPILOT: 'settings/copilot',
     SETTINGS_SECURITY: {
         route: 'settings/security',
-        // forceSetup marks the 2FA setup opened from the require-2FA overlay, so DynamicSuccessPage can send the user Home after "Got it".
         getRoute: (forceSetup?: boolean) => `settings/security${forceSetup ? '?forceSetup=true' : ''}` as const,
     },
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',

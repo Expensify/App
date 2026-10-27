@@ -75,7 +75,6 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         });
     };
 
-    // Users forced into 2FA by the overlay keep Settings > Security behind the RHP during setup, but should land on Home when they leave.
     const sendForcedSetupUserHome = () => {
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
