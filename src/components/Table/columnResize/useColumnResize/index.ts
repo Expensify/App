@@ -377,6 +377,8 @@ function useColumnResize({
             'aria-valuenow': width,
             // Widened to take in a width already past the bound, which the arrow keys leave alone.
             'aria-valuemin': Math.min(getMinWidth(columnKey), width),
+            // Columns have no widest width, and a focusable separator's maximum otherwise defaults to 100.
+            'aria-valuemax': Number.MAX_SAFE_INTEGER,
             /* eslint-enable @typescript-eslint/naming-convention */
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,

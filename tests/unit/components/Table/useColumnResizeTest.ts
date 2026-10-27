@@ -718,12 +718,14 @@ describe('useColumnResize', () => {
         // When the header renders its edge
         const handleProps = getHandleProps();
 
-        // Then it can be reached with Tab and is announced as a vertical separator at the column's width
+        // Then it can be reached with Tab and is announced as a vertical separator at the column's width, inside a range
+        // that holds it, since a separator's maximum otherwise defaults to 100
         expect(handleProps.role).toBe('separator');
         expect(handleProps.tabIndex).toBe(0);
         expect(handleProps['aria-orientation']).toBe('vertical');
         expect(handleProps['aria-valuenow']).toBe(200);
         expect(handleProps['aria-valuemin']).toBe(CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
+        expect(handleProps['aria-valuemax']).toBeGreaterThan(200);
     });
 
     it('moves a focused edge by one step per arrow key and stores the width once the key is released', () => {
