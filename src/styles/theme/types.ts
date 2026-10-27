@@ -51,6 +51,8 @@ type ThemeColors = {
     success: Color;
     successHover: Color;
     successPressed: Color;
+    // Darker than `success` because the liquid glass washes out the color it is tinted with
+    successGlassTint: Color;
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;

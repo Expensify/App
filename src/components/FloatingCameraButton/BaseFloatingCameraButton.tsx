@@ -41,7 +41,7 @@ type BaseFloatingCameraButtonProps = {
 };
 
 function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
-    const {textLight, success} = useTheme();
+    const {textLight, successGlassTint} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -116,7 +116,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 style={[styles.floatingActionButton, isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass]}
                 testID="floating-camera-button-container"
             >
-                <FloatingButtonGlass tintColor={success} />
+                <FloatingButtonGlass tintColor={successGlassTint} />
                 <Icon
                     fill={textLight}
                     src={icon}
