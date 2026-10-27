@@ -1,3 +1,6 @@
+import searchRouterProfileSampleRate from '@libs/telemetry/integrations/searchRouterProfileSampleRate';
+import defaultSearchRouterProfileSampleRate from '@libs/telemetry/integrations/searchRouterProfileSampleRate/index';
+import androidSearchRouterProfileSampleRate from '@libs/telemetry/integrations/searchRouterProfileSampleRate/index.android';
 import searchRouterProfilingSampler from '@libs/telemetry/integrations/searchRouterProfilingSampler';
 
 import CONST from '@src/CONST';
@@ -207,5 +210,37 @@ describe('searchRouterProfilingSampler', () => {
 
         // Then the rate is left alone, since only root starts reach the profiler's decision
         expect(options.profilesSampleRate).toBe(1);
+    });
+
+    it('profiles an open only when its roll falls under the platform sample rate', () => {
+        // Given an open Search Router span and a roll just under the sample rate of the platform the tests run on
+        const openSpan = createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        mockActiveSpans({[CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER]: openSpan});
+        const random = jest.spyOn(Math, 'random').mockReturnValue(searchRouterProfileSampleRate - 0.001);
+        const {options, startSpan} = setUpSampler();
+
+        // When the router's navigation span starts
+        startSpan(createSpan('navigation'));
+
+        // Then the open is profiled
+        expect(options.profilesSampleRate).toBe(1);
+
+        // When the next open rolls exactly the sample rate
+        const nextOpenSpan = createSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
+        mockActiveSpans({[CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER]: nextOpenSpan});
+        random.mockReturnValue(searchRouterProfileSampleRate);
+        startSpan(createSpan('navigation'));
+
+        // Then it is not profiled, so the share of profiled opens matches the rate
+        expect(options.profilesSampleRate).toBe(0);
+        expect(nextOpenSpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, false);
+    });
+
+    it('samples Android opens at 20% and other native platforms at 5%', () => {
+        // Given the per-platform sample rate files, where Android carries the metric's tail and so gets the higher rate
+        // When they are read
+        // Then each keeps its rate, so a change to either one is a deliberate change to the profile quota
+        expect(androidSearchRouterProfileSampleRate).toBe(0.2);
+        expect(defaultSearchRouterProfileSampleRate).toBe(0.05);
     });
 });

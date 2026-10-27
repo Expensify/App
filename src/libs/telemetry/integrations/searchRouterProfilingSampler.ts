@@ -6,13 +6,8 @@ import type {Client, ClientOptions, Integration, Span} from '@sentry/core';
 import type {ReactNativeOptions} from '@sentry/react-native';
 
 import {getRootSpan, spanToJSON} from '@sentry/core';
-import {Platform} from 'react-native';
 
-/**
- * Share of Search Router opens that get a Hermes profile. Android carries the metric's tail on a few hundred opens a
- * week, so it gets the higher rate; both stay low because profiled opens pay the profiler's cost inside the measured span.
- */
-const SEARCH_ROUTER_PROFILE_SAMPLE_RATE = Platform.OS === 'android' ? 0.2 : 0.05;
+import searchRouterProfileSampleRate from './searchRouterProfileSampleRate';
 
 const NAVIGATION_SPAN_OP = 'navigation';
 
@@ -70,7 +65,7 @@ function searchRouterProfilingSampler(): Integration {
                 }
                 sampledOpenSpans.add(openSpan);
 
-                const isProfiled = Math.random() < SEARCH_ROUTER_PROFILE_SAMPLE_RATE;
+                const isProfiled = Math.random() < searchRouterProfileSampleRate;
                 openSpan.setAttribute(CONST.TELEMETRY.ATTRIBUTE_PROFILED, isProfiled);
                 getSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_PROFILED, isProfiled);
                 if (isProfiled) {
