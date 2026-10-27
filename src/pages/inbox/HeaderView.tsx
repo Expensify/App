@@ -516,7 +516,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!isInSidePanel && isConciergeThread && newConciergeChatButton}
+                                    {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
                                     {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
@@ -552,6 +552,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
                 {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, styles.pb3]}>{bookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
