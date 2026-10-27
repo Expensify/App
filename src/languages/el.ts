@@ -2916,6 +2916,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
             getStarted: 'Ξεκινήστε',
             headerTitle: 'Παγκόσμιες αποζημιώσεις',
+            payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
     },

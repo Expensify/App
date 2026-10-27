@@ -2766,6 +2766,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Paga a miembros de todo el mundo en su moneda local.',
             getStarted: 'Empieza',
             headerTitle: 'Reembolsos globales',
+            payingReportSubtitle: 'Las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga a personas de todo el mundo', subtitle: 'Habilita los reembolsos globales en tu cuenta en USD.'},
     },

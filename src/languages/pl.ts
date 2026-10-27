@@ -2889,6 +2889,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
             getStarted: 'Zacznij',
             headerTitle: 'Globalne zwroty kosztów',
+            payingReportSubtitle: 'Konta bankowe firmy i pracownika są w różnych walutach.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Płać ludziom na całym świecie', subtitle: 'Włącz globalne zwroty wydatków na swoim koncie w USD.'},
     },
