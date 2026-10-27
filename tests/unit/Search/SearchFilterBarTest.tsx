@@ -33,6 +33,7 @@ const FILTER_KEYS = CONST.SEARCH.SYNTAX_FILTER_KEYS;
 function renderFilter(key: SearchFilter['key'], value: SearchFilter['value']) {
     const item = {
         key,
+        id: key,
         value,
         label: 'Filter',
         PopoverComponent: () => null,
