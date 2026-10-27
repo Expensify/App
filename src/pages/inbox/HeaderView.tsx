@@ -179,8 +179,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const reportHeaderData = (!isTaskReport && !isSupportTicketReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsTransactionThread ? parentReport : report;
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction, undefined, grandParentReportActions);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
-    const [parentNavigationParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentNavigationReport?.parentReportID)}`);
-    const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentNavigationParentReport));
+    const [invoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentNavigationReport?.parentReportID)}`, {
+        selector: getInvoiceReceiverPolicyID,
+    });
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const derivedNames = useDerivedReportNamesByReportIDs([parentNavigationReport?.parentReportID, reportHeaderData?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedNames, parentNavigationReport?.parentReportID);
     const derivedReportHeaderName = getReportNameFromNames(derivedNames, reportHeaderData?.reportID);
@@ -199,16 +201,15 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         ? getReportStatusTooltipTranslation({stateNum: reportHeaderData?.stateNum, statusNum: reportHeaderData?.statusNum, translate})
         : undefined;
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
-        parentNavigationReport,
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
+        report: parentNavigationReport,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
-        isParentReportHeaderDataArchived,
-    );
+        parentReportName: derivedParentReportName,
+        isParentReportArchived: isParentReportHeaderDataArchived,
+    });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
     const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));

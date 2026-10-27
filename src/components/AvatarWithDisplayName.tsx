@@ -11,6 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -211,12 +212,14 @@ function AvatarWithDisplayName({
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [invoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
+        selector: getInvoiceReceiverPolicyID,
+    });
     const [personalDetails] = useAllPersonalDetails() ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
-    const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const theme = useTheme();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to display the edit button only on large screens
@@ -252,16 +255,15 @@ function AvatarWithDisplayName({
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const title = getReportName(report, derivedReportName);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, true, isReportArchived);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+    const parentNavigationSubtitleData = getParentNavigationSubtitle({
         report,
         policy,
         invoiceReceiverPolicy,
-        conciergeReportID,
         translate,
         formatPhoneNumber,
-        derivedParentReportName,
+        parentReportName: derivedParentReportName,
         isParentReportArchived,
-    );
+    });
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare, formatPhoneNumber, translate);
