@@ -265,4 +265,4 @@ function buildChartSeries({
 }
 
 export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
-export type {ChartAverage, ChartComparison, SearchChartModel};
+export type {ChartComparison, SearchChartModel};
