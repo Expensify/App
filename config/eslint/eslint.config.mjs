@@ -553,7 +553,7 @@ const config = defineConfig([
     {
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
-            // The lint pipeline keeps this diagnostic only when both compilers memoize the file.
+            // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
             'rulesdir/no-manual-memoization': 'error',
             'rulesdir/prefer-locale-compare-from-context': 'error',
             'rulesdir/no-object-keys-includes': 'error',
