@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.5.20-0",
+  "version": "9.5.23-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -29,7 +29,7 @@
     "ipad-sm": "concurrently \"./scripts/run-build.sh --ipad-sm\"",
     "ipad-sm-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad-sm\"",
     "start": "npx rock start",
-    "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
+    "web": "./scripts/set-pusher-suffix.sh && bun scripts/startWeb.ts",
     "web-proxy": "bun web/proxy.ts",
     "web-server": "node ./node_modules/.bin/rsbuild dev --open --config config/rsbuild/rsbuild.config.ts",
     "build": "ENV=production bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
@@ -204,7 +204,7 @@
     "react-native-nitro-image": "0.15.2",
     "react-native-nitro-modules": "0.37.1",
     "react-native-nitro-sqlite": "9.8.3",
-    "react-native-onyx": "3.0.117",
+    "react-native-onyx": "3.0.119",
     "react-native-pager-view": "9.0.4",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -297,7 +297,7 @@
     "@types/lodash-es": "4.17.12",
     "@types/mapbox-gl": "^2.7.13",
     "@types/mime-db": "^1.43.5",
-    "@types/node": "^20.11.5",
+    "@types/node": "^26.6.5",
     "@types/pako": "^2.0.3",
     "@types/pusher-js": "^5.1.0",
     "@types/react": "19.2.3",
@@ -421,6 +421,7 @@
     "node-abi": "^3.78.0",
     "pdfjs-dist": "5.5.207",
     "lightningcss": "1.30.1",
+    "zod": "4.6.7",
     "@fullstory/react-native": {
       "expo": "57.0.8"
     },
