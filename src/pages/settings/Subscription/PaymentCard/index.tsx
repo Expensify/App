@@ -11,6 +11,7 @@ import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +33,7 @@ import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@u
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {useRoute} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
@@ -41,6 +42,7 @@ import {StyleSheet, View} from 'react-native';
 
 function AddPaymentCard() {
     const route = useRoute();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
@@ -68,7 +70,7 @@ function AddPaymentCard() {
         billingCard = getCardForSubscriptionBilling(fundList);
     }
 
-    const isSaveTheWorldAddPaymentCardRoute = route.name === SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD;
+    const isSaveTheWorldAddPaymentCardRoute = backPath === ROUTES.SETTINGS_SAVE_THE_WORLD;
     const shouldShowBlockingView = isSaveTheWorldAddPaymentCardRoute && !!billingCard;
 
     // The pending flag is one global key, shared with the Subscription page's Authenticate payment button, so a
@@ -116,17 +118,20 @@ function AddPaymentCard() {
             return;
         }
 
-        Navigation.goBack();
-    }, [prevFormDataSetupComplete, formData?.setupComplete]);
+        Navigation.goBack(backPath);
+    }, [prevFormDataSetupComplete, formData?.setupComplete, backPath]);
 
     return (
         <ScreenWrapper testID="AddPaymentCard">
             <FullPageNotFoundView
                 shouldShow={shouldShowBlockingView && !hasSubmittedPaymentCard}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                    <HeaderWithBackButton title={translate('subscription.paymentCard.addPaymentCard')} />
+                    <HeaderWithBackButton
+                        title={translate('subscription.paymentCard.addPaymentCard')}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
+                    />
                     <View style={styles.containerWithSpaceBetween}>
                         {shouldShowVerificationSpinner && (
                             <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>

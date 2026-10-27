@@ -16,6 +16,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -84,6 +85,7 @@ function TransactionPreviewContent({
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
@@ -132,7 +134,7 @@ function TransactionPreviewContent({
     const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, rules, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
-    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
