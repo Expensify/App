@@ -16,7 +16,7 @@ import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 const COMPLETE_VERIFICATION_KEYS = INPUT_IDS.COMPLETE_VERIFICATION;
 const STEP_FIELDS = [
@@ -50,35 +50,29 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const confirmAgreementsValues = useMemo(
-        () => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount),
-        [reimbursementAccount, reimbursementAccountDraft],
-    );
+    const confirmAgreementsValues = getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const defaultValues = {
         isAuthorizedToUseBankAccount: confirmAgreementsValues.isAuthorizedToUseBankAccount ?? false,
         certifyTrueInformation: confirmAgreementsValues.certifyTrueInformation ?? false,
         acceptTermsAndConditions: (confirmAgreementsValues.acceptTermsAndConditions || reimbursementAccount?.achData?.acceptTerms) ?? false,
     };
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (!isRequiredFulfilled(values.acceptTermsAndConditions)) {
-                errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
-            }
+        if (!isRequiredFulfilled(values.acceptTermsAndConditions)) {
+            errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
+        }
 
-            if (!isRequiredFulfilled(values.certifyTrueInformation)) {
-                errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
-            }
+        if (!isRequiredFulfilled(values.certifyTrueInformation)) {
+            errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
+        }
 
-            if (!isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
-                errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
-            }
+        if (!isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
+            errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     return (
         <FormProvider
