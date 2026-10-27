@@ -29,7 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -44,23 +44,20 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
     const accountingMethod = xeroConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
-    const getSelectedAccountName = useMemo(
-        () => (accountID: string | undefined) => {
-            if (!accountID) {
-                return;
-            }
+    const getSelectedAccountName = (accountID: string | undefined) => {
+        if (!accountID) {
+            return;
+        }
 
-            const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
-            return selectedAccount?.name;
-        },
-        [bankAccounts],
-    );
+        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
+        return selectedAccount?.name;
+    };
 
     const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
     const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID);
     const selectedFxExpenseAccountName = (expenseAccounts ?? []).find((account) => account.id === xeroConfig?.fxExpenseAccount)?.name;
 
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+    const currentXeroOrganizationName = getCurrentXeroOrganizationName(policy ?? undefined);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!sync?.syncReimbursedReports);
 

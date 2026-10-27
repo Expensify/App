@@ -20,7 +20,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
 import {Str} from 'expensify-common';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 import TableLinkColumnContext from './TableLinkColumnContext';
@@ -62,13 +62,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     // The `styles.link` used by the non-comment link path above already handles this, but AnchorForCommentsOnly does not use it.
     const highContrastUnderlineStyle = theme.isHighContrast ? styles.underline : {};
 
-    const onLinkPress = useMemo(() => {
-        if (internalNewExpensifyPath || internalExpensifyPath) {
-            return () => openLink(attrHref, environmentURL, isAttachment);
-        }
-
-        return undefined;
-    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment]);
+    const onLinkPress = internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined;
 
     // The table row already navigates to this link's destination, so the cell shows the link text as plain content
     // rather than a second target styled as a link.
