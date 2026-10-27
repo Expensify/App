@@ -13,9 +13,9 @@ sitemap: false
 
 Connect Dynamics 365 Business Central to your Expensify workspace to sync accounting data. Once connected, Expensify can import accounts, dimensions, vendors, and tax rates from Business Central and export approved reports back to it.
 
-This integration supports Dynamics 365 Business Central only. To export expenses to Dynamics 365 Finance and Operations or other Microsoft Dynamics products, use a flat-file export instead. Learn more about [indirect accounting integrations](/articles/new-expensify/connections/Indirect-Accounting-Integrations).
+This integration supports Business Central only. To export expenses to Dynamics 365 Finance and Operations or other Microsoft Dynamics products, use a flat-file export instead. Learn more about [indirect accounting integrations](/articles/new-expensify/connections/Indirect-Accounting-Integrations).
 
-## Who can connect to Dynamics 365 Business Central
+## Who can connect to Business Central
 
 To connect Business Central, you must:
 
@@ -23,7 +23,7 @@ To connect Business Central, you must:
 - Have access to a Business Central environment where you can install extensions.
 - Have a Microsoft Entra app registration for Expensify, including its Tenant ID, Client ID, and Client secret.
 
-**Note:** Dynamics 365 Business Central is rolling out gradually. If you don't see it under **Accounting**, it isn't available for your workspace yet.
+**Note:** Business Central is rolling out gradually. If you don't see it under **Accounting**, it isn't available for your workspace yet.
 
 ## What to set up in Business Central before connecting
 
@@ -36,7 +36,7 @@ Before connecting, install and configure the Expensify extension in Business Cen
 
 You'll need these four values to connect your workspace to Business Central.
 
-## How to connect Dynamics 365 Business Central to Expensify
+## How to connect Business Central to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Accounting**.
 2. Next to **Dynamics 365 Business Central**, select **Connect**.
@@ -76,9 +76,9 @@ On the **Accounting** page, you can see:
 - The time of the last sync.
 - **Import**, **Export**, and **Advanced** settings for managing the integration.
 
-To customize which data syncs and how reports export, learn how to [configure Dynamics 365 Business Central settings](/articles/new-expensify/connections/business-central/Configure-Business-Central).
+To customize which data syncs and how reports export, learn how to [configure Business Central settings](/articles/new-expensify/connections/business-central/Configure-Business-Central).
 
-## How to disconnect Dynamics 365 Business Central
+## How to disconnect Business Central
 
 To stop syncing Business Central with your workspace:
 
