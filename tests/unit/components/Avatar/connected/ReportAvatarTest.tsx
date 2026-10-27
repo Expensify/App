@@ -40,6 +40,17 @@ let mockCapturedTaskReportAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedRoomAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedInvoiceReportAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/InvoiceReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedInvoiceReportAvatarProps = props;
+        return <View testID="MockedInvoiceReportAvatar" />;
+    };
+});
+
 jest.mock('@components/Avatar/connected/TaskReportAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
@@ -142,6 +153,7 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedRoomAvatarProps = {};
         mockCapturedDefaultReportAvatarProps = {};
         mockCapturedTripRoomAvatarProps = {};
+        mockCapturedInvoiceReportAvatarProps = {};
     });
 
     afterEach(async () => {
@@ -151,10 +163,7 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it.each([
-        ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
-        ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
-    ] as const)('should render the legacy component for %s until its wrapper exists', async (_case, reportOverrides) => {
+    it.each([['an IOU report', {type: CONST.REPORT.TYPE.IOU}]] as const)('should render the legacy component for %s until its wrapper exists', async (_case, reportOverrides) => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, ...reportOverrides});
         await waitForBatchedUpdatesWithAct();
 
@@ -369,6 +378,40 @@ describe('ReportAvatar (connected)', () => {
         expect(screen.getByTestId('MockedRoomAvatar')).toBeOnTheScreen();
         expect(screen.queryByTestId('MockedReportActionAvatars')).not.toBeOnTheScreen();
         expect(mockCapturedRoomAvatarProps.reportID).toBe(REPORT_ID);
+    });
+
+    it.each([
+        ['the single container style outside a horizontal stack', undefined, [{marginRight: 12}]],
+        ['no single container style inside a horizontal stack', {maxRows: 2}, []],
+    ])('should render InvoiceReportAvatar for an invoice report with %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given an invoice report in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.INVOICE});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the wrapper gets both container styles but no stacking options, because no caller stacks an invoice report
+        expect(screen.getByTestId('MockedInvoiceReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedInvoiceReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            containerStyle: expectedContainerStyle,
+            subscriptContainerStyle: [{marginRight: 0}],
+            fallbackDisplayName: FALLBACK_NAME,
+        });
     });
 
     it('should render RoomAvatar for a room with the layout container styles resolved', async () => {

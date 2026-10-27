@@ -89,6 +89,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The date the report was approved */
         approved?: string;
 
+        /** The date the report was paid */
+        paid?: string;
+
         /** Custom field 1 value for the report submitter */
         submitterUserID?: string;
 
