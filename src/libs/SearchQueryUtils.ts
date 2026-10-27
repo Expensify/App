@@ -2030,6 +2030,8 @@ function buildFilterFormValuesFromQuery(
                     return false;
                 }
 
+                // Bare amounts use integer hundredths, so they need two extra digits and no decimals.
+                // Amounts with a currency use decimals, such as "12.00 USD".
                 return validateAmount(parsed.amount, parsed.currency ? CONST.DEFAULT_CURRENCY_DECIMALS : 0, CONST.IOU.AMOUNT_MAX_LENGTH + (parsed.currency ? 0 : 2), true);
             };
 
