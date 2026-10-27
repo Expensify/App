@@ -35,6 +35,7 @@ import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
+import CollapsibleReportHeader from './report/CollapsibleReportHeader';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
@@ -129,9 +130,11 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                 <LinkedActionNotFoundGuard>
                                     <ReportDragAndDropProvider>
                                         {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
-                                        <CollapsibleHeaderOnKeyboard>
-                                            <ReportHeader />
-                                        </CollapsibleHeaderOnKeyboard>
+                                        <CollapsibleReportHeader>
+                                            <CollapsibleHeaderOnKeyboard>
+                                                <ReportHeader />
+                                            </CollapsibleHeaderOnKeyboard>
+                                        </CollapsibleReportHeader>
                                         <OfflineWithFeedback
                                             pendingAction={reportPendingAction}
                                             errors={reportErrors}

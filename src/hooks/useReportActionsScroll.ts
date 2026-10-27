@@ -161,7 +161,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, syncScrollSharedValues} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -240,7 +240,14 @@ function useReportActionsScroll({
         // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+            const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+            scrollOffsetRef.current = contentOffset.y;
+            syncScrollSharedValues({
+                offset: contentOffset.y,
+                distanceToOldestEnd: contentSize.height - layoutMeasurement.height - contentOffset.y,
+                distanceToNewestEnd: contentOffset.y,
+                viewportHeight: layoutMeasurement.height,
+            });
         },
         actionBadgeTargetIndex,
         shouldBeAlignedToTop,

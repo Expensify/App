@@ -1,12 +1,39 @@
 import type FlatListRefType from '@components/FlashList/types';
 
+import isInLandscapeMode, {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
+
+import createDummySharedValue from '@src/utils/createDummySharedValue';
+
 import type {ReactNode, RefObject} from 'react';
 import type {FlatList} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 
 import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+
+type ScrollMetrics = {
+    offset: number;
+    distanceToOldestEnd: number;
+    distanceToNewestEnd: number;
+    viewportHeight: number;
+};
+
+const INITIAL_SCROLL_METRICS: ScrollMetrics = {offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0};
 
 type ActionListContextType = {
     scrollOffsetRef: RefObject<number>;
+
+    /**
+     * The list's scroll state for worklets. `offset` grows toward the oldest message; the distances to either end go
+     * negative while the list overscrolls past it.
+     */
+    scrollMetricsSV: SharedValue<ScrollMetrics>;
+
+    /** Updates `scrollMetricsSV`. No-op outside mobile web landscape, the only place it's used. */
+    syncScrollSharedValues: (metrics: ScrollMetrics) => void;
+
+    /** Height the collapsed report header has handed over to the list, 0 while expanded. */
+    collapsedHeaderHeightSV: SharedValue<number>;
 
     /** Snapshot of the persisted scroll offset. Safe to call during render (e.g. a useState initializer) to restore mount-time scroll state. */
     getScrollOffset: () => number;
@@ -20,6 +47,9 @@ type ActionListContextType = {
 
 const ActionListContext = createContext<ActionListContextType>({
     scrollOffsetRef: {current: 0},
+    scrollMetricsSV: createDummySharedValue(INITIAL_SCROLL_METRICS),
+    syncScrollSharedValues: () => {},
+    collapsedHeaderHeightSV: createDummySharedValue(0),
     getScrollOffset: () => 0,
     registerListRef: () => {},
     getListRef: () => null,
@@ -51,9 +81,19 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
     // callbacks live in context, so attaching `ref={}` stays local to each list.
     const listRefHolder = useRef<FlatListRefType>(null);
     const scrollOffsetRef = useRef(0);
+    const scrollMetricsSV = useSharedValue(INITIAL_SCROLL_METRICS);
+    const collapsedHeaderHeightSV = useSharedValue(0);
 
     const value: ActionListContextType = {
         scrollOffsetRef,
+        scrollMetricsSV,
+        syncScrollSharedValues: (metrics) => {
+            if (!isMobilePhoneWeb || !isInLandscapeMode()) {
+                return;
+            }
+            scrollMetricsSV.set(metrics);
+        },
+        collapsedHeaderHeightSV,
         getScrollOffset: () => scrollOffsetRef.current,
         registerListRef: (ref) => {
             listRefHolder.current = ref;
@@ -61,7 +101,7 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
         getListRef: () => listRefHolder.current,
     };
 
-    // The value is only stable refs and ref accessors — none of it triggers re-renders — so a
+    // The value is only stable refs, shared values and their accessors — none of it triggers re-renders — so a
     // single context is intentional; splitting state/actions into two providers would add ceremony
     // for no benefit.
     // eslint-disable-next-line rulesdir/context-provider-split-values

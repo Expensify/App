@@ -1,6 +1,6 @@
 import usePrevious from '@hooks/usePrevious';
 
-import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
 
 import {useEffect, useRef} from 'react';
@@ -25,7 +25,7 @@ type CollapsibleHeader = {
     /** To be spread onto `CollapsibleHeaderView`, which owns the two animated wrappers. */
     onLayout: (e: LayoutChangeEvent) => void;
     outerStyle: AnimatedStyle<ViewStyle>;
-    innerStyle: AnimatedStyle<ViewStyle>;
+    innerStyle: StyleProp<AnimatedStyle<ViewStyle>>;
 };
 
 /** Collapses the wrapped content to `targetHeight`. Quick, so the header is out of the way before the input lands. */

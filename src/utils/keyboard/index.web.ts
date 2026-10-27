@@ -7,8 +7,33 @@ import {Keyboard} from 'react-native';
 
 import type {DismissKeyboardOptions} from './types';
 
+type Orientation = 'portrait' | 'landscape';
+
 let isVisible = false;
+
+/** Tallest viewport height seen per orientation, i.e. the height without the keyboard. */
+const viewportHeightsWithoutKeyboard: Partial<Record<Orientation, number>> = {};
+
+/** Based on the width, which the keyboard doesn't change. */
+function getOrientation(): Orientation {
+    const {width, height} = window.screen;
+    const distanceToLongSide = Math.abs(window.innerWidth - Math.max(width, height));
+    const distanceToShortSide = Math.abs(window.innerWidth - Math.min(width, height));
+    return distanceToLongSide < distanceToShortSide ? 'landscape' : 'portrait';
+}
+
+/** Also records the height. Under 152px of difference can be a smart banner or offline indicator, not the keyboard. */
+function isKeyboardVisibleAt(viewportHeight: number): boolean {
+    const orientation = getOrientation();
+    const heightWithoutKeyboard = Math.max(viewportHeightsWithoutKeyboard[orientation] ?? 0, viewportHeight);
+    viewportHeightsWithoutKeyboard[orientation] = heightWithoutKeyboard;
+    return heightWithoutKeyboard - viewportHeight > CONST.SMART_BANNER_HEIGHT;
+}
+
 const initialViewportHeight = window?.visualViewport?.height;
+if (initialViewportHeight) {
+    isKeyboardVisibleAt(initialViewportHeight);
+}
 
 const keyboardVisibilityChangeListenersSet = new Set<(isVisible: boolean) => void>();
 
@@ -23,14 +48,11 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
 const handleResize = () => {
     const viewportHeight = window?.visualViewport?.height;
 
-    if (!viewportHeight || !initialViewportHeight) {
+    if (!viewportHeight) {
         return;
     }
 
-    // Determine if the keyboard is visible by checking if the height difference exceeds 152px.
-    // The 152px threshold accounts for UI elements such as smart banners on iOS Retina (max ~152px)
-    // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
-    isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
+    isVisible = isKeyboardVisibleAt(viewportHeight);
 
     for (const cb of keyboardVisibilityChangeListenersSet) {
         cb(isVisible);
@@ -55,12 +77,11 @@ const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
         const handleDismissResize = () => {
             const viewportHeight = window?.visualViewport?.height;
 
-            if (!viewportHeight || !initialViewportHeight) {
+            if (!viewportHeight) {
                 return;
             }
 
-            const isKeyboardVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
-            if (isKeyboardVisible) {
+            if (isKeyboardVisibleAt(viewportHeight)) {
                 return;
             }
 
