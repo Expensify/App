@@ -21,7 +21,7 @@ final class HybridShareActionHandler: HybridShareActionHandlerSpec {
 
             let files: [URL]
             do {
-                files = try fileManager.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey])
+                files = try fileManager.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.isRegularFileKey])
             } catch let error as NSError where error.domain == NSCocoaErrorDomain && error.code == NSFileReadNoSuchFileError {
                 return []
             }
@@ -47,9 +47,9 @@ final class HybridShareActionHandler: HybridShareActionHandlerSpec {
     }
 
     private func processFile(_ url: URL) throws -> SharedFile {
-        let attributes = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
-        guard attributes.isRegularFile == true, let size = attributes.fileSize, size > 0 else {
-            throw shareError("Shared attachment is not a non-empty file")
+        let attributes = try url.resourceValues(forKeys: [.isRegularFileKey])
+        guard attributes.isRegularFile == true else {
+            throw shareError("Shared attachment is not a regular file")
         }
         let timestamp = String(format: "%.0f", Date().timeIntervalSince1970 * 1000)
         let isText = url.lastPathComponent.contains("text_to_read")

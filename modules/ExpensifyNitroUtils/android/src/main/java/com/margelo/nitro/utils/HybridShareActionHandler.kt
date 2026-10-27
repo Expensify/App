@@ -43,8 +43,8 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
             return@parallel arrayOf(SharedFile("text", content, "txt", timestamp, null))
         }
 
-        if (!file.isFile || !file.canRead() || file.length() == 0L) {
-            throw IOException("Shared attachment is missing, unreadable, or empty")
+        if (!file.isFile || !file.canRead()) {
+            throw IOException("Shared attachment is missing or unreadable")
         }
         if (mimeType.isEmpty() || mimeType == "null" || mimeType.endsWith("/*")) {
             mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension.lowercase(Locale.ROOT))
