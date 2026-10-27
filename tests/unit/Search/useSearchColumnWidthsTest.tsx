@@ -18,18 +18,17 @@ jest.mock('@libs/measureTextWidth', () => ({
     canMeasureText: () => true,
 }));
 
-const {DATE, MERCHANT, DESCRIPTION, STATUS} = CONST.SEARCH.TABLE_COLUMNS;
+const COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, CONST.SEARCH.TABLE_COLUMNS.STATUS];
 
-const COLUMNS: SearchColumnType[] = [DATE, MERCHANT, DESCRIPTION, STATUS];
-
-function renderSearchColumnWidths(isColumnResizingEnabled: boolean) {
-    return renderHook(() => useSearchColumnWidths({columns: COLUMNS, data: [], tableWidth: 1200, isEnabled: true, isColumnResizingEnabled, storedTableColumnWidths: undefined})).result
-        .current;
+function renderSearchColumnWidths(isColumnResizingEnabled: boolean, columns = COLUMNS) {
+    return renderHook(() => useSearchColumnWidths({columns, data: [], tableWidth: 1200, isEnabled: true, isColumnResizingEnabled, storedTableColumnWidths: undefined})).result.current;
 }
 
 describe('useSearchColumnWidths', () => {
     it('sizes the columns exactly as before when resizing is off', () => {
-        // Given the same table with resizing off and on
+        // Given a table of a fixed date, two free-text columns and a status badge
+
+        // When it's sized with resizing off and with resizing on
         const withoutResizing = renderSearchColumnWidths(false);
         const withResizing = renderSearchColumnWidths(true);
 
@@ -39,11 +38,24 @@ describe('useSearchColumnWidths', () => {
     });
 
     it('lets only the free-text columns resize, not the fixed date or the hugged status badge', () => {
+        // Given a table of a fixed date, two free-text columns and a status badge
+
         // When the table is sized with resizing on
         const {resizableLayout} = renderSearchColumnWidths(true);
 
         // Then only the merchant and description edges drag
-        expect(resizableLayout?.resizableColumnKeys).toEqual([MERCHANT, DESCRIPTION]);
+        expect(resizableLayout?.resizableColumnKeys).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]);
+    });
+
+    it('lays nothing out for resizing when no column resizes', () => {
+        // Given a table of a fixed date and a hugged status badge only
+        const columns: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS];
+
+        // When the table is sized with resizing on
+        const {resizableLayout} = renderSearchColumnWidths(true, columns);
+
+        // Then there's no layout, so the table keeps its plain sizing and paints no edges
+        expect(resizableLayout).toBeUndefined();
     });
 });
 
@@ -52,10 +64,10 @@ describe('useSearchColumnStyles', () => {
         // Given a sized table whose merchant column resizes, rendering a description column of some inner table too
         const wrapper = ({children}: React.PropsWithChildren) => (
             <SearchColumnWidthsProvider
-                columnWidths={{[MERCHANT]: {width: 200, minWidth: 100, contentWidth: 200, shouldHug: false}}}
-                sizedColumns={new Set([MERCHANT])}
+                columnWidths={{[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: {width: 200, minWidth: 100, contentWidth: 200, shouldHug: false}}}
+                sizedColumns={new Set([CONST.SEARCH.TABLE_COLUMNS.MERCHANT])}
                 columnOptions={{}}
-                resizableColumnWidths={{[MERCHANT]: 200}}
+                resizableColumnWidths={{[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: 200}}
             >
                 {children}
             </SearchColumnWidthsProvider>
@@ -63,19 +75,26 @@ describe('useSearchColumnStyles', () => {
 
         // When both columns resolve their styles
         const getSearchColumnStyles = renderHook(() => useSearchColumnStyles(), {wrapper}).result.current;
-        const merchantStyle = getSearchColumnStyles(MERCHANT);
-        const descriptionStyle = getSearchColumnStyles(DESCRIPTION);
+        const merchantStyle = getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+        const descriptionStyle = getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
 
         // Then merchant reads the width a drag rewrites, without growing or shrinking, and the inner column keeps its styling
-        expect(merchantStyle).toMatchObject({width: getColumnWidthValue(MERCHANT, 200), minWidth: getColumnWidthValue(MERCHANT, 200), flexGrow: 0, flexShrink: 0});
-        expect(descriptionStyle.width).not.toEqual(getColumnWidthValue(DESCRIPTION, 200));
+        expect(merchantStyle).toMatchObject({
+            width: getColumnWidthValue(CONST.SEARCH.TABLE_COLUMNS.MERCHANT, 200),
+            minWidth: getColumnWidthValue(CONST.SEARCH.TABLE_COLUMNS.MERCHANT, 200),
+            flexGrow: 0,
+            flexShrink: 0,
+        });
+        expect(descriptionStyle.width).not.toEqual(getColumnWidthValue(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, 200));
     });
 
     it('leaves every column as styled outside the Search table', () => {
         // Given a row rendered with no Search provider, like the Money Request report's
+
+        // When a column that resizes in Search resolves its styles
         const {getSearchColumnStyles, StyleUtils} = renderHook(() => ({getSearchColumnStyles: useSearchColumnStyles(), StyleUtils: useStyleUtils()})).result.current;
 
-        // Then a column that resizes in Search keeps exactly the styling it has without the Search table
-        expect(getSearchColumnStyles(MERCHANT)).toEqual(StyleUtils.getReportTableColumnStyles(MERCHANT));
+        // Then it keeps exactly the styling it has without the Search table
+        expect(getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toEqual(StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT));
     });
 });
