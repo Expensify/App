@@ -37,6 +37,7 @@ import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {isRuleBotEnforcingRules} from '@libs/AgentRulesUtils';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getEnabledCategoriesCount, getMemberVisibleCategoryNames} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAssignableOfficeLocations, getMemberOfficeLocation, hasOfficeLocations} from '@libs/OfficeLocationUtils';
@@ -57,6 +58,7 @@ import {
 } from '@libs/PolicyUtils';
 import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -118,6 +120,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [memberBankAccounts] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
@@ -157,6 +160,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin, payerRole));
     const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== member?.role);
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
+    const shouldShowCategoryVisibility = isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled;
+    const visibleCategoriesCount = getMemberVisibleCategoryNames(policyCategories, accountID).length;
+    const categoryVisibilityTitle =
+        visibleCategoriesCount === getEnabledCategoriesCount(policyCategories)
+            ? translate('workspace.people.allCategories')
+            : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
+    const isCategoryVisibilityPending = Object.values(policyCategories ?? {}).some((category) => !!category.pendingFields?.visibleTo);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -304,6 +314,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         showRemoveMemberModal();
     };
 
+    const navigateToCategoryVisibility = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY, {
+            name: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+            op: CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY.getRoute(policyID, accountID));
+    };
+
     const navigateToProfile = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, undefined, policyID)));
     };
@@ -420,6 +438,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policyID, accountID));
                                 }}
                             />
+                            {shouldShowCategoryVisibility && (
+                                <OfflineWithFeedback pendingAction={isCategoryVisibilityPending ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
+                                    <MenuItemField
+                                        name={translate('workspace.people.categoryVisibility')}
+                                        onPress={canWriteMembers ? navigateToCategoryVisibility : undefined}
+                                        testID="member-category-visibility-menu-item"
+                                        value={categoryVisibilityTitle}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
                             {shouldShowOfficeLocation && (
                                 <MenuItemField
                                     name={translate('workspace.people.officeLocation')}

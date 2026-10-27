@@ -7,6 +7,7 @@ import {
     getCategoryNameError,
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    getMemberVisibleCategoryNames,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -646,5 +647,32 @@ describe('getCategoryDefaultTaxRate', () => {
             tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
         };
         expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    });
+});
+
+describe('getMemberVisibleCategoryNames', () => {
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: null},
+        Meals: {name: 'Meals', enabled: true, visibleTo: [1, 2]},
+        Software: {name: 'Software', enabled: true, visibleTo: [2]},
+        Office: {name: 'Office', enabled: false},
+    };
+
+    it('returns the enabled categories open to everyone or to the member', () => {
+        // Given a member who is listed on one restricted category but not another
+        // When we get the categories they can use
+        const visibleCategoryNames = getMemberVisibleCategoryNames(policyCategories, 1);
+
+        // Then the unrestricted category and the one listing them are returned, and the disabled one is not
+        expect(visibleCategoryNames).toEqual(['Travel', 'Meals']);
+    });
+
+    it('returns nothing when there are no categories', () => {
+        // Given a workspace whose categories haven't loaded
+        // When we get the categories a member can use
+        const visibleCategoryNames = getMemberVisibleCategoryNames(undefined, 1);
+
+        // Then there are none, rather than a crash
+        expect(visibleCategoryNames).toEqual([]);
     });
 });

@@ -21,6 +21,7 @@ import type {
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
+    SetPolicyMemberCategoryVisibilityParams,
     SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoriesEnabledParams,
     SetWorkspaceCategoryDescriptionHintParams,
@@ -1876,6 +1877,85 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 }
 
 /**
+ * Sets which enabled categories the given members can use. A category open to everyone (`visibleTo` is null) is
+ * restricted to every other workspace member when the given members lose access to it.
+ */
+function setPolicyMemberCategoryVisibility(policyID: string, accountIDs: number[], categories: string[], policyCategories: PolicyCategories, policyMemberAccountIDs: number[]) {
+    const selectedCategories = new Set(categories);
+    const optimisticCategories: Record<string, Partial<PolicyCategory>> = {};
+    const successCategories: Record<string, Partial<PolicyCategory>> = {};
+    const failureCategories: Record<string, Partial<PolicyCategory>> = {};
+
+    for (const category of Object.values(policyCategories)) {
+        if (!category.enabled) {
+            continue;
+        }
+
+        const previousVisibleTo = category.visibleTo ?? null;
+        const shouldBeVisible = selectedCategories.has(category.name);
+        let visibleTo: number[] | null;
+        if (!previousVisibleTo) {
+            visibleTo = shouldBeVisible ? null : policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID));
+        } else if (shouldBeVisible) {
+            visibleTo = Array.from(new Set([...previousVisibleTo, ...accountIDs]));
+        } else {
+            visibleTo = previousVisibleTo.filter((accountID) => !accountIDs.includes(accountID));
+        }
+
+        // Adding members only grows the list and removing them only shrinks it, so an equal length means nothing changed.
+        const isUnchanged = visibleTo === previousVisibleTo || (!!visibleTo && visibleTo.length === previousVisibleTo?.length);
+        if (isUnchanged) {
+            continue;
+        }
+
+        optimisticCategories[category.name] = {
+            visibleTo,
+            pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        };
+        successCategories[category.name] = {
+            pendingFields: {visibleTo: null},
+        };
+        failureCategories[category.name] = {
+            visibleTo: previousVisibleTo,
+            pendingFields: {visibleTo: null},
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+        };
+    }
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategories,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategories,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategories,
+            },
+        ],
+    };
+
+    const parameters: SetPolicyMemberCategoryVisibilityParams = {
+        policyID,
+        accountIDs: JSON.stringify(accountIDs),
+        categories: JSON.stringify(categories),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY, parameters, onyxData);
+}
+
+/**
  * The categories an expense rule already matches on, for membership tests that would otherwise scan the array once per
  * name. A rate isn't required, since a rule is found here to have one written to it.
  */
@@ -2220,6 +2300,7 @@ export {
     setPolicyCategoryTax,
     setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
+    setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,

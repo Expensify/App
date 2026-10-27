@@ -12,6 +12,7 @@ import {
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
     setPolicyCategoryTax,
+    setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
@@ -92,6 +93,63 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
+        });
+    });
+    describe('setPolicyMemberCategoryVisibility', () => {
+        const policyID = 'policyID';
+        const policyMemberAccountIDs = [1, 2, 3];
+        const policyCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true, visibleTo: null},
+            Software: {name: 'Software', enabled: true, visibleTo: [2]},
+            Office: {name: 'Office', enabled: false},
+        };
+
+        it('optimistically restricts the member and clears the pending fields on success', async () => {
+            // Given a member who can use every category but Software
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin limits them to Travel and Software
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel', 'Software'], policyCategories, policyMemberAccountIDs);
+            await waitForBatchedUpdates();
+
+            // Then Meals, open to everyone, is restricted to every other member, Software gains the member, and the
+            // unchanged and disabled categories are left alone
+            let updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.visibleTo).toEqual([2, 3]);
+            expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedCategories?.Software?.visibleTo).toEqual([2, 1]);
+            // Onyx drops null values, so a category open to everyone has no visibleTo at all
+            expect(updatedCategories?.Travel?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Travel?.pendingFields?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Office?.visibleTo).toBeUndefined();
+
+            // When the request succeeds
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the change is no longer pending
+            updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+        });
+
+        it('restores the previous visibility and sets errors on failure', async () => {
+            // Given a request that will fail
+            mockFetch?.fail?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin removes Software from the only member who can use it
+            setPolicyMemberCategoryVisibility(policyID, [2], ['Travel', 'Meals'], policyCategories, policyMemberAccountIDs);
+            await waitForBatchedUpdates();
+
+            // Then Software goes back to its previous members and shows an error, while untouched categories don't
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Software?.visibleTo).toEqual([2]);
+            expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Software?.errors).toBeTruthy();
+            expect(updatedCategories?.Travel?.errors).toBeFalsy();
         });
     });
     describe('createWorkspaceCategories', () => {

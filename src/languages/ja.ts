@@ -7281,6 +7281,16 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             },
             officeLocation: 'オフィス所在地',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: 'カテゴリーの表示設定',
+            allCategories: 'すべてのカテゴリー',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1件のカテゴリー',
+                other: `${count}件のカテゴリー`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'メンバーには少なくとも1つのカテゴリーが必要です',
+                description: 'このメンバーが使用できるカテゴリーを少なくとも1つ選択してください。',
+            },
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',
