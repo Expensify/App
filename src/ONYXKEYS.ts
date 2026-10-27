@@ -160,6 +160,9 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
+    /** Reasons the backend refused an approve-only role change, shown to the requesting client in a modal */
+    BLOCKED_ROLE_CHANGE: 'blockedRoleChange',
+
     /** Store the information of validateCode */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
@@ -901,6 +904,12 @@ const ONYXKEYS = {
 
     /** Stores information for OpenUnreportedExpensesPage API call pagination */
     HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
+
+    /** Stores information for GetOutstandingReports API call pagination */
+    HAS_MORE_OUTSTANDING_REPORTS_RESULTS: 'hasMoreOutstandingReportsResults',
+
+    /** Is the outstanding reports page loading */
+    IS_LOADING_OUTSTANDING_REPORTS: 'isLoadingOutstandingReports',
 
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
@@ -1944,6 +1953,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED]: boolean;
     [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: OnyxTypes.SupportalPermissionDenied | null;
+    [ONYXKEYS.BLOCKED_ROLE_CHANGE]: OnyxTypes.BlockedRoleChange | null;
     [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT]: boolean;
@@ -2032,6 +2042,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
     [ONYXKEYS.REUSABLE_DISTANCE_ROUTES]: OnyxTypes.ReusableDistanceRoute[];
     [ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES]: boolean | undefined;

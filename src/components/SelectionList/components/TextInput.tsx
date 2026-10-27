@@ -115,12 +115,9 @@ function TextInput({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
 
-    const handleTextInputChange = useCallback(
-        (text: string) => {
-            onChangeText?.(text);
-        },
-        [onChangeText],
-    );
+    const handleTextInputChange = (text: string) => {
+        onChangeText?.(text);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -140,13 +137,13 @@ function TextInput({
         }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode, isScreenReaderEnabled]),
     );
 
-    const handleFocus = useCallback(() => {
+    const handleFocus = () => {
         onFocusChange(true);
-    }, [onFocusChange]);
+    };
 
-    const handleBlur = useCallback(() => {
+    const handleBlur = () => {
         onFocusChange(false);
-    }, [onFocusChange]);
+    };
 
     if (!shouldShowTextInput) {
         return null;

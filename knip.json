@@ -46,6 +46,7 @@
                 "web/cloudflare-worker/**",
                 "src/libs/actions/connections/FinancialForce.ts",
                 "src/libs/actions/connections/ZohoBooks.ts",
+                "src/libs/actions/connections/Digits.ts",
                 "src/setup/telemetry/noopExpoUpdates.ts"
             ],
             "eslint": {
@@ -77,7 +78,6 @@
         "@babel/plugin-proposal-private-property-in-object",
         "@babel/plugin-transform-export-namespace-from",
         "babel-plugin-module-resolver",
-        "babel-plugin-react-compiler",
         "babel-plugin-transform-remove-console",
         "html-entities",
         "@fullstory/babel-plugin-react-native",

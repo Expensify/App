@@ -24,7 +24,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, Sty
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -91,14 +91,14 @@ function BaseSearchList({
 
     const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
-    const setHasKeyBeenPressed = useCallback(() => {
+    const setHasKeyBeenPressed = () => {
         if (hasKeyBeenPressed.current) {
             return;
         }
         // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
         // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
         hasKeyBeenPressed.current = true;
-    }, []);
+    };
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
@@ -148,31 +148,28 @@ function BaseSearchList({
 
     const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
 
-    const selectFocusedOption = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
-            // When not editing, stop propagation to prevent unintended button activation and handle row selection.
-            if (isEditingCell) {
-                return;
-            }
+    const selectFocusedOption = (event?: GestureResponderEvent | KeyboardEvent) => {
+        // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
+        // When not editing, stop propagation to prevent unintended button activation and handle row selection.
+        if (isEditingCell) {
+            return;
+        }
 
-            // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
-            if (focusedCellId) {
-                return;
-            }
+        // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
+        if (focusedCellId) {
+            return;
+        }
 
-            event?.stopPropagation();
+        event?.stopPropagation();
 
-            const focusedItem = data.at(focusedIndex);
+        const focusedItem = data.at(focusedIndex);
 
-            if (!focusedItem) {
-                return;
-            }
+        if (!focusedItem) {
+            return;
+        }
 
-            onSelectRow(focusedItem);
-        },
-        [data, focusedCellId, focusedIndex, isEditingCell, onSelectRow],
-    );
+        onSelectRow(focusedItem);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
@@ -198,10 +195,7 @@ function BaseSearchList({
 
     const handleContentSizeChange = isUnderScrollAwayHeader ? (width: number, height: number) => setListContentHeight(height) : undefined;
 
-    const extraData = useMemo(
-        () => [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-    );
+    const extraData = [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy];
 
     return (
         <>

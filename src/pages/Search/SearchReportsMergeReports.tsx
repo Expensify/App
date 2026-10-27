@@ -35,7 +35,7 @@ import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 function SearchMergeReports() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -77,75 +77,68 @@ function SearchMergeReports() {
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports, allTransactions, selectedReportIDs);
 
-    const allReportsTransactions: Record<string, Transaction[]> = useMemo(() => {
-        const selectedReportIDSet = new Set(selectedReportIDs);
-        const addedTransactionIDSet = new Set<string>();
-
-        const isTransaction = (key: string, value: unknown): value is Transaction =>
-            key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object' && value !== null && 'transactionID' in value;
-        const result: Record<string, Transaction[]> = {};
-        for (const transaction of Object.values(allTransactions ?? {})) {
-            if (!transaction?.reportID || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !selectedReportIDSet.has(transaction.reportID)) {
-                continue;
-            }
-            addedTransactionIDSet.add(transaction.transactionID);
-            if (!result[transaction.reportID]) {
-                result[transaction.reportID] = [];
-            }
-            result[transaction.reportID].push(transaction);
+    const selectedReportIDSet = new Set(selectedReportIDs);
+    const addedTransactionIDSet = new Set<string>();
+    const isTransaction = (key: string, value: unknown): value is Transaction =>
+        key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object' && value !== null && 'transactionID' in value;
+    const result: Record<string, Transaction[]> = {};
+    for (const transaction of Object.values(allTransactions ?? {})) {
+        if (!transaction?.reportID || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !selectedReportIDSet.has(transaction.reportID)) {
+            continue;
         }
-        // We iterate through `snapshotData` because some transactions may not yet be available in `allTransactions` immediately after the user logs in.
-        for (const [key, value] of Object.entries(currentSearchResults?.data ?? {})) {
-            if (!isTransaction(key, value)) {
-                continue;
-            }
-            const transaction = value;
-            if (
-                !transaction.reportID ||
-                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                !selectedReportIDSet.has(transaction.reportID) ||
-                addedTransactionIDSet.has(transaction.transactionID)
-            ) {
-                continue;
-            }
-            if (!result[transaction.reportID]) {
-                result[transaction.reportID] = [];
-            }
-            result[transaction.reportID].push(transaction);
+        addedTransactionIDSet.add(transaction.transactionID);
+        if (!result[transaction.reportID]) {
+            result[transaction.reportID] = [];
         }
-        return result;
-    }, [currentSearchResults?.data, selectedReportIDs, allTransactions]);
-
-    const reportItems = useMemo(() => {
-        if (!selectedReportIDs) {
-            return [];
+        result[transaction.reportID].push(transaction);
+    }
+    // We iterate through `snapshotData` because some transactions may not yet be available in `allTransactions` immediately after the user logs in.
+    for (const [key, value] of Object.entries(currentSearchResults?.data ?? {})) {
+        if (!isTransaction(key, value)) {
+            continue;
         }
-        return selectedReportIDs
-            .map((reportID) => {
-                const report = getReportFromSearchSnapshot(reportID, currentSearchResults?.data, allReports);
-                if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return undefined;
-                }
+        const transaction = value;
+        if (
+            !transaction.reportID ||
+            transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+            !selectedReportIDSet.has(transaction.reportID) ||
+            addedTransactionIDSet.has(transaction.transactionID)
+        ) {
+            continue;
+        }
+        if (!result[transaction.reportID]) {
+            result[transaction.reportID] = [];
+        }
+        result[transaction.reportID].push(transaction);
+    }
+    const allReportsTransactions: Record<string, Transaction[]> = result;
 
-                const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-                return {
-                    ...report,
-                    groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                    keyForList: reportID,
-                    text: report.reportName ?? '',
-                    isSelected: reportID === destinationReportID,
-                    from: getPersonalDetailsForAccountID(report.ownerAccountID, personalDetails) ?? {},
-                    to: getPersonalDetailsForAccountID(report.managerID, personalDetails) ?? {},
-                    totalDisplaySpend,
-                    nonReimbursableSpend,
-                    reimbursableSpend,
-                    errors: undefined,
-                    pendingAction: undefined,
-                    pendingFields: undefined,
-                };
-            })
-            .filter((item) => !!item);
-    }, [selectedReportIDs, allReports, destinationReportID, personalDetails, currentSearchResults?.data]);
+    const reportItems = !selectedReportIDs
+        ? []
+        : selectedReportIDs
+              .map((reportID) => {
+                  const report = getReportFromSearchSnapshot(reportID, currentSearchResults?.data, allReports);
+                  if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                      return undefined;
+                  }
+                  const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+                  return {
+                      ...report,
+                      groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                      keyForList: reportID,
+                      text: report.reportName ?? '',
+                      isSelected: reportID === destinationReportID,
+                      from: getPersonalDetailsForAccountID(report.ownerAccountID, personalDetails) ?? {},
+                      to: getPersonalDetailsForAccountID(report.managerID, personalDetails) ?? {},
+                      totalDisplaySpend,
+                      nonReimbursableSpend,
+                      reimbursableSpend,
+                      errors: undefined,
+                      pendingAction: undefined,
+                      pendingFields: undefined,
+                  };
+              })
+              .filter((item) => !!item);
 
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const sourceReportIDs = destinationReport

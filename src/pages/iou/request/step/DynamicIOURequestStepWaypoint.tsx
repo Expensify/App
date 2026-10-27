@@ -39,7 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -104,14 +104,7 @@ function DynamicIOURequestStepWaypoint({
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {selector: recentWaypointsSelector});
     const [allRecentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
-    const waypointDescriptionKey = useMemo(() => {
-        switch (parsedWaypointIndex) {
-            case 0:
-                return 'distance.waypointDescription.start';
-            default:
-                return 'distance.waypointDescription.stop';
-        }
-    }, [parsedWaypointIndex]);
+    const waypointDescriptionKey: TranslationPaths = parsedWaypointIndex === 0 ? 'distance.waypointDescription.start' : 'distance.waypointDescription.stop';
 
     const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = currentWaypoint.address ?? '';
@@ -194,7 +187,7 @@ function DynamicIOURequestStepWaypoint({
         goBack();
     };
 
-    const onScroll = useCallback(() => {
+    const onScroll = () => {
         if (!isSafari()) {
             return;
         }
@@ -205,11 +198,11 @@ function DynamicIOURequestStepWaypoint({
                 setCaretHidden(false);
             }
         });
-    }, [contentHeaderHeight]);
+    };
 
-    const resetCaretHiddenValue = useCallback(() => {
+    const resetCaretHiddenValue = () => {
         setCaretHidden(false);
-    }, []);
+    };
 
     return (
         <ScreenWrapper

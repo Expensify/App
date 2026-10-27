@@ -318,6 +318,8 @@ type GetTransactionSectionsParams = {
     queryJSON?: SearchQueryJSON;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    cardList?: OnyxEntry<OnyxTypes.CardList>;
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -374,6 +376,8 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     // Sorted as stored, so amounts in different currencies are ranked without conversion.
     [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: 'debitedAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'creditedAmount' as const,
+    // The IDs are in ascending order, so this ranks reports by their lowest withdrawal ID, matching the backend.
+    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalIDs' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
@@ -752,6 +756,7 @@ function getSuggestedSearchesVisibility(
         const isPayer = isPolicyPayer(policy, currentUserEmail);
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
+        const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
         const isExporter = policy.exporter === currentUserEmail;
 
         const isSubmittedTo =
@@ -772,10 +777,10 @@ function getSuggestedSearchesVisibility(
         const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
         const isEligibleForExportSuggestion = isExporter && !hasExportError;
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && isPaymentEnabled;
+        const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
-        const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isPaymentEnabled && hasVBBA && hasReimburser;
+        const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
         const isEligibleForTopCategoriesSuggestion = isPolicyEligibleForTopCategories(policy);
@@ -1850,6 +1855,8 @@ function getTransactionsSections({
     queryJSON,
     isAttendeesEnabledForMovingPolicy,
     optimisticTransactionID,
+    cardList,
+    onyxPersonalDetailsList,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
         transactionKeys,
@@ -1911,8 +1918,11 @@ function getTransactionsSections({
                 policy,
             );
             // Use Map.get() for faster lookups with default values
-            const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
-            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            // The holder of the card an expense was charged to is its canonical owner, so check it first.
+            // Fall back to the IOU action and report owner for expenses without a loaded card.
+            const cardHolderAccountID = transactionItem.cardID ? cardList?.[transactionItem.cardID]?.accountID : undefined;
+            const fromAccountID = cardHolderAccountID ?? reportAction?.actorAccountID ?? report?.ownerAccountID;
+            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? onyxPersonalDetailsList?.[fromAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
@@ -3832,6 +3842,8 @@ function getSections({
         queryJSON,
         isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
+        cardList,
+        onyxPersonalDetailsList,
     });
 }
 
@@ -5813,6 +5825,10 @@ const FILTER_VIEW_MAP = {
         labelKey: 'common.tag',
         icon: 'Tag',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: {
+        labelKey: 'common.vendor',
+        icon: 'Building',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: {
         labelKey: 'workspace.taxes.taxRate',
         icon: 'Percent',
@@ -6051,6 +6067,13 @@ function getDisplayValue(
             .join(', ');
     }
 
+    if (key === FILTER_KEYS.VENDOR || key === FILTER_KEYS.VENDOR_NOT) {
+        return form[key]
+            ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
+            .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
+            .join(', ');
+    }
+
     if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.CURRENCY_NOT || key === FILTER_KEYS.PURCHASE_CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY_NOT) {
         return form[key]?.sort(localeCompare).join(', ');
     }
@@ -6255,6 +6278,8 @@ function getReportFieldTextKey(key: ReportFieldKey): ReportFieldTextKey {
 
 type SearchFilter = {
     key: keyof typeof FILTER_VIEW_MAP;
+    /** Unique per filter, unlike `key` which is shared by a filter and its negation (e.g. `status` and `statusNot`) */
+    id: MappedFilterKey;
     label: string;
     value: string | string[];
 };
@@ -6327,7 +6352,7 @@ function mapFiltersFormToLabelValueList(
             if (displayValue && label) {
                 addedGroups.add(syntax);
                 const isDefault = defaultSearchQueryFilterKeys.has(syntax);
-                (isDefault ? defaultFilters : nonDefaultFilters).push({key: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax, isDefault)});
+                (isDefault ? defaultFilters : nonDefaultFilters).push({key: syntax, id: syntax, label: translate(label), value: displayValue, ...mapper?.(syntax, isDefault)});
             }
             continue;
         }
@@ -6343,7 +6368,13 @@ function mapFiltersFormToLabelValueList(
                 addedGroups.add(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
                 const isDefault = defaultSearchQueryFilterKeys.has(getReportFieldTextKey(key));
                 const extra = mapper?.(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, isDefault);
-                (isDefault ? defaultFilters : nonDefaultFilters).push({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD, label: translate('workspace.common.reportField'), value, ...extra});
+                (isDefault ? defaultFilters : nonDefaultFilters).push({
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
+                    id: CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
+                    label: translate('workspace.common.reportField'),
+                    value,
+                    ...extra,
+                });
             }
             continue;
         }
@@ -6360,7 +6391,7 @@ function mapFiltersFormToLabelValueList(
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
             const isDefault = defaultSearchQueryFilterKeys.has(baseKey);
-            (isDefault ? defaultFilters : nonDefaultFilters).push({key: baseKey, label, value, ...mapper?.(key, isDefault)});
+            (isDefault ? defaultFilters : nonDefaultFilters).push({key: baseKey, id: key, label, value, ...mapper?.(key, isDefault)});
         }
     }
 
