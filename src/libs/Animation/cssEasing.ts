@@ -11,4 +11,7 @@ const QUAD_OUT = cubicBezier(1 / 3, 2 / 3, 2 / 3, 1);
 /** Exact equivalent of `Easing.in(Easing.quad)` */
 const QUAD_IN = cubicBezier(1 / 3, 0, 2 / 3, 1 / 3);
 
-export {QUAD_OUT, QUAD_IN};
+/** Exact equivalent of `Easing.bezier(0.65, 0, 0.35, 1)` (ease-in-out cubic) */
+const CUBIC_IN_OUT = cubicBezier(0.65, 0, 0.35, 1);
+
+export {QUAD_OUT, QUAD_IN, CUBIC_IN_OUT};
