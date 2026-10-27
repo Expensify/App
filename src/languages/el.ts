@@ -10719,6 +10719,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
                 hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
             },
+            searchFilters: 'Φίλτρα αναζήτησης',
+            noFiltersSelected: 'Δεν έχουν επιλεγεί φίλτρα',
         },
         display: {
             label: 'Εμφάνιση',

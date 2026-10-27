@@ -10356,6 +10356,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publicado',
                 hint: 'Solo se aplica a las transacciones con tarjeta.',
             },
+            searchFilters: 'Filtros de búsqueda',
+            noFiltersSelected: 'No se han seleccionado filtros',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',

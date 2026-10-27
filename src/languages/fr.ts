@@ -10536,6 +10536,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
                 hint: 'S’applique uniquement aux transactions par carte.',
             },
+            searchFilters: 'Filtres de recherche',
+            noFiltersSelected: 'Aucun filtre sélectionné',
         },
         display: {
             label: 'Affichage',

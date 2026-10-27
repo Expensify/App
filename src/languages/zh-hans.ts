@@ -10048,6 +10048,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '已入账',
                 hint: '仅适用于银行卡交易。',
             },
+            searchFilters: '搜索筛选条件',
+            noFiltersSelected: '未选择任何筛选器',
         },
         display: {
             label: '显示',

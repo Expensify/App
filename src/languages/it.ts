@@ -10464,6 +10464,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Registrato',
                 hint: 'Si applica solo alle transazioni con carta.',
             },
+            searchFilters: 'Filtri di ricerca',
+            noFiltersSelected: 'Nessun filtro selezionato',
         },
         display: {
             label: 'Visualizza',
