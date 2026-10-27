@@ -3,24 +3,19 @@
  * For ESLint, scripts/lint's ReactCompilerFilter drops those reports. oxlint has no processors and
  * can't filter its native rules, so here the JS plugin rule itself is wrapped and drops them.
  */
-import path from 'node:path';
-
-import checkReactCompilerWithOxc from '../reactCompiler/checkWithOxc.mjs';
+import {isFileMemoized} from '../reactCompiler/checkWithOxc.mjs';
 
 const memoizationCache = new Map();
 
 /**
- * Tells whether React Compiler memoizes the whole file. Compiling is slow, so
- * each file is checked once. Tests and node_modules count as not memoized, as in ReactCompilerFilter.
+ * The lint pipeline's memoization verdict, remembered per file because compiling is slow.
  * @param {string} filename
  * @param {string} sourceText
  * @returns {boolean}
  */
-function isFileMemoized(filename, sourceText) {
+function isFileMemoizedOnce(filename, sourceText) {
     if (!memoizationCache.has(filename)) {
-        const normalized = filename.split(path.sep).join('/');
-        const skipped = normalized.includes('/tests/') || normalized.startsWith('tests/') || normalized.includes('node_modules/');
-        memoizationCache.set(filename, skipped ? false : checkReactCompilerWithOxc(sourceText, filename).memoized);
+        memoizationCache.set(filename, isFileMemoized(sourceText, filename));
     }
     return memoizationCache.get(filename);
 }
@@ -62,7 +57,7 @@ function withGating(rule, shouldGate) {
                         if (shouldGate(rule, args[0])) {
                             const filename = context.filename ?? context.getFilename();
                             const sourceText = (context.sourceCode ?? context.getSourceCode()).text;
-                            if (isFileMemoized(filename, sourceText)) {
+                            if (isFileMemoizedOnce(filename, sourceText)) {
                                 return;
                             }
                         }
