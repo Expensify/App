@@ -8,7 +8,6 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import DateUtils from '@libs/DateUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 
 import variables from '@styles/variables';
@@ -20,6 +19,7 @@ import {View} from 'react-native';
 
 import type {ReportHistoryStep} from './types';
 
+import getShortRelativeTime from './getShortRelativeTime';
 import {REPORT_HISTORY_ICONS} from './types';
 
 type ReportHistoryItemProps = {
@@ -51,7 +51,7 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
                     fill={theme.icon}
                 />
             </View>
-            <Text style={[styles.flex1, styles.ml3]}>
+            <Text style={[styles.flex1, styles.reportHistoryLabel]}>
                 {step.accountID === undefined ? (
                     step.label
                 ) : (
@@ -60,7 +60,7 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
                     </>
                 )}
             </Text>
-            {!!step.created && <Text style={[styles.textMicroSupporting, styles.ml2]}>{DateUtils.datetimeToShortRelative(translate, step.created, currentSelectedTimezone)}</Text>}
+            {!!step.created && <Text style={[styles.textMicroSupporting, styles.ml2]}>{getShortRelativeTime(translate, step.created, currentSelectedTimezone)}</Text>}
         </View>
     );
 }

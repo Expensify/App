@@ -8,13 +8,15 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReportStatusPage} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportHistoryNavigatorParamList} from '@libs/Navigation/types';
-import {isMoneyRequestReport} from '@libs/ReportUtils';
+import {isGroupPolicyExpenseReport} from '@libs/ReportUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -41,7 +43,9 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [reportUpcomingSteps] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS}${report.reportID}`);
     const [isLoadingReportStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {selector: isLoadingReportStatusSelector});
-    const {isOffline} = useNetwork();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report.policyID)}`);
+    const nextStep = useOptimisticNextStep(report.reportID);
+    const {isOffline} = useNetwork({onReconnect: () => openReportStatusPage(report.reportID)});
 
     useEffect(() => {
         openReportStatusPage(report.reportID);
@@ -56,14 +60,14 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         reportOwnerAccountID: report.ownerAccountID,
         reportActions,
         upcomingSteps: reportUpcomingSteps?.steps ?? [],
-        nextStep: report.nextStep,
+        nextStep,
     });
 
     const shouldShowSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;
 
     return (
         <ScreenWrapper testID="ReportHistoryPage">
-            <FullPageNotFoundView shouldShow={!isMoneyRequestReport(report)}>
+            <FullPageNotFoundView shouldShow={!isGroupPolicyExpenseReport(report, policy?.type)}>
                 <HeaderWithBackButtonAndTitle
                     title={translate('reportHistoryPage.title')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}

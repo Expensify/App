@@ -25,8 +25,8 @@ import RenderHTML from './RenderHTML';
 type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep | undefined;
 
-    /** Opens the report history. When provided, the status bar becomes pressable and shows a chevron */
-    onPress?: () => void;
+    /** Opens the report history */
+    onPress: () => void;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -57,30 +57,6 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
         return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
     }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
-    const message = (
-        <View style={onPress ? [styles.renderHTML, styles.dFlex, styles.flexShrink1] : [styles.dFlex, styles.flexRow, styles.flexShrink1]}>
-            <RenderHTML html={messageContent} />
-        </View>
-    );
-
-    const content = (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, !onPress && styles.headerStatusBarContainer]}>
-            <View style={[styles.mr3]}>
-                <Icon
-                    src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
-                    height={variables.iconSizeSmall}
-                    width={variables.iconSizeSmall}
-                    fill={nextStep?.iconFill ?? theme.icon}
-                />
-            </View>
-            {onPress ? <CaretWrapper style={styles.flexShrink1}>{message}</CaretWrapper> : message}
-        </View>
-    );
-
-    if (!onPress) {
-        return content;
-    }
-
     return (
         <PressableWithFeedback
             onPress={onPress}
@@ -89,7 +65,21 @@ function MoneyReportHeaderStatusBar({nextStep, onPress}: MoneyReportHeaderStatus
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_NEXT_STEP}
         >
-            {content}
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
+                <View style={[styles.mr3]}>
+                    <Icon
+                        src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
+                        height={variables.iconSizeSmall}
+                        width={variables.iconSizeSmall}
+                        fill={nextStep?.iconFill ?? theme.icon}
+                    />
+                </View>
+                <CaretWrapper style={styles.flexShrink1}>
+                    <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                        <RenderHTML html={messageContent} />
+                    </View>
+                </CaretWrapper>
+            </View>
         </PressableWithFeedback>
     );
 }

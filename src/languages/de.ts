@@ -12249,7 +12249,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
     reportHistoryPage: {
-        title: 'Verlaufsbericht',
+        title: 'Berichtsverlauf',
         created: 'Bericht erstellt',
         submitted: 'eingereicht',
         approved: 'genehmigt',

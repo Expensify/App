@@ -5796,10 +5796,14 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        reportHistoryLabel: {
+            marginLeft: variables.reportHistoryLabelGap,
+        },
+
         reportHistoryConnector: {
-            width: 1,
-            height: 12,
-            marginVertical: 4,
+            width: variables.borderTopWidth,
+            height: variables.reportHistoryConnectorHeight,
+            marginVertical: variables.reportHistoryConnectorMarginVertical,
             marginLeft: variables.iconSizeXLarge / 2,
             backgroundColor: theme.border,
         },

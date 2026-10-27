@@ -12280,7 +12280,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     reportHistoryPage: {
         title: 'Historique de la note de frais',
         created: 'note de frais créée',
-        submitted: 'Soumis',
+        submitted: 'soumis',
         approved: 'approuvé',
         paid: 'payé',
         toSubmit: 'soumettre',
