@@ -45,18 +45,23 @@ Expensify offers several plans based on your needs: **Collect, Control,** and **
 ## Pay-Per-Use Plan
 1. Go to **Settings > Workspaces**.
 2. Click the **cog icon** next to your Workspace name.
-3. Select **Delete**.
-   - **Note**: Only the Billing Owner can delete a Workspace. Deleting a Workspace removes its settings and members but does not delete members' Expensify accounts.
-   - If any members were active that month (submitted, approved, or edited reports), you will be billed for their usage.
+3. Select **Archive**.
+   - **Note**: Only the Billing Owner can archive a Workspace. Archiving a Workspace makes it read-only but keeps its settings, members, reports, and expenses.
+   - If any members were active that month before you archived the Workspace (submitted, approved, or edited reports), you will be billed for their usage.
+   - Archiving doesn't switch billing off. Members can still export reports from an archived Workspace, and you will be billed for any member who exports a report.
+
+[Learn how to archive a Workspace](/articles/expensify-classic/workspaces/Archive-a-Workspace).
 
 ## Annual Subscription
+Archiving a Workspace doesn't end an Annual Subscription. The commitment continues through the end of the term, even if every Workspace is archived, and archiving doesn't trigger a refund.
+
 1. If eligible for a refund, go to **Settings > Account > Subscription**.
 2. Click **Request a Refund** if:
    - You own a **Collect** or **Control** Group Workspace.
    - You have only been billed once.
    - You have no outstanding balance.
 
-Once downgraded, your Workspace will be deleted, and a refund line item will appear in your **Billing History**.
+Once downgraded, your Workspace will be deleted, and a refund line item will appear in your **Billing History**. This refund downgrade is the only flow that still deletes a Workspace.
 
 ---
 

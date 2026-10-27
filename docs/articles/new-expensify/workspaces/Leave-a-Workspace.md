@@ -52,7 +52,7 @@ What happens to your responsibilities depends on your role:
 
 ## Why can't I leave my workspace?
 
-You're the workspace owner, or you're set as the workspace's reimburser. Owners don't see a **Leave** option at all — transfer ownership or delete the workspace instead. If you're the reimburser, you see a message asking you to assign a new reimburser first.
+You're the workspace owner, or you're set as the workspace's reimburser. Owners don't see a **Leave** option at all — transfer ownership or archive the workspace instead. If you're the reimburser, you see a message asking you to assign a new reimburser first.
 
 ## What happens to reports waiting for my approval when I leave a workspace?
 

@@ -2,7 +2,7 @@
 title: Close Your Expensify Account
 description: Learn how to close your Expensify account. 
 keywords: [Expensify Classic, close account, delete account, cancel account, delete Expensify account, cancel Expensify, deactivate account, how to delete Expensify, how to cancel Expensify, remove account, terminate account, delete Expensify, how to delete, how to cancel, remove user]
-internalScope: Audience is all members. Covers how to close an Expensify account and resolve common errors that block account closure. Does not cover how to delete workspaces or how to remove members from the domain. 
+internalScope: Audience is all members. Covers how to close an Expensify account and resolve common errors that block account closure. Does not cover how to archive workspaces or how to remove members from the domain. 
 ---
 
 # Close Your Expensify Account
@@ -20,7 +20,7 @@ Instead of closing your account, you can downgrade to a free account to retain a
 Any member can close their own Expensify account, if: 
  - They have a verified account 
  - They are not a member of a controlled domain.
- - They are not the Billing Owner of a Workspace
+ - They are not the Billing Owner of an active Workspace. Archived Workspaces don't block account closure.
  - They do not have any outstanding balance due on their Expensify account.
  - They do not have a bank account which is currently locked. 
 
@@ -61,9 +61,9 @@ This error occurs when you have an outstanding balance on your Expensify account
 
 ## Why do I see the message "Shared workspaces" when closing my account?
 
-This error occurs when you are the Billing Owner for Workspaces that are shared with other members. To proceed with closing your account, you must first delete the workspaces or have another Workspace Admin take ownership. 
+This error occurs when you are the Billing Owner for active Workspaces that are shared with other members. To proceed with closing your account, archive the workspaces or have another Workspace Admin take ownership. An archived workspace doesn't block you from closing your account, unless you still have an Annual Subscription in progress. When you close your account, any workspace you own, including archived workspaces, is permanently deleted. To keep a shared workspace, transfer ownership to another Workspace Admin first.
 
-[Learn how to delete a Workspace](/articles/expensify-classic/expensify-billing/Change-Plan-Or-Subscription#downgrading-to-a-free-account). 
+[Learn how to archive a Workspace](/articles/expensify-classic/workspaces/Archive-a-Workspace). 
 [Learn how to transfer billing ownership](/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account#transfer-billing-ownership).
 
 ## Why do I see the message "Primary domain admin" when closing my account?

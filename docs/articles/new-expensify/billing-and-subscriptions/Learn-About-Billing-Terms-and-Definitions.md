@@ -43,7 +43,7 @@ To learn more, see [Learn How Billing and Subscriptions Work](/articles/new-expe
 
 A **member** is anyone who belongs to a workspace.
 
-A **unique member** is every member in the workspace, regardless of whether they used Expensify during the billing period.
+A **unique member** is every member in the workspace, regardless of whether they used Expensify during the billing period. Members of an archived workspace count only if they take billable activity on it, such as exporting a report.
 
 An **active member** is a member who performed billable activity during the billing period.
 
