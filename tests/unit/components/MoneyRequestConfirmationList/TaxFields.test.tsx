@@ -149,6 +149,18 @@ describe('TaxFields', () => {
         expect(mockDropdownPolicyID).toBe(policyForMovingExpenses.id);
     });
 
+    it("lists the destination workspace's rates when the expense's own workspace has none, for a tracked expense being moved", async () => {
+        // Given a tracked expense being submitted from a workspace without tax rates to one that has them
+        // When the form renders the tax rate row
+        renderTaxRateRow({action: CONST.IOU.ACTION.SUBMIT, taxPolicy: {...policy, taxRates: undefined}, movingPolicy: policyForMovingExpenses});
+
+        // Then the row's list picks from the workspace the expense is moving to, as the row's own title does
+        await waitFor(() => {
+            expect(mockShouldOpenInDropdown).toBe(true);
+        });
+        expect(mockDropdownPolicyID).toBe(policyForMovingExpenses.id);
+    });
+
     it('keeps the full-page selector when the workspace has no rates to pick', async () => {
         // Given a workspace whose tax rates are all gone, which the full page shows an empty list for
         // When the form renders the tax rate row

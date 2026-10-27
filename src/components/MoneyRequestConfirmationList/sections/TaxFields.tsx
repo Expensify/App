@@ -71,7 +71,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
     const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const isMovingCurrentTransactionFromTrackExpense = isMovingTransactionFromTrackExpense(action);
-    const taxRatesPolicy = policy ?? (isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses : undefined);
+    const taxRatesPolicy = !policy?.taxRates && isMovingCurrentTransactionFromTrackExpense ? policyForMovingExpenses : policy;
     const taxRates = taxRatesPolicy?.taxRates;
     const taxAmount = getTaxAmount(transactionForHelpers, false);
     const effectiveCurrency = iouCurrencyCode ?? CONST.CURRENCY.USD;
