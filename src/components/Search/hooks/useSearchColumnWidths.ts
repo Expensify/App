@@ -330,4 +330,4 @@ function useSearchColumnWidths({
 }
 
 export default useSearchColumnWidths;
-export type {SearchColumnSizing, SearchColumnWidthsResult};
+export type {SearchColumnSizing};
