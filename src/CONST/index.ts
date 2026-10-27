@@ -8603,6 +8603,7 @@ const CONST = {
             },
         },
         GROUP_COLUMN_PREFIX: 'group',
+        UNRELATED_CONST: 'test',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
