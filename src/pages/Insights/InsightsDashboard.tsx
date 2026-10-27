@@ -151,8 +151,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                         snapshot={headlineChart.snapshot}
                         previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
                         previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        averageQueryJSON={headlineChart.averageQueryJSON}
-                        averageSnapshot={headlineChart.averageSnapshot}
+                        averageTotal={headlineChart.averageTotal}
                         filters={filters}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
@@ -164,7 +163,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         chart={chart}
@@ -172,8 +171,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                         snapshot={snapshot}
                                         previousPeriodQueryJSON={previousPeriodQueryJSON}
                                         previousPeriodSnapshot={previousPeriodSnapshot}
-                                        averageQueryJSON={averageQueryJSON}
-                                        averageSnapshot={averageSnapshot}
+                                        averageTotal={averageTotal}
                                         filters={filters}
                                         onRetry={onRetry}
                                     />
@@ -229,15 +227,15 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
-        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
-            [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
     const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
         ...chartQuery,
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
         previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-        averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
+        averageTotal: dashboard?.graphs?.[chartQuery.chart.graphKey]?.average,
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);

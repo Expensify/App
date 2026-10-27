@@ -55,7 +55,7 @@ type SearchChartViewProps = {
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
-    /** Rows the chart is compared against, drawn as a second series */
+    /** What the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
     /** Renders the details of the plotted groups below the chart */

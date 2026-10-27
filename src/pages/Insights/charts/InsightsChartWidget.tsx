@@ -51,11 +51,8 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
 
-    /** The chart's query for the average amounts */
-    averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
-
-    /** The snapshot stored under the chart's query for the average amounts */
-    averageSnapshot: OnyxEntry<SearchResults>;
+    /** Average group total the backend returned for the chart, drawn in the Average compare mode */
+    averageTotal: number | undefined;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
@@ -67,25 +64,14 @@ type InsightsChartWidgetProps = {
     onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
 };
 
-function InsightsChartWidget({
-    chart,
-    queryJSON,
-    snapshot,
-    previousPeriodQueryJSON,
-    previousPeriodSnapshot,
-    averageQueryJSON,
-    averageSnapshot,
-    filters,
-    onRetry,
-    onGroupByChange,
-}: InsightsChartWidgetProps) {
+function InsightsChartWidget({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, filters, onRetry, onGroupByChange}: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}, filters);
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
