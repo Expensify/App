@@ -452,8 +452,15 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     useEffect(() => {
+        // A preloaded tab holds its request until opened, and useSearchPageSetup sends it then. The migrated-modal and
+        // reconnect branches below skip the focus check, so they would otherwise fire it from the hidden tab.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
@@ -578,7 +585,6 @@ function Search({
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
     // Laid out while its tab was preloaded at idle, so the first open reveals it with no new layout.
-    const isInPreloadedTab = useIsInPreloadedTab();
     const wasLaidOutInPreloadedTabRef = useRef(false);
     const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));

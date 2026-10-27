@@ -12,6 +12,7 @@ import type * as SearchWriteActionsProviderModule from '@components/Search/Searc
 import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
+import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -262,37 +263,39 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
     );
 }
 
-function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON)) {
+function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
                 <SearchContextProvider>
-                    <TestNavigationContainer
-                        initialState={{
-                            index: 0,
-                            routes: [
-                                {
-                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                    state: {
-                                        index: 0,
-                                        routes: [
-                                            {
-                                                name: SCREENS.SEARCH.ROOT,
-                                                params: {q: query},
-                                            },
-                                        ],
+                    <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
+                        <TestNavigationContainer
+                            initialState={{
+                                index: 0,
+                                routes: [
+                                    {
+                                        name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                        state: {
+                                            index: 0,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.SEARCH.ROOT,
+                                                    params: {q: query},
+                                                },
+                                            ],
+                                        },
                                     },
-                                },
-                            ],
-                        }}
-                    />
+                                ],
+                            }}
+                        />
+                    </IsInPreloadedTabContext.Provider>
                 </SearchContextProvider>
             </PortalProvider>
         </ComposeProviders>
     );
 }
 
-const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON)) => render(getSearchPage(query));
+const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) => render(getSearchPage(query, isInPreloadedTab));
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
@@ -703,6 +706,32 @@ describe('SearchPageNarrow', () => {
 
         // Then the refresh goes out anyway: the claim stops a duplicate mount request, not the one that recovers an empty page
         expect(firstPageCallCount()).toBeGreaterThan(callsWhileOffline);
+    });
+
+    it('sends nothing from a hidden preloaded tab, even on the reconnect path that skips the focus check', async () => {
+        // Given the idle preload built the tab in the background from cached results, while the device was offline
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+        });
+        renderPage(EXPENSE_QUERY, true);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When the app comes back online with an error on the snapshot, which normally forces a refresh
+        mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {errors: {error: 'error'}});
+        });
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then no request goes out, so the request and its recent search entry wait until the user opens the tab
+        expect(mockSearch).not.toHaveBeenCalled();
     });
 
     it('does not let a later page consume the first-page claim', async () => {
