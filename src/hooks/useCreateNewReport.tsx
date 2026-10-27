@@ -4,7 +4,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useCallback} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -24,24 +23,21 @@ function useCreateNewReport() {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    return useCallback(
-        (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(
-                currentUserPersonalDetails,
-                // A new report has no expenses yet, so it can't have violations.
-                false,
-                isASAPSubmitBetaEnabled,
-                policy,
-                isTrackIntentUser,
-                getCurrencyDecimals,
-                rules,
-                false,
-                shouldDismissEmptyReportsConfirmation,
-            );
-        },
-        [currentUserPersonalDetails, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, rules],
-    );
+    return (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return createNewReport(
+            currentUserPersonalDetails,
+            // A new report has no expenses yet, so it can't have violations.
+            false,
+            isASAPSubmitBetaEnabled,
+            policy,
+            isTrackIntentUser,
+            getCurrencyDecimals,
+            rules,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+    };
 }
 
 export default useCreateNewReport;

@@ -65,7 +65,6 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-20](rules/consistency-20-function-names.md) — Name functions with a verb that says what they do
 
 ### Clean React Patterns
-- [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
 - [CLEAN-REACT-PATTERNS-1](rules/clean-react-1-composition-over-config.md) — Composition over configuration
 - [CLEAN-REACT-PATTERNS-2](rules/clean-react-2-own-behavior.md) — Components own their behavior
 - [CLEAN-REACT-PATTERNS-3](rules/clean-react-3-context-free-contracts.md) — Context-free component contracts

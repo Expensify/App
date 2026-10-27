@@ -1,6 +1,6 @@
 import type {NativeEventSubscription} from 'react-native';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 
 import CONST from './CONST';
@@ -61,14 +61,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
-    const trackPendingPublicRoomFromDeepLink = useCallback((url: string, isCurrentlyAuthenticated: boolean) => {
+    const trackPendingPublicRoomFromDeepLink = (url: string, isCurrentlyAuthenticated: boolean) => {
         const deepLinkReportID = getReportIDFromLink(url);
         if (!deepLinkReportID || isCurrentlyAuthenticated) {
             return;
         }
         pendingPublicRoomReportID.current = deepLinkReportID;
         hasRefetchedPublicRoom.current = false;
-    }, []);
+    };
 
     useEffect(() => {
         if (

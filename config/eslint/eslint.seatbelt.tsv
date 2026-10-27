@@ -336,7 +336,6 @@
 "../../src/components/Search/SearchSingleSelectionPicker.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/SelectionButton.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/BaseSelectionList.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/SelectionList/components/Footer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/ListItem/SplitListItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/SelectionListWithSections/BaseSelectionListWithSections.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/SelectionList/utils/getListboxRole/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1019,9 +1018,8 @@
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/iou/request/step/IOURequestEditReportCommon.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepAmount.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"no-restricted-imports"	1
-"../../src/pages/iou/request/step/IOURequestStepConfirmation/index.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/iou/request/step/IOURequestStepCurrencyModal.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/Waypoints/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
@@ -1150,7 +1148,6 @@
 "../../src/pages/settings/Agents/Fields/DynamicEditNamePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Agents/Fields/DynamicEditPromptPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Agents/Fields/DynamicEditPromptPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/AppDownloadLinks.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Copilot/CopilotPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Copilot/CopilotPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/DynamicKeyboardShortcutsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
