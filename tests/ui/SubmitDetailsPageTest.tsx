@@ -36,6 +36,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 type GetReportOrDraftReportFn = typeof getReportOrDraftReport;
 type ReportUtilsActual = Record<string, unknown> & {getReportOrDraftReport: GetReportOrDraftReportFn};
 
+// The page is rendered outside a navigator screen, which the discard guard needs
+jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.fn(() => ({suppressDiscardPrompt: jest.fn()})));
 jest.mock('@libs/actions/IOU/TrackExpense', () => {
     const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
     return {

@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
@@ -43,6 +44,7 @@ import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPositionWithinCap from '@libs/getCurrentPosition/getCurrentPositionWithinCap';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDefaultReimbursableForPolicy, getExistingTransactionID, isLookingAroundSearchRoutingActive, resolveReportForMoneyRequest} from '@libs/IOUUtils';
+import {hasMoneyRequestDraftUserEdits} from '@libs/MoneyRequestUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
@@ -350,6 +352,13 @@ function SubmitDetailsPage({
         shouldPreservePreInsertedRouteOnUnmount: () => hasCalledReveal.current,
     });
 
+    // The shared file is attached by this page itself, so only a receipt the user replaced or cropped counts as an edit
+    const hasUserEdits = hasMoneyRequestDraftUserEdits(transaction, {seededReceiptSource: sharedFileSource});
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => hasUserEdits,
+        onConfirm: cleanupPreMount,
+    });
+
     // Single entry point for the pending-navigation reveal — the ref guard makes it safe to call from either
     // path below, so whichever fires first wins and the other becomes a no-op.
     const revealPendingNavigation = (reportID: string) => {
@@ -609,6 +618,7 @@ function SubmitDetailsPage({
             return;
         }
         formHasBeenSubmitted.current = true;
+        suppressDiscardPrompt();
         // Nothing ever deletes from ReceiptStorage, so we only adopt once the user submits. A cancelled share stays in
         // the share extension's own folder, which the next share wipes.
         ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
@@ -629,6 +639,7 @@ function SubmitDetailsPage({
                     (file) => onSuccess(file, locationPermissionGranted),
                     () => {
                         formHasBeenSubmitted.current = false;
+                        suppressDiscardPrompt(false);
                         setIsConfirming(false);
                     },
                     currentReceiptType,
@@ -670,7 +681,10 @@ function SubmitDetailsPage({
                 <HeaderWithBackButton
                     title={translate('iou.confirmDetails')}
                     onBackButtonPress={() => {
-                        cleanupPreMount();
+                        // With edits, the discard prompt cleans up only once the user confirms leaving
+                        if (!hasUserEdits) {
+                            cleanupPreMount();
+                        }
                         Navigation.goBack();
                     }}
                 />
