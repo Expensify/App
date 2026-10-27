@@ -10,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type YesNoStepProps = {
     /** The title of the question */
@@ -52,19 +52,16 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
         onValueChange?.();
     };
 
-    const options = useMemo<Choice[]>(
-        () => [
-            {
-                label: translate('common.yes'),
-                value: 'true',
-            },
-            {
-                label: translate('common.no'),
-                value: 'false',
-            },
-        ],
-        [translate],
-    );
+    const options: Choice[] = [
+        {
+            label: translate('common.yes'),
+            value: 'true',
+        },
+        {
+            label: translate('common.no'),
+            value: 'false',
+        },
+    ];
 
     return (
         <FormProvider

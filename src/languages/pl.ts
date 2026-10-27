@@ -2544,8 +2544,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Czy na pewno chcesz scalić konta?',
-            lossOfUnsubmittedData: (login: string) =>
-                `Połączenie Twoich kont jest nieodwracalne i spowoduje utratę wszystkich niewysłanych wydatków dla użytkownika <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Połączenie kont jest nieodwracalne. Wszystkie wydatki i raporty z <strong>${login}</strong>, w tym wersje robocze i nierozliczone wydatki, zostaną przeniesione na konto, które zachowujesz.`,
             enterSecurityCode: (login: string) => `Aby kontynuować, wpisz kod bezpieczeństwa wysłany na <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Nieprawidłowy lub nieważny kod zabezpieczający. Spróbuj ponownie albo poproś o nowy kod.',
@@ -6756,6 +6756,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                             provisioningError:
                                 'Nie udało nam się skonfigurować części członków twojego miejsca pracy do skonsolidowanego rozliczania podróży. Spróbuj ponownie później albo skontaktuj się z Concierge, żeby uzyskać pomoc.',
                             sendInvoiceNowCta: 'Wyślij fakturę teraz',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Miesięczny limit wydatków na członka nie może przekroczyć aktualnego limitu podróży w wysokości ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Skonfiguruj nowy kanał podróży',
                         feedSelectorIntro:
@@ -8883,11 +8885,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 applyExpenseDefaultsDescription: 'Aktualizuj pola automatycznie',
                 flagForReview: 'Oznacz do przejrzenia',
                 flagForReviewDescription: 'Powiadamiaj, gdy Twoje warunki zostaną spełnione',
-                requireFields: 'Ustaw wymagania pola',
-                requireFieldsShort: 'Wymagaj pól',
+                requireFields: 'Wymagaj pól',
                 requireFieldsDescription: 'Paragony, kategorie itp.',
-                createAgentRule: 'Opisz regułę agenta',
-                createAgentRuleDescription: 'Twórz elastyczne reguły, które uruchamiają się wtedy, gdy ich potrzebujesz.',
                 describeItBelow: 'Lub po prostu opisz ją poniżej',
                 describeRulePlaceholder: 'Blokuj wszystkie wydatki powyżej 2000 $',
                 selectTemplateOrDescribe: 'Wybierz szablon lub opisz regułę, aby kontynuować',
@@ -10475,6 +10474,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noCategory: 'Brak kategorii',
         noMerchant: 'Brak sprzedawcy',
         noTag: 'Brak tagu',
+        noVendor: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
         receiptTypeValues: {
@@ -11966,6 +11966,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         exportInProgress: 'Trwa eksport',
         conciergeWillSend: 'Concierge wkrótce wyśle Ci plik.',
         currentView: 'Bieżący widok',
+        currentViewGroupsOnly: 'Bieżący widok (tylko grupy)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

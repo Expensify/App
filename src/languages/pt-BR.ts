@@ -2495,7 +2495,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Tem certeza de que deseja mesclar as contas?',
-            lossOfUnsubmittedData: (login: string) => `A fusão das suas contas é irreversível e resultará na perda de quaisquer despesas não enviadas para <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Mesclar suas contas é irreversível. Todas as despesas e relatórios de <strong>${login}</strong>, incluindo rascunhos e despesas não informadas, serão movidos para a conta que você está mantendo.`,
             enterSecurityCode: (login: string) => `Para continuar, digite o código de segurança enviado para <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Código de segurança incorreto ou inválido. Tente novamente ou solicite um novo código.',
@@ -6728,6 +6729,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             provisioningError:
                                 'Não foi possível provisionar alguns membros do seu workspace para o Faturamento Consolidado de Viagens. Tente novamente mais tarde ou entre em contato com o Concierge para obter ajuda.',
                             sendInvoiceNowCta: 'Enviar fatura agora',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `O limite mensal de gastos por membro não pode exceder o limite de viagem atual de ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configurar um novo feed de viagem',
                         feedSelectorIntro:
@@ -8861,11 +8864,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 applyExpenseDefaultsDescription: 'Atualizar campos automaticamente',
                 flagForReview: 'Marcar para revisão',
                 flagForReviewDescription: 'Notificar quando suas condições forem atendidas',
-                requireFields: 'Definir requisitos de campo',
-                requireFieldsShort: 'Exigir campos',
+                requireFields: 'Exigir campos',
                 requireFieldsDescription: 'Recibos, categorias etc.',
-                createAgentRule: 'Descrever regra do agente',
-                createAgentRuleDescription: 'Crie regras flexíveis que sejam executadas quando você precisar.',
                 describeItBelow: 'Ou simplesmente descreva abaixo',
                 describeRulePlaceholder: 'Bloquear todos os gastos acima de $2.000',
                 selectTemplateOrDescribe: 'Selecione um modelo ou descreva uma regra para continuar',
@@ -10431,6 +10431,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noCategory: 'Sem categoria',
         noMerchant: 'Sem comerciante',
         noTag: 'Sem tag',
+        noVendor: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
         receiptTypeValues: {
@@ -11924,6 +11925,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         exportInProgress: 'Exportação em andamento',
         conciergeWillSend: 'O Concierge enviará o arquivo para você em breve.',
         currentView: 'Visualização atual',
+        currentViewGroupsOnly: 'Visualização atual (somente grupos)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

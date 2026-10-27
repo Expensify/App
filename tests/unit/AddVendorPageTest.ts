@@ -105,6 +105,43 @@ describe('AddVendorPage', () => {
             const policy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
             expect(getVendorSelectionItems(policy, localeCompare)).toEqual([{name: 'Acme Xero', value: 'xc1'}]);
         });
+
+        it('excludes disabled vendors from the selection items', () => {
+            // Given a policy with multiple vendors where one vendor is disabled in policyVendors
+            const policy = buildQBOPolicy([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
+            };
+
+            // When resolving the vendor selection items
+            const result = getVendorSelectionItems(policy, localeCompare, policyVendors);
+
+            // Then the disabled vendor is excluded from the list
+            expect(result).toEqual([{name: 'Acme Co', value: 'v1'}]);
+        });
+
+        it('retains the currently-selected vendor even if disabled', () => {
+            // Given a policy with a disabled vendor that is currently selected in the rule
+            const policy = buildQBOPolicy([
+                {id: 'v1', name: 'Acme Co', currency: 'USD'},
+                {id: 'v2', name: 'Globex', currency: 'USD'},
+            ]);
+            const policyVendors = {
+                v2: {externalID: 'v2', name: 'Globex', enabled: false},
+            };
+
+            // When resolving the vendor selection items with the disabled vendor as selectedVendorID
+            const result = getVendorSelectionItems(policy, localeCompare, policyVendors, 'v2');
+
+            // Then the disabled vendor is retained so the user can see their current selection
+            expect(result).toEqual([
+                {name: 'Acme Co', value: 'v1'},
+                {name: 'Globex', value: 'v2'},
+            ]);
+        });
     });
 
     describe('getSelectedVendorItem', () => {

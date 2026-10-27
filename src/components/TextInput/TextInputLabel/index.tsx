@@ -46,4 +46,4 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
 
 TextInputLabel.displayName = 'TextInputLabel';
 
-export default React.memo(TextInputLabel);
+export default TextInputLabel;

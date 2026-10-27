@@ -19,6 +19,7 @@ import ChatThreadAvatar from './ChatThreadAvatar';
 import DefaultReportAvatar from './DefaultReportAvatar';
 import ExpenseReportAvatar from './ExpenseReportAvatar';
 import GroupChatAvatar from './GroupChatAvatar';
+import InvoiceReportAvatar from './InvoiceReportAvatar';
 import IOUReportAvatar from './IOUReportAvatar';
 import PolicyExpenseChatAvatar from './PolicyExpenseChatAvatar';
 import RoomAvatar from './RoomAvatar';
@@ -169,6 +170,18 @@ function ReportAvatar({
                     fallbackDisplayName={fallbackDisplayName}
                 />
             );
+        case CONST.REPORT_AVATAR_KIND.INVOICE:
+            return (
+                <InvoiceReportAvatar
+                    reportID={reportID}
+                    size={size}
+                    backdropColor={backdropColor}
+                    // Only a single layout reads the container styles, and inside a horizontal stack it renders without them.
+                    containerStyle={horizontalStacking ? [] : singleAvatarContainerStyle}
+                    subscriptContainerStyle={subscriptAvatarContainerStyle}
+                    fallbackDisplayName={fallbackDisplayName}
+                />
+            );
         case CONST.REPORT_AVATAR_KIND.IOU:
             return (
                 <IOUReportAvatar
@@ -184,7 +197,6 @@ function ReportAvatar({
             );
         // TODO: The remaining kinds still render the legacy component. https://github.com/Expensify/App/issues/94590 adds a
         // dedicated wrapper per kind, one PR at a time. The last of those deletes the ReportActionAvatars import and simplifies props.
-        case CONST.REPORT_AVATAR_KIND.INVOICE:
         default:
             return (
                 <ReportActionAvatars

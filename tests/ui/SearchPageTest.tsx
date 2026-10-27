@@ -41,7 +41,7 @@ import type * as reactNavigationNativeImport from '@react-navigation/native';
 import type React from 'react';
 
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import {CommonActions, NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -367,8 +367,12 @@ describe('SearchPageNarrow', () => {
         });
 
         // Then the query is requested again, because without that attempt the page renders its error view on every
-        // mount with nothing in flight
-        expect(mockSearch).toHaveBeenCalledTimes(1);
+        // mount with nothing in flight. The page and Search are the only two callers expected to ask for it, and
+        // search() collapses their asks into one request, so every call must be that same first page and the count
+        // must stay within those two. That upper bound is what fails here if the guard ever regresses into a loop.
+        expect(mockSearch).toHaveBeenCalled();
+        expect(mockSearch.mock.calls.length).toBeLessThanOrEqual(2);
+        expect(mockSearch.mock.calls.every(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash && params?.offset === 0)).toBe(true);
     });
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
@@ -493,6 +497,51 @@ describe('SearchPageNarrow', () => {
         expect(screen.getByText('Refresh needed')).toBeTruthy();
         expect(screen.getByText('Refresh')).toBeTruthy();
         expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
+    });
+
+    it('requests a query again when its tab is shown after an earlier visit left it failed', async () => {
+        // Given the page requested the query and that request failed before the server could answer
+        const {rerender} = renderPage();
+        // A narrow tab switch only sets the route's params, and the search context reads the query from the root state
+        const switchToQuery = async (query: string) => {
+            mockSearchQueryParam.mockReturnValue(query);
+            await act(async () => {
+                navigationRef.dispatch({...CommonActions.setParams({q: query}), source: navigationRef.getCurrentRoute()?.key});
+            });
+            rerender(getSearchPage(query));
+            await act(async () => {
+                jest.runAllTimers();
+            });
+        };
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
+        expect(screen.getByText('Refresh needed')).toBeTruthy();
+
+        // When the user switches to another tab and back, which keeps the page mounted and only remounts Search
+        await switchToQuery(EXPENSE_QUERY);
+        mockSearch.mockClear();
+        await switchToQuery(FAILED_QUERY);
+
+        // Then the failed query is requested again instead of staying on the refresh view until tapped
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);
+    });
+
+    it('does not request a query again when the persisted response marks it invalid', async () => {
+        // Given a snapshot the server rejected as a malformed query, which no retry can fix
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+        mockSearch.mockClear();
+
+        // When the page mounts on that query
+        renderPage();
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the query is not sent again, so the error view stays put instead of flashing a request that cannot succeed
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(false);
     });
 
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
