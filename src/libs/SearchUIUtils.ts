@@ -3976,8 +3976,7 @@ function getTransactionSortValue(transaction: TransactionListItemType, sortingPr
     }
 
     if (sortingProperty === 'reimbursable' || sortingProperty === 'billable' || sortingProperty === 'declined') {
-        const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
-        return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+        return transaction[sortingProperty] ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
     }
 
     if (sortingProperty === CONST.SEARCH.TABLE_COLUMNS.HELD) {
