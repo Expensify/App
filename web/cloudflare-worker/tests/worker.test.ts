@@ -110,9 +110,9 @@ describe('staging worker', () => {
 
     test('sends a form POST to the same page as a GET', async () => {
         // Given a form the browser submits instead of the app, as it does when a password manager submits a login form
-        for (const path of ['/', '/home', '/r/123?referrer=search']) {
-            // When the browser POSTs it as a page load
-            const response = await server.fetch(path, {
+        for (const path of ['/', '/home', '/r/123?referrer=search', '//attacker.example/phish']) {
+            // When the browser POSTs it as a page load, with the full URL so the harness keeps a path starting with `//`
+            const response = await server.fetch(`https://new.expensify.com${path}`, {
                 method: 'POST',
                 headers: {...NAVIGATION_HEADERS, 'Content-Type': 'application/x-www-form-urlencoded'},
                 body: 'login=a%40b.com',
@@ -121,7 +121,8 @@ describe('staging worker', () => {
 
             // Then it is redirected to load the same page, instead of getting a blank 405
             assert.equal(response.status, 303, path);
-            assert.equal(response.headers.get('Location'), path, path);
+            // An absolute URL on the same host, so a path starting with `//` can't send the browser to another host
+            assert.equal(response.headers.get('Location'), `https://new.expensify.com${path}`, path);
             assert.equal(response.headers.get('Cache-Control'), 'no-store', path);
             assert.equal(await response.text(), '', path);
             assertSecurityHeaders(response);

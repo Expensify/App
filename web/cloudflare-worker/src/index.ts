@@ -196,7 +196,7 @@ export default {
         // reaches here. Static Assets only serves GET and HEAD, so load the same page instead of returning a 405.
         // Locally, API requests are POSTs through this Worker to the backend.
         if (request.method === 'POST' && !(isDevelopment && isAPIRequest(url.pathname))) {
-            const redirect = new Response(null, {status: 303, headers: {Location: `${url.pathname}${url.search}`, 'Cache-Control': 'no-store'}});
+            const redirect = new Response(null, {status: 303, headers: {Location: `${url.origin}${url.pathname}${url.search}`, 'Cache-Control': 'no-store'}});
             setSecurityHeaders(redirect.headers, env.ENVIRONMENT, nonce);
             return redirect;
         }

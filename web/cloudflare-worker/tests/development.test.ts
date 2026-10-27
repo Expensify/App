@@ -133,7 +133,7 @@ describe('live development worker', () => {
         const response = await server.fetch('/home?x=1', {method: 'POST', body: 'login=a%40b.com', redirect: 'manual'});
         // Then it is redirected to load the same page, instead of reaching the upstream
         assert.equal(response.status, 303);
-        assert.equal(response.headers.get('Location'), '/home?x=1');
+        assert.equal(response.headers.get('Location'), `${origin}/home?x=1`);
         assert.equal(await response.text(), '');
     });
 
