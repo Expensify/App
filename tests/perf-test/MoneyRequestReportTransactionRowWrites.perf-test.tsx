@@ -80,6 +80,11 @@ jest.mock('@rnmapbox/maps', () => ({
 }));
 
 beforeAll(() => {
+    // FlashList's viewability and initial-scroll timers and the scroll hooks' requestAnimationFrame updates would otherwise
+    // fire on wall-clock time, landing between writes and adding renders only on slower runs. With fake timers,
+    // waitForBatchedUpdates flushes them at the same point of every run. `performance` stays real so the Profiler still measures
+    // durations, and `setImmediate` stays real because waitForBatchedUpdates relies on it.
+    jest.useFakeTimers({doNotFake: ['nextTick', 'performance', 'setImmediate']});
     Onyx.init({
         keys: ONYXKEYS,
         evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
