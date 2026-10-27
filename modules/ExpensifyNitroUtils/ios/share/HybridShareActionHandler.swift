@@ -26,7 +26,23 @@ final class HybridShareActionHandler: HybridShareActionHandlerSpec {
                 return []
             }
 
-            return try files.map { try self.processFile($0) }
+            var processedFiles: [SharedFile] = []
+            var firstProcessingError: Error?
+
+            for file in files {
+                do {
+                    processedFiles.append(try self.processFile(file))
+                } catch {
+                    firstProcessingError = firstProcessingError ?? error
+                    NSLog("Failed to process shared file at %@: %@", file.path, error.localizedDescription)
+                }
+            }
+
+            if processedFiles.isEmpty, let firstProcessingError {
+                throw firstProcessingError
+            }
+
+            return processedFiles
         }
     }
 
