@@ -322,4 +322,23 @@ describe('getResizableColumnLayout', () => {
         expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(150);
         expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBeUndefined();
     });
+
+    it('resets a column to the fresh width its table passes, rather than one worked out from its content', () => {
+        // Given an overflowing table whose fresh load caps the resized name column at 300px, where squeezing the
+        // columns toward their minimums from their content would give it only 100px
+        const columns = [column('name', {contentWidth: 900, minWidth: 100}), column('email', {contentWidth: 900, minWidth: 100})];
+
+        // When the layout is built with the table's own fresh widths
+        const {getTargetColumnWidth} = getResizableColumnLayout({
+            columns,
+            resolvedColumnWidths: {name: 500, email: 300},
+            resizedColumnKeys: ['name'],
+            tableWidth: 150,
+            rowChromeWidths,
+            defaultColumnWidths: {name: 300, email: 300},
+        });
+
+        // Then a reset lands where a fresh load paints the column, so resetting and reloading agree
+        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(300);
+    });
 });
