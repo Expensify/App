@@ -1,6 +1,7 @@
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
+import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {canDuplicateExpenseIntoSourceReport, getPolicyExpenseChat} from '@libs/ReportUtils';
 
@@ -8,6 +9,7 @@ import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyReque
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -26,6 +28,7 @@ import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
+import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 
 type UseBulkDuplicateActionParams = {
     selectedTransactionsKeys: string[];
@@ -36,11 +39,7 @@ type UseBulkDuplicateActionParams = {
 
     /** The expense report the selection was made on, so the copies can stay on it when it can accept them */
     sourceReport?: OnyxEntry<Report>;
-
-    /** The chat report of the source report */
     sourceChatReport?: OnyxEntry<Report>;
-
-    /** The policy of the source report */
     sourcePolicy?: OnyxEntry<Policy>;
 };
 
@@ -105,6 +104,7 @@ function useBulkDuplicateAction({
 
     const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`);
     const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${duplicateTargetPolicy?.id}`);
+    const restrictedActionPolicyID = useRestrictedActionPolicyID(duplicateTargetPolicy);
 
     const sourcePolicyIDMap: Record<string, string | undefined> = {};
     for (const transactionID of selectedTransactionsKeys) {
@@ -122,6 +122,11 @@ function useBulkDuplicateAction({
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const handleDuplicate = () => {
+        if (restrictedActionPolicyID) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedActionPolicyID));
+            return;
+        }
+
         bulkDuplicateExpenses({
             isVendorMatchingBetaEnabled,
             dateFnsLocale,

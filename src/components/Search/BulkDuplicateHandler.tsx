@@ -16,11 +16,7 @@ type BulkDuplicateHandlerProps = {
 
     /** The expense report the selection was made on, so the copies can stay on it when it can accept them */
     sourceReport?: OnyxEntry<Report>;
-
-    /** The chat report of the source report */
     sourceChatReport?: OnyxEntry<Report>;
-
-    /** The policy of the source report */
     sourcePolicy?: OnyxEntry<Policy>;
 };
 

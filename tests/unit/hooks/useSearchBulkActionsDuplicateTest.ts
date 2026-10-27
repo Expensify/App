@@ -9,9 +9,11 @@ import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {bulkDuplicateExpenses, bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report} from '@src/types/onyx';
 
 import {useEffect} from 'react';
@@ -1264,6 +1266,36 @@ describe('useBulkDuplicateAction - source report target', () => {
                 targetPolicy: expect.objectContaining({id: defaultPolicy.id}),
             }),
         );
+    });
+
+    it('should open the restricted action page instead of duplicating when the source policy has restricted billing', async () => {
+        // Given the source workspace's owner is past their billing grace period, while the default workspace is still usable
+        const restrictedOwnerAccountID = 4242;
+        const restrictedSourcePolicy = {...sourcePolicy, ownerAccountID: restrictedOwnerAccountID};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}`, restrictedSourcePolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${restrictedOwnerAccountID}`, {value: Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60});
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3200`]: {...createRandomTransaction(1), transactionID: '3200', reportID: sourceReport.reportID},
+        };
+
+        // When an expense on the source report is bulk duplicated
+        const {result} = renderHookWithProvider(() =>
+            useBulkDuplicateAction({
+                selectedTransactionsKeys: ['3200'],
+                allTransactions,
+                allReports: undefined,
+                searchData: undefined,
+                sourceReport,
+                sourceChatReport,
+                sourcePolicy: restrictedSourcePolicy,
+            }),
+        );
+        await waitFor(() => expect(result.current).toBeDefined());
+        result.current();
+
+        // Then the user is sent to the restricted action page for the source workspace, like the single-expense duplicate, and no copy is written
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(sourcePolicy.id));
+        expect(bulkDuplicateExpenses).not.toHaveBeenCalled();
     });
 });
 

@@ -1373,8 +1373,11 @@ function bulkDuplicateExpenses({
     // iteration will create a new report, so we must never defer auto-submit
     // — otherwise the first expense's report stays in Draft because the
     // server was told to wait for more expenses that will never arrive.
+    // An expense report target never splits: the caller already checked it can
+    // take the copies, so they all land on it and auto-submit waits for the last one.
     const allNonReimbursable = transactionsToDuplicate.every((t) => !getReimbursable(t));
     const policyWillSplitReport =
+        !isTargetExpenseReport &&
         isInstantSubmitEnabled(targetPolicy) &&
         isSubmitAndClose(targetPolicy) &&
         (allNonReimbursable || getReimbursementChoice(targetPolicy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO);
