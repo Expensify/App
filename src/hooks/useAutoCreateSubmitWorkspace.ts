@@ -44,8 +44,8 @@ function useAutoCreateSubmitWorkspace() {
     } = useOnboardingWorkspaceCreationState();
     const delegateAccountID = useDelegateAccountID();
 
-    // Workspaces pending deletion (e.g. deleted while offline) stay in Onyx until the request succeeds,
-    // so skip them here; otherwise they block creating a new workspace and we navigate to a deleted one.
+    // Workspaces pending deletion (e.g. deleted while offline) stay in Onyx until the request succeeds, so skip
+    // them here. Otherwise they block creating a new workspace and we navigate to a deleted one.
     const groupPolicySelector = (policies: OnyxCollection<Policy>) =>
         Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && !isPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy));
     const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
