@@ -91,6 +91,34 @@ describe('getSelectedGroupKeys', () => {
         expect(keys).toEqual([]);
     });
 
+    it('skips a group stamped whole on rows that fall short of its count', () => {
+        // Given an open group stamped whole on the two rows its own search returned, while the group-by count reads three
+        const selection = buildSelection({
+            txn1: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 2},
+            txn2: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 2},
+        });
+
+        // When the groups a delete would take whole are read
+        const keys = getSelectedGroupKeys(selection, buildGroupSearchData({[groupKey]: {count: 3, total: 0, currency: 'USD'}}));
+
+        // Then the group is left out, so the delete does not hide the group row along with an expense those rows have not caught up with
+        expect(keys).toEqual([]);
+    });
+
+    it('returns a group stamped whole at a covered count that reaches its count', () => {
+        // Given a group stamped whole on all three of its rows, one of them being deleted, which the group-by count still includes
+        const selection = buildSelection({
+            txn1: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 3},
+            txn2: {groupKey, isEntireGroupSelected: true, coveredGroupCount: 3},
+        });
+
+        // When the groups a delete would take whole are read
+        const keys = getSelectedGroupKeys(selection, buildGroupSearchData({[groupKey]: {count: 3, total: 0, currency: 'USD'}}));
+
+        // Then the group is taken whole, so deleting the rest of it hides its row
+        expect(keys).toEqual([groupKey]);
+    });
+
     it('skips a group whose loaded selection is smaller than the group count', () => {
         const keys = getSelectedGroupKeys(
             buildSelection({

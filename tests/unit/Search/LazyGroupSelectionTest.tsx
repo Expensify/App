@@ -644,13 +644,14 @@ describe('Lazily loaded group selection', () => {
         const {result} = renderSelection();
         const [firstChild] = loadedChildren;
 
-        // Given a group selected while it was still collapsed, whose children have since loaded and been registered
+        // Given a group selected while it was still collapsed, whose children have since loaded and been registered, which writes the selection out onto them
         await act(async () => {
             result.current.toggle(categoryGroup, []);
             expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
-        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions['1']?.isSelectedViaGroup).toBe(true);
+        expect(result.current.selectedTransactions['2']?.isSelectedViaGroup).toBe(true);
 
         // When one of those children, which renders as selected through the group, is clicked
         await act(async () => {
@@ -3489,8 +3490,10 @@ describe('Lazily loaded group selection', () => {
                     await waitForBatchedUpdatesWithAct();
                 });
 
-                // Then its two expenses are the whole group, so the count is two and the actions that need each expense stay offered, rather than one entry counting the stale three
+                // Then its two expenses are the whole group, so the count is two and the actions that need each expense stay offered, rather than one entry counting the stale three.
+                // The coverage is recorded at those two rows, short of the group-by count, so a delete still leaves the group's row for the search to settle.
                 expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.coveredGroupCount).toBe(2);
                 expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual(
                     [firstRow.keyForList, secondRow.keyForList].sort(),
                 );
@@ -3514,6 +3517,51 @@ describe('Lazily loaded group selection', () => {
                 // Then its header reads checked, since no expense in it is left unchecked
                 expect(result.current.selectedTransactions[secondRow.keyForList]?.isEntireGroupSelected).toBe(true);
                 expect(readHeader(result, true)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('keeps an open group checked from its header whole when the list refreshes', async () => {
+                const {result, rerender} = renderSelection(PagingWrapper);
+
+                // Given the group open and checked from its header
+                await openGroup(result);
+                await act(async () => {
+                    result.current.toggle(pagingGroup, shownRows);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // When the list refreshes with the same rows, as returning from an expense's details does
+                pagingGroup = {...pagingGroup};
+                rerender({});
+                await act(async () => waitForBatchedUpdatesWithAct());
+
+                // Then the group stays whole and checked through its header, since the refresh measures it by the rows it shows as the click did
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(true);
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isSelectedViaGroup).toBe(true);
+                expect(readHeader(result, true)).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+            });
+
+            it('keeps the expenses checked but stops reading the group as whole once it is closed', async () => {
+                const {result} = renderSelection(PagingWrapper);
+
+                // Given the group open and checked from its header
+                await openGroup(result);
+                await act(async () => {
+                    result.current.toggle(pagingGroup, shownRows);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // When it is closed, so it goes by the group-by count, which still holds the expense that left it
+                await act(async () => {
+                    result.current.removeGroupFromRange(groupKey);
+                    await waitForBatchedUpdatesWithAct();
+                });
+
+                // Then its two expenses stay checked and are counted as two, while its header reads partly checked against the count its closed row shows
+                expect(result.current.selectedTransactions[firstRow.keyForList]?.isEntireGroupSelected).toBe(false);
+                expect(Object.keys(mergeRowsIntoPartlyLoadedGroups(result.current.selectedTransactions, searchData, false)).sort()).toEqual(
+                    [firstRow.keyForList, secondRow.keyForList].sort(),
+                );
+                expect(readHeader(result, false)).toEqual({isSelectAllChecked: false, isIndeterminate: true});
             });
 
             it('goes by the group-by count while the group is closed, since a closed group keeps rows it loaded earlier', async () => {

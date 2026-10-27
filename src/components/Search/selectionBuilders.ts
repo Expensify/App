@@ -37,12 +37,16 @@ function getSearchGroupCountByKey(searchData: SearchResultDataType | undefined, 
 }
 
 /**
- * How many expenses a group holds when deciding what its selection covers. An open group runs its own search again each time the page comes back into view, and the
- * group-by search does not, so once that search has returned every expense, the rows it shows are the whole group while the group-by count can still hold one that left it.
- * A closed group's rows can be stale, so it is measured by the group-by count, as is a group with more to load.
+ * How many expenses a group holds when deciding what its selection covers. An open group's own search runs again each time the page comes back into view, which the
+ * group-by search does not, so once it has returned every expense, the rows it shows are the whole group even while the group-by count still holds one that left it.
+ * Those rows can still miss an expense added elsewhere, which is why a delete takes a group whole only once its selection covers the group-by count.
+ * A closed group's rows can be stale, so it is measured by the group-by count, as is a group with more to load or one the list does not carry.
  */
-function resolveGroupCount(group: TransactionGroupListItemType, isOpen: boolean): number | undefined {
-    return isOpen && group.hasMoreTransactions === false ? group.transactions.length : getSearchGroupCount(group);
+function resolveGroupCount(group: TransactionGroupListItemType | undefined, isOpen: boolean, searchData?: SearchResultDataType, groupKey?: string): number | undefined {
+    if (group && isOpen && group.hasMoreTransactions === false) {
+        return group.transactions.length;
+    }
+    return getSearchGroupCount(group) ?? getSearchGroupCountByKey(searchData, groupKey);
 }
 
 /**

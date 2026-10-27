@@ -172,7 +172,7 @@ function resolveTransactionRefs(item: TransactionListItemType, transactions: Ony
  * Rebuilds `selectedTransactions` whenever the underlying data changes (e.g. an Onyx push adds rows to a
  * selected report) so the selection stays in sync with what is on screen, then atomically commits it via
  * `applySelection`. Ported verbatim from the former `<Search>` refresh-selection effect: it reads
- * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/focus/select-all
+ * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/open-group/focus/select-all
  * changes, and keeps the deep-equality bail-out that prevents the #89588 infinite-update loop.
  */
 function useReconcileSelectionWithData({
@@ -283,7 +283,7 @@ function useReconcileSelectionWithData({
                 const getRowSelection = (transaction: TransactionListItemType) =>
                     (transaction.keyForList ? selectedTransactions[transaction.keyForList] : undefined) ?? selectedTransactions[transaction.transactionID];
                 const groupClaim = !isExpenseReportType && reportKey && isGroupEntry(reportKey) ? groupClaims.get(reportKey) : undefined;
-                const groupCount = reportKey ? (resolveGroupCount(transactionGroup, openGroupKeys.has(reportKey)) ?? getSearchGroupCountByKey(searchResultsData, reportKey)) : undefined;
+                const groupCount = reportKey ? resolveGroupCount(transactionGroup, openGroupKeys.has(reportKey), searchResultsData, reportKey) : undefined;
                 const loadedSelectableCount = transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length;
                 const remainingGroupCount = getRemainingSearchGroupCount(groupCount, transactionGroup.transactions.length, loadedSelectableCount) ?? 0;
                 const hasUnloadedRows = remainingGroupCount > loadedSelectableCount;
@@ -533,10 +533,9 @@ function useReconcileSelectionWithData({
         });
         // `selectedTransactions` and `excludedTransactions` are intentionally omitted from the deps and read from
         // closure instead (see the hook doc above): including them would re-run this reconcile on every checkbox
-        // press. We only want it to run when the underlying data, focus, or select-all state changes.
-        // `openGroupKeys` is read the same way, since opening a group fetches its rows, which runs this anyway.
+        // press. We only want it to run when the underlying data, the open groups, focus, or select-all state changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, shouldReconcileExcludedTransactions]);
+    }, [filteredData, openGroupKeys, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, shouldReconcileExcludedTransactions]);
 }
 
 /** Turn mobile selection mode off once nothing is selected and the selection asked to exit the mode. */
@@ -665,10 +664,9 @@ function SearchWriteActionsProvider({
 
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
-    const getGroupCountOf = (group: TransactionGroupListItemType | undefined, groupKey: string | undefined) =>
-        (group ? resolveGroupCount(group, openGroupKeysRef.current.has(group.keyForList)) : undefined) ?? getSearchGroupCountByKey(searchResultsData, groupKey);
     const groupByKey = new Map(isGroupedItemArray(filteredData) ? filteredData.map((group) => [group.keyForList, group]) : []);
-    const getGroupCount = (groupKey: string) => getGroupCountOf(groupByKey.get(groupKey), groupKey);
+    const getGroupCount = (groupKey: string, group?: TransactionGroupListItemType) =>
+        resolveGroupCount(group ?? groupByKey.get(groupKey), openGroupKeysRef.current.has(groupKey), searchResultsData, groupKey);
 
     // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
     const readGroupLookups = () => ({
@@ -836,7 +834,7 @@ function SearchWriteActionsProvider({
                     return stampGroupCoverageFlags({
                         selectedTransactions: updatedTransactions,
                         groupKey,
-                        groupCount: getGroupCountOf(parentGroup, groupKey),
+                        groupCount: groupKey ? getGroupCount(groupKey, parentGroup) : undefined,
                         loadedRows: loadedChildren,
                     });
                 }
@@ -929,7 +927,7 @@ function SearchWriteActionsProvider({
                         ),
                     },
                     groupKey,
-                    groupCount: getGroupCountOf(item, groupKey),
+                    groupCount: groupKey ? getGroupCount(groupKey, item) : undefined,
                     loadedRows: groupTransactions,
                 });
                 // A report row's own selection is derived from `selectedReports`, so this one commit has to re-derive it.
@@ -970,7 +968,7 @@ function SearchWriteActionsProvider({
                             stampGroupCoverageFlags({
                                 selectedTransactions: Object.fromEntries(entries),
                                 groupKey: item.keyForList,
-                                groupCount: getGroupCountOf(item, item.keyForList),
+                                groupCount: getGroupCount(item.keyForList, item),
                                 loadedRows: item.transactions,
                             }),
                         );
