@@ -10000,6 +10000,9 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+
+            /** Prefix of the Search table IDs, one per data type and group-by. See `getSearchColumnResizingID`. */
+            SEARCH_PREFIX: 'search',
         },
 
         COLUMN_RESIZE: {

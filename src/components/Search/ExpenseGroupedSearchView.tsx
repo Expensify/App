@@ -329,6 +329,7 @@ function ExpenseGroupedSearchView({
         <SearchListViewLayout
             columns={columns}
             type={type}
+            groupBy={groupBy}
             isActionColumnWide={isActionColumnWide}
             columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}

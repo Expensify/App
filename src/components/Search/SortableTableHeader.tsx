@@ -1,3 +1,5 @@
+import ColumnResizeHandle from '@components/Table/columnResize/ColumnResizeHandle';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -122,7 +124,9 @@ function SortableTableHeader({
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
-                        />
+                        >
+                            <ColumnResizeHandle columnKey={columnName} />
+                        </SortableHeaderText>
                     );
                 })}
             </View>

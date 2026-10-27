@@ -1,4 +1,6 @@
 import SearchSelectAllMenu from '@components/Search/SearchList/SearchSelectAllMenu';
+import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
+import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -56,6 +58,7 @@ function SelectionTopBar({
     SearchTableHeader,
 }: SelectionTopBarProps) {
     const styles = useThemeStyles();
+    const columnResize = useColumnResizeController();
 
     return (
         <View
@@ -63,7 +66,11 @@ function SelectionTopBar({
                 styles.searchListHeaderContainerStyle,
                 isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
                 isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
+                // Resize lines hang below the header, so keep them above the rows.
+                !!columnResize && styles.zIndex1,
             ]}
+            // The resize line starts at the row with this marker.
+            dataSet={TABLE_ROW_DATA_SET}
         >
             {canSelectMultiple && (
                 <SearchSelectAllMenu

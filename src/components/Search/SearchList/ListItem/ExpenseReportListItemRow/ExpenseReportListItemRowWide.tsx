@@ -12,6 +12,7 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
+import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -312,7 +313,11 @@ function ExpenseReportListItemRowWide({
     };
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+        <View
+            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+            // The resize line reads this marker to find the rows it spans.
+            dataSet={TABLE_ROW_DATA_SET}
+        >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox

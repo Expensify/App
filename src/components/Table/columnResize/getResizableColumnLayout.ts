@@ -43,6 +43,12 @@ type GetResizableColumnLayoutParams = {
     tableWidth: number;
 
     rowChromeWidths: RowChromeWidths;
+
+    /**
+     * Widths a fresh load paints, which a reset returns a column to. Defaults to content-based widths like `Table` uses,
+     * so a table that sizes its columns differently passes its own.
+     */
+    defaultColumnWidths?: Record<string, number>;
 };
 
 type ResizableColumnLayout = {
@@ -90,7 +96,14 @@ function getDefaultColumnWidths(columns: ResizableColumn[], availableColumnsWidt
     return Object.fromEntries(contentSizedColumns.map((column, index) => [column.key, defaultWidths.at(index) ?? 0]));
 }
 
-function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths}: GetResizableColumnLayoutParams): ResizableColumnLayout {
+function getResizableColumnLayout({
+    columns,
+    resolvedColumnWidths,
+    resizedColumnKeys,
+    tableWidth,
+    rowChromeWidths,
+    defaultColumnWidths,
+}: GetResizableColumnLayoutParams): ResizableColumnLayout {
     const {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth} = rowChromeWidths;
     // Absorbs leftover width, so trailing headless columns like an arrow, menu or icon keep their size and stay pinned right.
     const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
@@ -146,7 +159,7 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
             return undefined;
         }
 
-        return getDragBoundedWidth(columnKey, getDefaultColumnWidths(columns, availableColumnsWidth)[columnKey] ?? 0);
+        return getDragBoundedWidth(columnKey, (defaultColumnWidths ?? getDefaultColumnWidths(columns, availableColumnsWidth))[columnKey] ?? 0);
     };
 
     const getResizedColumnWidths = (columnKey: string, width: number) =>
@@ -168,4 +181,4 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
 
 export default getResizableColumnLayout;
 export {getAvailableColumnsWidth};
-export type {ColumnWidthTarget};
+export type {ColumnWidthTarget, ResizableColumnLayout, RowChromeWidths};

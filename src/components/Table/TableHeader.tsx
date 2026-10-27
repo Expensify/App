@@ -23,6 +23,7 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import {useColumnResizeController} from './columnResize/ColumnResizeContext';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
@@ -90,9 +91,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         dynamicGridTemplateColumns,
         scrollWidth,
         rowWidth,
-        columnResize,
         tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
+    const columnResize = useColumnResizeController();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;

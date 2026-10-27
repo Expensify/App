@@ -1,3 +1,5 @@
+import {getColumnWidthValue} from '@components/Table/columnResize/columnWidthExpressions';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
@@ -32,6 +34,9 @@ type SearchColumnSizingState = {
      * column short of the heading above it.
      */
     columnOptions: GetReportTableColumnStylesParams;
+
+    /** Resolved width of each resizable column. Only set while resizing is on, and only for columns with a draggable edge. */
+    resizableColumnWidths?: Partial<Record<SearchColumnType, number>>;
 };
 
 /**
@@ -41,8 +46,8 @@ type SearchColumnSizingState = {
  */
 const SearchColumnWidthsContext = createContext<SearchColumnSizingState>({columnWidths: {}, sizedColumns: new Set(), columnOptions: {}});
 
-function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, children}: React.PropsWithChildren<SearchColumnSizingState>) {
-    return <SearchColumnWidthsContext.Provider value={{columnWidths, sizedColumns, columnOptions}}>{children}</SearchColumnWidthsContext.Provider>;
+function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, resizableColumnWidths, children}: React.PropsWithChildren<SearchColumnSizingState>) {
+    return <SearchColumnWidthsContext.Provider value={{columnWidths, sizedColumns, columnOptions, resizableColumnWidths}}>{children}</SearchColumnWidthsContext.Provider>;
 }
 
 /**
@@ -53,7 +58,7 @@ function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, 
  */
 function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetReportTableColumnStylesParams) => ViewStyle {
     const StyleUtils = useStyleUtils();
-    const {columnWidths, sizedColumns, columnOptions} = useContext(SearchColumnWidthsContext);
+    const {columnWidths, sizedColumns, columnOptions, resizableColumnWidths} = useContext(SearchColumnWidthsContext);
 
     const isSizingColumns = Object.keys(columnWidths).length > 0;
 
@@ -68,6 +73,15 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         // set leaves a row on one answer and its heading on the other, which slides every column after it sideways.
         const columnStyles = StyleUtils.getReportTableColumnStyles(columnName, isSizingColumns && sizedColumns.has(columnName) ? {...columnOptions, ...options} : options);
         const sizing = columnWidths[columnName];
+        const resizableWidth = sizedColumns.has(columnName) ? resizableColumnWidths?.[columnName] : undefined;
+
+        // A drag rewrites this custom property on the scope element, so the header and rows repaint without a render.
+        // Columns never grow, because the header row has no trailing arrow and would end up wider than the rows.
+        if (resizableWidth !== undefined) {
+            const widthValue = getColumnWidthValue(columnName, resizableWidth);
+
+            return {...columnStyles, flex: undefined, flexGrow: 0, flexShrink: 0, ...StyleUtils.getWidthStyle(widthValue), ...StyleUtils.getMinimumWidth(widthValue)};
+        }
 
         if (!sizing) {
             // `flex: 1` expands to a zero basis, which discards any width declared beside it: the column starts from

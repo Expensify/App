@@ -1,4 +1,5 @@
 import Hoverable from '@components/Hoverable';
+import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import {
     RESIZE_GRIP_HOVER_VARIABLE,
     RESIZE_INDICATOR_DATA_ATTRIBUTE,
@@ -7,7 +8,6 @@ import {
     RESIZE_INDICATOR_TOP_VARIABLE,
 } from '@components/Table/columnResize/columnWidthExpressions';
 import type {ColumnResizeHandleProps} from '@components/Table/columnResize/types';
-import {useTableContext} from '@components/Table/TableContext';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,7 +51,7 @@ const INDICATOR_STYLE: React.CSSProperties = {
 function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {columnResize} = useTableContext();
+    const columnResize = useColumnResizeController();
     const handleProps = columnResize?.getHandleProps(columnKey);
 
     if (!handleProps) {
