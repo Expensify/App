@@ -195,16 +195,25 @@ describe('GroupHeader', () => {
         renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: true, count: 4, hasMoreTransactions: false});
 
         // When its checkbox is drawn
-        // Then it reads checked, since the rows an open group's own search returned are the whole group
+        // Then it reads checked, since the rows a group's own search returned are the whole group
         expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
     });
 
-    it('reads partly checked while closed with the same rows checked, since a closed group goes by the group-by count', () => {
+    it('reads checked while closed with the same rows checked, since its rows are the whole group whether it is open or not', () => {
         // Given the same group closed
         renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: false, count: 4, hasMoreTransactions: false});
 
         // When its checkbox is drawn
-        // Then it reads partly checked, since a closed group's rows can be out of date
+        // Then it reads checked, as it does open, so closing a group never changes what its checkbox shows
+        expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+    });
+
+    it('reads partly checked while its own search has more to load, since its count is then the whole group', () => {
+        // Given a group with the same rows checked whose own search has more expenses to load
+        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: true, count: 4, hasMoreTransactions: true});
+
+        // When its checkbox is drawn
+        // Then it reads partly checked, since the expense it has not loaded is not selected
         expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: true});
     });
 

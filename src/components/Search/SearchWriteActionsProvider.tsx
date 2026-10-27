@@ -32,7 +32,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 
-import type {OpenGroupKeys} from './hooks/useOpenGroupsRegistry';
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -109,9 +108,6 @@ type ReconcileSelectionParams = {
     /** The currently displayed (filtered, grouped) rows */
     filteredData: SearchData;
 
-    /** The groups showing their rows, which their own search keeps current */
-    openGroupKeys: OpenGroupKeys;
-
     /** Raw search snapshot data, used for denormalized transaction/report lookups */
     searchResultsData: SearchResults['data'] | undefined;
 
@@ -171,8 +167,8 @@ function resolveTransactionRefs(item: TransactionListItemType, transactions: Ony
  * Rebuilds `selectedTransactions` whenever the underlying data changes (e.g. an Onyx push adds rows to a
  * selected report) so the selection stays in sync with what is on screen, then atomically commits it via
  * `applySelection`. Ported verbatim from the former `<Search>` refresh-selection effect: it reads
- * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/focus/select-all changes and
- * on a group opening or closing where that changes its count, and keeps the deep-equality bail-out that prevents the #89588 infinite-update loop.
+ * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/focus/select-all
+ * changes, and keeps the deep-equality bail-out that prevents the #89588 infinite-update loop.
  */
 function useReconcileSelectionWithData({
     isFocused,
@@ -180,7 +176,6 @@ function useReconcileSelectionWithData({
     areItemsGrouped,
     isExpenseReportType,
     filteredData,
-    openGroupKeys,
     searchResultsData,
     transactions,
     currentUserLogin,
@@ -193,20 +188,6 @@ function useReconcileSelectionWithData({
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-
-    // Opening or closing a group changes its count only when the rows it shows and the group-by count disagree, so only those groups re-run the reconcile.
-    // Written as JSON, since a group's key carries its name, which can hold the comma a plain join would split on.
-    const openGroupKeysMeasuredByRows = JSON.stringify(
-        isGroupedItemArray(filteredData)
-            ? filteredData
-                  .filter(
-                      (group) =>
-                          openGroupKeys.has(group.keyForList) &&
-                          resolveGroupCount(group, true, searchResultsData, group.keyForList) !== getGroupByCount(group, searchResultsData, group.keyForList),
-                  )
-                  .map((group) => group.keyForList)
-            : [],
-    );
 
     useEffect(() => {
         const shouldReconcileMovedExcludedTransaction =
@@ -296,7 +277,7 @@ function useReconcileSelectionWithData({
                 const getRowSelection = (transaction: TransactionListItemType) =>
                     (transaction.keyForList ? selectedTransactions[transaction.keyForList] : undefined) ?? selectedTransactions[transaction.transactionID];
                 const groupClaim = !isExpenseReportType && reportKey && isGroupEntry(reportKey) ? groupClaims.get(reportKey) : undefined;
-                const groupCount = reportKey ? resolveGroupCount(transactionGroup, openGroupKeys.has(reportKey), searchResultsData, reportKey) : undefined;
+                const groupCount = reportKey ? resolveGroupCount(transactionGroup, searchResultsData, reportKey) : undefined;
                 const loadedSelectableCount = transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length;
                 const remainingGroupCount = getRemainingSearchGroupCount(groupCount, transactionGroup.transactions.length, loadedSelectableCount) ?? 0;
                 const hasUnloadedRows = remainingGroupCount > loadedSelectableCount;
@@ -546,19 +527,9 @@ function useReconcileSelectionWithData({
         });
         // `selectedTransactions` and `excludedTransactions` are intentionally omitted from the deps and read from
         // closure instead (see the hook doc above): including them would re-run this reconcile on every checkbox
-        // press. `openGroupKeys` is read from closure as well, since only the open groups measured by their rows change the result.
-        // We only want it to run when the underlying data, those groups, focus, or select-all state changes.
+        // press. We only want it to run when the underlying data, focus, or select-all state changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        filteredData,
-        openGroupKeysMeasuredByRows,
-        applySelection,
-        areAllMatchingItemsSelected,
-        isFocused,
-        outstandingReportsByPolicyID,
-        isExpenseReportType,
-        shouldReconcileExcludedTransactions,
-    ]);
+    }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, shouldReconcileExcludedTransactions]);
 }
 
 /** Turn mobile selection mode off once nothing is selected and the selection asked to exit the mode. */
@@ -646,7 +617,6 @@ function SearchWriteActionsProvider({
     // Read at the gesture: closing over it would give every row a new `toggle` each time a group opens.
     const groupKeyByChildKeyRef = useRef<ReadonlyMap<string, string>>(new Map());
     const childrenByGroupKeyRef = useRef<ReadonlyMap<string, TransactionListItemType[]>>(new Map());
-    const openGroupKeysRef = useRef<OpenGroupKeys>(openGroupKeys);
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
@@ -682,25 +652,20 @@ function SearchWriteActionsProvider({
     useLayoutEffect(() => {
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
         childrenByGroupKeyRef.current = childrenByGroupKey;
-        openGroupKeysRef.current = openGroupKeys;
-    }, [groupKeyByChildKey, childrenByGroupKey, openGroupKeys]);
+    }, [groupKeyByChildKey, childrenByGroupKey]);
 
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
-    // Built from the drawn groups, whose rows the range and the group checks are given, so an open group is counted from those same rows.
+    // Built from the drawn groups, whose rows the range and the group checks are given, so a group is counted from those same rows.
     const groupByKey = new Map(isGroupedItemArray(renderedData) ? renderedData.map((group) => [group.keyForList, group]) : []);
 
     // Read when the click happens, like the refs they come from, and passed to the writers, which cannot read Onyx or the rows themselves.
-    const readGroupLookups = () => {
-        const openGroupKeysAtClick = openGroupKeysRef.current;
-        return {
-            groupKeyByChildKey: groupKeyByChildKeyRef.current,
-            childrenByGroupKey: childrenByGroupKeyRef.current,
-            buildSelectedEntry,
-            getGroupCount: (groupKey: string, group?: TransactionGroupListItemType) =>
-                resolveGroupCount(group ?? groupByKey.get(groupKey), openGroupKeysAtClick.has(groupKey), searchResultsData, groupKey),
-        };
-    };
+    const readGroupLookups = () => ({
+        groupKeyByChildKey: groupKeyByChildKeyRef.current,
+        childrenByGroupKey: childrenByGroupKeyRef.current,
+        buildSelectedEntry,
+        getGroupCount: (groupKey: string, group?: TransactionGroupListItemType) => resolveGroupCount(group ?? groupByKey.get(groupKey), searchResultsData, groupKey),
+    });
 
     // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
     const groupSelectionParams = (
@@ -1029,7 +994,6 @@ function SearchWriteActionsProvider({
         areItemsGrouped,
         isExpenseReportType,
         filteredData,
-        openGroupKeys,
         searchResultsData,
         transactions,
         currentUserLogin,

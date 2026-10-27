@@ -186,7 +186,7 @@ function GroupHeader({
     const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({
         groupKey: item.groupKeyForList,
         groupTransactions: groupItem.transactions,
-        groupCount: resolveGroupCount(groupItem, isExpanded),
+        groupCount: resolveGroupCount(groupItem),
     });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;

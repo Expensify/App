@@ -134,26 +134,19 @@ describe('selectionBuilders', () => {
         const shownRows = [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2')];
         const buildGroup = (hasMoreTransactions: boolean | undefined) => ({...buildCategoryGroup(groupKey, shownRows), count: 3, hasMoreTransactions});
 
-        it('takes the rows an open group shows once its own search has returned every expense', () => {
-            // Given an open group whose own search has nothing more to load
+        it('takes the rows a group shows once its own search has returned every expense', () => {
+            // Given a group whose own search has nothing more to load
             // When its count is resolved
-            // Then it is the two rows it shows, since that search runs again whenever the page comes back into view and the group-by count does not
-            expect(resolveGroupCount(buildGroup(false), true)).toBe(2);
+            // Then it is the two rows it shows, since nothing lowers the group-by count until the group-by search runs again
+            expect(resolveGroupCount(buildGroup(false))).toBe(2);
         });
 
-        it('takes the group-by count for a closed group, whose rows can be out of date', () => {
-            // Given the same group closed
-            // When its count is resolved
-            // Then it is the group-by count, since a closed group keeps the rows it loaded earlier
-            expect(resolveGroupCount(buildGroup(false), false)).toBe(3);
-        });
-
-        it('takes the group-by count for an open group with more to load, or one whose own search has not answered', () => {
-            // Given an open group whose own search has more to load, and one whose own search has not answered yet
+        it('takes the group-by count for a group with more to load, or one whose own search has not answered', () => {
+            // Given a group whose own search has more to load, and one whose own search has not answered yet
             // When their counts are resolved
             // Then both are the group-by count, since their rows are not the whole group
-            expect(resolveGroupCount(buildGroup(true), true)).toBe(3);
-            expect(resolveGroupCount(buildGroup(undefined), true)).toBe(3);
+            expect(resolveGroupCount(buildGroup(true))).toBe(3);
+            expect(resolveGroupCount(buildGroup(undefined))).toBe(3);
         });
     });
 

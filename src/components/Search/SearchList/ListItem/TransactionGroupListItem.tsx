@@ -156,7 +156,7 @@ function TransactionGroupListItemImpl({
     const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
         groupTransactions: groupItem.transactions,
-        groupCount: resolveGroupCount(groupItem, isExpanded),
+        groupCount: resolveGroupCount(groupItem),
     });
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));

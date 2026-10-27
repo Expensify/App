@@ -49,7 +49,7 @@ function GroupChildrenContent({
     const {transactions} = useGroupChildren({
         groupKey: groupItem.groupKeyForList,
         groupTransactions: groupItem.transactions,
-        groupCount: resolveGroupCount(groupItem, isExpanded),
+        groupCount: resolveGroupCount(groupItem),
     });
 
     const isEmpty = transactions.length === 0;

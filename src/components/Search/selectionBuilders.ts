@@ -42,13 +42,13 @@ function getGroupByCount(group: TransactionGroupListItemType | undefined, search
 }
 
 /**
- * How many expenses a group holds when deciding what its selection covers. An open group's own search runs again each time the page comes back into view, which the
- * group-by search does not, so once it has returned every expense, the rows it shows are the whole group even while the group-by count still holds one that left it.
+ * How many expenses a group holds when deciding what its selection covers. Once a group's own search has returned every expense, the rows it shows are the whole group,
+ * even while the group-by count still holds an expense that left it, since nothing lowers that count until the group-by search runs again.
  * Those rows can still miss an expense added elsewhere, which is why a delete takes a group whole only once its selection covers the group-by count.
- * A closed group's rows can be stale, so it is measured by the group-by count, as is a group with more to load or one the list does not carry.
+ * A group with more to load, or one the list does not carry, is measured by the group-by count.
  */
-function resolveGroupCount(group: TransactionGroupListItemType | undefined, isOpen: boolean, searchData?: SearchResultDataType, groupKey?: string): number | undefined {
-    if (group && isOpen && group.hasMoreTransactions === false) {
+function resolveGroupCount(group: TransactionGroupListItemType | undefined, searchData?: SearchResultDataType, groupKey?: string): number | undefined {
+    if (group && group.hasMoreTransactions === false) {
         return group.transactions.length;
     }
     return getGroupByCount(group, searchData, groupKey);
@@ -721,7 +721,7 @@ type GroupLookups = {
     /** Supplied by the provider, which is what reads Onyx for a row's action flags */
     buildSelectedEntry: (item: TransactionListItemType) => [string, SelectedTransactionInfo];
 
-    /** How many expenses the group holds, measured with the groups open at the click, which can be more or fewer than the rows it has loaded */
+    /** How many expenses the group holds, which can be more or fewer than the rows it has loaded */
     getGroupCount: (groupKey: string) => number | undefined;
 };
 
