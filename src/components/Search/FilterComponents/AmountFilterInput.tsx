@@ -75,7 +75,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 allowNegativeInput
                 keyboardType={keyboardType}
                 shouldShowCurrencyButton
-                currencyButtonLabel={currency || translate('common.anyCurrency')}
+                currencyButtonLabel={currency || translate('common.any')}
                 currencyButtonAccessibilityLabel={[label, translate('common.selectCurrency'), currency || translate('common.anyCurrency')].join(', ')}
                 onCurrencyButtonPress={() => setIsCurrencyPickerVisible(true)}
                 shouldShowBigNumberPad={false}

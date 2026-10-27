@@ -330,6 +330,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: '下午',
         tbd: '待定',
         selectCurrency: '选择货币',
+        any: '任意',
         anyCurrency: '任意货币',
         selectSymbolOrCurrency: '选择符号或货币',
         card: '卡片',

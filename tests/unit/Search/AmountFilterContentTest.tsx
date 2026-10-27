@@ -108,7 +108,7 @@ describe('AmountFilterContent currency selection', () => {
         expect(onChange).toHaveBeenCalledWith({amountEqualTo: '1200', amountGreaterThan: undefined, amountLessThan: undefined});
     });
 
-    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('selects Any currency without changing the %s amount', (baseFilterKey) => {
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('shows Any after selecting Any currency for %s', (baseFilterKey) => {
         // Given a saved currency-qualified amount and a GBP workspace default.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'GBP'}));
         const onChange = jest.fn();
@@ -125,11 +125,11 @@ describe('AmountFilterContent currency selection', () => {
         act(() => jest.mocked(IOURequestStepCurrencyModal).mock.calls.at(-1)?.[0].onInputChange?.(''));
         fireEvent.press(screen.getByRole('button'));
 
-        // Then the selection is labeled clearly and the amount returns to bare hundredths.
+        // Then the button uses Any, its accessibility label keeps Any currency, and the amount returns to bare hundredths.
         expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0]).toMatchObject({
             value: '0.10',
             currency: '',
-            currencyButtonLabel: 'common.anyCurrency',
+            currencyButtonLabel: 'common.any',
         });
         expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currencyButtonAccessibilityLabel).toContain('common.anyCurrency');
         expect(onChange).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: '10', [`${baseFilterKey}GreaterThan`]: undefined, [`${baseFilterKey}LessThan`]: undefined});
@@ -306,7 +306,8 @@ describe('AmountPopup currency selection', () => {
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
         act(() => jest.mocked(BasePopup).mock.calls.at(-1)?.[0].onApply());
 
-        // Then quick filters preserve the qualified or legacy format used by advanced filters.
+        // Then quick filters use the compact currency label and preserve the format used by advanced filters.
+        expect(jest.mocked(NumberWithSymbolForm).mock.calls.at(-1)?.[0].currencyButtonLabel).toBe(currency || 'common.any');
         expect(updateFilterForm).toHaveBeenCalledWith({[`${baseFilterKey}EqualTo`]: expected, [`${baseFilterKey}GreaterThan`]: '', [`${baseFilterKey}LessThan`]: ''});
     });
 });

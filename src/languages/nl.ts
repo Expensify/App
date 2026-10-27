@@ -330,6 +330,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'PM',
         tbd: 'Nader te bepalen',
         selectCurrency: 'Selecteer een valuta',
+        any: 'Alle',
         anyCurrency: 'Elke valuta',
         selectSymbolOrCurrency: 'Selecteer een symbool of valuta',
         card: 'Kaart',

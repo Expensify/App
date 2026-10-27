@@ -324,6 +324,7 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
+        any: 'Cualquiera',
         anyCurrency: 'Cualquier moneda',
         selectSymbolOrCurrency: 'Selecciona un símbolo o moneda',
         card: 'Tarjeta',
