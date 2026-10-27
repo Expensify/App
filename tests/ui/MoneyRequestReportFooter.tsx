@@ -200,7 +200,9 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
-    it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
+    it('should allow editing report field when the only outstanding report is picked and creating from policy chat', async () => {
+        // Given the expense is on the only outstanding report, while saving would create a new report by default
+        // because the current user is not that report's submitter
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: false,
@@ -223,12 +225,14 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
+        // When the confirmation footer renders the report field
         await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the field stays editable, so the user can switch back to a new report
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -253,7 +257,9 @@ describe('MoneyRequestConfirmationListFooter', () => {
         expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
     });
 
-    it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
+    it('should allow editing report field when transaction has the only outstanding report and creating from FAB', async () => {
+        // Given the expense is on the only outstanding report, while saving would create a new report by default
+        // because the current user is not that report's submitter
         const mockTransactionReport: Transaction = {
             ...mockTransaction,
             isFromGlobalCreate: true,
@@ -276,12 +282,14 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
+        // When the confirmation footer renders the report field
         await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the field stays editable, so the user can switch back to a new report
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: true}));
+        expect(reportItem.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
