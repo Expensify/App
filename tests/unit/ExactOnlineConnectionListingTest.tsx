@@ -35,7 +35,6 @@ jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
     default: () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta)}),
 }));
-jest.mock('@hooks/useIsUnifiedConnectionsBetaEnabled', () => () => true);
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
     __esModule: true,
     default: () => ({canWrite: true, showReadOnlyModal: jest.fn()}),
@@ -62,7 +61,7 @@ describe('Exact Online in unified Connections', () => {
     });
 
     it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.EXACT_ONLINE]}])('keeps signup available offline with Exact beta enrollment $enabledBetas', async ({enabledBetas}) => {
-        // Given unified Connections is enabled, the account is offline, and the Exact beta may be enabled
+        // Given the account is offline, and the Exact beta may be enabled
         mockEnabledBetas = enabledBetas;
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
         const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Test workspace');

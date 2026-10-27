@@ -3699,7 +3699,7 @@ ${amount} για ${merchant} - ${date}`,
 
                         1. Κάντε κλικ στο *χώρο εργασίας*.
                         2. Επιλέξτε τον χώρο εργασίας σας.
-                        3. Κάντε κλικ στο *λογιστική*.
+                        3. Κάντε κλικ στις *Συνδέσεις*.
                         4. Βρείτε το ${integrationName}.
                         5. Κάντε κλικ στο *σύνδεση*.
 
@@ -5140,22 +5140,14 @@ ${amount} για ${merchant} - ${date}`,
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
         },
         mcp: {
-            connectors: 'Συνδέσεις',
-            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
-            connect: 'Σύνδεση',
-            helpPrompt: 'Χρειάζεστε βοήθεια με τη σύνδεση;',
-            helpLink: 'Διαβάστε τον οδηγό μας.',
             claude: {
                 title: 'Claude',
-                subtitle: 'από την Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'από την Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'από την OpenAI',
             },
         },
         connections: {
@@ -6822,10 +6814,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Οργανώστε',
                 subtitle: 'Ομαδοποιήστε και αναλύστε τις δαπάνες, καταγράψτε κάθε φόρο που πληρώθηκε.',
             },
-            integrateSection: {
-                title: 'Ενσωμάτωση',
-                subtitle: 'Συνδέστε το Expensify με δημοφιλή χρηματοοικονομικά προϊόντα.',
-            },
             distanceRates: {
                 title: 'Τιμές χιλιομετρικής αποζημίωσης',
                 subtitle: 'Προσθέστε, ενημερώστε και εφαρμόστε τιμές.',
@@ -7068,26 +7056,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
             },
             receiptPartners: {
                 title: 'Συνεργάτες αποδείξεων',
-                subtitle: 'Αυτόματη εισαγωγή αποδείξεων.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Όχι και τόσο γρήγορα...',
                 featureEnabledText: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτή τη λειτουργία, θα χρειαστεί να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
-                disconnectText: 'Για να απενεργοποιήσετε τη λογιστική, θα χρειαστεί να αποσυνδέσετε τη λογιστική σύνδεση από τον χώρο εργασίας σας.',
                 manageSettings: 'Διαχείριση ρυθμίσεων',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Αποσύνδεση του Uber',
-                disconnectText: 'Για να απενεργοποιήσετε αυτή τη λειτουργία, αποσυνδέστε πρώτα την ενσωμάτωση Uber for Business.',
                 description: 'Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε αυτήν την ενοποίηση;',
-                confirmText: 'Εντάξει',
-            },
-            hrWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `Για να απενεργοποιήσετε το HR, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Όχι και τόσο γρήγορα...',
@@ -7109,10 +7089,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.',
                 disabledTitle: 'Όχι τόσο γρήγορα...',
                 disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) =>
-                    `Για να απενεργοποιήσετε την προσέλκυση προσωπικού, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
             },
         },
         reports: {
@@ -7611,7 +7587,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         accounting: {
             settings: 'ρυθμίσεις',
             title: 'Συνδέσεις',
-            subtitle: 'Συνδέστε το λογιστικό σας λογισμικό για αυτόματο συγχρονισμό.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7623,10 +7598,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkYourAccountManager: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkToConcierge: 'Συνομιλήστε με το Concierge.',
-            needAnotherAccounting: 'Χρειάζεστε άλλο λογιστικό λογισμικό;',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7675,7 +7646,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             disconnect: 'Αποσύνδεση',
             reinstall: 'Επανεγκατάσταση συνδέτη',
             disconnectTitle: (connectionName = 'ενσωμάτωση') => `Αποσύνδεση ${connectionName}`,
-            connectTitle: (connectionName) => `Συνδέστε ${connectionName}`,
             syncError: (connectionName) => `Δεν είναι δυνατή η σύνδεση με το ${connectionName}`,
             accounts: 'Λογιστικό σχέδιο',
             taxes: 'Φόροι',
@@ -7692,12 +7662,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Προεπιλογή εργαζομένου NetSuite',
             },
             disconnectPrompt: (connectionName = 'αυτή η ενοποίηση') => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${connectionName};`,
-            connectPrompt: (connectionName) => `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${connectionName}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
             reconnect: 'Επανασύνδεση',
             enterCredentials: 'Εισαγάγετε τα διαπιστευτήριά σας',
             updateCredentials: 'Ενημέρωση διαπιστευτηρίων',
             claimOffer: {
-                badgeText: 'Προσφορά διαθέσιμη!',
                 xero: {
                     headline: 'Αποκτήστε το Xero δωρεάν για 6 μήνες!',
                     description:
@@ -7964,10 +7932,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             netSuiteOAuthUpgradeNow: 'Αναβαθμίστε τώρα',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα HR σας για να συγχρονίζετε τα στοιχεία των εργαζομένων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τα έξοδα της ομάδας σας ακριβή χωρίς χειροκίνητη εργασία.',
-            subtitle: 'Συνδέστε εργαλεία HR και διατηρήστε τις εγκρίσεις εργαζομένων συγχρονισμένες.',
             alreadyConnectedTitle: 'Δεν είναι δυνατή η σύνδεση σε πολλές πλατφόρμες HR',
             alreadyConnectedPrompt: 'Πρέπει να αποσυνδέσετε την τρέχουσα πλατφόρμα HR προτού συνδέσετε μια άλλη.',
             connectionDescription: (providerName: string) => `Συνδέστε το ${providerName} για να διατηρείτε τις εγκρίσεις εργαζομένων συγχρονισμένες με τον χώρο εργασίας σας.`,
@@ -8030,7 +7996,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
         },
         recruiting: {
-            title: 'Προσλήψεις',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα προσλήψεών σας για να συγχρονίζετε τα δεδομένα υποψηφίων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τις δαπάνες της ομάδας σας ακριβείς χωρίς χειροκίνητη εργασία.',
             alreadyConnectedTitle: 'Αδυναμία σύνδεσης σε πολλές πλατφόρμες ATS',
@@ -8038,7 +8003,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncing: 'Γίνεται συγχρονισμός υποψηφίων',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκληρώστε τη ρύθμιση</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υποψηφίων.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
@@ -8064,7 +8028,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
                 enableJobStagesOrTags: 'Επιλέξτε τουλάχιστον ένα στάδιο εργασίας ή ετικέτα για να συνεχίσετε',
             },
-            subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 υποψήφιος',
@@ -8088,9 +8051,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
         },
         merge: {
-            connections: 'Συνδέσεις',
-            connect: 'Σύνδεση',
-            findIntegration: 'Βρείτε ενοποίηση',
             syncNow: 'Συγχρονισμός τώρα',
             disconnect: 'Αποσύνδεση',
             disconnectTitle: (providerName: string) => `Αποσύνδεση ${providerName}`,

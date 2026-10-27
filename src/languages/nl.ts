@@ -3638,7 +3638,7 @@ ${amount} voor ${merchant} - ${date}`,
 
                         1. Klik op *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *Accounting*.
+                        3. Klik op *Verbindingen*.
                         4. Zoek ${integrationName}.
                         5. Klik op *Connect*.
 
@@ -5036,22 +5036,14 @@ ${amount} voor ${merchant} - ${date}`,
             description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
         },
         mcp: {
-            connectors: 'Connectoren',
-            connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
-            connect: 'Verbinden',
-            helpPrompt: 'Hulp nodig bij het verbinden?',
-            helpLink: 'Lees onze handleiding.',
             claude: {
                 title: 'Claude',
-                subtitle: 'van Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'van Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'van OpenAI',
             },
         },
         connections: {
@@ -6659,10 +6651,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Organiseren',
                 subtitle: 'Groepeer en analyseer uitgaven, leg elke betaalde belasting vast.',
             },
-            integrateSection: {
-                title: 'Integreren',
-                subtitle: 'Koppel Expensify aan populaire financiële producten.',
-            },
             distanceRates: {
                 title: 'Kilometertarieven',
                 subtitle: 'Tarieven toevoegen, bijwerken en afdwingen.',
@@ -6895,23 +6883,18 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Verbind een AI-assistent met je Expensify-account.',
             },
             receiptPartners: {
                 title: 'Bonpartners',
-                subtitle: 'Automatisch bonnetjes importeren.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
                 featureEnabledText: 'Om deze functie in of uit te schakelen, moet je je instellingen voor boekhoudkundige import wijzigen.',
-                disconnectText: 'Om de boekhouding uit te schakelen, moet je de boekhoudkoppeling van je werkruimte loskoppelen.',
                 manageSettings: 'Instellingen beheren',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Verbinding met Uber verbreken',
-                disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de koppeling met de Uber for Business-integratie.',
                 description: 'Weet je zeker dat je deze integratie wilt ontkoppelen?',
-                confirmText: 'Begrepen',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
@@ -6928,14 +6911,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
             vendors: {
                 title: 'Leveranciers',
                 subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.',
                 disabledTitle: 'Niet zo snel...',
                 disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om Werving uit te schakelen, koppel ${integration} eerst los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7425,7 +7406,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         accounting: {
             settings: 'instellingen',
             title: 'Verbindingen',
-            subtitle: 'Verbind je boekhoudsoftware voor een automatische synchronisatie.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7437,10 +7417,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat met je accountmanager.',
-            talkYourAccountManager: 'Chat met je accountmanager.',
-            talkToConcierge: 'Chat met Concierge.',
-            needAnotherAccounting: 'Nog een boekhoudprogramma nodig?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7489,7 +7465,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             disconnect: 'Verbinding verbreken',
             reinstall: 'Connector opnieuw installeren',
             disconnectTitle: (connectionName = 'integratie') => `Verbinding met ${connectionName} verbreken`,
-            connectTitle: (connectionName) => `Verbind ${connectionName}`,
             syncError: (connectionName) => `Kan geen verbinding maken met ${connectionName}`,
             accounts: 'Rekeningschema',
             taxes: 'Belastingen',
@@ -7506,12 +7481,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standaard NetSuite-medewerker',
             },
             disconnectPrompt: (connectionName = 'deze integratie') => `Weet je zeker dat je ${connectionName} wilt ontkoppelen?`,
-            connectPrompt: (connectionName) => `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
             reconnect: 'Opnieuw verbinden',
             updateCredentials: 'Inloggegevens bijwerken',
             claimOffer: {
-                badgeText: 'Aanbieding beschikbaar!',
                 xero: {
                     headline: 'Krijg Xero 6 maanden gratis!',
                     description: '<muted-text><centered-text>Nieuw bij Xero? Expensify-klanten krijgen 6 maanden gratis. Claim jouw aanbieding hieronder.</centered-text></muted-text>',
@@ -8994,10 +8967,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subscriptions: 'Abonnementen',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
-            subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             alreadyConnectedTitle: 'Kan niet met meerdere HR-platformen verbinden',
             alreadyConnectedPrompt: 'Je moet je huidige HR-platform loskoppelen voordat je een ander kunt verbinden.',
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
@@ -9060,7 +9031,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         recruiting: {
-            title: 'Werving',
             connectionsSubtitle:
                 'Koppel je recruitmentsysteem om kandidaatgegevens te synchroniseren, vergoedingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             alreadyConnectedTitle: 'Kan niet met meerdere ATS-platformen verbinden',
@@ -9068,7 +9038,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncing: 'Kandidaten synchroniseren',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Installatie voltooien</a>` : 'Voltooi installatie'} om kandidaten te importeren.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving', hiringManager: 'Wervingsmanager'},
@@ -9094,7 +9063,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 enableJobStagesOrTags: 'Selecteer minstens één functiestap of tag om door te gaan',
             },
-            subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 kandidaat',
@@ -9118,9 +9086,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         merge: {
-            connections: 'Verbindingen',
-            connect: 'Verbinden',
-            findIntegration: 'Integratie zoeken',
             syncNow: 'Nu synchroniseren',
             disconnect: 'Ontkoppelen',
             disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,

@@ -17,7 +17,6 @@ jest.mock('@hooks/useConfirmModal', () => () => ({showConfirmModal: jest.fn()}))
 jest.mock('@hooks/useEnvironment', () => () => ({environment: 'development'}));
 jest.mock('@hooks/useExpensifyCardFeeds', () => () => ({}));
 jest.mock('@hooks/useHasReusablePoliciesConnectedTo', () => () => false);
-jest.mock('@hooks/useIsUnifiedConnectionsBetaEnabled', () => () => false);
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({})}));
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,

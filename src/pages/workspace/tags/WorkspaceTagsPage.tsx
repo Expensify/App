@@ -734,7 +734,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>{getHeaderSubtitle()}</View>;
 
     const emptyTagsSubtitle = hasAccountingConnections
-        ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, canWriteTags)
+        ? translate(
+              'workspace.tags.emptyTags.subtitleWithAccounting',
+              `${environmentURL}/${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING)}`,
+              canWriteTags,
+          )
         : translate('workspace.tags.emptyTags.subtitleHTML');
     const subtitleText = (
         <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>

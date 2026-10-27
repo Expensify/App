@@ -8252,8 +8252,6 @@ export {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyRecruiting,
-    enablePolicyMCP,
-    enablePolicyReceiptPartners,
     enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,

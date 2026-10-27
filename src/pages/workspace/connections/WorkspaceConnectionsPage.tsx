@@ -18,7 +18,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -69,6 +68,7 @@ type RouteParams = {
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
+    tab?: ConnectionsTab;
 };
 
 type MergeSetupFlow = {
@@ -110,7 +110,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.ALL);
+    const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab | undefined>();
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -139,7 +139,9 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     // Recruiting providers are behind a beta, so the tab only shows once there is something to list in it
     const hasRecruitingListings = listings.some((listing) => listing.category === CONST.TAB.CONNECTIONS.RECRUITING);
     const visibleTabs = Object.values(CONST.TAB.CONNECTIONS).filter((tab) => tab !== CONST.TAB.CONNECTIONS.RECRUITING || hasRecruitingListings);
-    const activeTab = visibleTabs.includes(lastSelectedTab) ? lastSelectedTab : CONST.TAB.CONNECTIONS.ALL;
+    // A link can open a tab, which applies until the user picks one
+    const requestedTab = lastSelectedTab ?? params?.tab ?? CONST.TAB.CONNECTIONS.ALL;
+    const activeTab = visibleTabs.includes(requestedTab) ? requestedTab : CONST.TAB.CONNECTIONS.ALL;
 
     const [searchValue, setSearchValue, searchResults, appliedSearchValue] = useSearchResults(
         availableListings,
@@ -357,14 +359,11 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 }
 
 function WorkspaceConnectionsPageWrapper(props: WithPolicyConnectionsProps) {
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={props.policy?.id}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled}
         >
             <AccountingContextProvider policy={props.policy}>
                 <WorkspaceConnectionsPage {...props} />

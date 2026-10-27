@@ -3671,7 +3671,7 @@ ${amount} dla ${merchant} - ${date}`,
 
                         1. Kliknij *Workspaces*.
                         2. Wybierz swoją przestrzeń roboczą.
-                        3. Kliknij *Accounting*.
+                        3. Kliknij *Połączenia*.
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
 
@@ -5069,22 +5069,14 @@ ${amount} dla ${merchant} - ${date}`,
             description: 'Świetna wiadomość 🎉. Skontaktuj się z nami, jeśli potrzebują pomocy przy konfiguracji.',
         },
         mcp: {
-            connectors: 'Konektory',
-            connectorsSubtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
-            connect: 'Połącz',
-            helpPrompt: 'Potrzebujesz pomocy z połączeniem?',
-            helpLink: 'Przeczytaj nasz przewodnik.',
             claude: {
                 title: 'Claude',
-                subtitle: 'od Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'od Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'od OpenAI',
             },
         },
         connections: {
@@ -6685,10 +6677,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Organizuj',
                 subtitle: 'Grupuj i analizuj wydatki, zapisuj każdy zapłacony podatek.',
             },
-            integrateSection: {
-                title: 'Integruj',
-                subtitle: 'Połącz Expensify z popularnymi produktami finansowymi.',
-            },
             distanceRates: {
                 title: 'Stawki za dystans',
                 subtitle: 'Dodawaj, aktualizuj i egzekwuj stawki.',
@@ -6923,23 +6911,18 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Połącz asystenta AI ze swoim kontem Expensify.',
             },
             receiptPartners: {
                 title: 'Partnerzy paragonów',
-                subtitle: 'Automatycznie importuj paragony.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
                 featureEnabledText: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
-                disconnectText: 'Aby wyłączyć księgowość, musisz odłączyć połączenie księgowe od swojego obszaru roboczego.',
                 manageSettings: 'Zarządzaj ustawieniami',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Odłącz Uber',
-                disconnectText: 'Aby wyłączyć tę funkcję, najpierw odłącz integrację Uber for Business.',
                 description: 'Czy na pewno chcesz odłączyć tę integrację?',
-                confirmText: 'Rozumiem',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Nie tak szybko...',
@@ -6956,14 +6939,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć HR, najpierw odłącz ${integration} od tego workspace’a.`},
             vendors: {
                 title: 'Dostawcy',
                 subtitle: 'Dopasuj wydatki z karty do kontrahentów zaimportowanych z twojego oprogramowania księgowego.',
                 disabledTitle: 'Nie tak szybko...',
                 disabledMessage: 'Aby włączyć lub wyłączyć tę funkcję, musisz zmienić ustawienia importu księgowego.',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć Rekrutację, najpierw odłącz ${integration} od tego workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -7453,7 +7434,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
         accounting: {
             settings: 'ustawienia',
             title: 'Połączenia',
-            subtitle: 'Podłącz swoje oprogramowanie księgowe, aby włączyć automatyczną synchronizację.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7465,10 +7445,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Porozmawiaj ze swoim opiekunem klienta.',
-            talkYourAccountManager: 'Porozmawiaj ze swoim opiekunem konta.',
-            talkToConcierge: 'Czat z Concierge.',
-            needAnotherAccounting: 'Potrzebujesz innego programu księgowego?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7517,7 +7493,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             disconnect: 'Rozłącz',
             reinstall: 'Zainstaluj ponownie konektor',
             disconnectTitle: (connectionName = 'integracja') => `Odłącz ${connectionName}`,
-            connectTitle: (connectionName) => `Połącz ${connectionName}`,
             syncError: (connectionName) => `Nie można połączyć się z ${connectionName}`,
             accounts: 'Plan kont',
             taxes: 'Podatki',
@@ -7534,12 +7509,10 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Domyślny pracownik NetSuite',
             },
             disconnectPrompt: (connectionName = 'ta integracja') => `Czy na pewno chcesz odłączyć ${connectionName}?`,
-            connectPrompt: (connectionName) => `Czy na pewno chcesz połączyć ${connectionName}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
             reconnect: 'Połącz ponownie',
             updateCredentials: 'Zaktualizuj dane logowania',
             claimOffer: {
-                badgeText: 'Oferta dostępna!',
                 xero: {
                     headline: 'Korzystaj z Xero za darmo przez 6 miesięcy!',
                     description: '<muted-text><centered-text>Nowy w Xero? Klienci Expensify otrzymują 6 miesięcy za darmo. Odbierz swoją ofertę poniżej.</centered-text></muted-text>',
@@ -9017,10 +8990,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             subscriptions: 'Subskrypcje',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Połącz się ze swoim systemem HR, aby synchronizować dane pracowników, automatycznie dopasowywać zwroty do właściwych osób i utrzymywać wydatki zespołu w porządku bez ręcznej pracy.',
-            subtitle: 'Połącz narzędzia HR i utrzymuj zgody pracowników w synchronizacji.',
             alreadyConnectedTitle: 'Nie można połączyć się z wieloma platformami HR',
             alreadyConnectedPrompt: 'Musisz odłączyć swoją obecną platformę HR, zanim podłączysz inną.',
             connectionDescription: (providerName: string) => `Połącz ${providerName}, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.`,
@@ -9083,7 +9054,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
         },
         recruiting: {
-            title: 'Rekrutacja',
             connectionsSubtitle:
                 'Połącz się ze swoim systemem rekrutacyjnym, aby synchronizować dane kandydatów, automatycznie dopasowywać zwroty kosztów do właściwych osób i utrzymywać poprawność wydatków zespołu bez ręcznej pracy.',
             alreadyConnectedTitle: 'Nie można połączyć się z wieloma platformami ATS',
@@ -9091,7 +9061,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncing: 'Synchronizowanie kandydatów',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Połączono. ${setupLink ? `<a href="${setupLink}">Dokończ konfigurację</a>` : 'Zakończ konfigurację'}, aby zaimportować kandydatów.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Nie widzisz tutaj swojego ATS? <a href="#">Zapytaj Concierge</a>, a my możemy go dodać.</muted-text-label>`,
             importSettings: 'Ustawienia importu',
             defaultApprover: 'Domyślny zatwierdzający',
             approverFields: {recruiter: 'Rekruter', recruitingCoordinator: 'Koordynator rekrutacji', hiringManager: 'Rekruter'},
@@ -9112,7 +9081,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 offices: {title: 'Biuro', description: 'Wybierz biura kandydatów, które chcesz zsynchronizować z tym miejscem pracy', toggleTitle: 'Biura', allSelected: 'Wszystkie biura'},
                 enableJobStagesOrTags: 'Wybierz co najmniej jeden etap zadania lub znacznik, aby kontynuować',
             },
-            subtitle: 'Połącz narzędzia rekrutacyjne i utrzymuj zgody kandydatów w synchronizacji.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 kandydat',
@@ -9136,9 +9104,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             },
         },
         merge: {
-            connections: 'Połączenia',
-            connect: 'Połącz',
-            findIntegration: 'Znajdź integrację',
             syncNow: 'Synchronizuj teraz',
             disconnect: 'Odłącz',
             disconnectTitle: (providerName: string) => `Odłącz ${providerName}`,

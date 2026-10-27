@@ -34,7 +34,7 @@ function FixPolicyConnection({connectionName, policyID, policyName, integrationN
         : translate('homePage.timeSensitiveSection.fixPolicyConnection.defaultSubtitle');
 
     const isHRConnection = (CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES as readonly PolicyConnectionName[]).includes(connectionName);
-    const fixRoute = isHRConnection ? ROUTES.WORKSPACE_HR.getRoute(policyID) : ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID);
+    const fixRoute = isHRConnection ? ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID) : ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
 
     return (
         <BaseWidgetItem

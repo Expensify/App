@@ -3659,7 +3659,7 @@ ${amount} pour ${merchant} - ${date}`,
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Comptabilité*.
+                        3. Cliquez sur *Connexions*.
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connecter*.
 
@@ -5073,22 +5073,14 @@ ${amount} pour ${merchant} - ${date}`,
             description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
         },
         mcp: {
-            connectors: 'Connecteurs',
-            connectorsSubtitle: 'Connectez un assistant IA à votre compte Expensify.',
-            connect: 'Connecter',
-            helpPrompt: "Besoin d'aide pour la connexion ?",
-            helpLink: 'Consultez notre guide.',
             claude: {
                 title: 'Claude',
-                subtitle: 'par Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'par Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'par OpenAI',
             },
         },
         connections: {
@@ -6720,10 +6712,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Organiser',
                 subtitle: 'Regroupez et analysez les dépenses, enregistrez chaque taxe payée.',
             },
-            integrateSection: {
-                title: 'Intégrer',
-                subtitle: 'Connectez Expensify à des produits financiers populaires.',
-            },
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
@@ -6965,23 +6953,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Connectez un assistant IA à votre compte Expensify.',
             },
             receiptPartners: {
                 title: 'Partenaires de reçus',
-                subtitle: 'Importer automatiquement les reçus.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Pas si vite…',
                 featureEnabledText: 'Pour activer ou désactiver cette fonctionnalité, vous devez modifier vos paramètres d’import comptable.',
-                disconnectText: 'Pour désactiver la comptabilité, vous devez déconnecter votre connexion comptable de votre espace de travail.',
                 manageSettings: 'Gérer les paramètres',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Dissocier Uber',
-                disconnectText: 'Pour désactiver cette fonctionnalité, veuillez d’abord déconnecter l’intégration Uber for Business.',
                 description: 'Voulez-vous vraiment déconnecter cette intégration ?',
-                confirmText: 'Compris',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Pas si vite…',
@@ -6998,15 +6981,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
             vendors: {
                 title: 'Fournisseurs',
                 subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.',
                 disabledTitle: 'Pas si vite...',
                 disabledMessage: 'Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d’importation comptable.',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `Pour désactiver le recrutement, veuillez d’abord déconnecter ${integration} de cet espace de travail.`,
             },
         },
         reports: {
@@ -7504,7 +7483,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         accounting: {
             settings: 'paramètres',
             title: 'Connexions',
-            subtitle: 'Connectez votre logiciel de comptabilité pour une synchronisation automatique.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7516,10 +7494,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Discutez avec votre chargé de compte.',
-            talkYourAccountManager: 'Discuter avec votre gestionnaire de compte.',
-            talkToConcierge: 'Discuter avec Concierge.',
-            needAnotherAccounting: 'Besoin d’un autre logiciel comptable ?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7568,7 +7542,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             disconnect: 'Déconnecter',
             reinstall: 'Réinstaller le connecteur',
             disconnectTitle: (connectionName = 'intégration') => `Déconnecter ${connectionName}`,
-            connectTitle: (connectionName) => `Connecter ${connectionName}`,
             syncError: (connectionName) => `Impossible de se connecter à ${connectionName}`,
             accounts: 'Plan comptable',
             taxes: 'Taxes',
@@ -7585,12 +7558,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Par défaut employé NetSuite',
             },
             disconnectPrompt: (connectionName = 'cette intégration') => `Voulez-vous vraiment déconnecter ${connectionName} ?`,
-            connectPrompt: (connectionName) => `Voulez-vous vraiment connecter ${connectionName} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',
             reconnect: 'Reconnecter',
             updateCredentials: 'Mettre à jour les identifiants',
             claimOffer: {
-                badgeText: 'Offre disponible !',
                 xero: {
                     headline: 'Obtenez Xero gratuitement pendant 6 mois !',
                     description:
@@ -9091,10 +9062,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subscriptions: 'Abonnements',
         },
         hr: {
-            title: 'RH',
             connectionsSubtitle:
                 'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
-            subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes RH',
             alreadyConnectedPrompt: 'Vous devez déconnecter votre plateforme RH actuelle avant d’en connecter une autre.',
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
@@ -9157,7 +9126,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         recruiting: {
-            title: 'Recrutement',
             connectionsSubtitle:
                 'Connectez votre système de recrutement pour synchroniser les données des candidats, faire correspondre automatiquement les remboursements aux bonnes personnes et maintenir des dépenses d’équipe exactes sans travail manuel.',
             alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes ATS',
@@ -9165,7 +9133,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncing: 'Synchronisation des candidats',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer des candidats.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement', hiringManager: 'Responsable du recrutement'},
@@ -9192,7 +9159,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
                 enableJobStagesOrTags: 'Sélectionnez au moins une étape de poste ou un tag pour continuer',
             },
-            subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 candidat',
@@ -9216,9 +9182,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         merge: {
-            connections: 'Connexions',
-            connect: 'Connecter',
-            findIntegration: 'Rechercher une intégration',
             syncNow: 'Synchroniser maintenant',
             disconnect: 'Déconnecter',
             disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
