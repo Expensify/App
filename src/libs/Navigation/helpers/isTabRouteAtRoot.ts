@@ -31,6 +31,9 @@ const TAB_WRAPPER_NAVIGATORS = new Set<string>([
 
 const isAtTabRootLevel = (name: string | undefined): boolean => !name || SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
 
+/** Whether a stack screen is the root view of a tab, the one the tab bar shows on. */
+const isTabRootScreen = (name: string): boolean => SCREENS_WITH_TAB_BAR.has(name);
+
 // Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
 const getPushTargetLeaf = (params: unknown): string | undefined => {
     const p = params as {screen?: unknown; params?: unknown} | undefined;
@@ -58,3 +61,4 @@ function isTabRouteAtRoot(route: TabRouteLike | undefined): boolean {
 }
 
 export default isTabRouteAtRoot;
+export {isTabRootScreen};

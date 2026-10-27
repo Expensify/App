@@ -15,6 +15,7 @@ import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
+import SetTabRootRevealingContext from './NativeTabNavigator/SetTabRootRevealingContext';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
 import useNativeTabNavigator from './NativeTabNavigator/useNativeTabNavigator';
@@ -35,7 +36,7 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
@@ -48,41 +49,43 @@ function TabNavigator() {
               };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            layout={renderNativeTabLayout}
-            screenLayout={bottomTabScreenLayoutWrapper}
-            screenOptions={getScreenOptions}
-            UNSTABLE_router={tabRouterOverride}
-            screenListeners={tabScreenListeners}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePage}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPage}
-                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
-                initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigator}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
-            />
-        </Tab.Navigator>
+        <SetTabRootRevealingContext.Provider value={setIsTabRootRevealing}>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                layout={renderNativeTabLayout}
+                screenLayout={bottomTabScreenLayoutWrapper}
+                screenOptions={getScreenOptions}
+                UNSTABLE_router={tabRouterOverride}
+                screenListeners={tabScreenListeners}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePage}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPage}
+                    // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                    initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigator}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigator}
+                />
+            </Tab.Navigator>
+        </SetTabRootRevealingContext.Provider>
     );
 }
 

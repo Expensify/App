@@ -1,8 +1,77 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -244,7 +244,9 @@
+@@ -51,6 +51,8 @@ @implementation RNSTabsHostComponentView {
+ 
+   RNSTabsNavigationStateUpdateRequest *_Nullable _navStateRequest;
+ 
++  UIViewPropertyAnimator *_Nullable _tabBarFadeOutAnimator;
++
+ #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
+   UIView *_Nullable _bottomAccessoryWrapperView;
+ #endif // RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
+@@ -121,6 +123,52 @@ - (void)invalidateImpl
+   });
+ }
+ 
++#pragma mark - Tab bar visibility
++
++/**
++ * UIKit's hide animation on iOS 26 clears the tab items before it fades the glass, while its show animation brings both
++ * in together. The bar fades out as a whole here instead and is hidden without animation once invisible. Showing it
++ * again mid-fade reverses the fade, so the bar never ends up hidden while it should be shown.
++ */
++- (void)applyTabBarHiddenWithFade API_AVAILABLE(ios(26.0))
++{
++  if (_tabBarFadeOutAnimator != nil) {
++    _tabBarFadeOutAnimator.reversed = !_tabBarHidden;
++    return;
++  }
++
++  UITabBar *tabBar = _controller.tabBar;
++  // Before the bar is on screen, the first render would otherwise animate it out.
++  if (!_tabBarHidden || tabBar.window == nil) {
++    [_controller setTabBarHidden:_tabBarHidden animated:tabBar.window != nil];
++    return;
++  }
++
++  if (_controller.isTabBarHidden) {
++    return;
++  }
++
++  tabBar.userInteractionEnabled = NO;
++  _tabBarFadeOutAnimator = [[UIViewPropertyAnimator alloc] initWithDuration:0.2
++                                                                      curve:UIViewAnimationCurveEaseOut
++                                                                 animations:^{
++                                                                   tabBar.alpha = 0;
++                                                                 }];
++  __weak auto weakSelf = self;
++  [_tabBarFadeOutAnimator addCompletion:^(UIViewAnimatingPosition finalPosition) {
++    auto strongSelf = weakSelf;
++    if (strongSelf != nil) {
++      strongSelf->_tabBarFadeOutAnimator = nil;
++      if (finalPosition == UIViewAnimatingPositionEnd) {
++        [strongSelf->_controller setTabBarHidden:YES animated:NO];
++      }
++    }
++    tabBar.alpha = 1;
++    tabBar.userInteractionEnabled = YES;
++  }];
++  [_tabBarFadeOutAnimator startAnimation];
++}
++
+ #pragma mark - UIView methods
+ 
+ - (void)didMoveToWindow
+@@ -242,9 +290,16 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+ 
+   if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;
++#if RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
++    if (@available(iOS 26.0, *)) {
++      [self applyTabBarHiddenWithFade];
++    } else
++#endif // RNS_IPHONE_OS_VERSION_AVAILABLE(26_0)
  #if RNS_IPHONE_OS_VERSION_AVAILABLE(18_0)
      if (@available(iOS 18.0, *)) {
 -      [_controller setTabBarHidden:_tabBarHidden animated:NO];
