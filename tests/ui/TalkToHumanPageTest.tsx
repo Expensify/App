@@ -79,6 +79,7 @@ describe('TalkToHumanPage', () => {
         await renderPage();
 
         // Then the flag is cleared while the page pops, and set again afterwards
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockSetShouldPopToSidebar.mock.calls).toEqual([[false], [true]]);
         const [clearCall, restoreCall] = mockSetShouldPopToSidebar.mock.invocationCallOrder;
         const goBackCall = mockGoBack.mock.invocationCallOrder.at(0) ?? 0;
