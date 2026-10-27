@@ -228,9 +228,6 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             handleCreateReport();
             return;
         }
-        if (!hasPerDiemTransactions && !hasUnreportedManagedCardTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
-            return;
-        }
         if (shouldSelectPolicy) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)));
             return;
