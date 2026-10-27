@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {SafeString} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type SSNProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -26,18 +26,15 @@ function SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBeingMod
     const defaultSSN = SafeString(reimbursementAccountDraft?.[ssnInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourSSN' : 'ownershipInfoStep.whatsTheOwnersSSN');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [ssnInputID], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, [ssnInputID], translate);
 
-            if (values[ssnInputID] && !isValidSSNFullNine(SafeString(values[ssnInputID]))) {
-                errors[ssnInputID] = translate('additionalDetailsStep.ssnFull9Error');
-            }
+        if (values[ssnInputID] && !isValidSSNFullNine(SafeString(values[ssnInputID]))) {
+            errors[ssnInputID] = translate('additionalDetailsStep.ssnFull9Error');
+        }
 
-            return errors;
-        },
-        [ssnInputID, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: [ssnInputID],

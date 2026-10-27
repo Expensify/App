@@ -568,6 +568,8 @@ const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
+const policyDefaultBankAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.bankAccountID;
+
 /** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
 const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
     policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
@@ -643,6 +645,7 @@ export {
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
+    policyDefaultBankAccountIDSelector,
     policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,

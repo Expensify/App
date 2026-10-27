@@ -332,6 +332,13 @@ const CONST = {
         customField1: 'employeeUserID',
         customField2: 'employeePayrollID',
     },
+    POLICY_CHANGE_LOG_EMPLOYEE_FIELDS: {
+        ROLE: 'role',
+        SUBMITS_TO: 'submitsTo',
+        FORWARDS_TO: 'forwardsTo',
+        OVER_LIMIT_FORWARDS_TO: 'overLimitForwardsTo',
+        APPROVAL_LIMIT: 'approvalLimit',
+    },
     WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
     ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
     ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
@@ -1453,6 +1460,7 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
@@ -1461,7 +1469,8 @@ const CONST = {
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
-        DESCRIBE_RULE: 'describeRule',
+        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
+        RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
@@ -2542,6 +2551,7 @@ const CONST = {
         },
     } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
+    OUTSTANDING_REPORTS_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
@@ -3579,6 +3589,9 @@ const CONST = {
             SET_IDENTITY: 'setIdentity',
             SET_PROPERTIES: 'setProperties',
             SHUTDOWN: 'shutdown',
+        },
+        EVENT: {
+            CONCIERGE_MESSAGE_SENT: 'Concierge_message_sent',
         },
     },
 
@@ -5312,6 +5325,7 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
+            IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
@@ -6619,6 +6633,11 @@ const CONST = {
         ERROR: 'error',
         INFO: 'info',
     },
+    FILE_DOWNLOAD_STATUS: {
+        GENERATING: 'generating',
+        READY: 'ready',
+        FAILED: 'failed',
+    },
     REPORT_DETAILS_MENU_ITEM: {
         GO_TO_ROOM: 'goToRoom',
         MEMBERS: 'member',
@@ -7390,6 +7409,7 @@ const CONST = {
         NEW_ROOM: 'room',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        DISTANCE_CREATE_TYPE: 'distanceCreateType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         RULES_TAB_TYPE: 'rulesTabType',
@@ -7586,7 +7606,6 @@ const CONST = {
     DOT_INDICATOR_TEST_ID: 'DotIndicator',
     ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID: 'animated-collapsible-content',
     SWITCH_LOCK_ICON_TEST_ID: 'SwitchLockIcon',
-    ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID: 'AccountSwitcherButtonPlaceholder',
 
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
@@ -8216,6 +8235,11 @@ const CONST = {
                     search: true,
                     reportView: false,
                 },
+                PAID: {
+                    column: this.TABLE_COLUMNS.PAID,
+                    search: true,
+                    reportView: false,
+                },
                 POSTED: {
                     column: this.TABLE_COLUMNS.POSTED,
                     search: true,
@@ -8401,6 +8425,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID: this.TABLE_COLUMNS.PAID,
                     PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
@@ -8419,6 +8444,7 @@ const CONST = {
                     ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
                     AMOUNT_DEBITED: this.TABLE_COLUMNS.AMOUNT_DEBITED,
                     AMOUNT_REIMBURSED: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -8604,6 +8630,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID: 'paid',
             PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',
@@ -8804,6 +8831,7 @@ const CONST = {
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
         CATEGORY_DEFAULT_VALUE: 'Uncategorized',
+        VENDOR_EMPTY_VALUE: 'none',
         MERCHANT_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
@@ -8840,6 +8868,7 @@ const CONST = {
             EXPORTER: 'exporter',
             CATEGORY: 'category',
             TAG: 'tag',
+            VENDOR: 'vendor',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
             FEED: 'feed',
@@ -8979,6 +9008,15 @@ const CONST = {
             YEAR_TO_DATE: 'year-to-date',
             LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
+            THIS_WEEK: 'this-week',
+            LAST_WEEK: 'last-week',
+            THIS_QUARTER: 'this-quarter',
+            LAST_QUARTER: 'last-quarter',
+            THIS_YEAR: 'this-year',
+            LAST_YEAR: 'last-year',
+            LAST_30_DAYS: 'last-30-days',
+            LAST_90_DAYS: 'last-90-days',
+            LAST_6_MONTHS: 'last-6-months',
         },
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
@@ -9949,6 +9987,26 @@ const CONST = {
         },
     },
 
+    /** A draggable edge that resizes a pane or a column horizontally. */
+    RESIZE_HANDLE: {
+        /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
+        INDICATOR_WIDTH: 2,
+    },
+
+    RHP_RESIZE: {
+        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
+        HANDLE_HIT_WIDTH: 12,
+
+        /** Narrowest the single RHP can be dragged, in px. */
+        MIN_WIDTH: 380,
+
+        /** How much narrower, in px, the widest single RHP stays than a wide RHP, so a single RHP stacked on one never covers it. */
+        WIDE_RHP_INSET: 40,
+
+        /** Room, in px, the widest RHP still leaves for the content to its left. */
+        CONTENT_RESERVE_WIDTH: 360,
+    },
+
     TABLES: {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
@@ -9990,14 +10048,23 @@ const CONST = {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
-            INDICATOR_WIDTH: 2,
+            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
+            DRAG_SLOP: 3,
+
+            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
+            DOUBLE_CLICK_INTERVAL: 150,
 
             /** Share of the heading's height the grip spans, centred vertically. */
             GRIP_HEIGHT_RATIO: 0.8,
 
-            /** How long, in ms, the grip takes to stretch into the line once its edge is pressed. */
+            /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
+
+            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            WIDTH_TARGET: {
+                FIT: 'fit',
+                RESET: 'reset',
+            },
         },
     },
 
@@ -10212,6 +10279,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10732,7 +10800,6 @@ const CONST = {
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
                 NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS: 'WorkspaceRules-NewRuleMenuItem-ApplyExpenseDefaults',
-                NEW_RULE_MENU_ITEM_CREATE_AGENT_RULE: 'WorkspaceRules-NewRuleMenuItem-CreateAgentRule',
                 REQUIRE_RECEIPTS_SAVE: 'WorkspaceRules-RequireReceiptsSave',
                 REQUIRE_FIELDS_SAVE: 'WorkspaceRules-RequireFieldsSave',
                 FLAG_RECEIPT_LINE_ITEMS_SAVE: 'WorkspaceRules-FlagReceiptLineItemsSave',
@@ -10929,6 +10996,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            PAYMENT_ACTIVITY_ROW: 'SettingsSubscription-PaymentActivityRow',
             VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
@@ -11073,12 +11141,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
