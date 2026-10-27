@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {ViewStyle} from 'react-native';
 import type {CSSStyle} from 'react-native-reanimated';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 
@@ -28,13 +28,13 @@ function Backdrop({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const Exiting = useMemo(() => {
-        if (!backdropOpacity) {
-            return;
-        }
+    let Exiting;
+    if (!backdropOpacity) {
+        Exiting = undefined;
+    } else {
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut', backdropOpacity));
-        return FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
-    }, [animationOutTiming, backdropOpacity]);
+        Exiting = FadeOut.duration(animationOutTiming).reduceMotion(ReduceMotion.Never);
+    }
 
     // The backdrop fills the modal's fixed root rather than taking the window's size. On mobile Safari the window is the visual
     // viewport, which ends above the keyboard, while the root spans the page down to the keyboard: a window-sized backdrop would

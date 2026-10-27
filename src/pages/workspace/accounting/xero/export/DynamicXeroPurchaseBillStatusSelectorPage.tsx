@@ -24,7 +24,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ValueOf} from 'type-fest';
 
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -40,9 +40,9 @@ function DynamicXeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectio
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
         value: status,
@@ -51,34 +51,28 @@ function DynamicXeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectio
         isSelected: invoiceStatus === status,
     }));
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.invoiceStatus.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.invoiceStatus.description')}</Text>
+        </View>
     );
 
-    const selectPurchaseBillStatus = useCallback(
-        (row: MenuListItem) => {
-            if (isEmpty(config?.export?.billStatus)) {
-                return;
-            }
-            if (row.value !== invoiceStatus && policyID) {
-                updateXeroExportBillStatus(
-                    policyID,
-                    {
-                        ...config?.export?.billStatus,
-                        purchase: row.value,
-                    },
-                    config?.export?.billStatus,
-                );
-            }
-            goBack();
-        },
-        [config?.export?.billStatus, invoiceStatus, policyID, goBack],
-    );
+    const selectPurchaseBillStatus = (row: MenuListItem) => {
+        if (isEmpty(config?.export?.billStatus)) {
+            return;
+        }
+        if (row.value !== invoiceStatus && policyID) {
+            updateXeroExportBillStatus(
+                policyID,
+                {
+                    ...config?.export?.billStatus,
+                    purchase: row.value,
+                },
+                config?.export?.billStatus,
+            );
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

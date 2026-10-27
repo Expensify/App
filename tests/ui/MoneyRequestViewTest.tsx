@@ -26,6 +26,9 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+// The component renders outside a NavigationContainer here, so the screen-bound hook cannot read focus.
+jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
+
 type MockMenuItemWithTopDescriptionProps = {
     description?: string;
     title?: string;

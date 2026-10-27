@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type SageIntacctMappingsTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
@@ -33,28 +33,22 @@ function SageIntacctImportTaxMappingPage({route}: SageIntacctMappingsTypePagePro
     const sageIntacctConfigTaxSolutionID = sageIntacctConfig?.tax?.taxSolutionID;
     const sageIntacctData = policy?.connections?.intacct?.data;
 
-    const selectionOptions = useMemo<SelectorType[]>(() => {
-        const mappingOptions: SelectorType[] = [];
-        const sageIntacctTaxSolutionIDs = sageIntacctData?.taxSolutionIDs ?? [];
-        for (const taxSolutionID of sageIntacctTaxSolutionIDs) {
-            mappingOptions.push({
-                value: taxSolutionID,
-                text: taxSolutionID,
-                keyForList: taxSolutionID,
-                isSelected: sageIntacctConfigTaxSolutionID === taxSolutionID,
-            });
-        }
+    const mappingOptions: SelectorType[] = [];
+    const sageIntacctTaxSolutionIDs = sageIntacctData?.taxSolutionIDs ?? [];
+    for (const taxSolutionID of sageIntacctTaxSolutionIDs) {
+        mappingOptions.push({
+            value: taxSolutionID,
+            text: taxSolutionID,
+            keyForList: taxSolutionID,
+            isSelected: sageIntacctConfigTaxSolutionID === taxSolutionID,
+        });
+    }
+    const selectionOptions: SelectorType[] = mappingOptions;
 
-        return mappingOptions;
-    }, [sageIntacctConfigTaxSolutionID, sageIntacctData?.taxSolutionIDs]);
-
-    const updateMapping = useCallback(
-        ({value}: SelectorType) => {
-            UpdateSageIntacctTaxSolutionID(policyID, value);
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID));
-        },
-        [policyID],
-    );
+    const updateMapping = ({value}: SelectorType) => {
+        UpdateSageIntacctTaxSolutionID(policyID, value);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

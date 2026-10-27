@@ -2,8 +2,6 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 
 /**
@@ -15,29 +13,27 @@ function useTransactionThreadReportIDs(transactionIDList: string[] | undefined):
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const transactionIDsKey = transactionIDList?.join('|') ?? '';
 
-    return useMemo(() => {
-        const result: Record<string, string | undefined> = {};
-        const ids = transactionIDsKey ? transactionIDsKey.split('|') : [];
+    const result: Record<string, string | undefined> = {};
+    const ids = transactionIDsKey ? transactionIDsKey.split('|') : [];
 
-        for (const transactionID of ids) {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            if (!transaction?.reportID) {
-                continue;
-            }
-
-            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`];
-            const iouAction = Object.values(reportActions ?? {}).find((action) => {
-                if (!isMoneyRequestAction(action)) {
-                    return false;
-                }
-                return getOriginalMessage(action)?.IOUTransactionID === transactionID;
-            });
-
-            result[transactionID] = iouAction?.childReportID;
+    for (const transactionID of ids) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction?.reportID) {
+            continue;
         }
 
-        return result;
-    }, [transactionIDsKey, allTransactions, allReportActions]);
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`];
+        const iouAction = Object.values(reportActions ?? {}).find((action) => {
+            if (!isMoneyRequestAction(action)) {
+                return false;
+            }
+            return getOriginalMessage(action)?.IOUTransactionID === transactionID;
+        });
+
+        result[transactionID] = iouAction?.childReportID;
+    }
+
+    return result;
 }
 
 export default useTransactionThreadReportIDs;

@@ -23,7 +23,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsProps) {
@@ -34,44 +34,32 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const config = policy?.connections?.netsuite?.options.config;
-    const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteReimbursableAccountOptions(policy ?? undefined, config?.reimbursementAccountID),
-        [config?.reimbursementAccountID, policy],
+    const netsuiteReimbursableAccountOptions: SelectorType[] = getNetSuiteReimbursableAccountOptions(policy ?? undefined, config?.reimbursementAccountID);
+
+    const initiallyFocusedOptionKey = netsuiteReimbursableAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
+
+    const updateReimbursementAccount = ({value}: SelectorType) => {
+        if (config?.reimbursementAccountID !== value && policyID) {
+            updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
+
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteReimbursableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteReimbursableAccountOptions]);
-
-    const updateReimbursementAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.reimbursementAccountID !== value && policyID) {
-                updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [policyID, config?.reimbursementAccountID],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
-    );
-
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.reimbursementsAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.reimbursementsAccountDescription')}</Text>
+        </View>
     );
 
     return (
