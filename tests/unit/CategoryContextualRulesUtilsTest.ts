@@ -288,7 +288,7 @@ describe('getCategoryContextualRules', () => {
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
         });
 
-        it('leaves a rule that also matches on a merchant to the Rules page', () => {
+        it('lists a rule that also matches on a merchant', () => {
             // Given the category's own rule and a second rule matching the category together with a merchant
             const withMerchantRule: OnyxCollection<Rule> = {
                 ...taxDefaultRules,
@@ -317,10 +317,42 @@ describe('getCategoryContextualRules', () => {
                 isOffline: false,
             });
 
-            // Then only the category's own rule is listed. The merchant one belongs with the merchants on the
-            // Rules page, and the row's route opens a rule by category, so a second row would open this same one
-            expect(rules).toHaveLength(1);
-            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)"');
+            // Then both are listed, because a rule matching the category applies to it whatever else it matches
+            // on. The Rules page still groups the merchant one with the merchants, so it is shown once there
+            expect(rules).toHaveLength(2);
+        });
+
+        it('keeps a rule deleted offline listed and struck through', () => {
+            // Given the category's rule, deleted while offline so the request has not gone through yet
+            const deletingRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.AMOUNT, value: -1000}]),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+            const params = {
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: deletingRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+            };
+
+            // When the rules are built offline and online
+            const offlineRules = getCategoryContextualRules({...params, isOffline: true});
+            const onlineRules = getCategoryContextualRules({...params, isOffline: false});
+
+            // Then offline keeps it listed but not openable, the way the Rules table does, and online drops it
+            expect(offlineRules).toHaveLength(1);
+            expect(offlineRules.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(offlineRules.at(0)?.isDisabled).toBe(true);
+            expect(onlineRules).toEqual([]);
         });
 
         it('lists a row per rule the category decides on its own, each opening its own rule', () => {

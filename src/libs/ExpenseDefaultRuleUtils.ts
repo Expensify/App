@@ -565,51 +565,20 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
 }
 
 /** A rule that matches on a category, paired with the conditions the match was read from. */
-type CategoryRuleMatch = {
-    /** The matching rule and its ID */
-    match: RuleWithID;
-
-    /** The rule's conditions, carried so a caller narrowing the matches does not rebuild the summary */
-    conditions: ExpenseDefaultConditionSummary;
-};
-
 /**
- * Whether a match is one categories decide on their own, rather than together with a merchant or a tag.
+ * Every expense default the policy has that matches on the given category, which is what category settings lists.
  *
- * A rule can match on several categories, and it is each of their own rule, so the count is not checked. The
- * caller has already established that this category is one of them.
+ * A rule that also matches on a merchant or a tag is included, because it applies to the category just as much.
+ * The Rules page still groups that rule with the merchants, so it is listed in one place there.
+ *
+ * Rules pending delete are kept, so category settings can strike one through while the delete is in flight.
  */
-function isCategoryOnlyMatch({conditions}: CategoryRuleMatch): boolean {
-    return conditions.merchants.length === 0 && conditions.tags.length === 0;
-}
-
-/** Every expense default the policy has that matches on the given category. */
-function getCategoryExpenseDefaultMatches(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): CategoryRuleMatch[] {
+function getCategoryExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID[] {
     if (!categoryName) {
         return [];
     }
 
-    const matches: CategoryRuleMatch[] = [];
-    for (const match of getPolicyExpenseDefaultRules(rulesCollection, policyID, true)) {
-        const conditions = getExpenseDefaultConditionSummary(match.rule.filters);
-        if (conditions.categories.includes(categoryName)) {
-            matches.push({match, conditions});
-        }
-    }
-
-    return matches;
-}
-
-/**
- * The rules a category decides on its own, which are the ones category settings lists.
- *
- * A rule that also matches on a merchant or a tag belongs to that merchant or tag as much as to the category, so
- * it is left to the Rules page, which files it with them.
- */
-function getCategoryOwnExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): RuleWithID[] {
-    return getCategoryExpenseDefaultMatches(rulesCollection, policyID, categoryName)
-        .filter(isCategoryOnlyMatch)
-        .map(({match}) => match);
+    return getPolicyExpenseDefaultRules(rulesCollection, policyID).filter(({rule}) => getExpenseDefaultConditionSummary(rule.filters).categories.includes(categoryName));
 }
 
 /** The tax rate a rule applies, if it sets one. */
@@ -723,7 +692,7 @@ export {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
     getExpenseDefaultTaxID,
-    getCategoryOwnExpenseDefaultRules,
+    getCategoryExpenseDefaultRules,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
