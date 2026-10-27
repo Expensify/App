@@ -54,7 +54,7 @@ describe('ShareRootPage native processing', () => {
         expect(Alert.alert).not.toHaveBeenCalled();
     });
 
-    it('shows an attachment error when no files are available', async () => {
+    it('shows an attachment-not-found error when no files are available', async () => {
         // Given a Share route with no pending native data.
         jest.mocked(ShareActionHandler.processFiles).mockResolvedValueOnce([]);
 
@@ -62,7 +62,7 @@ describe('ShareRootPage native processing', () => {
         render(<ShareRootPage />);
 
         // Then it reports the missing attachment instead of leaving the loading skeleton indefinitely.
-        await waitFor(() => expect(Alert.alert).toHaveBeenCalledWith('attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment', expect.any(Array)));
+        await waitFor(() => expect(Alert.alert).toHaveBeenCalledWith('attachmentPicker.attachmentError', 'attachmentView.attachmentNotFound', expect.any(Array)));
         expect(addTempShareFile).not.toHaveBeenCalled();
     });
 

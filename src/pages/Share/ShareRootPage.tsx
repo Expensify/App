@@ -97,14 +97,17 @@ function ShareRootPage() {
 
     const handleProcessFiles = () => {
         ShareActionHandler.processFiles()
-            .then((processedFiles) => {
+            .then((processedFiles: ShareTempFile[]) => {
                 if (errorTitle) {
                     return;
                 }
                 const tempFile = processedFiles.at(0);
                 if (!tempFile) {
+                    if (isFileReady) {
+                        return;
+                    }
                     setErrorTitle(translate('attachmentPicker.attachmentError'));
-                    setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                    setErrorMessage(translate('attachmentView.attachmentNotFound'));
                     return;
                 }
                 if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
