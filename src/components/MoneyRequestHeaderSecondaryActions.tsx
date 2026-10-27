@@ -29,6 +29,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,8 +46,10 @@ import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {sortAndSectionPopoverMenuItems, TRANSACTION_MORE_MENU_SECTIONS} from '@libs/PopoverMenuSections';
@@ -62,6 +65,7 @@ import {
     isExpenseReport,
     isOpenReport,
     isSelfDM,
+    navigateBackOnDeleteTransaction,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
@@ -75,6 +79,7 @@ import {
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 
+import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
@@ -208,6 +213,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [iouPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(iouReport?.reportID);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -636,6 +642,33 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             removeTransaction(transaction.transactionID);
                         };
                     }
+                    // Deleting a report's only expense deletes the report too. In the table view that expense opens on top of the
+                    // report, so going back to it would briefly show it empty. Go straight to the chat the report belongs to instead.
+                    const chatRouteAfterReportDeletion =
+                        isInNarrowPaneModal && afterDelete && shouldUseTableViewForSingleExpense
+                            ? getNavigationUrlOnMoneyRequestDelete(
+                                  transaction.transactionID,
+                                  parentReportAction,
+                                  report,
+                                  iouReport,
+                                  chatIOUReport,
+                                  isChatIOUReportArchived,
+                                  getCurrencyDecimals,
+                              )
+                            : undefined;
+                    if (chatRouteAfterReportDeletion) {
+                        setDeleteTransactionNavigateBackUrl(chatRouteAfterReportDeletion);
+                        if (getCentralPaneReportID() === iouReport?.reportID) {
+                            // On narrow layouts, or when the report was opened from the inbox, it sits in the central pane under the RHP
+                            navigateBackOnDeleteTransaction(chatRouteAfterReportDeletion);
+                        } else {
+                            // Otherwise it sits in the super wide RHP, so closing the RHP reveals the screen it was opened from
+                            Navigation.dismissModal();
+                        }
+                        TransitionTracker.runAfterTransitions({callback: () => afterDelete?.(), waitForUpcomingTransition: true});
+                        return;
+                    }
+
                     if (isInNarrowPaneModal) {
                         // The super wide RHP close animation was changed, and because of that the report was deleted right after
                         // the animation finished, which caused flickering in the reports list. We want the user to see
