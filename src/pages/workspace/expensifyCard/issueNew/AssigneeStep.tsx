@@ -21,7 +21,15 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {canMemberWrite, canRoleCreateExpenses, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    canRoleCreateExpenses,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    shouldHideExpensifyTeamCardholder,
+} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -141,10 +149,17 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         clearIssueNewCardFlow(policyID);
     };
 
+    // Hide Expensify staff from member and search results, but keep the current cardholder visible while editing.
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldHideExpensifyTeamCardholder(login, initialAssigneeEmail, policy?.owner, session?.email);
+
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
+                continue;
+            }
+
+            if (isHiddenExpensifyStaff(email)) {
                 continue;
             }
 
@@ -190,10 +205,12 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
               ]
             : filteredMembers;
 
-        assignees = options.map((option) => ({
-            ...option,
-            keyForList: option.keyForList ?? option.login ?? '',
-        }));
+        assignees = options
+            .filter((option) => !isHiddenExpensifyStaff(option.login))
+            .map((option) => ({
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+            }));
     } else if (debouncedSearchTerm) {
         assignees = [];
     }
