@@ -11,6 +11,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import type {TabSelectorProps} from '@components/TabSelector/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCreateFlowDiscardGuard from '@hooks/useCreateFlowDiscardGuard';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,6 +48,7 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
+import CreateFlowTabSwitchGuard from './CreateFlowTabSwitchGuard';
 import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
 import DynamicIOURequestStepDistance from './step/DynamicIOURequestStepDistance';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
@@ -194,7 +196,10 @@ function IOURequestStartPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const navigateBack = () => {
+    /**
+     * Prepares to abandon the flow and returns whether a fullscreen tab was pre-inserted under the RHP.
+     */
+    const prepareToCloseFlow = () => {
         // The confirmation is embedded with its header hidden,
         // so this back button is the only way to abandon the flow. Cancel any active span
         // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
@@ -207,7 +212,40 @@ function IOURequestStartPage({
         // pre-inserted Search/Spend tab. This is a no-op when nothing was pre-inserted.
         const hadPreInsertedFullscreen = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.removePreInsertedFullscreenIfNeeded();
-        if (!hadPreInsertedFullscreen) {
+        return hadPreInsertedFullscreen;
+    };
+
+    // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
+    // amount-first flow. (`shouldUseTab` also excludes the deprecated SEND type, but nothing builds a create route with
+    // it, so PAY is the only type this has to add back.)
+    // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
+    // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
+    const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
+
+    // This page is the root of the flow, so leaving it from any step prompts while a draft holds user input.
+    // INVOICE is left to its embedded amount step, which guards the flow root itself.
+    const {isFlowDirty} = useCreateFlowDiscardGuard({
+        isEnabled: shouldEmbedConfirmation,
+        // Runs only once the user confirms Discard, so cancelling the prompt keeps the span and the pre-inserted tab.
+        // Close the RHP a frame after the restore, as below.
+        onBeforeClose: () => {
+            if (!prepareToCloseFlow()) {
+                return;
+            }
+            return new Promise<void>((resolve) => {
+                requestAnimationFrame(() => resolve());
+            });
+        },
+    });
+
+    const navigateBack = () => {
+        if (isFlowDirty) {
+            // The discard guard prompts first and prepares to close the flow only once the user confirms Discard
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        if (!prepareToCloseFlow()) {
             Navigation.closeRHPFlow();
             return;
         }
@@ -231,13 +269,6 @@ function IOURequestStartPage({
     useAndroidBackButtonHandler(onBackButtonPress);
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
-
-    // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
-    // amount-first flow. (`shouldUseTab` also excludes the deprecated SEND type, but nothing builds a create route with
-    // it, so PAY is the only type this has to add back.)
-    // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
-    // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
-    const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
 
     // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
     // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
@@ -336,10 +367,18 @@ function IOURequestStartPage({
                                         lazyLoadEnabled
                                         shouldReapplyInterruptedTabPress
                                     >
-                                        <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                                        <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
+                                            {() => (
+                                                <TabScreenWithFocusTrapWrapper>
+                                                    <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
+                                                    {manualContent}
+                                                </TabScreenWithFocusTrapWrapper>
+                                            )}
+                                        </TopTab.Screen>
                                         <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                             {() => (
                                                 <TabScreenWithFocusTrapWrapper>
+                                                    <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                     <IOURequestStepScan
                                                         key={transactionRequestType}
                                                         route={route}
@@ -352,6 +391,7 @@ function IOURequestStartPage({
                                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                                 {() => (
                                                     <TabScreenWithFocusTrapWrapper>
+                                                        <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                         <DynamicIOURequestStepDistance
                                                             route={route}
                                                             navigation={navigation}
@@ -364,6 +404,7 @@ function IOURequestStartPage({
                                             <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
                                                 {() => (
                                                     <TabScreenWithFocusTrapWrapper>
+                                                        <CreateFlowTabSwitchGuard hasUnsavedChanges={isFlowDirty} />
                                                         {shouldShowWorkspaceSelectForPerDiem ? (
                                                             <IOURequestStepPerDiemWorkspace
                                                                 route={route}
