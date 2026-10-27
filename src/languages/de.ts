@@ -1193,6 +1193,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
         },
+        compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
     },
     allSettingsScreen: {
