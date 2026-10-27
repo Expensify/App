@@ -26,24 +26,14 @@ import {View} from 'react-native';
 import type {WorkspaceRowData} from '.';
 
 import WorkspaceRowBrickRoadIndicator from './WorkspaceRowBrickRoadIndicator';
-import WorkspaceRowThreeDotsMenu from './WorkspaceRowThreeDotsMenu';
 
 type WorkspaceRowProps = {
     item: WorkspaceRowData;
     rowIndex: number;
     shouldUseNarrowTableLayout: boolean;
-
-    /** Called when the user picks Delete in the row menu, so the page can mount the delete flow */
-    onDeleteWorkspace: (policyID: string) => void;
-
-    /** Called when the user picks Archive in the row menu, so the page can mount the archive flow */
-    onArchiveWorkspace: (policyID: string) => void;
-
-    /** ID of the workspace with a deletion in progress, if any */
-    pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex}: WorkspaceRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -95,17 +85,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
         </Tooltip>
     );
 
-    const ThreeDotsMenuWithBrickRoadIndicator = (
-        <View style={[styles.flexRow, styles.gap1]}>
-            {item.role === CONST.POLICY.ROLE.ADMIN && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />}
-            <WorkspaceRowThreeDotsMenu
-                item={item}
-                onDeleteWorkspace={onDeleteWorkspace}
-                onArchiveWorkspace={onArchiveWorkspace}
-                pendingDeletePolicyID={pendingDeletePolicyID}
-            />
-        </View>
-    );
+    const brickRoadIndicator = item.role === CONST.POLICY.ROLE.ADMIN && !item.isJoinRequestPending && <WorkspaceRowBrickRoadIndicator policyID={item.policyID} />;
 
     return (
         <Table.Row
@@ -153,7 +133,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 </View>
                             </View>
 
-                            {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
+                            {brickRoadIndicator}
 
                             <Icon
                                 src={icons.ArrowRight}
@@ -220,7 +200,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}
                                 {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                             >
-                                {!item.isJoinRequestPending && ThreeDotsMenuWithBrickRoadIndicator}
+                                {brickRoadIndicator}
 
                                 <Icon
                                     src={icons.ArrowRight}
