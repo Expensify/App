@@ -69,7 +69,7 @@ function getWiseBusinessOnboardingPrefill(
         lastName: privatePersonalDetails?.legalLastName,
         phoneNumber: privatePersonalDetails?.phoneNumber,
         dateOfBirth: privatePersonalDetails?.dob,
-        // The SSN shows only while this is false, so it starts unchecked instead of unanswered
+        // The SSN and ID document show only while this is false, so it starts off instead of unanswered
         hasNoSSN: false,
         [addressKeys.street]: [street1, address?.street2 ?? street2].filter(Boolean).join(', '),
         [addressKeys.city]: address?.city,

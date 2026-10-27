@@ -11,6 +11,7 @@ import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapte
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -742,6 +743,25 @@ describe('DynamicFormFields', () => {
         expect(sharedPage.get('ownsQuarter')?.InputComponent).toBe(YesNoAdapter);
         expect(lonePage.get('ownsQuarter')?.InputComponent).toBe(YesNoAdapter);
         expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
+    });
+
+    it('asks a boolean as a link with its own wording for each answer when the schema asks for one', () => {
+        // Given an opt-out the user taps, worded differently once tapped so the second tap reads as undoing the first
+        const hasNoSSN: DynamicFormField = {
+            key: 'hasNoSSN',
+            label: "I don't have an SSN",
+            toggledLabel: 'I have an SSN',
+            type: 'boolean',
+            required: false,
+            presentation: 'link',
+        };
+
+        // When it renders
+        const rendered = renderFields([hasNoSSN, otherQuestion]);
+
+        // Then it is a link carrying both wordings, with no label drawn above it, since the link text is the question
+        expect(rendered.get('hasNoSSN')).toMatchObject({InputComponent: ToggleLinkAdapter, label: "I don't have an SSN", toggledLabel: 'I have an SSN'});
+        expect(screen.queryByText("I don't have an SSN")).not.toBeOnTheScreen();
     });
 
     it('asks for the state only in countries the state picker covers', () => {

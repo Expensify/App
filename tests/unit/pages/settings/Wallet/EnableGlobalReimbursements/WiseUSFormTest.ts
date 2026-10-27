@@ -52,18 +52,23 @@ describe('Wise US onboarding form', () => {
         ]);
     });
 
-    it('asks for the SSN until the representative checks that they do not have one', () => {
-        // Given the representative page, which the prefill starts with "I do not have an SSN" unchecked
+    it('asks for the SSN and an ID document until the representative taps that they do not have an SSN', () => {
+        // Given the representative page, which the prefill starts with the "I don't have a social security number" link off
 
-        // When the page is checked before Next, with the box unchecked and then checked
-        const uncheckedErrors = getDynamicFieldErrors(REPRESENTATIVE_FIELDS, {hasNoSSN: false}, translateLocal, ALL_FIELDS);
-        const checkedErrors = getDynamicFieldErrors(REPRESENTATIVE_FIELDS, {hasNoSSN: true}, translateLocal, ALL_FIELDS);
+        // When the page is checked before Next, with the link off and then on
+        const withSSNErrors = getDynamicFieldErrors(REPRESENTATIVE_FIELDS, {hasNoSSN: false}, translateLocal, ALL_FIELDS);
+        const withoutSSNErrors = getDynamicFieldErrors(REPRESENTATIVE_FIELDS, {hasNoSSN: true}, translateLocal, ALL_FIELDS);
+        const withSSNKeys = getVisibleFields(REPRESENTATIVE_FIELDS, {hasNoSSN: false}, ALL_FIELDS).map((field) => field.key);
+        const withoutSSNKeys = getVisibleFields(REPRESENTATIVE_FIELDS, {hasNoSSN: true}, ALL_FIELDS).map((field) => field.key);
 
-        // Then the SSN is required while the box is unchecked, and hidden and not asked once it is checked
-        expect(uncheckedErrors).toHaveProperty('ssn');
-        expect(getVisibleFields(REPRESENTATIVE_FIELDS, {hasNoSSN: false}, ALL_FIELDS).map((field) => field.key)).toContain('ssn');
-        expect(checkedErrors).not.toHaveProperty('ssn');
-        expect(getVisibleFields(REPRESENTATIVE_FIELDS, {hasNoSSN: true}, ALL_FIELDS).map((field) => field.key)).not.toContain('ssn');
+        // Then both are required while the link is off, and both are hidden and not asked once it is on, since Wise then runs its own ID check
+        expect(withSSNErrors).toHaveProperty('ssn');
+        expect(withSSNErrors).toHaveProperty('idDocument');
+        expect(withSSNKeys).toEqual(expect.arrayContaining(['ssn', 'idDocument']));
+        expect(withoutSSNErrors).not.toHaveProperty('ssn');
+        expect(withoutSSNErrors).not.toHaveProperty('idDocument');
+        expect(withoutSSNKeys).not.toContain('ssn');
+        expect(withoutSSNKeys).not.toContain('idDocument');
     });
 
     it('lets the admin move on when the bank account details are empty, since the read-only rows cannot be filled in', () => {

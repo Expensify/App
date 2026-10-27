@@ -58,7 +58,7 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         // When the onboarding builds its starting answers for this bank account
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, otherAccountData, undefined);
 
-        // Then no detail of the other account reaches the form, only the unchecked "I do not have an SSN" box
+        // Then no detail of the other account reaches the form, only the "I don't have a social security number" link, off
         expect(getMissingPrefill(prefill, {})).toEqual({hasNoSSN: false});
     });
 
@@ -121,7 +121,7 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         // When the onboarding builds its starting answers
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
 
-        // Then nothing is made up, so getMissingPrefill writes only the unchecked "I do not have an SSN" box that keeps the SSN shown
+        // Then nothing is made up, so getMissingPrefill writes only the "I don't have a social security number" link, off, which keeps the SSN shown
         expect(getMissingPrefill(prefill, {})).toEqual({hasNoSSN: false});
     });
 });
@@ -167,14 +167,14 @@ describe('getMissingPrefill', () => {
         expect(getMissingPrefill(prefill, {...draft, ...missing})).toEqual({});
     });
 
-    it('keeps a checked "I do not have an SSN" box', () => {
-        // Given a draft where the user checked "I do not have an SSN"
+    it('keeps the "I don\'t have a social security number" link on once the user tapped it', () => {
+        // Given a draft where the user tapped "I don't have a social security number"
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
 
         // When the onboarding decides what to prefill
         const missing = getMissingPrefill(prefill, {hasNoSSN: true});
 
-        // Then the unchecked starting answer does not overwrite the user's check
+        // Then the starting answer, off, does not overwrite the user's tap
         expect(missing).not.toHaveProperty('hasNoSSN');
     });
 

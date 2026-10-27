@@ -24,12 +24,21 @@ const representativePage: DynamicFormPage = {
             labelKey: 'walletPage.wiseOnboarding.representative.ssn',
             showWhen: {key: 'hasNoSSN', equals: ['false']},
         },
-        // The prefill starts it unchecked, since an unanswered checkbox would hide the SSN too
-        {key: 'hasNoSSN', type: 'boolean', presentation: 'checkbox', required: false, labelKey: 'walletPage.wiseOnboarding.representative.hasNoSSN'},
+        // The prefill starts it off, since an unanswered link would hide the SSN and ID document too
+        {
+            key: 'hasNoSSN',
+            type: 'boolean',
+            presentation: 'link',
+            required: false,
+            labelKey: 'walletPage.wiseOnboarding.representative.hasNoSSN',
+            toggledLabelKey: 'walletPage.wiseOnboarding.representative.hasSSN',
+        },
+        // Without an SSN, Wise runs its own ID check, so the document is not asked twice
         {
             key: 'idDocument',
             type: 'file',
             required: true,
+            showWhen: {key: 'hasNoSSN', equals: ['false']},
             maxFiles: 5,
             labelKey: 'walletPage.wiseOnboarding.representative.idDocument',
             descriptionKey: 'walletPage.wiseOnboarding.representative.idDocumentDescription',
