@@ -117,6 +117,7 @@ const translations: TranslationDeepObject<typeof en> = {
             pay: 'Πληρωμή',
             fix: 'Διόρθωση',
             task: 'Εργασία',
+            add: 'Προσθήκη',
         },
         success: 'Επιτυχία',
         group: 'Ομάδα',
