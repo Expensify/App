@@ -646,7 +646,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions: loadedSelection, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
-    // A group checked through its header that is still loading reaches the actions as one entry, as a collapsed one does, so no action takes only its loaded rows.
+    // A group checked through its header that is still loading reaches the actions as one entry, as a group with no loaded rows does, so no action takes only its loaded rows.
     const selectedTransactions = useMemo(
         () => mergeRowsIntoPartlyLoadedGroups(loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected),
         [loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected],
