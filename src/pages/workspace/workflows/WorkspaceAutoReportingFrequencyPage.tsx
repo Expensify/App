@@ -26,7 +26,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import type {AutoReportingFrequency} from '@libs/SubmissionScheduleUtils';
-import {getFrequencyDisplayName, getSubmissionFrequencyHelperText, isSemiMonthlyOffsetOrderValid} from '@libs/SubmissionScheduleUtils';
+import {FREQUENCIES, getFrequencyDisplayName, getSubmissionFrequencyHelperText, isSemiMonthlyOffsetOrderValid} from '@libs/SubmissionScheduleUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -52,16 +52,6 @@ type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & PlatformSt
 type AutoReportingFrequencyDisplayNames = Record<Exclude<AutoReportingFrequency, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT>, string> & {
     [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]?: string;
 };
-
-const FREQUENCY_ORDER: AutoReportingFrequency[] = [
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-    CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
-];
 
 const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['translate'], isSubmitWorkspace = false): AutoReportingFrequencyDisplayNames => {
     const displayNames: AutoReportingFrequencyDisplayNames = {
@@ -124,7 +114,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     };
 
     const autoReportingFrequencyDisplayNames = getAutoReportingFrequencyDisplayNames(translate, isSubmitPolicy(policy));
-    const frequencyOptions = FREQUENCY_ORDER.filter((frequency) => !!autoReportingFrequencyDisplayNames[frequency]).map((frequency) => ({
+    const frequencyOptions = FREQUENCIES.filter((frequency) => !!autoReportingFrequencyDisplayNames[frequency]).map((frequency) => ({
         key: frequency,
         text: getFrequencyDisplayName(frequency, translate),
     }));

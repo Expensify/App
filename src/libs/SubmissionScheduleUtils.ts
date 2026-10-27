@@ -159,14 +159,7 @@ function getMonthlyScheduleSummary(offset: AutoReportingOffset | undefined, tran
     if (typeof offset === 'number' || offset === undefined) {
         return translate('workflowsPage.frequencySummary.monthly', {day: toLocaleOrdinal(offset ?? 1)});
     }
-    if (offset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-        return translate('workflowsPage.frequencySummary.monthlyLastDay');
-    }
-    if (offset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-        return translate('workflowsPage.frequencySummary.monthlyLastBusinessDay');
-    }
-    const lastWeekdayIndex = LAST_WEEKDAY_OFFSETS.findIndex((lastWeekdayOffset) => lastWeekdayOffset === offset);
-    return translate(`workflowsPage.frequencySummary.monthlyLastWeekday.${getWeekdayKey(lastWeekdayIndex + 1)}`);
+    return translate(`workflowsPage.frequencySummary.monthlyOffset.${offset}`);
 }
 
 /** The resolved schedule shown as the Frequency row value, such as "Weekly on Fridays". */
@@ -194,13 +187,12 @@ function getSubmissionScheduleSummary(policy: OnyxEntry<Policy>, translate: Loca
 
 /** Only the frequencies whose name doesn't explain itself get a description line under the Frequency row. */
 function getSubmissionScheduleDescription(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string | undefined {
-    switch (getCorrectedAutoReportingFrequency(policy)) {
+    const frequency = getCorrectedAutoReportingFrequency(policy);
+    switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT:
-            return translate('workflowsPage.frequencyRowDescription.instant');
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
-            return translate('workflowsPage.frequencyRowDescription.byTrip');
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL:
-            return translate('workflowsPage.frequencyRowDescription.manually');
+            return translate(`workflowsPage.frequencyRowDescription.${frequency}`);
         default:
             return undefined;
     }
@@ -209,23 +201,16 @@ function getSubmissionScheduleDescription(policy: OnyxEntry<Policy>, translate: 
 function getSubmissionFrequencyHelperText(frequency: AutoReportingFrequency, timezoneLink: string, translate: LocaleContextProps['translate']): string {
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT:
-            return translate('workflowsPage.frequencyHelperText.instant');
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE:
-            return translate('workflowsPage.frequencyHelperText.daily', {timezoneLink});
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
-            return translate('workflowsPage.frequencyHelperText.weekly', {timezoneLink});
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
-            return translate('workflowsPage.frequencyHelperText.twiceAMonth', {timezoneLink});
-        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
-            return translate('workflowsPage.frequencyHelperText.monthly', {timezoneLink});
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
-            return translate('workflowsPage.frequencyHelperText.byTrip');
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL:
+            return translate(`workflowsPage.frequencyHelperText.${frequency}`);
         default:
-            return translate('workflowsPage.frequencyHelperText.manually');
+            return translate(`workflowsPage.frequencyHelperText.${frequency}`, {timezoneLink});
     }
 }
 
 export {
+    FREQUENCIES,
     LAST_WEEKDAY_OFFSETS,
     WEEKDAY_KEYS,
     areSemiMonthlyOffsetsEqual,

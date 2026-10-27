@@ -98,11 +98,11 @@ function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProp
             return translate('nextStep.scheduleEta.twiceAMonth', {firstDay, secondDay: formatDay(sortedOffsets.secondOffset)});
         }
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
-            const lastWeekdayIndex = LAST_WEEKDAY_OFFSETS.findIndex((lastWeekdayOffset) => lastWeekdayOffset === offset);
-            if (lastWeekdayIndex === -1) {
+            const lastWeekdayOffset = LAST_WEEKDAY_OFFSETS.find((lastWeekday) => lastWeekday === offset);
+            if (!lastWeekdayOffset) {
                 return undefined;
             }
-            return translate(`nextStep.scheduleEta.monthlyLastWeekday.${getWeekdayKey(lastWeekdayIndex + 1)}`);
+            return translate(`nextStep.scheduleEta.monthlyLastWeekday.${lastWeekdayOffset}`);
         }
         default:
             return undefined;

@@ -2258,13 +2258,13 @@ const translations: TranslationDeepObject<typeof en> = {
             twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `les ${firstDay} et ${secondDay} de chaque mois`,
             twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `le ${firstDay} et le dernier jour de chaque mois`,
             monthlyLastWeekday: {
-                monday: 'le dernier lundi du mois',
-                tuesday: 'le dernier mardi du mois',
-                wednesday: 'le dernier mercredi du mois',
-                thursday: 'le dernier jeudi du mois',
-                friday: 'le dernier vendredi du mois',
-                saturday: 'le dernier samedi du mois',
-                sunday: 'le dernier dimanche du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'le dernier lundi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'le dernier mardi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'le dernier mercredi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'le dernier jeudi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'le dernier vendredi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'le dernier samedi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'le dernier dimanche du mois',
             },
         },
     },
@@ -3123,35 +3123,35 @@ ${amount} pour ${merchant} - ${date}`,
             twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Deux fois par mois, les ${firstDay} et ${secondDay}`,
             twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Deux fois par mois le ${firstDay} et le dernier jour`,
             monthly: ({day}: {day: string}) => `Mensuellement le ${day}`,
-            monthlyLastDay: 'Mensuellement le dernier jour',
-            monthlyLastBusinessDay: 'Mensuellement le dernier jour ouvrable',
-            monthlyLastWeekday: {
-                monday: 'Mensuellement le dernier lundi',
-                tuesday: 'Mensuellement le dernier mardi',
-                wednesday: 'Mensuel le dernier mercredi',
-                thursday: 'Mensuellement le dernier jeudi',
-                friday: 'Mensuellement le dernier vendredi',
-                saturday: 'Mensuel le dernier samedi',
-                sunday: 'Mensuellement le dernier dimanche',
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Mensuellement le dernier jour',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Mensuellement le dernier jour ouvrable',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Mensuellement le dernier lundi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Mensuellement le dernier mardi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Mensuel le dernier mercredi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Mensuellement le dernier jeudi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Mensuellement le dernier vendredi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Mensuel le dernier samedi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Mensuellement le dernier dimanche',
             },
         },
         frequencyRowDescription: {
-            instant: 'Les dépenses sont soumises dès qu’elles sont créées',
-            byTrip: 'Les notes de frais sont soumises après deux jours sans dépenses',
-            manually: 'Les notes de frais restent en brouillon jusqu’à ce qu’un membre les soumette',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Les dépenses sont soumises dès qu’elles sont créées',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Les notes de frais sont soumises après deux jours sans dépenses',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Les notes de frais restent en brouillon jusqu’à ce qu’un membre les soumette',
         },
         frequencyHelperText: {
-            instant: 'Les dépenses sont soumises immédiatement après leur création.',
-            daily: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Les dépenses sont soumises immédiatement après leur création.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
                 `Les notes de frais sont soumises automatiquement chaque jour, en fonction du <a href="${timezoneLink}">fuseau horaire de l’espace de travail</a>.`,
-            weekly: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
                 `Les notes de frais sont soumises automatiquement chaque semaine, en fonction du <a href="${timezoneLink}">fuseau horaire de l’espace de travail</a>.`,
-            twiceAMonth: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
                 `Les notes de frais sont soumises automatiquement deux fois par mois, en fonction du <a href="${timezoneLink}">fuseau horaire de l’espace de travail</a>.`,
-            monthly: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
                 `Les notes de frais sont automatiquement soumises chaque mois, en fonction du <a href="${timezoneLink}">fuseau horaire de l'espace de travail</a>.`,
-            byTrip: 'Les notes de frais sont soumises après deux jours complets sans nouvelles dépenses.',
-            manually: "Les notes de frais restent à l'état de brouillon jusqu'à ce qu'un membre les soumette.",
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Les notes de frais sont soumises après deux jours complets sans nouvelles dépenses.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: "Les notes de frais restent à l'état de brouillon jusqu'à ce qu'un membre les soumette.",
         },
     },
     workflowsDelayedSubmissionPage: {

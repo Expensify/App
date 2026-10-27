@@ -2246,13 +2246,13 @@ const translations: TranslationDeepObject<typeof en> = {
             twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `il ${firstDay} e il ${secondDay} di ogni mese`,
             twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `il ${firstDay} e l'ultimo giorno di ogni mese`,
             monthlyLastWeekday: {
-                monday: 'l’ultimo lunedì del mese',
-                tuesday: "l'ultimo martedì del mese",
-                wednesday: 'l’ultimo mercoledì del mese',
-                thursday: "l'ultimo giovedì del mese",
-                friday: "l'ultimo venerdì del mese",
-                saturday: 'l’ultimo sabato del mese',
-                sunday: "l'ultima domenica del mese",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'l’ultimo lunedì del mese',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: "l'ultimo martedì del mese",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'l’ultimo mercoledì del mese',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: "l'ultimo giovedì del mese",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: "l'ultimo venerdì del mese",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'l’ultimo sabato del mese',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: "l'ultima domenica del mese",
             },
         },
     },
@@ -3103,35 +3103,35 @@ ${amount} per ${merchant} - ${date}`,
             twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Due volte al mese il ${firstDay} e il ${secondDay}`,
             twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Due volte al mese il ${firstDay} e l'ultimo giorno`,
             monthly: ({day}: {day: string}) => `Mensile il giorno ${day}`,
-            monthlyLastDay: 'Mensile l’ultimo giorno',
-            monthlyLastBusinessDay: 'Mensile nell’ultimo giorno lavorativo',
-            monthlyLastWeekday: {
-                monday: "Mensile, l'ultimo lunedì",
-                tuesday: "Mensile l'ultimo martedì",
-                wednesday: 'Mensile l’ultimo mercoledì',
-                thursday: 'Mensile l’ultimo giovedì',
-                friday: "Mensile, l'ultimo venerdì",
-                saturday: "Mensile l'ultimo sabato",
-                sunday: 'Mensile, l’ultima domenica',
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Mensile l’ultimo giorno',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Mensile nell’ultimo giorno lavorativo',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: "Mensile, l'ultimo lunedì",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: "Mensile l'ultimo martedì",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Mensile l’ultimo mercoledì',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Mensile l’ultimo giovedì',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: "Mensile, l'ultimo venerdì",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: "Mensile l'ultimo sabato",
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Mensile, l’ultima domenica',
             },
         },
         frequencyRowDescription: {
-            instant: 'Le spese vengono inviate non appena vengono create',
-            byTrip: 'I report vengono inviati dopo due giorni senza spese',
-            manually: 'I report restano in bozza finché un membro non li invia',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Le spese vengono inviate non appena vengono create',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'I report vengono inviati dopo due giorni senza spese',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'I report restano in bozza finché un membro non li invia',
         },
         frequencyHelperText: {
-            instant: 'Le spese vengono inviate immediatamente dopo la creazione.',
-            daily: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Le spese vengono inviate immediatamente dopo la creazione.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
                 `I report vengono inviati automaticamente ogni giorno, in base al <a href="${timezoneLink}">fuso orario dello spazio di lavoro</a>.`,
-            weekly: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
                 `I report vengono inviati automaticamente ogni settimana, in base al <a href="${timezoneLink}">fuso orario dello spazio di lavoro</a>.`,
-            twiceAMonth: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
                 `I report vengono inviati automaticamente due volte al mese, in base al <a href="${timezoneLink}">fuso orario dello spazio di lavoro</a>.`,
-            monthly: ({timezoneLink}: {timezoneLink: string}) =>
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
                 `I report vengono inviati automaticamente ogni mese, in base al <a href="${timezoneLink}">fuso orario dello spazio di lavoro</a>.`,
-            byTrip: 'I rapporti vengono inviati dopo due giorni interi senza nuove spese.',
-            manually: 'I report restano in bozza finché un membro non li invia.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'I rapporti vengono inviati dopo due giorni interi senza nuove spese.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'I report restano in bozza finché un membro non li invia.',
         },
     },
     workflowsDelayedSubmissionPage: {
