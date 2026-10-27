@@ -1,3 +1,7 @@
+/**
+ * Helpers shared by the Profile page and the workspace Member details page, so both show a person's
+ * local time and chat history entry the same way.
+ */
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
