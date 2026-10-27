@@ -6,8 +6,6 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 
 /**
@@ -18,28 +16,26 @@ import useOnyx from './useOnyx';
 function useHasOutstandingChildTask(taskReport: OnyxEntry<Report>): boolean {
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`);
 
-    return useMemo(() => {
-        if (!taskReport?.parentReportID || !reportActions) {
+    if (!taskReport?.parentReportID || !reportActions) {
+        return false;
+    }
+
+    return Object.values(reportActions).some((reportAction) => {
+        if (String(reportAction.childReportID) === String(taskReport?.reportID)) {
             return false;
         }
 
-        return Object.values(reportActions).some((reportAction) => {
-            if (String(reportAction.childReportID) === String(taskReport?.reportID)) {
-                return false;
-            }
+        if (
+            reportAction.childType === CONST.REPORT.TYPE.TASK &&
+            reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
+            reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+            !getReportActionMessage(reportAction)?.isDeletedParentAction
+        ) {
+            return true;
+        }
 
-            if (
-                reportAction.childType === CONST.REPORT.TYPE.TASK &&
-                reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
-                reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-                !getReportActionMessage(reportAction)?.isDeletedParentAction
-            ) {
-                return true;
-            }
-
-            return false;
-        });
-    }, [taskReport?.parentReportID, taskReport?.reportID, reportActions]);
+        return false;
+    });
 }
 
 export default useHasOutstandingChildTask;

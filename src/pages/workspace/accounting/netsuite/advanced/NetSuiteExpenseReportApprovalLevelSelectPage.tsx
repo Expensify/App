@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -41,24 +41,18 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
         isSelected: config?.syncOptions.exportReportsTo === approvalType,
     }));
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportReportsTo.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportReportsTo.description')}</Text>
+        </View>
     );
 
-    const selectExpenseReportApprovalLevel = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportReportsTo && policyID) {
-                updateNetSuiteExportReportsTo(policyID, row.value, config?.syncOptions.exportReportsTo ?? CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [config?.syncOptions.exportReportsTo, policyID],
-    );
+    const selectExpenseReportApprovalLevel = (row: MenuListItem) => {
+        if (row.value !== config?.syncOptions.exportReportsTo && policyID) {
+            updateNetSuiteExportReportsTo(policyID, row.value, config?.syncOptions.exportReportsTo ?? CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

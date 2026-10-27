@@ -26,6 +26,7 @@ import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
 
 import {updateExpensifyCardLimit, updateExpensifyCardLimitType, updateExpensifyCardTitle} from '@userActions/Card';
 import {updateCompanyCardName} from '@userActions/CompanyCards';
+import type {OnboardingTaskCompletionOnyxData} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import type {Card, Policy} from '@src/types/onyx';
@@ -48,6 +49,7 @@ function renameCategoryInline(
     currentName: string,
     newName: string,
     isVendorMatchingBetaEnabled: boolean | undefined,
+    reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
 ): string | undefined {
     const sanitized = StringUtils.sanitizeName(newName);
     const currentDisplayName = getDecodedCategoryName(currentName);
@@ -61,7 +63,7 @@ function renameCategoryInline(
         return getCategoryNameErrorMessage(translate, categoryError, newName);
     }
 
-    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled);
+    renamePolicyCategory(policyData, {oldName: currentName, newName: sanitized}, isVendorMatchingBetaEnabled, reviewWorkspaceSettingsTaskData);
 }
 
 function renameTagInline(translate: LocalizedTranslate, policyData: PolicyData, oldName: string, newName: string, isVendorMatchingBetaEnabled: boolean | undefined): string | undefined {
