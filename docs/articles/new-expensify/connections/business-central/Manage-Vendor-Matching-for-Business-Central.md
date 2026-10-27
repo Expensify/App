@@ -1,6 +1,6 @@
 ---
-title: Manage Vendor Matching for Business Central
-description: Learn how Business Central vendor matching assigns vendors to non-reimbursable company card expenses, including automatic matching, manual selection, and blocked vendor behavior.
+title: Manage Vendor Matching for Dynamics 365 Business Central
+description: Learn how Dynamics 365 Business Central vendor matching assigns vendors to non-reimbursable company card expenses, including automatic matching, manual selection, and blocked vendor behavior.
 keywords: [Dynamics 365 Business Central, Business Central, D365, vendor matching, vendor, blocked vendor, company card expenses]
 internalScope: Audience is workspace admins using the Dynamics 365 Business Central connection. Covers imported Business Central vendors, automatic and manual vendor assignment, blocked vendor filtering, and vendors that are no longer valid. Does not cover Business Central connection setup, Business Central export configuration, or vendor matching for other accounting connections.
 order: 3
@@ -12,7 +12,7 @@ sitemap: false
 
 Dynamics 365 Business Central vendor matching lets workspace admins review and update the vendor assigned to non-reimbursable company card expenses before they export to Business Central. Expensify imports your Business Central vendor list, automatically matches vendors where possible, and lets admins set or update the **Vendor** field before export. This helps ensure expenses export with the correct vendor instead of requiring manual corrections in Business Central.
 
-## How vendors are matched to Dynamics 365 Business Central company card expenses
+## How vendors are matched to Business Central company card expenses
 
 Expensify assigns vendors automatically in the following order:
 
@@ -24,7 +24,7 @@ Whenever a vendor is assigned automatically, Concierge posts a system message on
 
 The **Vendor** field appears only on non-reimbursable expenses. It isn't shown on reimbursable expenses or on invoices.
 
-## How to select a Dynamics 365 Business Central vendor on an expense
+## How to select a Business Central vendor on an expense
 
 1. Open the non-reimbursable expense.
 2. Select **Vendor**.
@@ -33,7 +33,7 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
-## Which Dynamics 365 Business Central vendors appear in your vendor list
+## Which Business Central vendors appear in your vendor list
 
 Expensify imports the vendors from the Business Central company selected on the connection, and applies the **Blocked** setting from Business Central:
 
@@ -42,7 +42,7 @@ Expensify imports the vendors from the Business Central company selected on the 
 
 If an expense was coded to a vendor before it was blocked as **All** in Business Central, the expense still displays that vendor's name, but the vendor can no longer be selected.
 
-## Where to find your imported Dynamics 365 Business Central vendors
+## Where to find your imported Business Central vendors
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
 2. Select **Vendors**.
@@ -71,10 +71,6 @@ Yes. Once a workspace admin manually assigns a vendor to an expense, Expensify p
 ## Why don't I see any vendors to choose from?
 
 The vendor selector shows **No vendors found** when your Business Central vendor list is empty. Add the vendors in Business Central, then sync the connection again.
-
-## Which vendor list is used when my Workspace has more than one accounting connection?
-
-Only one connection supplies the vendor list at a time. Expensify uses the first configured connection in this order: QuickBooks Online, Sage Intacct, Xero, Rillet, DualEntry, then Dynamics 365 Business Central. If any of those connections is configured on the same Workspace, its vendors are used instead of your Business Central vendors.
 
 ## How do I know why Expensify assigned a vendor automatically?
 
