@@ -1,6 +1,6 @@
 import type FlatListRefType from '@components/FlashList/types';
 
-import isInLandscapeMode, {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 
 import createDummySharedValue from '@src/utils/createDummySharedValue';
 
@@ -29,7 +29,10 @@ type ActionListContextType = {
      */
     scrollMetricsSV: SharedValue<ScrollMetrics>;
 
-    /** Updates `scrollMetricsSV`. No-op outside mobile web landscape, the only place it's used. */
+    /**
+     * Updates `scrollMetricsSV`. No-op outside mobile phone web, where it's used. Kept current in portrait too so
+     * returning to landscape doesn't anchor to a stale offset.
+     */
     syncScrollSharedValues: (metrics: ScrollMetrics) => void;
 
     /** Height the collapsed report header has handed over to the list, 0 while expanded. */
@@ -88,7 +91,7 @@ function ActionListContextProvider({children}: {children: ReactNode}) {
         scrollOffsetRef,
         scrollMetricsSV,
         syncScrollSharedValues: (metrics) => {
-            if (!isMobilePhoneWeb || !isInLandscapeMode()) {
+            if (!isMobilePhoneWeb) {
                 return;
             }
             scrollMetricsSV.set(metrics);
