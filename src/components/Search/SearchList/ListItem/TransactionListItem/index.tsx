@@ -157,6 +157,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         currentUserLogin,
         introSelected,
         isASAPSubmitBetaEnabled,
+        isWiseReimbursementsBetaEnabled,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -243,6 +244,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
+            isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveTransactionItem,
