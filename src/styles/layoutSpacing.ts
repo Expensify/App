@@ -29,6 +29,7 @@ function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
         cardGapBottom: {marginBottom: cardGap},
         pageGutter: {paddingHorizontal: pageGutter},
         pageGutterMargin: {marginHorizontal: pageGutter},
+        pageGutterEdgeToEdge: {marginHorizontal: -pageGutter},
         pageGutterRight: {paddingRight: pageGutter},
     };
 }

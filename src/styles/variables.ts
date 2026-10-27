@@ -176,6 +176,7 @@ export default {
     homePageLeftColumnMaxWidth: 680,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
+    insightsAICardTextWidth: 250,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
