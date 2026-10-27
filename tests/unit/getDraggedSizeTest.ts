@@ -40,4 +40,28 @@ describe('getDraggedSize', () => {
         // Then nothing caps it, matching table columns, which grow into horizontal scroll
         expect(size).toBe(5200);
     });
+
+    it('catches on the snap size within the threshold, and lets go past it', () => {
+        // Given a 400px pane that snaps onto 440px within 20px
+        const bounds = {min: 380, max: 880, snap: {to: 440, threshold: 20}};
+
+        // When it is dragged to just under, just over, and past the threshold
+        const under = getDraggedSize(400, 20, bounds);
+        const over = getDraggedSize(400, 60, bounds);
+        const past = getDraggedSize(400, 61, bounds);
+
+        // Then it holds on the snap size until the pointer leaves the threshold, so the default is easy to land on but never traps the edge
+        expect(under).toBe(440);
+        expect(over).toBe(440);
+        expect(past).toBe(461);
+    });
+
+    it('keeps the bounds when the snap size falls outside them', () => {
+        // Given a window so narrow that the maximum falls under the snap size
+        // When the pane is dragged within the threshold of the snap size
+        const size = getDraggedSize(400, 35, {min: 380, max: 420, snap: {to: 440, threshold: 20}});
+
+        // Then it stops at the maximum, so snapping never pushes the pane past what the window allows
+        expect(size).toBe(420);
+    });
 });

@@ -1,11 +1,14 @@
 import getDraggedSize from '@components/ResizeHandle/getDraggedSize';
+import type {DraggedSizeSnap} from '@components/ResizeHandle/getDraggedSize';
 import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 
 import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
+import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
 import {clearLiveSingleRHPWidth, writeLiveSingleRHPWidth} from '@libs/Navigation/helpers/singleRHPWidth';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -27,6 +30,8 @@ type Drag = {
     /** Last width painted into CSS, `undefined` until the pointer moves. */
     liveWidth?: number;
 };
+
+const SNAP: DraggedSizeSnap = {to: variables.rhpWidth, threshold: CONST.RHP_RESIZE.SNAP_THRESHOLD};
 
 // DOM `div` styles, which the React Native style system can't type.
 const HANDLE_STYLE: React.CSSProperties = {
@@ -56,16 +61,25 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
     const [isDragging, setIsDragging] = useState(false);
 
     const dragRef = useRef<Drag | null>(null);
+    const lineRef = useRef<HTMLDivElement>(null);
+
+    /** Thickens the line while a drag is held on the default width. Set on the DOM, so a drag stays free of React renders. */
+    const setLineSnapped = (isSnapped: boolean) => {
+        lineRef.current?.style.setProperty('width', `${isSnapped ? CONST.RESIZE_HANDLE.SNAPPED_INDICATOR_WIDTH : CONST.RESIZE_HANDLE.INDICATOR_WIDTH}px`);
+    };
+
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
         onMove: (drag, clientX) => {
-            const liveWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max});
+            const liveWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max, snap: SNAP});
             writeLiveSingleRHPWidth(scopeRef.current, liveWidth);
+            setLineSnapped(liveWidth === SNAP.to);
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
         },
         onEnd: ({liveWidth}) => {
             setIsDragging(false);
+            setLineSnapped(false);
 
             // Nothing gets saved, so no render follows to clear the live width.
             if (liveWidth === undefined || liveWidth === width) {
@@ -105,10 +119,13 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                     }
                     setIsDragging(true);
                 }}
+                // The browser's own double-click, so it follows the OS double-click speed. Two presses that never moved saved nothing.
+                onDoubleClick={resetSingleRHPWidth}
                 {...pointerDrag.handlers}
             >
                 {(isHovered || isDragging) && (
                     <div
+                        ref={lineRef}
                         aria-hidden
                         style={{...LINE_STYLE, ...styles.resizeIndicator}}
                     />

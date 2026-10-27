@@ -1,6 +1,6 @@
 import {fireEvent, render} from '@testing-library/react-native';
 
-import {setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
+import {resetSingleRHPWidth, setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
 import type RHPResizeHandleComponent from '@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle';
 
 import React from 'react';
@@ -13,6 +13,7 @@ jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Re
 
 jest.mock('@libs/actions/SingleRHPWidth', () => ({
     setSingleRHPWidth: jest.fn(),
+    resetSingleRHPWidth: jest.fn(),
 }));
 
 const MIN_WIDTH = 380;
@@ -24,6 +25,8 @@ jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, min: 
 const WIDTH_VARIABLE = '--rhp-width';
 
 type PointerEventName = 'pointerDown' | 'pointerMove' | 'pointerUp' | 'lostPointerCapture';
+
+const DEFAULT_WIDTH = 440;
 
 /** Renders the handle with a scope element, the way the RHP navigators mount it. */
 function renderHandle() {
@@ -55,7 +58,9 @@ function renderHandle() {
 
     const rerenderHandle = () => screen.rerender(<RHPResizeHandle scopeRef={scopeRef} />);
 
-    return {...screen, firePointer, readLiveWidth, rerenderHandle};
+    const fireDoubleClick = () => fireEvent(getHandle(), 'doubleClick');
+
+    return {...screen, firePointer, fireDoubleClick, readLiveWidth, rerenderHandle};
 }
 
 describe('RHPResizeHandle', () => {
@@ -156,5 +161,50 @@ describe('RHPResizeHandle', () => {
 
         // Then the live width is cleared, since the scope outlives the handle and would otherwise pin the cards
         expect(readLiveWidth()).toBe('');
+    });
+
+    it.each([
+        ['just short of the default', 970],
+        ['just past the default', 950],
+    ])('snaps onto the default width when a drag ends %s', (_, releaseClientX: number) => {
+        // Given a single RHP saved at 400px
+        const {firePointer, readLiveWidth} = renderHandle();
+
+        // When its edge is dragged to within 20px of the 440px default and released there
+        firePointer('pointerDown', 1000);
+        firePointer('pointerMove', releaseClientX);
+        expect(readLiveWidth()).toBe(`${DEFAULT_WIDTH}px`);
+        firePointer('pointerUp', releaseClientX);
+
+        // Then the default width is saved, so getting back to it doesn't take pixel-perfect aim
+        expect(jest.mocked(setSingleRHPWidth).mock.calls).toEqual([[DEFAULT_WIDTH]]);
+    });
+
+    it('lets go of the default width once a drag passes the snap threshold', () => {
+        // Given a single RHP saved at 400px
+        const {firePointer, readLiveWidth} = renderHandle();
+
+        // When its edge is dragged 30px past the 440px default
+        firePointer('pointerDown', 1000);
+        firePointer('pointerMove', 930);
+
+        // Then the cards follow the pointer again, so widths near the default stay reachable
+        expect(readLiveWidth()).toBe('470px');
+    });
+
+    it('resets the saved width on a double-click', () => {
+        // Given a single RHP saved at 400px
+        const {firePointer, fireDoubleClick} = renderHandle();
+
+        // When its edge is double-clicked, two presses that never move
+        firePointer('pointerDown', 1000);
+        firePointer('pointerUp', 1000);
+        firePointer('pointerDown', 1000);
+        firePointer('pointerUp', 1000);
+        fireDoubleClick();
+
+        // Then the saved width is dropped, so the RHP returns to the default, and the presses save nothing of their own
+        expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
+        expect(setSingleRHPWidth).not.toHaveBeenCalled();
     });
 });

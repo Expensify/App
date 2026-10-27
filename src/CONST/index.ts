@@ -9989,11 +9989,17 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
+
+        /** Width of the line while a drag is held on the snap point. */
+        SNAPPED_INDICATOR_WIDTH: 5,
     },
 
     RHP_RESIZE: {
         /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
         HANDLE_HIT_WIDTH: 12,
+
+        /** How close, in px, a drag has to come to the default width to snap onto it. */
+        SNAP_THRESHOLD: 20,
 
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
