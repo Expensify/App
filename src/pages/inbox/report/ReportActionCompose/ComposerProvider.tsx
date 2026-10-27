@@ -35,6 +35,7 @@ import {
 import useComposerFocus from './useComposerFocus';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
@@ -52,8 +53,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
+
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
-    const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+    const initialFocused = !shouldSkipAutoFocus && shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);

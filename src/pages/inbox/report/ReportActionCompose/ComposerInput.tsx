@@ -6,13 +6,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {setIsComposerFullSize} from '@libs/actions/Report';
 import FS from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
     isMoneyRequestReport,
-    isOneTransactionReport,
     isReportTransactionThread,
 } from '@libs/ReportUtils';
 
@@ -21,22 +19,16 @@ import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userA
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 
 import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
 import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
-
-// The arrow keys only page between expenses on web, so native keeps its usual composer focus.
-const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-
-const hasExpenseCarouselSelector = (transactionIDs: string[] | undefined) => (transactionIDs?.length ?? 0) > 1;
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
@@ -61,8 +53,6 @@ function ComposerInput() {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
-    const route = useRoute();
-    const [hasExpenseCarousel = false] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {selector: hasExpenseCarouselSelector});
 
     const onValueChange = (v: string) => {
         if (v.length === 0 && isComposerFullSize) {
@@ -77,14 +67,11 @@ function ComposerInput() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
     const isExpenseRelatedReport = isReportTransactionThread(report) || isMoneyRequestReport(report);
-    // The left and right arrow keys move between expenses only in the RHP expense view with more than one expense,
-    // so only there the composer isn't auto-focused. A report with a single expense is shown as that expense's view.
-    const isExpenseView = isReportTransactionThread(report) || isOneTransactionReport(report);
-    const shouldSkipAutoFocus = isWeb && route.name !== SCREENS.REPORT && hasExpenseCarousel && isExpenseView;
     const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
 
