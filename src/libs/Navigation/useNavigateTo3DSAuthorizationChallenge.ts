@@ -18,7 +18,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import {useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 
 import Navigation, {isMFAFlowScreen} from './Navigation';
 
@@ -76,11 +76,10 @@ function useNavigateTo3DSAuthorizationChallenge() {
 
     const {deviceVerificationType, doesDeviceSupportAuthenticationMethod} = useBiometrics();
 
-    const transactionPending3DSReview = useMemo(() => {
-        if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
-            return undefined;
-        }
-
+    let transactionPending3DSReview: TransactionPending3DSReview | undefined;
+    if (!transactionsPending3DSReview || isLoadingOnyxValue(locallyProcessedReviewsResult)) {
+        transactionPending3DSReview = undefined;
+    } else {
         const pendingTransactionsAwaitingLocalProcessing = Object.values(transactionsPending3DSReview).filter((challenge) => {
             // We can't process a transaction without an ID, so don't bother showing it.
             if (!challenge?.transactionID) {
@@ -102,8 +101,8 @@ function useNavigateTo3DSAuthorizationChallenge() {
         });
 
         // Return only the next eligible transaction
-        return getFirstSortedTransactionPending3DSReview(pendingTransactionsAwaitingLocalProcessing);
-    }, [transactionsPending3DSReview, locallyProcessed3DSTransactionReviews, locallyProcessedReviewsResult]);
+        transactionPending3DSReview = getFirstSortedTransactionPending3DSReview(pendingTransactionsAwaitingLocalProcessing);
+    }
 
     useEffect(() => {
         // transactionPending3DSReview is undefined when there are no pending transactions

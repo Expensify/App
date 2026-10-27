@@ -937,7 +937,18 @@ function SearchWriteActionsProvider({
     useSyncMobileSelectionModeWithScreenSize({isFocused, isMobileSelectionModeEnabled, isSearchResultsEmpty});
     useSyncSelectedReports(filteredData);
 
-    const rowSelectionActionsValue: SearchRowSelectionActionsValue = {toggle, toggleAll};
+    // Every row reads these, and toggle/toggleAll close over whole Onyx collections that change while a report opens.
+    // Read at the gesture so the context value never changes and rows don't re-render with it.
+    const toggleRef = useRef(toggle);
+    const toggleAllRef = useRef(toggleAll);
+    useLayoutEffect(() => {
+        toggleRef.current = toggle;
+        toggleAllRef.current = toggleAll;
+    });
+    const rowSelectionActionsValue: SearchRowSelectionActionsValue = {
+        toggle: (item, itemTransactions, shiftKey) => toggleRef.current(item, itemTransactions, shiftKey),
+        toggleAll: () => toggleAllRef.current(),
+    };
 
     return (
         <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>

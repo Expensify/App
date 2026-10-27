@@ -851,6 +851,7 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -5063,6 +5064,44 @@ describe('getSecondaryAction', () => {
             cardList: undefined,
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
+
+    it('passes the report actions it was given to canEditFieldOfMoneyRequest when checking MOVE_EXPENSE', () => {
+        // Given a single-expense report whose IOU action is found in the passed report actions
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: originalMessageR14932.IOUTransactionID,
+        });
+        const reportActions = [actionR14932];
+        const canEditFieldOfMoneyRequestSpy = jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        // When building the secondary actions for the report
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            reportActions,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the same report actions reach canEditFieldOfMoneyRequest, so the forwarded-since-last-submit check inside
+        // canEditMoneyRequest reads this report's own history instead of the module-level Onyx cache
+        expect(canEditFieldOfMoneyRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportAction: actionR14932, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, reportActions}));
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
 });
 

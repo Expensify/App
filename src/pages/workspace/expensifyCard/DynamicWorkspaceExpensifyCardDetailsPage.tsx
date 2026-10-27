@@ -66,7 +66,7 @@ import type {NavigationProp} from '@react-navigation/native';
 
 import {useNavigation} from '@react-navigation/native';
 import {cardByIdSelector} from '@selectors/Card';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type DynamicWorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
@@ -166,9 +166,9 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
     const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
     const isCardOpen = card?.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
-    const fetchCardDetails = useCallback(() => {
+    const fetchCardDetails = () => {
         openCardDetailsPage(Number(cardID));
-    }, [cardID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
@@ -257,33 +257,27 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    const spendRulesTitleComponent = useMemo(
-        () => (
-            <View>
-                {spendRulesSummary.map((summary) => (
-                    <Text
-                        key={summary}
-                        numberOfLines={2}
-                    >
-                        {summary}
-                    </Text>
-                ))}
-            </View>
-        ),
-        [spendRulesSummary],
+    const spendRulesTitleComponent = (
+        <View>
+            {spendRulesSummary.map((summary) => (
+                <Text
+                    key={summary}
+                    numberOfLines={2}
+                >
+                    {summary}
+                </Text>
+            ))}
+        </View>
     );
 
     const canManageCardFreeze = canWriteExpensifyCard && !!card;
-    const scarfOverlayStyle = useMemo(
-        () => ({
-            top: 0,
-            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
-            zIndex: variables.cardScarfOverlayZIndex,
-            width: variables.cardScarfOverlayWidth,
-            height: variables.cardScarfOverlayHeight,
-        }),
-        [],
-    );
+    const scarfOverlayStyle = {
+        top: 0,
+        left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
+        zIndex: variables.cardScarfOverlayZIndex,
+        width: variables.cardScarfOverlayWidth,
+        height: variables.cardScarfOverlayHeight,
+    };
     const workspaceCardImage = (
         <>
             <ImageSVG

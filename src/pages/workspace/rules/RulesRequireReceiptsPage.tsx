@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRequireReceiptsForm';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type RulesRequireReceiptsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_RECEIPTS>;
@@ -51,14 +51,8 @@ function RulesRequireReceiptsPage({
     const initialReceiptEnabled = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoReceipt);
     const initialItemizedEnabled = isMaxExpenseAmountSet(policy?.maxExpenseAmountNoItemizedReceipt);
 
-    const initialReceiptAmount = useMemo(
-        () => (initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : ''),
-        [initialReceiptEnabled, policy?.maxExpenseAmountNoReceipt, decimals],
-    );
-    const initialItemizedAmount = useMemo(
-        () => (initialItemizedEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt ?? 0, decimals) : ''),
-        [initialItemizedEnabled, policy?.maxExpenseAmountNoItemizedReceipt, decimals],
-    );
+    const initialReceiptAmount = initialReceiptEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt ?? 0, decimals) : '';
+    const initialItemizedAmount = initialItemizedEnabled ? convertToFrontendAmountAsString(policy?.maxExpenseAmountNoItemizedReceipt ?? 0, decimals) : '';
 
     const [receiptEnabled, setReceiptEnabled] = useState(initialReceiptEnabled);
     const [itemizedEnabled, setItemizedEnabled] = useState(initialItemizedEnabled);
@@ -83,104 +77,86 @@ function RulesRequireReceiptsPage({
         setItemizedEnabled(isMaxExpenseAmountSet(policy.maxExpenseAmountNoItemizedReceipt));
     }, [policy?.id, policy?.isLoading, policy?.maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoItemizedReceipt]);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM> = {};
 
-            if (!receiptEnabled && !itemizedEnabled) {
-                return errors;
-            }
-
-            const emptyAmountError = translate('workspace.rules.requireReceipts.emptyAmountError');
-
-            if (receiptEnabled && !values.maxExpenseAmountNoReceipt?.trim()) {
-                errors.maxExpenseAmountNoReceipt = emptyAmountError;
-            }
-
-            if (itemizedEnabled && !values.maxExpenseAmountNoItemizedReceipt?.trim()) {
-                errors.maxExpenseAmountNoItemizedReceipt = emptyAmountError;
-            }
-
+        if (!receiptEnabled && !itemizedEnabled) {
             return errors;
-        },
-        [receiptEnabled, itemizedEnabled, translate],
-    );
+        }
 
-    const clearAmountConflictError = useCallback(() => setAmountConflictError(''), []);
+        const emptyAmountError = translate('workspace.rules.requireReceipts.emptyAmountError');
 
-    const handleSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>) => {
-            // Checked here rather than in `validate` because this runs only on a real save. The message is shown once
-            // below the pair instead of on either field, and the inputs clear it again on the next edit.
-            if (
-                receiptEnabled &&
-                itemizedEnabled &&
-                convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0) > convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0)
-            ) {
-                setAmountConflictError(translate('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError'));
-                return;
-            }
+        if (receiptEnabled && !values.maxExpenseAmountNoReceipt?.trim()) {
+            errors.maxExpenseAmountNoReceipt = emptyAmountError;
+        }
 
-            const receiptChanged = receiptEnabled !== initialReceiptEnabled || (receiptEnabled && values.maxExpenseAmountNoReceipt !== initialReceiptAmount);
-            const itemizedChanged = itemizedEnabled !== initialItemizedEnabled || (itemizedEnabled && values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount);
+        if (itemizedEnabled && !values.maxExpenseAmountNoItemizedReceipt?.trim()) {
+            errors.maxExpenseAmountNoItemizedReceipt = emptyAmountError;
+        }
 
-            if (!receiptChanged && !itemizedChanged) {
-                Navigation.goBack();
-                return;
-            }
+        return errors;
+    };
 
-            const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
-            const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
+    const clearAmountConflictError = () => setAmountConflictError('');
 
-            // Only one of the two calls below should carry this, otherwise both requests would ask the backend to
-            // complete the same onboarding task with a different reportActionID, creating a duplicate completion.
-            let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
-            const updateReceipt = () => {
-                setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt, reviewWorkspaceSettingsTaskData);
-                reviewWorkspaceSettingsTaskData = {};
-            };
-            const updateItemized = () => {
-                setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt, reviewWorkspaceSettingsTaskData);
-                reviewWorkspaceSettingsTaskData = {};
-            };
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRE_RECEIPTS_FORM>) => {
+        // Checked here rather than in `validate` because this runs only on a real save. The message is shown once
+        // below the pair instead of on either field, and the inputs clear it again on the next edit.
+        if (
+            receiptEnabled &&
+            itemizedEnabled &&
+            convertToBackendAmount(Number(values.maxExpenseAmountNoReceipt) || 0) > convertToBackendAmount(Number(values.maxExpenseAmountNoItemizedReceipt) || 0)
+        ) {
+            setAmountConflictError(translate('workspace.rules.requireReceipts.receiptAmountGreaterThanItemizedError'));
+            return;
+        }
 
-            if (receiptChanged && itemizedChanged) {
-                // The two amounts are saved as separate requests, and each is validated on the server against the OTHER
-                // amount still stored there, under the invariant "require-receipt amount <= require-itemized-receipt amount".
-                // Send the update that keeps that invariant true first, so no intermediate server state is ever rejected.
-                const oldReceiptCents = policy?.maxExpenseAmountNoReceipt ?? 0;
-                const newItemizedCents = itemizedValue === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : convertToBackendAmount(Number(itemizedValue));
-                // Sending the itemized update first is safe unless it would lower the itemized amount below the receipt
-                // amount still on the server; in that (lowering) case send the receipt update first instead.
-                const itemizedFirstIsSafe = oldReceiptCents === CONST.DISABLED_MAX_EXPENSE_VALUE || newItemizedCents >= oldReceiptCents;
-                if (itemizedFirstIsSafe) {
-                    updateItemized();
-                    updateReceipt();
-                } else {
-                    updateReceipt();
-                    updateItemized();
-                }
-            } else if (receiptChanged) {
+        const receiptChanged = receiptEnabled !== initialReceiptEnabled || (receiptEnabled && values.maxExpenseAmountNoReceipt !== initialReceiptAmount);
+        const itemizedChanged = itemizedEnabled !== initialItemizedEnabled || (itemizedEnabled && values.maxExpenseAmountNoItemizedReceipt !== initialItemizedAmount);
+
+        if (!receiptChanged && !itemizedChanged) {
+            Navigation.goBack();
+            return;
+        }
+
+        const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
+        const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
+
+        // Only one of the two calls below should carry this, otherwise both requests would ask the backend to
+        // complete the same onboarding task with a different reportActionID, creating a duplicate completion.
+        let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
+        const updateReceipt = () => {
+            setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt, reviewWorkspaceSettingsTaskData);
+            reviewWorkspaceSettingsTaskData = {};
+        };
+        const updateItemized = () => {
+            setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt, reviewWorkspaceSettingsTaskData);
+            reviewWorkspaceSettingsTaskData = {};
+        };
+
+        if (receiptChanged && itemizedChanged) {
+            // The two amounts are saved as separate requests, and each is validated on the server against the OTHER
+            // amount still stored there, under the invariant "require-receipt amount <= require-itemized-receipt amount".
+            // Send the update that keeps that invariant true first, so no intermediate server state is ever rejected.
+            const oldReceiptCents = policy?.maxExpenseAmountNoReceipt ?? 0;
+            const newItemizedCents = itemizedValue === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : convertToBackendAmount(Number(itemizedValue));
+            // Sending the itemized update first is safe unless it would lower the itemized amount below the receipt
+            // amount still on the server; in that (lowering) case send the receipt update first instead.
+            const itemizedFirstIsSafe = oldReceiptCents === CONST.DISABLED_MAX_EXPENSE_VALUE || newItemizedCents >= oldReceiptCents;
+            if (itemizedFirstIsSafe) {
+                updateItemized();
                 updateReceipt();
-            } else if (itemizedChanged) {
+            } else {
+                updateReceipt();
                 updateItemized();
             }
-            Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-        },
-        [
-            receiptEnabled,
-            initialReceiptEnabled,
-            initialReceiptAmount,
-            itemizedEnabled,
-            initialItemizedEnabled,
-            initialItemizedAmount,
-            policyID,
-            policy?.maxExpenseAmountNoReceipt,
-            policy?.maxExpenseAmountNoItemizedReceipt,
-            getReviewWorkspaceSettingsTaskCompletion,
-            translate,
-        ],
-    );
+        } else if (receiptChanged) {
+            updateReceipt();
+        } else if (itemizedChanged) {
+            updateItemized();
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
+    };
 
     return (
         <AccessOrNotFoundWrapper
