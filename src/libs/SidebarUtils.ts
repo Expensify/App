@@ -53,6 +53,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
     getReceiptUploadErrorReason,
+    getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -351,8 +352,11 @@ function getReportsToDisplayInLHN({
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const oneTransactionThreadReport = getOneTransactionThreadReport(report.reportID, reports, reportAttributes);
             const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedWithThread = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
-                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport} : report;
+                requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
+                    ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedWithThread}
+                    : report;
         }
     }
 
@@ -444,6 +448,7 @@ function updateReportsToDisplayInLHN({
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const oneTransactionThreadReport = getOneTransactionThreadReport(report.reportID, reports, reportAttributes);
             const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
+            const lastVisibleActionCreatedWithThread = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -452,9 +457,10 @@ function updateReportsToDisplayInLHN({
                     existingEntry !== report ||
                     existingEntry?.requiresAttention !== requiresAttention ||
                     existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
-                    existingEntry?.isUnreadReport !== isUnreadReport
+                    existingEntry?.isUnreadReport !== isUnreadReport ||
+                    existingEntry?.lastVisibleActionCreatedWithThread !== lastVisibleActionCreatedWithThread
                 ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport};
+                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedWithThread};
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;
@@ -1090,7 +1096,7 @@ function getInboxTabSummary(
         }
         if (report.isUnreadReport) {
             unreadCount++;
-            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreated ?? '') < staleUnreadTime;
+            hasStaleUnreadReport = hasStaleUnreadReport || (report.lastVisibleActionCreatedWithThread ?? report.lastVisibleActionCreated ?? '') < staleUnreadTime;
         }
     }
 

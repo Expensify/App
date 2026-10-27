@@ -5049,6 +5049,41 @@ describe('SidebarUtils', () => {
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]?.isUnreadReport).toBe(true);
             });
 
+            it('should not treat an old IOU report as stale unread when its unread comment is a recent one in the one-transaction thread', () => {
+                // Given an IOU report last active months ago and already read, whose one-transaction thread has a comment from today
+                const {iouReport, transactionThread, reports, reportAttributes} = createIOUReportWithNewerThreadComment();
+                const monthsAgo = DateUtils.getDBTime(subMonths(new Date(), 5).valueOf());
+                const oldIOUReport: Report = {...iouReport, lastVisibleActionCreated: monthsAgo, lastReadTime: monthsAgo};
+                const recentThread: Report = {...transactionThread, lastVisibleActionCreated: DateUtils.getDBTime()};
+
+                // When the LHN report set is built and summarized for the Inbox tabs
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: iouReport.reportID,
+                    reports: {
+                        ...reports,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${oldIOUReport.reportID}`]: oldIOUReport,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${recentThread.reportID}`]: recentThread,
+                    },
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+                const summary = SidebarUtils.getInboxTabSummary([iouReport.reportID], result);
+
+                // Then it counts as unread but not stale, since the message that made it unread is recent
+                expect(summary.counts[CONST.INBOX_TAB.UNREAD]).toBe(1);
+                expect(summary.hasStaleUnreadReport).toBe(false);
+            });
+
             it('should not flag an IOU report as unread when its one-transaction thread is already read', () => {
                 // Given the same IOU report, but its thread was read after the newer comment landed
                 const {iouReport, transactionThread, reports, reportAttributes} = createIOUReportWithNewerThreadComment();

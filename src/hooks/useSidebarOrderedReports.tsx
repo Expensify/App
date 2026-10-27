@@ -58,6 +58,7 @@ type ReportsToDisplayInLHN = Record<
         hasErrorsOtherThanFailedReceipt?: boolean;
         requiresAttention?: boolean;
         isUnreadReport?: boolean;
+        lastVisibleActionCreatedWithThread?: string;
     }
 >;
 
