@@ -1,5 +1,4 @@
-import type {SearchKey} from '@libs/SearchKeyUtils';
-import {createTypeMenuSections, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, omitInsightsPageMenuItems, omitTravelApprovalMenuItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
@@ -44,6 +43,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         areCategoriesEnabled: policy.areCategoriesEnabled,
         areWorkflowsEnabled: policy.areWorkflowsEnabled,
         areRulesEnabled: policy.areRulesEnabled,
+        travelSettings: policy.travelSettings,
     };
 
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
@@ -81,17 +81,14 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         null,
     );
 
-    const handlePendingConfirm = useCallback(
-        (shouldDismissEmptyReportsConfirmation: boolean) => {
-            pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
-            setPendingReportCreation(null);
-        },
-        [pendingReportCreation, setPendingReportCreation],
-    );
-
-    const handlePendingCancel = useCallback(() => {
+    const handlePendingConfirm = (shouldDismissEmptyReportsConfirmation: boolean) => {
+        pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
         setPendingReportCreation(null);
-    }, [setPendingReportCreation]);
+    };
+
+    const handlePendingCancel = () => {
+        setPendingReportCreation(null);
+    };
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
@@ -107,60 +104,39 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
-    const typeMenuSections = useMemo(
-        () =>
-            createTypeMenuSections({
-                currentUserEmail: currentUserLoginAndAccountID?.email,
-                currentUserAccountID: currentUserLoginAndAccountID?.accountID,
-                cardFeedsByPolicy,
-                defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
-                policies: allPolicies,
-                savedSearches,
-                isOffline,
-                defaultExpensifyCard,
-                activeExpensifyCardFeedID,
-                draftTransactionIDs,
-                isTrackIntentUser: isTrackIntentUser ?? false,
-                hasReportAwaitingApproval,
-                policyCategories: allPolicyCategories,
-            }),
-        [
-            currentUserLoginAndAccountID?.email,
-            currentUserLoginAndAccountID?.accountID,
-            cardFeedsByPolicy,
-            defaultCardFeed,
-            defaultExpensifyCard,
-            activeExpensifyCardFeedID,
-            allPolicies,
-            savedSearches,
-            isOffline,
-            draftTransactionIDs,
-            isTrackIntentUser,
-            hasReportAwaitingApproval,
-            allPolicyCategories,
-        ],
-    );
+    const typeMenuSections = createTypeMenuSections({
+        currentUserEmail: currentUserLoginAndAccountID?.email,
+        currentUserAccountID: currentUserLoginAndAccountID?.accountID,
+        cardFeedsByPolicy,
+        defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
+        policies: allPolicies,
+        savedSearches,
+        isOffline,
+        defaultExpensifyCard,
+        activeExpensifyCardFeedID,
+        draftTransactionIDs,
+        isTrackIntentUser: isTrackIntentUser ?? false,
+        hasReportAwaitingApproval,
+        policyCategories: allPolicyCategories,
+    });
 
     return typeMenuSections;
 };
-
-const spendInsightKeys = new Set<SearchKey>(SPEND_INSIGHT_KEYS);
 
 const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
     const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
     const {isBetaEnabled} = usePermissions();
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
-        return typeMenuSections;
+    let sections = typeMenuSections;
+    if (!isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL)) {
+        sections = omitTravelApprovalMenuItems(sections);
     }
 
-    return typeMenuSections.flatMap((section) => {
-        const menuItems = section.menuItems.filter((item) => !spendInsightKeys.has(item.key));
-        if (menuItems.length === section.menuItems.length) {
-            return section;
-        }
-        return menuItems.length > 0 ? {...section, menuItems} : [];
-    });
+    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+        return sections;
+    }
+
+    return omitInsightsPageMenuItems(sections);
 };
 
 export default useSearchTypeMenuSections;

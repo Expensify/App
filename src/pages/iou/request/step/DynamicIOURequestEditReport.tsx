@@ -42,7 +42,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -80,10 +80,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
-    const ownerPersonalDetails = useMemo(
-        () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
-        [personalDetails, selectedReport?.ownerAccountID],
-    );
+    const ownerPersonalDetails = getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails;
     const [transactions] = useTransactionsByID(transactionIDs);
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;
@@ -105,6 +102,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (transactionIDs.length === 0 || item.value === reportID) {
@@ -131,6 +129,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 allTransactionViolation: transactionViolations,
                 reports: reportsForCall,
                 rules,
+                cardList,
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
@@ -162,6 +161,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             allTransactionViolation: transactionViolations,
             reports,
             rules,
+            cardList,
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,

@@ -160,6 +160,7 @@ type MockInvertedFlashListProps = {
     data?: OnyxTypes.ReportAction[];
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
+    onContentSizeChange?: () => void;
 };
 
 const mockInvertedFlashList: jest.MockedFunction<(props: MockInvertedFlashListProps) => null> = jest.requireMock('@components/FlashList/InvertedFlashList');
@@ -374,6 +375,35 @@ describe('ReportActionsList (body)', () => {
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
+        it('marks the newest reply of Concierge and of each custom agent', () => {
+            // Given a custom agent that replied after Concierge
+            const agentAccountID = 4242;
+            const agentReply: OnyxTypes.ReportAction = {
+                ...conciergeReply,
+                reportActionID: 'agent-reply',
+                created: '2023-01-05',
+                actorAccountID: agentAccountID,
+                person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
+            };
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST) {
+                    return [[agentAccountID], {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, conciergeReply, agentReply],
+            });
+
+            // When the list renders
+            renderReportActionsList();
+
+            // Then both replies show the prompt, because the agent reply must not take the prompt away from Concierge
+            expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+            expect(getRenderedReportActionsListItemProps(agentReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
         it('marks nothing while a Concierge answer is still streaming', () => {
             mockUseConciergeDraft.mockReturnValue({
                 draftReportAction: {...conciergeReply, message: [{type: 'COMMENT', html: 'Here', text: 'Here'}]},
@@ -580,8 +610,47 @@ describe('ReportActionsList (body)', () => {
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === persistedReportAction.reportActionID)).toBe(false);
         });
 
-        it.each([true, false])('does not reconcile from an optimistic action when draft completion is pending: %s', (isDraftPendingCompletion) => {
-            // Given a matching optimistic placeholder that has not been saved, even if streaming completed
+        it('shows server followups after a local reply completes even when the pending add flag remains', () => {
+            // Given a completed local reply and a later server merge that adds followups but leaves the pending add flag
+            const completedDraft: OnyxTypes.ReportAction = {
+                ...conciergeDraftReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                isOptimisticAction: true,
+            };
+            const savedHTML = 'Bot reply<followup-list><followup><followup-text>What can I do next?</followup-text></followup></followup-list>';
+            const mergedReportAction: OnyxTypes.ReportAction = {
+                ...completedDraft,
+                message: [{type: 'COMMENT', html: savedHTML, text: 'Bot reply'}],
+                originalMessage: {html: savedHTML, whisperedTo: []},
+            };
+            const clearDraft = jest.fn();
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [mergedReportAction, ...mockReportActions],
+                sortedAllReportActions: [mergedReportAction, ...mockReportActions],
+            });
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: completedDraft,
+                hasActiveDraft: true,
+                isDraftPendingCompletion: false,
+            });
+            mockUseConciergeDraftActions.mockReturnValue({
+                clearDraft,
+                dispatchLocalDraftEvent: jest.fn(),
+                revealDraftFromReportAction: jest.fn(),
+            });
+
+            // When the saved reply reaches the open chat without a refresh
+            renderReportActionsList();
+
+            // Then the server's followups are displayed and the completed local draft is retired
+            expect(getCapturedVisibleActions()).toContain(mergedReportAction);
+            expect(getCapturedVisibleActions()).not.toContain(completedDraft);
+            expect(clearDraft).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([true, false])('retires an optimistic local reply only after draft completion (pending: %s)', (isDraftPendingCompletion) => {
+            // Given a matching local reply whose pending add flag does not indicate whether its reveal has finished
             const optimisticReportAction: OnyxTypes.ReportAction = {
                 ...conciergeDraftReportAction,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -591,8 +660,8 @@ describe('ReportActionsList (body)', () => {
             const revealDraftFromReportAction = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
-                reportActions: [...mockReportActions, optimisticReportAction],
-                sortedAllReportActions: [...mockReportActions, optimisticReportAction],
+                reportActions: [optimisticReportAction, ...mockReportActions],
+                sortedAllReportActions: [optimisticReportAction, ...mockReportActions],
             });
             mockUseConciergeDraft.mockReturnValue({
                 draftReportAction: optimisticReportAction,
@@ -608,9 +677,9 @@ describe('ReportActionsList (body)', () => {
             // When the list renders the draft beside that placeholder
             renderReportActionsList();
 
-            // Then the placeholder cannot complete reconciliation or clear the draft
+            // Then an unfinished reveal stays active, while a completed reveal lets future Onyx updates appear
             expect(revealDraftFromReportAction).not.toHaveBeenCalled();
-            expect(clearDraft).not.toHaveBeenCalled();
+            expect(clearDraft).toHaveBeenCalledTimes(isDraftPendingCompletion ? 0 : 1);
             expect(getCapturedVisibleActions()).toContain(optimisticReportAction);
         });
     });
@@ -827,6 +896,22 @@ describe('ReportActionsList (body)', () => {
 
             expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
             expect(mockMarkOpenReportEnd).not.toHaveBeenCalledWith(mockReport.reportID, mockReport, {warm: false});
+        });
+    });
+
+    describe('Pending scroll-to-bottom', () => {
+        it('flushes a pending scroll-to-bottom when the list content size changes', () => {
+            // Given the list is rendered
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            renderReportActionsList();
+
+            // When the list content size changes, as it does once FlashList lays out a newly sent comment. In an
+            // aligned-to-top report this is the only list event that follows, because onLayout does not fire.
+            getCapturedListProps()?.onContentSizeChange?.();
+
+            // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
+            const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
+            expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
         });
     });
 

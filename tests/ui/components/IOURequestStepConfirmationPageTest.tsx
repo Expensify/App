@@ -9,6 +9,7 @@ import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -32,6 +33,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {check, RESULTS} from 'react-native-permissions';
 
 import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
@@ -526,9 +528,16 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
 
+            jest.mocked(getCurrentPosition).mockImplementationOnce(async (success) => {
+                success({
+                    coords: {latitude: 40.7128, longitude: -74.006, altitude: null, accuracy: null, altitudeAccuracy: null, heading: null, speed: null},
+                    timestamp: 0,
+                });
+            });
             fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1));
         });
 
         it('drops the "Automatic" label from all three fields as soon as any one of them is entered', async () => {
@@ -642,6 +651,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].transactionParams).toEqual(
                 expect.objectContaining({amount: 1234, merchant: 'Starbucks', created: '2025-01-15'}),
             );
+        });
+
+        describe('location at submit', () => {
+            it('creates the expense with the position the scan screen cached, without reading the device again', async () => {
+                // Given a scan on the confirm screen, location permission already granted, and a position the scan screen cached when it opened
+                jest.mocked(check).mockResolvedValue(RESULTS.GRANTED);
+                await act(async () => {
+                    await Onyx.merge(ONYXKEYS.USER_LOCATION, {latitude: 40.7128, longitude: -74.006});
+                });
+                await renderScanConfirmation();
+
+                // When the user submits the scan
+                fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the expense is created carrying the cached position, with no location read holding the tap up
+                expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+                expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+                expect(getCurrentPosition).not.toHaveBeenCalled();
+            });
         });
     });
 
@@ -1950,22 +1979,165 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43');
 
-            // And confirming raises the required errors, which hold the fields open from here on
+            // And confirming raises the required errors, which hold the first receipt's fields open
             fireEvent.press(screen.getByText(translateLocal('iou.createExpenses', 2)));
             await waitForBatchedUpdatesWithAct();
             expect(screen.getAllByText(translateLocal('common.error.fieldRequired')).length).toBeGreaterThan(0);
 
-            // And the user traverses to the second receipt and back, with the fields never collapsing in between
+            // And the user traverses to the second receipt
             const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(nextButton);
             expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
-            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('');
+            await waitForBatchedUpdatesWithAct();
 
-            // Then coming back shows the amount that was entered, reseeded from the transaction rather than left blank
+            // Then the second receipt stays collapsed, because the required errors belong to the first receipt (#101146)
+            expect(screen.getByText(translateLocal('common.showMore'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
+
+            // And coming back re-opens the first receipt's fields and shows the amount that was entered, reseeded from the transaction rather than left blank
+            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(prevButton);
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43.00');
+        });
+
+        it('keeps the fields of a manually filled receipt expanded when traversing away and back (multi-scan)', async () => {
+            // Given two scanned drafts confirmed together, on a surface that exposes the scan fields
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '1',
+                    isAmountSet: undefined,
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '2',
+                    isAmountSet: undefined,
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const of = translateLocal('common.of');
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+
+            // When the user reveals the fields of the first receipt and fills in its amount, without confirming
+            fireEvent.press(screen.getByText(translateLocal('common.showMore')));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.changeText(screen.getByLabelText(translateLocal('iou.amount')), '43');
+            await waitForBatchedUpdatesWithAct();
+
+            // And traverses to the second receipt, which has nothing filled in, so it opens collapsed as usual
+            const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(nextButton);
+            expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
+            expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
+
+            // Then coming back to the first receipt shows its filled-in fields right away instead of hiding them behind "Show more"
             const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
             fireEvent.press(prevButton);
             expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
             expect(screen.getByLabelText(translateLocal('iou.amount'))).toHaveDisplayValue('43.00');
+            expect(screen.queryByText(translateLocal('common.showMore'))).not.toBeOnTheScreen();
+        });
+
+        it('keeps a receipt expanded once the user opened it, even with nothing filled in, when traversing away and back (multi-scan)', async () => {
+            // Given two scanned drafts confirmed together, on a surface that exposes the scan fields
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '1',
+                    isAmountSet: undefined,
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
+                    ...DEFAULT_SPLIT_TRANSACTION,
+                    transactionID: '2',
+                    isAmountSet: undefined,
+                    iouRequestType: 'scan',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            const of = translateLocal('common.of');
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+
+            // When the user moves to the second receipt and opens its fields without entering anything
+            const [, nextButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(nextButton);
+            expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
+            fireEvent.press(screen.getByText(translateLocal('common.showMore')));
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toBeOnTheScreen();
+
+            // And goes back to the first receipt, which they never opened, so it is still collapsed
+            const [prevButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(prevButton);
+            expect(await screen.findByText(`1 ${of} 2`)).toBeOnTheScreen();
+            expect(screen.queryByLabelText(translateLocal('iou.amount'))).not.toBeOnTheScreen();
+
+            // Then returning to the second receipt shows it still expanded, the way the user left it
+            const [, nextButtonAgain] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+            fireEvent.press(nextButtonAgain);
+            expect(await screen.findByText(`2 ${of} 2`)).toBeOnTheScreen();
+            expect(screen.getByLabelText(translateLocal('iou.amount'))).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('common.showMore'))).not.toBeOnTheScreen();
         });
 
         it('switches the displayed transaction when pressing the Next and Previous buttons', async () => {

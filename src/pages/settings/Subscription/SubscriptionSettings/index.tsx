@@ -21,6 +21,7 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -54,8 +55,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, TextStyle} from 'react-native';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React from 'react';
 import {View} from 'react-native';
 
 function SubscriptionSettings() {
@@ -85,10 +86,13 @@ function SubscriptionSettings() {
     const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
     const [freebieCredits] = useOnyx(ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
+    const defaultCard = Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
 
@@ -355,7 +359,15 @@ function SubscriptionSettings() {
                     <MenuItemSectionRoot
                         onPress={() => {
                             requestTaxExempt();
-                            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+                            navigateToConciergeChat({
+                                conciergeReportID,
+                                introSelected,
+                                currentUserAccountID,
+                                isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
+                                conciergePersonalDetails,
+                                shouldDismissModal: false,
+                            });
                         }}
                     >
                         <MenuItem.Row>

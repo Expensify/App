@@ -33,7 +33,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
@@ -167,17 +167,15 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
 
-    const prohibitedExpensesText = useMemo(() => {
-        const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
-            .filter((key) => policy?.prohibitedExpenses?.[key])
-            .map((key) => translate(`workspace.rules.individualExpenseRules.${key}`));
-
-        if (!prohibitedExpensesList.length) {
-            return '';
-        }
-
-        return prohibitedExpensesList.join(', ');
-    }, [policy?.prohibitedExpenses, translate]);
+    let prohibitedExpensesText;
+    const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
+        .filter((key) => policy?.prohibitedExpenses?.[key])
+        .map((key) => translate(`workspace.rules.individualExpenseRules.${key}`));
+    if (!prohibitedExpensesList.length) {
+        prohibitedExpensesText = '';
+    } else {
+        prohibitedExpensesText = prohibitedExpensesList.join(', ');
+    }
 
     const policyControlItems: BasicRuleMenuItem[] = [
         {
@@ -276,7 +274,6 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
             subtitleStyles={styles.mt0}
-            containerStyles={styles.mh5}
         >
             <View style={styles.mt3}>
                 {renderMenuItems(policyControlItems)}

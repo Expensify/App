@@ -33,9 +33,9 @@
 
 Onyx (`react-native-onyx`) is our custom offline-first key-value store; keys are defined in `src/ONYXKEYS.ts`.
 
-### Reading Onyx data (`useOnyx` vs `Onyx.connectWithoutView`)
+### Reading Onyx data (`useOnyx`, `Onyx.connectWithoutView`, `Onyx.get`)
 
-Prefer pure functions taking data as params over direct Onyx reads — callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages — justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
+Prefer pure functions taking data as params over direct Onyx reads: callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages. Justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. `Onyx.get` and `Onyx.multiGet` are one-shot reads for event handlers in components, pages and hooks. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-onyxconnectwithoutview-onyxget-and-onyxmultiget).
 
 ## Related Repositories
 
@@ -63,6 +63,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Design tokens**: font sizes come from `<Text variant="...">`, and paddings or margins that differ between narrow and wide layouts come from `useLayoutSpacing()` (`cardPaddingHorizontal`, `pageGutter`, ...). Never write `shouldUseNarrowLayout ? styles.ph5 : styles.ph8` or a raw `fontSize`. See `contributingGuides/STYLING.md`.
 
 ### Post-Edit Checklist (IMPORTANT)
 

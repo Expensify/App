@@ -3,12 +3,12 @@ import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -19,11 +19,11 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateXeroExportBillDate} from '@userActions/connections/Xero';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -43,28 +43,24 @@ function DynamicXeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsPr
         isSelected: config?.export?.billDate === dateType,
     }));
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.path);
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const goBack = () => {
+        Navigation.goBack(backPath);
+    };
+
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>
+        </View>
     );
 
-    const selectExportDate = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.export?.billDate && policyID) {
-                updateXeroExportBillDate(policyID, row.value, config?.export?.billDate);
-            }
-            goBack();
-        },
-        [config?.export?.billDate, policyID, goBack],
-    );
+    const selectExportDate = (row: MenuListItem) => {
+        if (row.value !== config?.export?.billDate && policyID) {
+            updateXeroExportBillDate(policyID, row.value, config?.export?.billDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

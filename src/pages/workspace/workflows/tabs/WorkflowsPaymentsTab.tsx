@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,8 @@ import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy} from '@libs/Polic
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
+import WorkspaceWiseGlobalReimbursementsBanner from '@pages/workspace/workflows/WorkspaceWiseGlobalReimbursementsBanner';
+
 import {pressLockedBankAccount} from '@userActions/BankAccounts';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -46,8 +49,8 @@ import ROUTES from '@src/ROUTES';
 
 import type {TupleToUnion} from 'type-fest';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -70,11 +73,14 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: guidedSetupAndTourStatusSelector,
     });
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
 
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID, login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
@@ -104,21 +110,21 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const achData = reimbursementAccount?.achData;
     const shouldShowContinueModal = hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
 
-    const showAddBankAccountPermissionModal = useCallback(() => {
+    const showAddBankAccountPermissionModal = () => {
         showConfirmModal({
             title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
             prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+    const confirmCurrencyChangeAndHideModal = () => {
         if (!policy) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
-    }, [policy]);
+    };
 
     const workflowsBackTo = ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
 
@@ -139,7 +145,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const hasOtherEligibleExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true, bankAccountID).length > 0;
 
     const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-    const shouldShowPayer = shouldShowBankAccount || getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+    const shouldShowPayer = shouldShowBankAccount || getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     const bankAccountPendingAction = bankAccountConnectedToWorkspace?.pendingAction;
     const isBankAccountPendingDelete = bankAccountPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -151,7 +157,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
 
     const hasReimburserError = !!policy?.errorFields?.reimburser;
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
     const bankConnectionStatus = getBankAccountConnectionStatus(state, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
@@ -226,7 +231,14 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                 return;
             }
             pressLockedBankAccount(bankAccountID, translate, conciergeReportID ?? undefined, delegateAccountID, initiatingBankAccountUnlock);
-            navigateToConciergeChat({conciergeReportID: conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed});
+            navigateToConciergeChat({
+                conciergeReportID: conciergeReportID ?? undefined,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+            });
             return;
         }
 
@@ -407,6 +419,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             </View>
                         </OfflineWithFeedback>
                     )}
+                    <WorkspaceWiseGlobalReimbursementsBanner policyID={policyID} />
                 </>
             }
             isActive={getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO}

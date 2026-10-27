@@ -14,7 +14,7 @@ import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
 import Log from './Log';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
+import dismissOnboardingModalBeforeExit from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';
@@ -72,6 +72,7 @@ function getReportIDAfterOnboarding(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -86,8 +87,15 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, undefined, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, reportNameValuePairs);
+    // TODO: Pass guideAccountIDs in Phase B. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+    const lastAccessedReport = findLastAccessedReport(
+        !canUseDefaultRooms,
+        undefined,
+        isAnonymousUser,
+        shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom,
+        undefined,
+        reportNameValuePairs,
+    );
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -109,6 +117,7 @@ function navigateAfterOnboarding(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -153,6 +162,7 @@ function navigateAfterOnboarding(
         canUseDefaultRooms,
         conciergeReportID,
         reportNameValuePairs,
+        isAnonymousUser,
         onboardingPolicyID,
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
@@ -170,23 +180,26 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
     options?: NavigateAfterOnboardingOptions,
 ) {
-    dismissOnboardingModalBeforeExit();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(
-            isSmallScreenWidth,
-            canUseDefaultRooms,
-            conciergeReportID,
-            reportNameValuePairs,
-            onboardingPolicyID,
-            onboardingAdminsChatReportID,
-            shouldPreventOpenAdminRoom,
-            options,
-        );
+    dismissOnboardingModalBeforeExit(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateAfterOnboarding(
+                isSmallScreenWidth,
+                canUseDefaultRooms,
+                conciergeReportID,
+                reportNameValuePairs,
+                isAnonymousUser,
+                onboardingPolicyID,
+                onboardingAdminsChatReportID,
+                shouldPreventOpenAdminRoom,
+                options,
+            );
+        });
     });
 }
 
@@ -212,9 +225,10 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 }
 
 function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    dismissOnboardingModalBeforeExit();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+    dismissOnboardingModalBeforeExit(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+        });
     });
 }
 

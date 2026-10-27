@@ -11,7 +11,7 @@ import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType
 import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -102,6 +102,31 @@ describe('actions/PolicyMember', () => {
         });
     });
     describe('updateWorkspaceMembersRole', () => {
+        it('updates a member to Guest optimistically', async () => {
+            const member = createPersonalDetails(2);
+            const memberLogin = member.login ?? '';
+            const policy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+                employeeList: {
+                    [memberLogin]: {
+                        email: memberLogin,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch?.pause?.();
+            Member.updateWorkspaceMembersRole(policy, [memberLogin], [member.accountID], CONST.POLICY.ROLE.GUEST);
+            await waitForBatchedUpdates();
+
+            const optimisticPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(optimisticPolicy?.employeeList?.[memberLogin]?.role).toBe(CONST.POLICY.ROLE.GUEST);
+            expect(optimisticPolicy?.employeeList?.[memberLogin]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch?.resume?.();
+        });
+
         it('Update member to admin role', async () => {
             const fakeUser2 = createPersonalDetails(2);
             const fakePolicy: PolicyType = {
@@ -187,6 +212,64 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+        });
+
+        it('does not set errors in failureData when changing role to approve-only', () => {
+            const member1 = 'member1@test.com';
+            const member2 = 'member2@test.com';
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+                employeeList: {
+                    [member1]: {
+                        email: member1,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                    [member2]: {
+                        email: member2,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            const approveOnlyData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1, member2], [1, 2], CONST.POLICY.ROLE.APPROVE_ONLY);
+            expect(approveOnlyData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: {
+                                [member1]: {
+                                    email: member1,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                                [member2]: {
+                                    email: member2,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                            },
+                        }),
+                    }),
+                ]),
+            );
+
+            const adminData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1], [1], CONST.POLICY.ROLE.ADMIN);
+            expect(adminData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: expect.objectContaining({
+                                [member1]: expect.objectContaining({
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    errors: TestHelper.anyObject,
+                                }),
+                            }),
+                        }),
+                    }),
+                ]),
+            );
         });
     });
     describe('requestWorkspaceOwnerChange', () => {
@@ -319,6 +402,37 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+        });
+
+        it('sets the payment card form loading state while requesting an SCA authentication link', async () => {
+            // Given a workspace owner change that needs a billing card added first
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '12345',
+                currency: CONST.PAYMENT_CARD_CURRENCY.GBP,
+            };
+
+            // When the card is submitted and the request is still in flight
+            mockFetch?.pause?.();
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy, 1, 'fake@gmail.com', fakeCard);
+            await waitForBatchedUpdates();
+
+            // Then the form is loading, so the user sees a spinner and can't send the card a second time while waiting for the 3DS link
+            const optimisticFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+            expect(optimisticFormState?.isLoading).toBe(true);
+
+            // When the response arrives
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the form stops loading, so the spinner never outlives the request
+            const settledFormState = await getOnyxValue(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+            expect(settledFormState?.isLoading).toBe(false);
         });
 
         it('should set owner and ownerAccountID from explicit parameters on success', async () => {
@@ -1429,6 +1543,23 @@ describe('actions/PolicyMember', () => {
             expect(draft).toBeDefined();
             expect(draft?.[user1Email]).toBe(user1AccountID);
             expect(draft?.[user2Email]).toBe(user2AccountID);
+        });
+
+        it('should clear the previous arrangement choice when starting a new invite selection', async () => {
+            // Given a work-arrangement selection left by a previous invite for this workspace
+            const policyID = '1';
+            // The type for this collection key is represented by the collection prefix, not its generated member keys.
+            const arrangementDraftKey = `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}` as OnyxKey;
+            const inviteeEmail = 'new-user@example.com';
+            await Onyx.set(arrangementDraftKey, true);
+            await waitForBatchedUpdates();
+
+            // When a new set of invitees is selected
+            Member.setWorkspaceInviteMembersDraft(policyID, {[inviteeEmail]: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the new invite falls back to the workspace arrangement default
+            expect(await getOnyxValue(arrangementDraftKey)).toBeFalsy();
         });
 
         it('should update existing draft with new selections', async () => {

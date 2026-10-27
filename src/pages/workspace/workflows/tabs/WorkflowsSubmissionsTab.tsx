@@ -5,6 +5,7 @@ import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoo
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, setWorkspaceAutoHarvesting} from '@libs/actions/Policy/Policy';
@@ -19,7 +20,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -30,12 +31,13 @@ type WorkflowsSubmissionsTabProps = {
 
 function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteWorkflows, showReadOnlyModal, withReadOnlyFallback: withWorkflowsReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
 
     const hasDelayedSubmissionError = !!(policy?.errorFields?.autoReporting ?? policy?.errorFields?.autoReportingFrequency);
-    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID)), [policyID]);
+    const onPressAutoReportingFrequency = () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
 
     const onToggle = (isEnabled: boolean) => {
         if (!canWriteWorkflows) {
@@ -45,7 +47,7 @@ function WorkflowsSubmissionsTab({policyID}: WorkflowsSubmissionsTabProps) {
         if (!policy) {
             return;
         }
-        setWorkspaceAutoHarvesting(policy, isEnabled);
+        setWorkspaceAutoHarvesting(policy, isEnabled, getReviewWorkspaceSettingsTaskCompletion());
     };
 
     return (

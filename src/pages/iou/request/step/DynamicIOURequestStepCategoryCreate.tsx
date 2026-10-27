@@ -14,6 +14,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 
 import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -26,6 +27,7 @@ import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesU
 import Navigation from '@libs/Navigation/Navigation';
 import {hasTags} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CategoryForm from '@pages/workspace/categories/CategoryForm';
@@ -107,6 +109,7 @@ function DynamicIOURequestStepCategoryCreate({
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     const policyHasTags = hasTags(policyTags);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -125,7 +128,7 @@ function DynamicIOURequestStepCategoryCreate({
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
 
     const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-        const categoryName = values.categoryName.trim();
+        const categoryName = StringUtils.sanitizeName(values.categoryName);
 
         if (!policyID) {
             return;
@@ -147,6 +150,7 @@ function DynamicIOURequestStepCategoryCreate({
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         });
 
         // 2. Apply the newly created category to the transaction.

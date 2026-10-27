@@ -12,9 +12,9 @@ import type RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,7 +41,7 @@ import type {ComponentProps} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
@@ -148,7 +148,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingLeft} = useLayoutSpacing();
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}>(null);
     const isInLockedState = isBusinessBankAccountLocked(item);
@@ -197,47 +197,44 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     }
 
     // Card state pills (below title, next to description)
-    const descriptionAddon = useMemo(() => {
-        if (isNeedingAction && shouldShowDefaultBadge) {
-            return (
-                <Badge
-                    text={translate('paymentMethodList.defaultPaymentMethod')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        if (item.isCardFrozen) {
-            return (
-                <Badge
-                    text={translate('cardPage.frozen')}
-                    icon={icons.FreezeCard}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                    iconStyles={[styles.mr1]}
-                />
-            );
-        }
-        if (item.connectionStatus) {
-            return (
-                <ConnectionStatusBadge
-                    text={item.connectionStatus.statusText}
-                    tone={item.connectionStatus.statusTone}
-                    tooltipText={item.connectionStatus.tooltipText}
-                />
-            );
-        }
-        if (item.isInactive) {
-            return (
-                <Badge
-                    text={translate('walletPage.cardInactive')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    let descriptionAddon;
+    if (isNeedingAction && shouldShowDefaultBadge) {
+        descriptionAddon = (
+            <Badge
+                text={translate('paymentMethodList.defaultPaymentMethod')}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+            />
+        );
+    } else if (item.isCardFrozen) {
+        descriptionAddon = (
+            <Badge
+                text={translate('cardPage.frozen')}
+                icon={icons.FreezeCard}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+                iconStyles={[styles.mr1]}
+            />
+        );
+    } else if (item.connectionStatus) {
+        descriptionAddon = (
+            <ConnectionStatusBadge
+                text={item.connectionStatus.statusText}
+                tone={item.connectionStatus.statusTone}
+                tooltipText={item.connectionStatus.tooltipText}
+            />
+        );
+    } else if (item.isInactive) {
+        descriptionAddon = (
+            <Badge
+                text={translate('walletPage.cardInactive')}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+            />
+        );
+    } else {
+        descriptionAddon = undefined;
+    }
 
     const rightComponent = showThreeDotsMenu ? (
         <View style={styles.alignSelfCenter}>
@@ -322,7 +319,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 menuItem
             )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, cardPaddingHorizontal]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
                         <Icon
                             src={icons.DotIndicator}
@@ -344,11 +341,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 <PendingDigitalWalletApprovalRow
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
-                    style={[styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                    style={[styles.pv3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (
-                <View style={[styles.pb3, shouldUseNarrowLayout ? styles.pl5 : styles.pl8]}>
+                <View style={[styles.pb3, cardPaddingLeft]}>
                     <PressableWithFeedback
                         onPress={() => openExternalLink(CONST.CHASE_ACCOUNT_NUMBER_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}

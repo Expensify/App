@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,7 @@ function RulesRequireFieldsPage({
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {showConfirmModal} = useConfirmModal();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     // The self-heal below writes to the server, so it needs the same Tags write check the Tags table uses.
     const {canWrite: canWriteTags} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -137,10 +139,14 @@ function RulesRequireFieldsPage({
         const hasTagLevelChanges = hasPerLevelTagRequired && changedTagLevels.length > 0;
         const hasSingleTagChange = !hasPerLevelTagRequired && tagRequired !== initialTagRequired;
         const categoryUpdateForTagRecompute = hasCategoryChange ? {requiresCategory: categoryRequired} : {};
+        // Only one of the two calls below should carry this, otherwise both requests would ask the backend to complete
+        // the same onboarding task with the same reportActionID.
+        let reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
 
         if (hasCategoryChange) {
             // With a tag change in the same save, the tag action owns the one violation recompute and carries requiresCategory into it.
-            setWorkspaceRequiresCategory(policyData, categoryRequired, isVendorMatchingBetaEnabled, !hasTagLevelChanges && !hasSingleTagChange);
+            setWorkspaceRequiresCategory(policyData, categoryRequired, isVendorMatchingBetaEnabled, !hasTagLevelChanges && !hasSingleTagChange, reviewWorkspaceSettingsTaskData);
+            reviewWorkspaceSettingsTaskData = {};
         }
 
         if (hasTagLevelChanges) {
@@ -152,7 +158,7 @@ function RulesRequireFieldsPage({
                 categoryUpdateForTagRecompute,
             );
         } else if (hasSingleTagChange) {
-            setPolicyRequiresTag(policyData, tagRequired, isVendorMatchingBetaEnabled, categoryUpdateForTagRecompute);
+            setPolicyRequiresTag(policyData, tagRequired, isVendorMatchingBetaEnabled, categoryUpdateForTagRecompute, reviewWorkspaceSettingsTaskData);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);

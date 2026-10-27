@@ -9,12 +9,14 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import Navigation from '@navigation/Navigation';
 
@@ -23,7 +25,7 @@ import {openExternalLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
@@ -41,7 +43,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
@@ -69,14 +71,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS)));
     };
 
     const handleConnectPlaid = () => {
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT)));
     };
 
     return (
@@ -115,18 +117,20 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={[styles.mt4, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                        <MenuItemNavigation
-                            title={translate('bankAccount.connectOnlineWithPlaid')}
-                            icon={expensifyIcons.Bank}
-                            isDisabled={!!isPlaidDisabled}
-                            onPress={handleConnectPlaid}
-                        />
-                        <MenuItemNavigation
-                            title={translate('bankAccount.connectManually')}
-                            icon={expensifyIcons.Connect}
-                            onPress={handleConnectManually}
-                        />
+                    <View style={[styles.mt4, cardEdgeToEdge]}>
+                        <View style={cardMenuItemInset}>
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectOnlineWithPlaid')}
+                                icon={expensifyIcons.Bank}
+                                isDisabled={!!isPlaidDisabled}
+                                onPress={handleConnectPlaid}
+                            />
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectManually')}
+                                icon={expensifyIcons.Connect}
+                                onPress={handleConnectManually}
+                            />
+                        </View>
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>

@@ -721,6 +721,37 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
+            test.each([
+                ['the current spelling', CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+                ['the deprecated spelling', CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+            ])('manual reimbursements using %s', (_, reimbursementChoice) => {
+                // Given a workspace that reimburses outside Expensify (Indirect)
+                const manualPolicy = {...policy, reimbursementChoice};
+
+                // When the report is approved
+                const result = buildOptimisticNextStep({
+                    rules: undefined,
+                    report,
+                    policy: manualPolicy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                    shouldFixViolations: false,
+                    isUnapprove: false,
+                    isReopen: false,
+                    isTrackIntentUser: false,
+                });
+
+                // Then no further action is required, matching the next step the server returns for these workspaces
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                };
+                expect(result).toMatchObject(expectedResult);
+            });
+
             test('non-payer still waits for an admin to pay', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
@@ -936,6 +967,53 @@ describe('libs/NextStepUtils', () => {
                 currentUserAccountID,
             });
             expect(result).toBe(currentNextStep);
+        });
+
+        it('returns the change workspace next step when the policy is archived', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-archived',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
+            } as Report;
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                archivedDate: '2026-01-01 00:00:00',
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+                icon: CONST.NEXT_STEP.ICONS.BOX,
+            });
         });
 
         it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {

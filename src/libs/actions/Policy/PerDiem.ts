@@ -4,6 +4,7 @@ import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -186,6 +187,25 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
     });
 }
 
+function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: string, subRateID?: string) {
+    if (!policyID || !customUnitID || !rateID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errors: null,
+                        ...(subRateID ? {errorFields: {[subRateID]: null}} : {}),
+                    },
+                },
+            },
+        },
+    });
+}
+
 type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
     rates: Record<string, NullishDeep<Rate> | null>;
 };
@@ -250,14 +270,9 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
-function editPerDiemRateDestination(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newDestination: string) {
-    if (!policyID || !rateID || isEmptyObject(customUnit) || !newDestination) {
-        return;
-    }
-
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    newCustomUnit.rates[rateID].name = newDestination;
-
+function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, currentRate: Rate, updatedRate: Rate, errorSubRateID?: string) {
+    const rateID = updatedRate.customUnitRateID;
+    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -265,19 +280,89 @@ function editPerDiemRateDestination(policyID: string, rateID: string, customUnit
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    ...updatedRate,
+                                    errors: null,
+                                    errorFields: null,
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    errors: null,
+                                    errorFields: null,
+                                    pendingAction: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    ...currentRate,
+                                    errors: errorSubRateID ? null : error,
+                                    errorFields: errorSubRateID ? {[errorSubRateID]: error} : null,
+                                    pendingAction: null,
+                                },
+                            },
+                        },
                     },
                 },
             },
         ],
     };
 
+    const customUnitRate = lodashDeepClone(updatedRate);
+    delete customUnitRate.pendingAction;
+    delete customUnitRate.pendingFields;
+    delete customUnitRate.errors;
+    delete customUnitRate.errorFields;
+
     const parameters = {
         policyID,
-        customUnit: JSON.stringify(newCustomUnit),
+        customUnitID,
+        customUnitRate: JSON.stringify(customUnitRate),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+}
+
+function editPerDiemRateDestination(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newDestination: string) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || !newDestination) {
+        return;
+    }
+
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.name = newDestination;
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
 }
 
 function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newSubrate: string) {
@@ -285,34 +370,19 @@ function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: str
         return;
     }
 
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    newCustomUnit.rates[rateID].subRates = newCustomUnit.rates[rateID].subRates?.map((subRate) => {
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.subRates = updatedRate.subRates?.map((subRate) => {
         if (subRate.id === subRateID) {
             return {...subRate, name: newSubrate};
         }
         return subRate;
     });
-
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        policyID,
-        customUnit: JSON.stringify(newCustomUnit),
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate, subRateID);
 }
 
 function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newAmount: number) {
@@ -320,34 +390,20 @@ function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: stri
         return;
     }
 
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    newCustomUnit.rates[rateID].subRates = newCustomUnit.rates[rateID].subRates?.map((subRate) => {
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.subRates = updatedRate.subRates?.map((subRate) => {
         if (subRate.id === subRateID) {
             return {...subRate, rate: newAmount};
         }
         return subRate;
     });
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        policyID,
-        customUnit: JSON.stringify(newCustomUnit),
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate, subRateID);
 }
 
 function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newCurrency: string) {
@@ -355,29 +411,14 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
         return;
     }
 
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    newCustomUnit.rates[rateID].currency = newCurrency;
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnit.customUnitID]: newCustomUnit,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters = {
-        policyID,
-        customUnit: JSON.stringify(newCustomUnit),
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.currency = newCurrency;
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
 }
 
 function fetchPerDiemRates(policyID: string | undefined) {
@@ -397,6 +438,7 @@ export {
     importPerDiemRates,
     downloadPerDiemCSV,
     clearPolicyPerDiemRatesErrorFields,
+    clearPerDiemRateError,
     deleteWorkspacePerDiemRates,
     editPerDiemRateDestination,
     editPerDiemRateSubrate,

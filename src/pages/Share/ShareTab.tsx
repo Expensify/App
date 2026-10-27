@@ -42,8 +42,8 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const {isBetaEnabled} = usePermissions();
@@ -84,6 +84,7 @@ function ShareTab() {
         ? getSearchOptions({
               dateFnsLocale,
               convertToDisplayString,
+              convertToDisplayStringWithoutCurrency,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
               isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
@@ -105,6 +106,7 @@ function ShareTab() {
               translate,
               getReportByID,
               rules,
+              formatPhoneNumber,
           }).options
         : defaultListOptions;
 
@@ -139,7 +141,7 @@ function ShareTab() {
         canShowSeveralIndicators: true,
     }));
 
-    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
+    const header = getHeaderMessage(translate, styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;

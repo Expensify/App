@@ -1,5 +1,6 @@
 import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Button from '@components/Button';
+import {InlineTextEditCell} from '@components/EditableCell';
 import Icon from '@components/Icon';
 import type {TableData} from '@components/Table';
 import Table from '@components/Table';
@@ -11,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatMaskedCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -19,7 +20,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
@@ -31,6 +32,13 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isCardDeleted: boolean;
         isAssigned: boolean;
         assignedCard?: Card;
+
+        /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
+        canEditName?: boolean;
+
+        /** Provided only when `canEditName` is supported. */
+        onRenameName?: (newName: string) => void;
+
         exportAccountTitle?: string;
         onDismissError?: () => void;
     };
@@ -78,7 +86,6 @@ function WorkspaceCompanyCardTableRow({
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
-
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
@@ -139,7 +146,7 @@ function WorkspaceCompanyCardTableRow({
                         {isAssigned ? (
                             <AccountAvatarWithCardFeed
                                 accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeed={getCompanyCardFeed(assignedCard?.bank)}
                                 cardFeedIconSize={subscriptCardFeedIconSize}
                                 borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 containerStyle={styles.mr0}
@@ -184,11 +191,12 @@ function WorkspaceCompanyCardTableRow({
                             style={[styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                             {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                         >
-                            <TextWithTooltip
-                                shouldShowTooltip
-                                numberOfLines={1}
-                                text={customCardName ?? ''}
-                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            <InlineTextEditCell
+                                value={customCardName ?? ''}
+                                accessibilityLabel={translate('workspace.companyCards.cardName')}
+                                canEdit={!!item.canEditName && !item.isCardDeleted}
+                                onSave={item.onRenameName}
+                                displayTextStyle={[styles.lh16, styles.optionDisplayName, styles.pre]}
                             />
                         </View>
                     )}

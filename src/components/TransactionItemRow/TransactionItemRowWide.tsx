@@ -23,12 +23,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getTagGLCode, getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
+import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 import {
     getAmount,
@@ -41,6 +41,7 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isOnHold,
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
@@ -61,10 +62,12 @@ import {View} from 'react-native';
 import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
 
 import CategoryCell from './DataCells/CategoryCell';
+import CategoryGLCodeCell from './DataCells/CategoryGLCodeCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
+import TagGLCodeCell from './DataCells/TagGLCodeCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
@@ -102,6 +105,7 @@ function TransactionItemRowWide({
     columns,
     onButtonPress = () => {},
     style,
+    dataSet,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -176,6 +180,20 @@ function TransactionItemRowWide({
         fullHeightMainRowStyle = hasValidationMessage ? styles.mnh13 : styles.tableRowHeight;
     }
 
+    const renderYesNoCell = (columnName: SearchColumnType, value: boolean) => (
+        <View
+            key={columnName}
+            style={[getSearchColumnStyles(columnName)]}
+        >
+            <Text
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
+                {value ? translate('common.yes') : translate('common.no')}
+            </Text>
+        </View>
+    );
+
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
         switch (column) {
@@ -235,9 +253,17 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE), styles.editableCellColumn]}
                     >
-                        <TextCell text={getTagGLCode(policyTagLists, transactionItem.tag)} />
+                        <TagGLCodeCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                            canEdit={canEditTag}
+                            onSave={onEditTag}
+                            policyID={effectivePolicyID}
+                            policy={policy}
+                            policyTagLists={policyTagLists}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -330,34 +356,30 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE), styles.editableCellColumn]}
                     >
-                        <TextCell text={getCategoryGLCode(policyCategories, transactionItem.category)} />
+                        <CategoryGLCodeCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                            canEdit={canEditCategory}
+                            onSave={onEditCategory}
+                            policyID={effectivePolicyID}
+                            policyCategories={policyCategories}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
-                return (
-                    <View
-                        key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
-                    >
-                        <Text>{getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}</Text>
-                    </View>
-                );
+                return renderYesNoCell(column, getReimbursable(transactionItem));
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                return (
-                    <View
-                        key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
-                    >
-                        <Text>{transactionItem.billable ? translate('common.yes') : translate('common.no')}</Text>
-                    </View>
-                );
+                return renderYesNoCell(column, !!transactionItem.billable);
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
+                return renderYesNoCell(column, isOnHold(transactionItem));
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 return (
                     <View
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {!!transactionItem.action && (
                             <DeferredActionCell
@@ -625,7 +647,9 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS), styles.userSelectText]}
+                        // Treat the visible status as a row value while keeping the badge presentation unchanged.
+                        dataSet={COPYABLE_TEXT_DATA_SET}
                     >
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
@@ -718,6 +742,7 @@ function TransactionItemRowWide({
                     styles.mw100,
                     style,
                 ]}
+                dataSet={dataSet}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
