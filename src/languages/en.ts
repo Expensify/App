@@ -2942,6 +2942,7 @@ const translations = {
                 legalLastName: 'Legal last name',
                 // @context US Social Security Number, not a national ID of the reader's country.
                 ssn: 'Social Security Number or ITIN',
+                hasNoSSN: 'I do not have an SSN',
                 idDocument: 'ID verification',
                 idDocumentDescription: 'Please upload a government-issued ID.',
             },

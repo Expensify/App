@@ -2,6 +2,8 @@ import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamic
 import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationItems';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
+import getVisibleFields from '@components/DynamicForm/utils/getVisibleFields';
+import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import US from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/forms/US';
@@ -15,6 +17,8 @@ const PAGES = getPages(US);
 const ALL_FIELDS = getAllFields(PAGES);
 const BUSINESS_PAGE = PAGES.find((page) => page.key === 'business');
 const BUSINESS_FIELDS = getContentFields(BUSINESS_PAGE?.content ?? []);
+const REPRESENTATIVE_PAGE = PAGES.find((page) => page.key === 'representative');
+const REPRESENTATIVE_FIELDS = getContentFields(REPRESENTATIVE_PAGE?.content ?? []).filter(isSupportedField);
 
 const EDITABLE_ANSWERS = {
     companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
@@ -47,6 +51,20 @@ describe('Wise US onboarding form', () => {
             ['industryCategories', false],
             ['description', false],
         ]);
+    });
+
+    it('asks for the SSN until the representative checks that they do not have one', () => {
+        // Given the representative page, which the prefill starts with "I do not have an SSN" unchecked
+
+        // When the page is checked before Next, with the box unchecked and then checked
+        const uncheckedErrors = getDynamicFieldErrors(REPRESENTATIVE_FIELDS, {hasNoSSN: false}, translateLocal, ALL_FIELDS);
+        const checkedErrors = getDynamicFieldErrors(REPRESENTATIVE_FIELDS, {hasNoSSN: true}, translateLocal, ALL_FIELDS);
+
+        // Then the SSN is required while the box is unchecked, and hidden and not asked once it is checked
+        expect(uncheckedErrors).toHaveProperty('ssn');
+        expect(getVisibleFields(REPRESENTATIVE_FIELDS, {hasNoSSN: false}, ALL_FIELDS).map((field) => field.key)).toContain('ssn');
+        expect(checkedErrors).not.toHaveProperty('ssn');
+        expect(getVisibleFields(REPRESENTATIVE_FIELDS, {hasNoSSN: true}, ALL_FIELDS).map((field) => field.key)).not.toContain('ssn');
     });
 
     it('lets the admin move on when the bank account details are empty, since the read-only rows cannot be filled in', () => {

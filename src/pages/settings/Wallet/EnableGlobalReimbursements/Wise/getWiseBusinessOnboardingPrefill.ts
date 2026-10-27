@@ -69,6 +69,8 @@ function getWiseBusinessOnboardingPrefill(
         lastName: privatePersonalDetails?.legalLastName,
         phoneNumber: privatePersonalDetails?.phoneNumber,
         dateOfBirth: privatePersonalDetails?.dob,
+        // The SSN shows only while this is false, so it starts unchecked instead of unanswered
+        hasNoSSN: false,
         [addressKeys.street]: [street1, address?.street2 ?? street2].filter(Boolean).join(', '),
         [addressKeys.city]: address?.city,
         [addressKeys.state]: state,
@@ -94,7 +96,7 @@ function getMissingPrefill(prefill: DynamicFormValues, draft: DynamicFormValues)
             }
             continue;
         }
-        if (value && draft[key] === undefined) {
+        if ((value || value === false) && draft[key] === undefined) {
             missing[key] = value;
         }
     }

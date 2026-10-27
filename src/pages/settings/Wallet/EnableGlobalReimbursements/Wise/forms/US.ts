@@ -14,7 +14,18 @@ const representativePage: DynamicFormPage = {
         {key: 'phoneNumber', type: 'text', required: true, rule: 'phone', labelKey: 'common.phoneNumber'},
         {key: 'dateOfBirth', type: 'date', required: true, rule: 'dateOfBirth', labelKey: 'common.dob'},
         {key: 'address', type: 'address', required: true, labelKey: 'common.address'},
-        {key: 'ssn', type: 'text', required: true, sensitive: true, regex: '^\\d{9}$', example: '123456789', labelKey: 'walletPage.wiseOnboarding.representative.ssn'},
+        {
+            key: 'ssn',
+            type: 'text',
+            required: true,
+            sensitive: true,
+            regex: '^\\d{9}$',
+            example: '123456789',
+            labelKey: 'walletPage.wiseOnboarding.representative.ssn',
+            showWhen: {key: 'hasNoSSN', equals: ['false']},
+        },
+        // The prefill starts it unchecked, since an unanswered checkbox would hide the SSN too
+        {key: 'hasNoSSN', type: 'boolean', presentation: 'checkbox', required: false, labelKey: 'walletPage.wiseOnboarding.representative.hasNoSSN'},
         {
             key: 'idDocument',
             type: 'file',

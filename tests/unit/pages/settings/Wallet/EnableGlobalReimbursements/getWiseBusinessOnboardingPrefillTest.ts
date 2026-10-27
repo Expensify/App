@@ -41,6 +41,7 @@ describe('getWiseBusinessOnboardingPrefill', () => {
             lastName: 'Nguyen',
             phoneNumber: '+15125550199',
             dateOfBirth: '1985-04-12',
+            hasNoSSN: false,
             [ADDRESS_KEYS.street]: '42 Oak Ave, Apt 3',
             [ADDRESS_KEYS.city]: 'Austin',
             [ADDRESS_KEYS.state]: 'TX',
@@ -59,8 +60,8 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         // When the onboarding builds its starting answers for this bank account
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, otherAccountData, undefined);
 
-        // Then no detail of the other account reaches the form
-        expect(getMissingPrefill(prefill, {})).toEqual({});
+        // Then no detail of the other account reaches the form, only the unchecked "I do not have an SSN" box
+        expect(getMissingPrefill(prefill, {})).toEqual({hasNoSSN: false});
     });
 
     it.each([
@@ -122,8 +123,8 @@ describe('getWiseBusinessOnboardingPrefill', () => {
         // When the onboarding builds its starting answers
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
 
-        // Then nothing is made up, so getMissingPrefill writes nothing
-        expect(getMissingPrefill(prefill, {})).toEqual({});
+        // Then nothing is made up, so getMissingPrefill writes only the unchecked "I do not have an SSN" box that keeps the SSN shown
+        expect(getMissingPrefill(prefill, {})).toEqual({hasNoSSN: false});
     });
 });
 
@@ -159,7 +160,7 @@ describe('getMissingPrefill', () => {
     it('empties the read-only rows when the bank account details are gone, so the details of another account do not stay', () => {
         // Given a draft holding another account's details, and no details for this bank account
         const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
-        const draft = {companyName: 'Old Name LLC', website: 'https://old.example'};
+        const draft = {companyName: 'Old Name LLC', website: 'https://old.example', hasNoSSN: false};
 
         // When the onboarding decides what to prefill
         const missing = getMissingPrefill(prefill, draft);
@@ -167,6 +168,17 @@ describe('getMissingPrefill', () => {
         // Then the read-only rows are emptied, and once the draft holds that nothing is left to write
         expect(missing).toEqual({companyName: '', website: ''});
         expect(getMissingPrefill(prefill, {...draft, ...missing})).toEqual({});
+    });
+
+    it('keeps a checked "I do not have an SSN" box', () => {
+        // Given a draft where the user checked "I do not have an SSN"
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, undefined, undefined);
+
+        // When the onboarding decides what to prefill
+        const missing = getMissingPrefill(prefill, {hasNoSSN: true});
+
+        // Then the unchecked starting answer does not overwrite the user's check
+        expect(missing).not.toHaveProperty('hasNoSSN');
     });
 
     it('writes nothing once the draft holds every prefill answer', () => {
