@@ -2,7 +2,7 @@ import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getDefaultApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover, isNonMemberApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
     addMembersToRule,
@@ -12,6 +12,7 @@ import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
     getApprovalWorkflowRulesForPolicy,
+    getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
@@ -286,7 +287,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
@@ -309,13 +310,10 @@ type SetApprovalWorkflowRulesParams = {
 };
 
 /**
- * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
+ * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
+ * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
-    if (!policyID || isEmptyObject(rulesDiff)) {
-        return;
-    }
-
+function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
@@ -351,12 +349,32 @@ function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetAppro
         failureData.push(restore);
     }
 
+    return {optimisticData, successData, failureData};
+}
+
+/**
+ * Apply a set of approval-workflow rule changes to a policy via the SetApprovalWorkflow Auth command.
+ */
+function setApprovalWorkflowRules({policyID, rulesDiff, previousRules}: SetApprovalWorkflowRulesParams) {
+    if (!policyID || isEmptyObject(rulesDiff)) {
+        return;
+    }
+
     const parameters: SetApprovalWorkflowParams = {
         policyID,
         rules: JSON.stringify(rulesDiff),
     };
 
-    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW, parameters, buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}));
+}
+
+/**
+ * Build the Onyx updates for a request whose backend deletes the policy's approval workflow rules, the way
+ * setApprovalWorkflowRules deletes rules: they stop routing while the request is pending, and come back if it fails.
+ */
+function buildDeleteApprovalWorkflowRulesOnyxData(policyID: string, rules: OnyxCollection<Rule>) {
+    const rulesDiff: ApprovalWorkflowRulesDiff = Object.fromEntries(Object.keys(getApprovalWorkflowRulesForPolicy(rules, policyID)).map((ruleID) => [ruleID, null]));
+    return buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules: rules});
 }
 
 type CreateApprovalWorkflowRulesParams = CreateApprovalWorkflowParams & {
@@ -622,6 +640,8 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
         return {
             ...existingApprover,
             isCircularReference: hasCircularReference,
+            // Re-check, so picking a new additional approver for reports over the limit clears the flag
+            isOverLimitForwardsToNotWorkspaceMember: isNonMemberApprover(policy, existingApprover.overLimitForwardsTo) || undefined,
         };
     });
 
@@ -748,6 +768,11 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
         }
 
+        const nonMemberApproverError = getNonMemberApproverError(approver, approvalWorkflow.isDefault);
+        if (nonMemberApproverError) {
+            errors[`approver-${approverIndex}`] = nonMemberApproverError;
+        }
+
         // Validate that if overLimitForwardsTo is set, approvalLimit must also be set
         if (approver?.overLimitForwardsTo && (!approver?.approvalLimit || approver.approvalLimit <= 0)) {
             errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterAmountError';
@@ -772,6 +797,7 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
 }
 
 export {
+    buildDeleteApprovalWorkflowRulesOnyxData,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
     removeApprovalWorkflowRules,

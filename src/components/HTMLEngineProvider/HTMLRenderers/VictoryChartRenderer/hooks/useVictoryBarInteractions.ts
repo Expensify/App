@@ -218,7 +218,7 @@ function useVictoryBarInteractions() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery, searchKey: getSearchKeyForQuery(buildSearchQueryJSON(searchQuery))}));
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition} = useChartInteractions({
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} = useChartInteractions({
         handlePress: navigateToBarSearch,
         checkIsOver: checkIsOverBar,
         checkIsClickable: checkIsClickableBar,
@@ -226,6 +226,7 @@ function useVictoryBarInteractions() {
         chartBottom,
         yZero,
         coordinateScale,
+        shouldPinTooltipOnTouch: false,
     });
 
     const [activeBarIndex, setActiveBarIndex] = useState(-1);
@@ -261,7 +262,7 @@ function useVictoryBarInteractions() {
         pointWidth.set(widths);
         hasSearchQuery.set(searchQueryFlags);
         chartBottom.set(chartBounds.bottom);
-        yZero.set(yScale(0));
+        yZero.set(Math.max(chartBounds.top, yScale(0)));
     };
 
     return {
@@ -273,6 +274,7 @@ function useVictoryBarInteractions() {
         isTooltipActive,
         isCursorOverClickable,
         initialTooltipPosition,
+        onChartMoved,
     };
 }
 

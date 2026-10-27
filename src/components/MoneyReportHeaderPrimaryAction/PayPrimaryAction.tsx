@@ -26,10 +26,9 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -142,11 +141,13 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
+                invoiceReportTransactions: transactions,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -165,13 +166,14 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 rules,
             });
         } else {
-            startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
+                iouReportTransactions: transactions,
                 introSelected,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
@@ -183,6 +185,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,

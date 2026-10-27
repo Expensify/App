@@ -401,7 +401,8 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
 
                                     // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
-                                    expect(snapshotData).toBeUndefined();
+                                    // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
+                                    expect(snapshotData).toEqual({});
                                     resolve();
                                 },
                             });
@@ -1068,7 +1069,7 @@ describe('actions/IOU', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 if (iouReportID) {
-                                    clearAllRelatedReportActionErrors(iouReportID, iouAction ?? null, iouReportID, false);
+                                    clearAllRelatedReportActionErrors({reportID: iouReportID, reportAction: iouAction ?? null, originalReportID: iouReportID, isOffline: false});
                                 }
                                 resolve();
                             }),

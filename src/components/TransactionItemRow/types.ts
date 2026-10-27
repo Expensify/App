@@ -28,6 +28,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The date the report was approved, derived from the report and its live actions on the Search page */
     approved?: string;
 
+    /** The date the report was paid, derived from the report and its live actions on the Search page */
+    paid?: string;
+
     /** The date the report was exported */
     exported?: string;
 
@@ -76,6 +79,7 @@ type TransactionItemRowProps = {
     isDateColumnCreated?: boolean;
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;
+    paidColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
@@ -85,6 +89,7 @@ type TransactionItemRowProps = {
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void;
     style?: StyleProp<ViewStyle>;
+    dataSet?: Record<string, unknown>;
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInSingleTransactionReport?: boolean;

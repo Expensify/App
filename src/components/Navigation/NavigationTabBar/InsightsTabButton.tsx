@@ -2,6 +2,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -9,6 +10,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
@@ -24,6 +26,7 @@ type InsightsTabButtonProps = {
 };
 
 function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
@@ -36,7 +39,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
         clearSelectedText();
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
-        });
+        }, session);
     };
 
     if (isWideLayout) {
@@ -67,7 +70,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.insights')}
             accessibilityState={{selected: isSelected}}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
         >

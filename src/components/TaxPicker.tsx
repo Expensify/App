@@ -145,7 +145,7 @@ function TaxPicker({
         label: translate('common.search'),
         value: searchValue,
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, (sections.at(0)?.data?.length ?? 0) > 0, searchValue),
     };
 
     const updatedSections = deletedTaxOption

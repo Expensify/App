@@ -22,7 +22,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 ### Performance
 - [PERF-1](rules/perf-1-no-spread-in-renderitem.md) — No spread in renderItem
 - [PERF-2](rules/perf-2-early-return.md) — Return early before expensive work
-- [PERF-3](rules/perf-3-onyx-list-item-provider.md) — Use OnyxListItemProvider in renderItem
+- [PERF-3](rules/perf-3-onyx-list-item-provider.md) — Shared data in list rows comes from OnyxListItemProvider
 - [PERF-5](rules/perf-5-shallow-comparison.md) — Shallow over deep comparisons
 - [PERF-6](rules/perf-6-derive-state-from-props.md) — Derive state from props
 - [PERF-7](rules/perf-7-reset-via-key-prop.md) — Reset via key prop
@@ -38,6 +38,9 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [PERF-17](rules/perf-17-pass-raw-index-on-demand.md) — Pass raw source, index on demand (no pre-built digest)
 - [PERF-18](rules/perf-18-use-pre-mount-destination.md) — Use usePreMountDestination for RHP pre-mounting
 - [PERF-19](rules/perf-19-scalar-collection-selectors.md) — Collection selectors return only what the consumer uses
+- [PERF-20](rules/perf-20-no-ad-hoc-deferral.md) — Defer heavy work to happen after visual transitions
+- [PERF-21](rules/perf-21-rows-read-own-data.md) — List rows read their own Onyx data
+- [PERF-22](rules/perf-22-row-single-member-subscriptions.md) — List rows subscribe to single collection members
 
 ### Consistency
 - [CONSISTENCY-1](rules/consistency-1-no-platform-checks.md) — No platform-specific checks in components
@@ -57,9 +60,11 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-15](rules/consistency-15-plain-comment-style.md) — Write comments as plain, natural sentences
 - [CONSISTENCY-16](rules/consistency-16-no-ai-jargon.md) — No AI-generated jargon in code or comments
 - [CONSISTENCY-17](rules/consistency-17-plural-form.md) — Pluralize with PluralForm, not ternaries on a count
+- [CONSISTENCY-18](rules/consistency-18-comment-non-obvious-code.md) — Comment code that is not self-explanatory
+- [CONSISTENCY-19](rules/consistency-19-copy-grammar-and-case.md) — User-facing copy is grammatical and sentence case
+- [CONSISTENCY-20](rules/consistency-20-function-names.md) — Name functions with a verb that says what they do
 
 ### Clean React Patterns
-- [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
 - [CLEAN-REACT-PATTERNS-1](rules/clean-react-1-composition-over-config.md) — Composition over configuration
 - [CLEAN-REACT-PATTERNS-2](rules/clean-react-2-own-behavior.md) — Components own their behavior
 - [CLEAN-REACT-PATTERNS-3](rules/clean-react-3-context-free-contracts.md) — Context-free component contracts
@@ -74,6 +79,11 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-1](rules/ui-1-correct-loading-indicator.md) — Use the correct loading indicator based on navigation context
 - [UI-2](rules/ui-2-new-page-scrollview.md) — New pages must be scrollable
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
+- [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
+- [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
+
+### Onyx
+- [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
 
 ## Usage
 

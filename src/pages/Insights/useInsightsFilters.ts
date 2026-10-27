@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {setInsightsFilters} from '@libs/actions/Insights';
+import {saveInsightsFilters, setInsightsFilters} from '@libs/actions/Insights';
 import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
@@ -43,7 +43,13 @@ function useInsightsFilters(dashboard: InsightsDashboardID): UseInsightsFiltersR
     const filters: InsightsFilters = {...defaultFilters, ...parseInsightsFilters(storedQuery)};
 
     const setFilters = (update: Partial<InsightsFilters>) => {
-        setInsightsFilters(searchKey, buildInsightsQueryString({...filters, ...update}));
+        const query = buildInsightsQueryString({...filters, ...update});
+        // GetInsights saves every other filter, but a Compare mode change doesn't fetch the dashboard again
+        if ('compare' in update) {
+            saveInsightsFilters(searchKey, query);
+            return;
+        }
+        setInsightsFilters(searchKey, query);
     };
 
     return {

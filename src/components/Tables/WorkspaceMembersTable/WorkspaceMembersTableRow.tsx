@@ -34,6 +34,11 @@ type WorkspaceMembersTableRowProps = {
     /** Whether the custom field 2 column is visible on web screens or not */
     shouldShowCustomField2Column: boolean;
 
+    /** Whether the office location column is visible on web screens or not */
+    shouldShowOfficeLocationColumn: boolean;
+    /** Whether the bank account column is visible on web screens or not */
+    shouldShowBankAccountColumn: boolean;
+
     /** Policy used to determine which roles can be assigned from the inline editor */
     policy: OnyxEntry<Policy>;
 };
@@ -43,6 +48,8 @@ export default function WorkspaceMembersTableRow({
     rowIndex,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowOfficeLocationColumn,
+    shouldShowBankAccountColumn,
     shouldUseNarrowTableLayout,
     policy,
 }: WorkspaceMembersTableRowProps) {
@@ -55,12 +62,15 @@ export default function WorkspaceMembersTableRow({
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const roleLabel = translate('workspace.common.roleName', item.role);
-    const accessibilityLabel = `${item.name}, ${item.email}, ${roleLabel}`;
+    const bankAccountLabel =
+        !shouldUseNarrowTableLayout && shouldShowBankAccountColumn && item.bankAccountLastFour ? `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}` : '';
+    const accessibilityLabel = [item.name, item.email, bankAccountLabel, roleLabel].filter(Boolean).join(', ');
     const memberSubtitle = !shouldUseNarrowTableLayout ? item.email : `${roleLabel} • ${item.email}`;
 
     return (
         <Table.Row
             interactive
+            shouldAllowTextSelection
             rowIndex={rowIndex}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
@@ -78,27 +88,50 @@ export default function WorkspaceMembersTableRow({
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
-                        <AccountAvatar
-                            size={avatarSize}
-                            accountID={item.accountID}
-                            accountEmail={item.login}
-                            fallbackDisplayName={item.name ?? item.email}
-                        />
+                        <View
+                            style={styles.userSelectNone}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <AccountAvatar
+                                size={avatarSize}
+                                accountID={item.accountID}
+                                accountEmail={item.login}
+                                fallbackDisplayName={item.name ?? item.email}
+                            />
+                        </View>
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.name}
                                 style={[styles.optionDisplayName, styles.pre]}
                                 numberOfLines={1}
+                                isSelectable
                             />
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={memberSubtitle}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 numberOfLines={1}
+                                isSelectable
                             />
                         </View>
                     </View>
+
+                    {!shouldUseNarrowTableLayout && shouldShowOfficeLocationColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.officeLocationName && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={item.officeLocationName}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                />
+                            )}
+                        </View>
+                    )}
 
                     {!shouldUseNarrowTableLayout && shouldShowCustomField1Column && (
                         <View
@@ -111,6 +144,7 @@ export default function WorkspaceMembersTableRow({
                                     numberOfLines={1}
                                     text={item.employeeUserID}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    isSelectable
                                 />
                             )}
                         </View>
@@ -126,6 +160,23 @@ export default function WorkspaceMembersTableRow({
                                     shouldShowTooltip
                                     numberOfLines={1}
                                     text={item.employeePayrollID}
+                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                                    isSelectable
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && shouldShowBankAccountColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            {!!item.bankAccountLastFour && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    numberOfLines={1}
+                                    text={bankAccountLabel}
                                     style={[styles.lh16, styles.optionDisplayName, styles.pre]}
                                 />
                             )}
@@ -147,10 +198,7 @@ export default function WorkspaceMembersTableRow({
                         </View>
                     )}
 
-                    <View
-                        style={styles.alignItemsEnd}
-                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
-                    >
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
                         <Icon
                             src={icons.ArrowRight}
                             fill={theme.icon}

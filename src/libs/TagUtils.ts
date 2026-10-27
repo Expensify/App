@@ -7,6 +7,7 @@ import {Str} from 'expensify-common';
 
 import {escapeTagName} from './PolicyUtils';
 import StringUtils from './StringUtils';
+import {containsHtmlTag} from './ValidationUtils';
 
 /**
  * Checks if a tag value is missing/empty
@@ -43,7 +44,7 @@ type TagNameError =
     | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
 /**
- * Validates a tag name against every rule (required, reserved, unique, length). This is the single
+ * Validates a tag name against every rule (required, HTML-like characters, reserved, unique, length). This is the single
  * source of truth shared by the create form, the RHP edit form, and inline table editing. Pass
  * `currentName` (the decoded display name) when editing so renaming a tag to its own name isn't flagged
  * as a duplicate. Uniqueness also matches HTML-encoded stored names such as `R&amp;D` vs `R&D`.
@@ -54,6 +55,11 @@ function getTagNameError(tags: PolicyTags | undefined, newName: string, currentN
 
     if (StringUtils.isEmptyString(sanitized)) {
         return CONST.INPUT_VALIDATION_ERRORS.REQUIRED;
+    }
+
+    // Tag name pages use strict HTML validation. Inline rename only calls this helper, so `</>` would otherwise save from the table.
+    if (containsHtmlTag(sanitized, true)) {
+        return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
 
     // Tags are stored under their escaped name, so escape before the reserved-name, uniqueness, and length checks.
@@ -84,6 +90,10 @@ function getTagNameErrorMessage(translate: LocaleContextProps['translate'], erro
         case CONST.INPUT_VALIDATION_ERRORS.EXISTING:
             return translate('workspace.tags.existingTagError');
         case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            // Reserved name "0" and HTML-like names share this code. The Name page calls the latter an invalid character.
+            if (containsHtmlTag(StringUtils.sanitizeName(name), true)) {
+                return translate('common.error.invalidCharacter');
+            }
             return translate('workspace.tags.invalidTagNameError');
         case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
         default:

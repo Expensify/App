@@ -95,6 +95,7 @@ function getCategoryListSections({
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     translate,
     shouldShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: {
     categories: PolicyCategories;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -104,6 +105,7 @@ function getCategoryListSections({
     maxRecentReportsToShow?: number;
     translate: LocalizedTranslate;
     shouldShowGLCode?: boolean;
+    searchInputThreshold?: number;
 }): CategoryTreeSection[] {
     const withGLCode = (category: Category): Category => (shouldShowGLCode ? {...category, glCode: getCategoryGLCode(categories, category.name)} : category);
     const sortedCategories = sortCategories(categories, localeCompare);
@@ -202,7 +204,7 @@ function getCategoryListSections({
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.has(category.name));
 
-    if (numberOfEnabledCategories < CONST.STANDARD_LIST_ITEM_LIMIT) {
+    if (numberOfEnabledCategories < searchInputThreshold) {
         const data = getCategoryOptionTree(filteredCategories, selectedOptionsWithDisabledState, shouldShowGLCode);
         categorySections.push({
             // "All" section when items amount less than the threshold

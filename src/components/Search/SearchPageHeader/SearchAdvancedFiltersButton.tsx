@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
-import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {ButtonComponentProps, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
 
@@ -93,7 +93,12 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
               </Button>
           );
 
-    const filtersPopup = () => <SearchAdvancedFiltersPopup queryJSON={queryJSON} />;
+    const filtersPopup = ({closeOverlay}: PopoverComponentProps) => (
+        <SearchAdvancedFiltersPopup
+            queryJSON={queryJSON}
+            closeOverlay={closeOverlay}
+        />
+    );
 
     return (
         <FilterPopupButton

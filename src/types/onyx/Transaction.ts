@@ -293,11 +293,11 @@ type Receipt = {
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
 
-    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationStartDate?: string;
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationStartDate?: string | null;
 
-    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationEndDate?: string;
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationEndDate?: string | null;
 };
 
 /** Model of route */
@@ -324,7 +324,7 @@ type ReceiptError = {
     action?: string;
 
     /** Parameters required to retry the failed action */
-    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };
@@ -352,10 +352,10 @@ type Reservation = {
     company?: Company;
 
     /** In car and hotel reservations, this represents the cancellation policy */
-    cancellationPolicy?: string;
+    cancellationPolicy?: string | null;
 
     /** In car and hotel reservations, this represents the cancellation deadline */
-    cancellationDeadline?: string;
+    cancellationDeadline?: string | null;
 
     /** Collection of passenger confirmations */
     confirmations?: ReservationConfirmation[];
@@ -556,6 +556,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction's request type (e.g. manual, scan, distance). */
         iouRequestType?: IOURequestType;
+
+        /** Draft-only marker set when waypoints come from a reused route, so the client must not refetch the route from the map SDK */
+        isReusedRoute?: boolean | null;
 
         /**
          * Tracks whether the user has explicitly set an amount in the new manual expense flow.

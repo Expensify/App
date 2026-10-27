@@ -11,7 +11,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -285,8 +285,12 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            const isReimbursementDisabled = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled) {
+            const reimbursementChoice = getReimbursementChoice(policy);
+            const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -323,6 +327,13 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
+function buildChangeWorkspaceNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+        icon: CONST.NEXT_STEP.ICONS.BOX,
+    };
+}
+
 function getReportNextStep({
     moneyRequestReport,
     moneyRequestReportOwnerLogin,
@@ -333,6 +344,11 @@ function getReportNextStep({
     currentUserAccountID,
     rules,
 }: GetReportNextStepParams) {
+    // Reports on an archived workspace can't be acted on until they're moved to another workspace
+    if (isArchivedPolicy(policy)) {
+        return buildChangeWorkspaceNextStep();
+    }
+
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&

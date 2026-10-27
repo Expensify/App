@@ -1,3 +1,4 @@
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,7 +26,7 @@ import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
@@ -40,23 +41,17 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
         shouldSaveDraft: true,
     });
 
-    const onCurrencySelected = useCallback(
-        (value: string) => {
-            if (formValues.bankCurrency === value) {
-                return;
-            }
-            fetchCorpayFields(formValues.bankCountry, value);
-            onMove(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS, false);
-        },
-        [formValues.bankCountry, formValues.bankCurrency, onMove],
-    );
+    const onCurrencySelected = (value: string) => {
+        if (formValues.bankCurrency === value) {
+            return;
+        }
+        fetchCorpayFields(formValues.bankCountry, value);
+        onMove(CONST.CORPAY_FIELDS.INDEXES.MAPPING.BANK_ACCOUNT_DETAILS, false);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], translate);
-        },
-        [fieldsMap, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS], translate);
+    };
     const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const currencyHeaderContent = (
@@ -76,7 +71,9 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
             enabledWhenOffline
         >
             <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountDetailsStepHeader')}</Text>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountDetailsStepHeader')}</Text>
+                </CollapsibleHeaderOnKeyboardGroupMember>
                 <View style={[styles.mhn5]}>
                     <CurrencyPicker
                         label={translate('common.currency')}

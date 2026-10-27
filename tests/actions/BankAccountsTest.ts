@@ -1,4 +1,11 @@
-import {clearPersonalBankAccount, connectBankAccountWithPlaid, initiateBankAccountUnlock, openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
+import {
+    clearPersonalBankAccount,
+    connectBankAccountWithPlaid,
+    enableGlobalReimbursementsForUSDBankAccount,
+    initiateBankAccountUnlock,
+    openPersonalBankAccountSetupView,
+    updateBankAccountName,
+} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -197,7 +204,7 @@ describe('actions/BankAccounts', () => {
             openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true});
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute()));
         });
 
         test('carries shouldSetUpUSBankAccount to the verify account page when the user is not validated', async () => {
@@ -240,6 +247,127 @@ describe('actions/BankAccounts', () => {
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
 
             expect(personalBankAccount).toEqual({onSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS});
+        });
+    });
+
+    describe('updateBankAccountName', () => {
+        const bankAccountID = 1234;
+        const oldName = 'Chase Checking';
+        const newName = 'Payroll account';
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    title: oldName,
+                    methodID: bankAccountID,
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {bankAccountID, addressName: oldName, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            });
+        });
+
+        test('optimistically renames the bank account and sends UpdateBankAccount with the new addressName', async () => {
+            // Given the request is held so the optimistic state can be observed
+            mockFetch.pause?.();
+
+            // When the bank account is renamed
+            updateBankAccountName(bankAccountID, newName, oldName);
+            await waitForBatchedUpdates();
+
+            // Then both the Wallet row title and addressName show the new name while the update is pending
+            let bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBe(newName);
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBe(newName);
+            expect(bankAccountList?.[bankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // And the backend receives the bank account ID with the new name as addressName
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_BANK_ACCOUNT, 1);
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.UPDATE_BANK_ACCOUNT).at(0)?.[1]?.body;
+            expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(expect.objectContaining({bankAccountID: `${bankAccountID}`, addressName: newName}));
+
+            // When the request succeeds
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the new name is kept and the pending state is cleared
+            bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBe(newName);
+            expect(bankAccountList?.[bankAccountID]?.pendingAction).toBeFalsy();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeFalsy();
+        });
+
+        test('restores the previous name and shows an error when the request fails', async () => {
+            // Given the backend rejects the rename
+            mockFetch.fail?.();
+
+            // When the bank account is renamed
+            updateBankAccountName(bankAccountID, newName, oldName);
+            await waitForBatchedUpdates();
+
+            // Then the previous name is restored so the Wallet does not show a name the backend never saved
+            const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBe(oldName);
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBe(oldName);
+            expect(bankAccountList?.[bankAccountID]?.pendingAction).toBeFalsy();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
+
+        test('clears the optimistic name when the request fails and there was no previous name', async () => {
+            // Given a bank account with no title, so there is no previous name to restore
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [bankAccountID]: {
+                    methodID: bankAccountID,
+                    accountData: {bankAccountID, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            });
+            mockFetch.fail?.();
+
+            // When the bank account is renamed and the backend rejects it
+            updateBankAccountName(bankAccountID, newName, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the optimistic name is removed, because Onyx merge would ignore an undefined rollback value
+            const bankAccountList = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(bankAccountList?.[bankAccountID]?.title).toBeUndefined();
+            expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBeUndefined();
+            expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
+    });
+
+    describe('enableGlobalReimbursementsForUSDBankAccount', () => {
+        test('clears the form draft after success so the next bank account does not reuse its values', async () => {
+            // Given a draft filled in while enabling Global Reimbursement for the first bank account
+            await Onyx.set(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {
+                businessRegistrationIncorporationNumber: '123456789',
+                natureOfBusiness: 'retail',
+            });
+
+            // When the request succeeds
+            enableGlobalReimbursementsForUSDBankAccount({inputs: '{}', bankAccountID: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the draft is cleared and the form reports success
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT, 1);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT)).toBeUndefined();
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
+            expect(form?.isSuccess).toBe(true);
+        });
+
+        test('keeps the form draft when the request fails so the user can retry', async () => {
+            // Given a draft filled in for a bank account
+            await Onyx.set(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {
+                businessRegistrationIncorporationNumber: '123456789',
+            });
+            mockFetch.fail?.();
+
+            // When the request fails
+            enableGlobalReimbursementsForUSDBankAccount({inputs: '{}', bankAccountID: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the draft is kept
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+            expect(draft?.businessRegistrationIncorporationNumber).toBe('123456789');
         });
     });
 

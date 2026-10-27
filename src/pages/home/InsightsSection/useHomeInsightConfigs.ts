@@ -19,11 +19,6 @@ import type {InsightsGraphKey} from '@src/types/onyx';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-type HomeInsightConfig = SearchTypeMenuItem & {
-    /** Color every bar is drawn in. Only a bar chart reads it. */
-    color?: string;
-};
-
 const HOME_INSIGHT_ICONS: Record<InsightsGraphKey, SearchTypeMenuItem['icon']> = {
     [CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME]: 'CalendarSolid',
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: 'User',
@@ -32,7 +27,7 @@ const HOME_INSIGHT_ICONS: Record<InsightsGraphKey, SearchTypeMenuItem['icon']> =
 };
 
 /** Builds a Home insight that queries the same chart as the Insights page. */
-function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: InsightsFilters): HomeInsightConfig {
+function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
     const searchQuery = applyInsightsFilters(chart, filters);
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
 
@@ -46,7 +41,6 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
         hash: searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID,
         similarSearchHash: searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID,
         recentSearchHash: searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID,
-        color: chart.color,
     };
 }
 
@@ -54,7 +48,7 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
  * Builds the configs for the Home insights the current user should see, in display order.
  * With the Insights page beta, the charts and their visibility match the Insights Spend dashboard, otherwise the Spend menu.
  */
-function useHomeInsightConfigs(): {configs: HomeInsightConfig[]; isResolved: boolean} {
+function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});

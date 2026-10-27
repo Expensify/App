@@ -120,6 +120,45 @@ describe('normalizeESLintResults', () => {
 });
 
 describe('filterReactCompilerMessages', () => {
+    it('enforces manual memoization only when the compiler memoizes the file', async () => {
+        // Given a diagnostic that depends on automatic memoization being available.
+        const messages = [makeMessage({ruleID: 'rulesdir/no-manual-memoization'})];
+
+        // When the compiler memoizes the file, or does not.
+        const compiled = await filterReactCompilerMessages(messages, '/tmp', () => true);
+        const skipped = await filterReactCompilerMessages(messages, '/tmp', () => false);
+
+        // Then manual memoization is forbidden only in the compiled file.
+        expect(compiled).toEqual(messages);
+        expect(skipped).toEqual([]);
+    });
+
+    it('does not forbid manual memoization when compilation cannot be checked', async () => {
+        // Given a file whose compiler analysis cannot complete.
+        const messages = [makeMessage({ruleID: 'rulesdir/no-manual-memoization'})];
+
+        // When analysis fails or the source cannot be read.
+        const crashed = await filterReactCompilerMessages(messages, '/tmp', () => {
+            throw new Error('compiler unavailable');
+        });
+        const unreadable = await filterReactCompilerMessages(messages, '/tmp');
+
+        // Then conservatively allow the existing manual memoization.
+        expect(crashed).toEqual([]);
+        expect(unreadable).toEqual([]);
+    });
+
+    it('does not enforce the compiler-only rule in tests', async () => {
+        // Given test code, which is excluded from React Compiler.
+        const messages = [makeMessage({filePath: '/tmp/tests/file.tsx', ruleID: 'rulesdir/no-manual-memoization'})];
+
+        // When filtering diagnostics, even with a successful compiler stub.
+        const result = await filterReactCompilerMessages(messages, '/tmp', () => true);
+
+        // Then no compiler-only restriction applies.
+        expect(result).toEqual([]);
+    });
+
     it('skips the compiler for files with no suppressible message', async () => {
         let called = 0;
         const messages = [makeMessage({ruleID: 'no-console'})];
@@ -131,7 +170,7 @@ describe('filterReactCompilerMessages', () => {
         expect(result).toEqual(messages);
     });
 
-    it('drops suppressible messages when both compilers memoize the file', async () => {
+    it('drops suppressible messages when the compiler memoizes the file', async () => {
         const messages = [
             makeMessage({ruleID: 'react/jsx-no-constructed-context-values'}),
             makeMessage({ruleID: 'react-hooks/exhaustive-deps', message: 'React Hook useCallback() Hook is missing a dependency'}),
@@ -168,9 +207,9 @@ describe('filterReactCompilerMessages', () => {
     });
 
     it('does not persist fallback compiler failures to cache', () => {
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: false})).toBe(false);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: false, cacheable: true})).toBe(true);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', bothMemoized: true, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: false})).toBe(false);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: true})).toBe(true);
+        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: true, cacheable: true})).toBe(true);
         expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
 });

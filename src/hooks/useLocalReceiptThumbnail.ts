@@ -2,6 +2,8 @@ import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/crop
 
 import {useEffect, useRef, useState, useTransition} from 'react';
 
+import useReceiptUpgradeCount from './useReceiptUpgradeCount';
+
 const thumbnailCache = new Map<string, string>();
 /** Track how many mounted hook instances reference each sourceUri */
 const thumbnailRefCount = new Map<string, number>();
@@ -42,10 +44,13 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
     const [, startTransition] = useTransition();
     const retainedUriRef = useRef<string | undefined>(undefined);
 
+    const upgradeCount = useReceiptUpgradeCount(sourceUri);
+
     // Resolve cached thumbnails synchronously during render (fast path)
     const cachedUri = sourceUri ? thumbnailCache.get(sourceUri) : undefined;
     const resultForCurrentSource = asyncResult?.source === sourceUri ? asyncResult : undefined;
-    const thumbnailUri = cachedUri ?? resultForCurrentSource?.uri;
+    const resolvedUri = cachedUri ?? resultForCurrentSource?.uri;
+    const thumbnailUri = resolvedUri && upgradeCount > 0 ? `${resolvedUri.split('#').at(0) ?? resolvedUri}#upgraded${upgradeCount}` : resolvedUri;
 
     const shouldGenerate = !!sourceUri && isLocalFile && !cachedUri;
     const isGenerating = shouldGenerate && !resultForCurrentSource?.done;

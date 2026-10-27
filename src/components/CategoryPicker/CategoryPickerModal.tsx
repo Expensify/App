@@ -1,24 +1,30 @@
+import Icon from '@components/Icon';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionListPopoverHeader, {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
+import Tooltip from '@components/Tooltip';
 
-import useKeyboardState from '@hooks/useKeyboardState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
+import useTheme from '@hooks/useTheme';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import CategoryPicker from '.';
 
@@ -35,6 +41,12 @@ type CategoryPickerModalProps = {
 
     selectedCategory?: string;
 
+    /** Whether to show GL codes under each category regardless of the workspace setting */
+    shouldAlwaysShowGLCode?: boolean;
+
+    /** Number of enabled categories at which the search input appears. The content height estimate uses the same value. */
+    searchInputThreshold?: number;
+
     /** Called when the user confirms a category selection */
     onSelected?: (item: ListItem) => void;
 
@@ -47,6 +59,12 @@ type CategoryPickerModalProps = {
     /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling. */
     shouldFitContentHeight?: boolean;
 
+    /** Shows a header with a back button and an add button, for users who can add a category to the workspace */
+    onAddCategory?: () => void;
+
+    /** Sentry label for the add button, so each caller's presses are attributed to it */
+    addCategorySentryLabel?: string;
+
     /** Whether the pop-over may flip to the other side of the anchor when it overflows. It shifts by a whole pop-over height, so a caller that already picked the side turns this off. */
     shouldSwitchPositionIfOverflow?: boolean;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
@@ -57,6 +75,8 @@ function CategoryPickerModal({
     anchorPosition,
     policyID,
     selectedCategory,
+    shouldAlwaysShowGLCode = false,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -64,24 +84,26 @@ function CategoryPickerModal({
     popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     shouldFitContentHeight = false,
     shouldSwitchPositionIfOverflow = true,
+    onAddCategory,
+    addCategorySentryLabel,
 }: CategoryPickerModalProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
     const categoriesCount = policyCategories ?? 0;
-    const isSearchable = categoriesCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable});
-
-    // A bottom sheet is sized by the screen, so the content estimate only applies to the pop-over.
-    const resolvedHeight = shouldFitContentHeight && !isSmallScreenWidth ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
-    const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
+    const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
+        optionCount: renderedRowCount ?? categoriesCount,
+        isSearchable: categoriesCount >= searchInputThreshold,
+        popoverWidth,
+        popoverHeight,
+        shouldFitContentHeight,
+        headerHeight: onAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
+    });
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -101,7 +123,7 @@ function CategoryPickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
+            innerContainerStyle={innerContainerStyle}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
@@ -109,17 +131,47 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
+            avoidKeyboard={avoidKeyboard}
+            outerStyle={outerStyle}
+            // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
+            shouldLimitHeightIfBottomDockedInLandscapeMode={false}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
+            <Animated.View style={contentStyle}>
+                {!!onAddCategory && (
+                    <SelectionListPopoverHeader
+                        title={translate('common.category')}
+                        onBackButtonPress={onClose}
+                        backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
+                    >
+                        <Tooltip text={translate('workspace.categories.addCategory')}>
+                            <PressableWithFeedback
+                                accessibilityLabel={translate('workspace.categories.addCategory')}
+                                role={CONST.ROLE.BUTTON}
+                                onPress={onAddCategory}
+                                shouldUseAutoHitSlop
+                                sentryLabel={addCategorySentryLabel}
+                            >
+                                <Icon
+                                    src={icons.Plus}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                />
+                            </PressableWithFeedback>
+                        </Tooltip>
+                    </SelectionListPopoverHeader>
+                )}
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
                     selectedCategory={selectedCategory}
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
-                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
                     shouldAutoFocusSearchInput
+                    shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
+                    searchInputThreshold={searchInputThreshold}
                 />
-            </View>
+            </Animated.View>
         </PopoverWithMeasuredContent>
     );
 }

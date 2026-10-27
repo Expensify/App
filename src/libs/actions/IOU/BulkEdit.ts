@@ -6,7 +6,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -43,6 +43,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {BulkEditActionContext} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -87,6 +88,7 @@ type BulkEditWriteOnyxData = {
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         >
     >;
+    bulkEditActionContext?: BulkEditActionContext;
 };
 
 /** Returns a copy of the transaction without the attendee fields. Onyx MERGE leaves the absent keys untouched. */
@@ -102,6 +104,7 @@ function mergeBulkEditOnyxData(first: BulkEditWriteOnyxData, second: BulkEditWri
         optimisticData: [...first.optimisticData, ...second.optimisticData],
         successData: [...first.successData, ...second.successData],
         failureData: [...first.failureData, ...second.failureData],
+        bulkEditActionContext: first.bulkEditActionContext ?? second.bulkEditActionContext,
     };
 }
 
@@ -157,6 +160,8 @@ type UpdateMultipleMoneyRequestsParams = {
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    /** Per-policy tags read state. A policy's tag list count is only trusted once its tags have fully loaded. */
+    policyTagsLoadingStates?: OnyxCollection<OnyxTypes.PolicyDataLoadingState>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
@@ -204,6 +209,7 @@ function updateMultipleMoneyRequests({
     reportActions,
     policyCategories,
     policyTags,
+    policyTagsLoadingStates,
     violations,
     reportNameValuePairs,
     hash,
@@ -343,6 +349,10 @@ function updateMultipleMoneyRequests({
             const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
             const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
             const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
+            // A partially loaded tag collection can hold fewer tag lists than the policy, so only drop values for removed
+            // tag lists once this policy's tags have fully loaded
+            const hasLoadedTransactionPolicyTags = !!policyTagsLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${transactionPolicy?.id}`]?.hasOnceLoaded;
+            const transactionTagListCount = hasLoadedTransactionPolicyTags ? getTagLists(transactionPolicyTagList).length : undefined;
             let reconstructedTag = transaction.tag ?? '';
             for (const editedIndex of editedTagIndexes.map(Number).sort((first, second) => first - second)) {
                 reconstructedTag = getUpdatedTransactionTag({
@@ -353,6 +363,7 @@ function updateMultipleMoneyRequests({
                     policyTags: transactionPolicyTagList,
                     hasDependentTags: transactionHasDependentTags,
                     hasMultipleTagLists: transactionHasMultipleTagLists,
+                    tagListCount: transactionTagListCount,
                 });
             }
             transactionChanges.tag = reconstructedTag;
@@ -609,7 +620,6 @@ function updateMultipleMoneyRequests({
                         updatedAttendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, ...(email ? {email} : {})})) ?? [],
                         getRecentAttendees(),
                         // Use || so empty-string emails fall back to displayName for the union key
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         (attendee) => attendee.email || attendee.displayName,
                     ).slice(0, CONST.IOU.MAX_RECENT_ATTENDEES),
                 },
@@ -884,6 +894,15 @@ function updateMultipleMoneyRequests({
             optimisticData: [...optimisticData, ...snapshotOptimisticData],
             successData: [...successData, ...snapshotSuccessData],
             failureData: [...failureData, ...snapshotFailureData],
+            ...(transactionThreadReportID && {
+                bulkEditActionContext: {
+                    actionID: modifiedExpenseReportActionID,
+                    threadReportID: transactionThreadReportID,
+                    parentReportID: iouReport?.reportID,
+                    parentActionID: reportAction?.reportActionID,
+                    isOptimisticThread: didCreateThreadInThisIteration || transactionThread?.ownerAccountID === CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+                },
+            }),
         };
         const attendeesOnyxData: BulkEditWriteOnyxData = {
             optimisticData: attendeesOptimisticData,

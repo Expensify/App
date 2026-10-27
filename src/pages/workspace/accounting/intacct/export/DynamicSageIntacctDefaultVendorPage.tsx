@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 // Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
@@ -48,9 +48,9 @@ function DynamicSageIntacctDefaultVendorPage() {
     const reimbursableMode =
         route.params.reimbursable ?? (backPath.includes('/reimbursable') ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase());
     const isReimbursable = reimbursableMode === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     let defaultVendor;
     let settingName: keyof Connections['intacct']['config']['export'];
@@ -70,57 +70,42 @@ function DynamicSageIntacctDefaultVendorPage() {
     // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
     const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
 
-    const vendorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor, localeCompare), [defaultVendor, localeCompare, policy]);
-    const clearOption: SelectorType = useMemo(
-        () => ({
-            value: CLEAR_DEFAULT_VENDOR,
-            text: translate('common.none'),
-            keyForList: CLEAR_DEFAULT_VENDOR,
-            isSelected: !defaultVendor,
-        }),
-        [translate, defaultVendor],
-    );
+    const vendorOptions: SelectorType[] = getSageIntacctVendors(policy, defaultVendor, localeCompare);
+    const clearOption: SelectorType = {
+        value: CLEAR_DEFAULT_VENDOR,
+        text: translate('common.none'),
+        keyForList: CLEAR_DEFAULT_VENDOR,
+        isSelected: !defaultVendor,
+    };
     const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
-    const vendorSelectorOptions = useMemo<SelectorType[]>(
-        () => (shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions),
-        [shouldShowClearOption, clearOption, vendorOptions],
+    const vendorSelectorOptions: SelectorType[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>
+                {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
+            </Text>
+        </View>
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>
-                    {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
-                </Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
-    );
+    const updateDefaultVendor = ({value}: SelectorType) => {
+        const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
+        if (isAlreadySelected) {
+            return;
+        }
+        updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+        goBack();
+    };
 
-    const updateDefaultVendor = useCallback(
-        ({value}: SelectorType) => {
-            const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
-            if (isAlreadySelected) {
-                return;
-            }
-            updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
-            goBack();
-        },
-        [defaultVendor, policyID, settingName, goBack],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.sageIntacct.noAccountsFound')}
+            subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

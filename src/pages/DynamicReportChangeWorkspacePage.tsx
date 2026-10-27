@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
@@ -87,6 +88,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Supportal agents and copilots should not see the change-policy educational modal on behalf of another account
     const shouldSkipChangePolicyTrainingModal = isChangePolicyTrainingModalDismissed || shouldSuppressPromotionalUI;
@@ -198,6 +200,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
                 isASAPSubmitBetaEnabled,
                 employeeList,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 isReportLastVisibleArchived,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,

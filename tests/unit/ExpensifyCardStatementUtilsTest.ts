@@ -307,6 +307,118 @@ describe('ExpensifyCardStatementUtils', () => {
         expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
+    it('folds a selected cash back credit into the settlement feed it was paid through', () => {
+        // Given a settlement and a cash back credit paid through the same feed (domainAccountID equals the settlement fundID)
+        const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}789`;
+        const settlementKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions: SelectedTransactions = {
+            [cashBackKey]: makeSelectedTransaction(),
+            [settlementKey]: makeSelectedTransaction(),
+        };
+        // The cash back row comes first so the feed's feedCountry and canExportStatement must still come from the settlement.
+        const searchData = makeSearchData({
+            [cashBackKey]: makeSettlementGroup({
+                entryID: 789,
+                count: 0,
+                total: -2500,
+                isCashBack: true,
+                fundID: undefined,
+                domainAccountID: 1,
+                feedCountry: undefined,
+                canExportStatement: undefined,
+            }),
+            [settlementKey]: makeSettlementGroup({entryID: 123, fundID: 1}),
+        });
+
+        // When the statement selection is built
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+
+        // Then they form one feed with both entries, and the feed details come from the settlement
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123, 789], canExportStatement: true}]);
+    });
+
+    it('exports a cash back only selection as a single feed', () => {
+        // Given only a cash back credit is selected
+        const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}789`;
+        const selectedTransactions: SelectedTransactions = {[cashBackKey]: makeSelectedTransaction()};
+        const searchData = makeSearchData({
+            [cashBackKey]: makeSettlementGroup({entryID: 789, count: 0, total: -2500, isCashBack: true, fundID: undefined, domainAccountID: 1}),
+        });
+
+        // When the statement selection is built
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+
+        // Then it is exported on its own as the feed it was paid through
+        expect(selection?.hasMultipleFeeds).toBe(false);
+        expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [789], canExportStatement: true}]);
+    });
+
+    it('flags multiple feeds when a cash back credit was paid through a different feed than the selected settlement', () => {
+        // Given a settlement and a cash back credit paid through a different feed
+        const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}789`;
+        const settlementKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions: SelectedTransactions = {
+            [cashBackKey]: makeSelectedTransaction(),
+            [settlementKey]: makeSelectedTransaction(),
+        };
+        const searchData = makeSearchData({
+            [cashBackKey]: makeSettlementGroup({entryID: 789, count: 0, total: -2500, isCashBack: true, fundID: undefined, domainAccountID: 2}),
+            [settlementKey]: makeSettlementGroup({entryID: 123, fundID: 1}),
+        });
+
+        // When the statement selection is built
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+
+        // Then the selection spans two feeds, so the export is blocked with the multi-feed message
+        expect(selection?.hasMultipleFeeds).toBe(true);
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
+    it('keeps a cash back credit with no domainAccountID as its own feed', () => {
+        // Given a settlement and a cash back credit that does not say which feed paid it
+        const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}789`;
+        const settlementKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions: SelectedTransactions = {
+            [cashBackKey]: makeSelectedTransaction(),
+            [settlementKey]: makeSelectedTransaction(),
+        };
+        const searchData = makeSearchData({
+            [cashBackKey]: makeSettlementGroup({entryID: 789, count: 0, total: -2500, isCashBack: true, fundID: undefined}),
+            [settlementKey]: makeSettlementGroup({entryID: 123, fundID: 1}),
+        });
+
+        // When the statement selection is built
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+
+        // Then the credit is not assumed to belong to the settlement's feed and counts as a separate one
+        expect(selection?.hasMultipleFeeds).toBe(true);
+    });
+
+    it('still flags multiple feeds when a cash back credit is selected with settlements from two feeds', () => {
+        // Given settlements from two feeds plus a cash back credit from one of them
+        const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}789`;
+        const firstGroupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const secondGroupKey = `${CONST.SEARCH.GROUP_PREFIX}456`;
+        const selectedTransactions: SelectedTransactions = {
+            [cashBackKey]: makeSelectedTransaction(),
+            ...makeSettlementSelection(firstGroupKey, 1),
+            ...makeSettlementSelection(secondGroupKey, 1),
+        };
+        const searchData = makeSearchData({
+            [cashBackKey]: makeSettlementGroup({entryID: 789, count: 0, total: -2500, isCashBack: true, fundID: undefined, domainAccountID: 1}),
+            [firstGroupKey]: makeSettlementGroup({entryID: 123, fundID: 1}),
+            [secondGroupKey]: makeSettlementGroup({entryID: 456, fundID: 2}),
+        });
+
+        // When the statement selection is built
+        const selection = getExpensifyCardStatementSelection(expensifyCardStatementQueryJSON, selectedTransactions, searchData);
+
+        // Then folding the credit in does not hide that the settlements already span two feeds
+        expect(selection?.hasMultipleFeeds).toBe(true);
+        expect(getStatementParamsForExport(expensifyCardStatementQueryJSON, selectedTransactions, searchData)).toBeUndefined();
+    });
+
     it('hides the export when a transaction-narrowing filter is active', () => {
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
         const selectedTransactions = makeSettlementSelection(groupKey, 2);

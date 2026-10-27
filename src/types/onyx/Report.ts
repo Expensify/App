@@ -89,6 +89,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The date the report was approved */
         approved?: string;
 
+        /** The date the report was paid */
+        paid?: string;
+
         /** Custom field 1 value for the report submitter */
         submitterUserID?: string;
 
@@ -109,6 +112,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Currency of `creditedAmount` */
         creditedCurrency?: string;
+
+        /** Comma separated IDs of the report's settled withdrawals, in ascending order */
+        withdrawalIDs?: string;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -179,6 +185,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report manager */
         managerID?: number;
 
+        /** Calendar link for the support rep assigned to a support ticket */
+        supportTicketCalendarLink?: string;
+
         lastVisibleActionLastModified?: string;
 
         /** HTML content of the last message in the report */
@@ -221,6 +230,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
         canCancelReimbursement?: boolean;
+
+        /** Whether the report can't be paid until the cancelled reimbursement finishes processing */
+        isWaitingForCancelledReimbursement?: boolean;
 
         isCancelledIOU?: boolean;
         hasReportBeenRetracted?: boolean;

@@ -3,6 +3,8 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
+
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
@@ -11,7 +13,7 @@ import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNative
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
@@ -272,6 +274,22 @@ function MoneyRequestReportUnifiedList({
         return () => cancelAnimationFrame(rafId);
     }, [linkedReportActionID, initialScrollIndex, listRef]);
 
+    // This list owns the report-action-ID-to-data-index mapping, so it resolves the scroll request against its own rows —
+    // same request the inbox `ReportActionsList` handles for the non-money-request view.
+    useScrollToEditingReportAction({
+        visibleReportActions,
+        scrollToIndex: (index) => {
+            const dataIndex = index + reportActionIndexOffset;
+
+            // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+            if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+                return;
+            }
+
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        },
+    });
+
     // Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
     // drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which
     // reaches unmounted rows. Skipped when the row is already on screen so the user isn't yanked.
@@ -395,4 +413,4 @@ function MoneyRequestReportUnifiedList({
     );
 }
 
-export default memo(MoneyRequestReportUnifiedList);
+export default MoneyRequestReportUnifiedList;
