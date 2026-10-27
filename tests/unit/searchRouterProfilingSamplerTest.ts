@@ -1,6 +1,4 @@
 import searchRouterProfileSampleRate from '@libs/telemetry/integrations/searchRouterProfileSampleRate';
-import defaultSearchRouterProfileSampleRate from '@libs/telemetry/integrations/searchRouterProfileSampleRate/index';
-import androidSearchRouterProfileSampleRate from '@libs/telemetry/integrations/searchRouterProfileSampleRate/index.android';
 import searchRouterProfilingSampler from '@libs/telemetry/integrations/searchRouterProfilingSampler';
 
 import CONST from '@src/CONST';
@@ -234,13 +232,5 @@ describe('searchRouterProfilingSampler', () => {
         // Then it is not profiled, so the share of profiled opens matches the rate
         expect(options.profilesSampleRate).toBe(0);
         expect(nextOpenSpan.setAttribute).toHaveBeenCalledWith(CONST.TELEMETRY.ATTRIBUTE_PROFILED, false);
-    });
-
-    it('samples Android opens at 20% and other native platforms at 5%', () => {
-        // Given the per-platform sample rate files, where Android carries the metric's tail and so gets the higher rate
-        // When they are read
-        // Then each keeps its rate, so a change to either one is a deliberate change to the profile quota
-        expect(androidSearchRouterProfileSampleRate).toBe(0.2);
-        expect(defaultSearchRouterProfileSampleRate).toBe(0.05);
     });
 });

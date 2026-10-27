@@ -98,8 +98,8 @@ function setupSentry(): void {
         // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
         // via SentryNativeSDKManager so native code can report to Sentry before JS loads.
         autoInitializeNativeSdk: false,
-        // UI profiling of native threads, see https://github.com/Expensify/App/issues/87489. It reaches the native SDK only
-        // when RN initializes it, which `autoInitializeNativeSdk: false` prevents, so it has no effect while that is off.
+        // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
+        // See https://github.com/Expensify/App/issues/87489
         // eslint-disable-next-line @typescript-eslint/naming-convention
         _experiments: {
             profilingOptions: {

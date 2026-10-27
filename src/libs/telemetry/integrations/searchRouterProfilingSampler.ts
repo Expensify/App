@@ -1,3 +1,9 @@
+/**
+ * Sentry integration that profiles only the Search Router open with Hermes. `hermesProfilingIntegration` rolls
+ * `profilesSampleRate` on every root span start and stops the running profile when the next root span starts. Every
+ * `Manual*` span is a root, so a global rate would cut profiles within milliseconds, run the synchronous stop (dump,
+ * file read, JSON parse) inside the next measured span, and flood the profile quota.
+ */
 import {getSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
@@ -19,18 +25,16 @@ const MAX_PROFILE_DURATION_MS = 30_000;
 type ProfilingClientOptions = ClientOptions & Pick<ReactNativeOptions, 'profilesSampleRate'>;
 
 /**
- * `hermesProfilingIntegration` rolls `profilesSampleRate` on every root span start and stops the running profile when
- * the next root span starts. Every `Manual*` span is a root, so a global rate would cut profiles within milliseconds,
- * run the synchronous stop (dump, file read, JSON parse) inside the next measured span, and flood the profile quota.
+ * The rate is 1 only for the navigation span dispatched while `ManualOpenSearchRouter` is open: it is the last root the
+ * open starts. `profiled` goes on the open and page-visible spans, which are separate roots that run while the profiler
+ * samples, so their profiler overhead can be split out. A root that starts while that profile still runs (e.g.
+ * `ManualSearchRouterQuery` on fast typing) pays the stop, so it gets `profiled: true` too. The attribute records that a
+ * profile was requested; whether the native profiler actually started is not visible here.
  *
- * The rate is therefore 1 only for the navigation span dispatched while `ManualOpenSearchRouter` is open: it is the
- * last root the open starts. `profiled` goes on the open and page-visible spans, which are separate roots that run while
- * the profiler samples, so their profiler overhead can be split out. A root that starts while that profile still runs
- * (e.g. `ManualSearchRouterQuery` on fast typing) pays the stop, so it gets `profiled: true` too. The attribute records
- * that a profile was requested; whether the native profiler actually started is not visible here.
- *
- * Must be registered before `hermesProfilingIntegration`, whose `spanStart` listener reads the rate. Setting
- * `profilesSampleRate` in `Sentry.init` would break that: the SDK would add its own profiler ahead of this sampler.
+ * Relies on `hermesProfilingIntegration` reading `profilesSampleRate` from the live client options in its own
+ * `spanStart` listener (`_shouldStartProfiling`), verified on `@sentry/react-native` 8.27.0. Must be registered before
+ * it, so this listener sets the rate first. Setting `profilesSampleRate` in `Sentry.init` would break that: the SDK
+ * would add its own profiler ahead of this sampler.
  */
 function searchRouterProfilingSampler(): Integration {
     const sampledOpenSpans = new WeakSet<Span>();

@@ -129,4 +129,24 @@ describe('pendingDeleteMemberAccountIDsByReportIDSelector', () => {
         // And it is a new object rather than the shared empty one, so the option list cache sees the change
         expect(result).not.toBe(pendingDeleteMemberAccountIDsByReportIDSelector(undefined));
     });
+
+    it('returns the same result for the same collection while a member removal is pending', () => {
+        // Given a collection with a member pending deletion, which Onyx hands to every subscriber as one snapshot
+        const metadata: OnyxCollection<ReportMetadata> = {
+            [`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`]: {pendingChatMembers: [{accountID: '5', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]},
+        };
+
+        // When two subscribers run the selector on that snapshot
+        const first = pendingDeleteMemberAccountIDsByReportIDSelector(metadata);
+        const second = pendingDeleteMemberAccountIDsByReportIDSelector(metadata);
+
+        // Then both get the same object, so the option list cache keeps hitting while the removal is pending
+        expect(second).toBe(first);
+
+        // When Onyx rebuilds the snapshot because the removal settled
+        const settled: OnyxCollection<ReportMetadata> = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`]: {pendingChatMembers: []}};
+
+        // Then the selector computes again from the new snapshot
+        expect(pendingDeleteMemberAccountIDsByReportIDSelector(settled)).toEqual({});
+    });
 });

@@ -424,8 +424,8 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals, canQueryMatch);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
-    // Every Search Router open starts with an empty query, which matches nothing, so the sources (the Spend sections and
-    // the settings menu of every workspace) are not built on its first frame.
+    // An empty query matches no destination, so the sources (the Spend sections and the settings menu of every
+    // workspace) are not built while the query is empty.
     if (!canQueryMatch) {
         return [];
     }

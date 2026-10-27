@@ -81,7 +81,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true, shouldBuildSections =
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
-    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
+    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused && shouldBuildSections);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );

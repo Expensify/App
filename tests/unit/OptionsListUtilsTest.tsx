@@ -2734,6 +2734,7 @@ describe('OptionsListUtils', () => {
             const secondOpen = buildWithPendingDeletions(pendingDeleteMemberAccountIDsByReportIDSelector({...reportMetadata}));
 
             // Then the second open is served from the cache, sharing the icons built by the first one
+            expect(firstOpen.reports.at(0)?.icons).toBeDefined();
             expect(secondOpen.reports.at(0)).not.toBe(firstOpen.reports.at(0));
             expect(secondOpen.reports.at(0)?.icons).toBe(firstOpen.reports.at(0)?.icons);
         });

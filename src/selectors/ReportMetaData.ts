@@ -1,4 +1,5 @@
 import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
@@ -33,11 +34,25 @@ const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): 
 
 const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
 
-// Shared by every subscriber when nothing is pending, so a fresh subscription returns the same reference. The option
-// list cache in OptionsListUtils compares this by reference, and a new empty object per mount made it miss every time.
+// Returned whenever nothing is pending, so every subscriber in that state gets the same reference.
 const NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS: Readonly<Record<string, string[]>> = Object.freeze({});
 
+// Single-entry cache keyed on the collection reference, so every subscriber gets the same result while the collection
+// is unchanged. Onyx hands every collection subscriber the same snapshot and rebuilds it only when a member changes
+// (OnyxCache.getCollectionData in react-native-onyx).
+let cachedReportMetadataCollection: OnyxCollection<ReportMetadata>;
+let cachedPendingDeleteMemberAccountIDsByReportID: Readonly<Record<string, string[]>> = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+
+registerSessionCleanupCallback(() => {
+    cachedReportMetadataCollection = undefined;
+    cachedPendingDeleteMemberAccountIDsByReportID = NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+});
+
 const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCollection<ReportMetadata>): Readonly<Record<string, string[]>> => {
+    if (reportMetadata === cachedReportMetadataCollection) {
+        return cachedPendingDeleteMemberAccountIDsByReportID;
+    }
+
     const result: Record<string, string[]> = {};
 
     for (const [key, metadata] of Object.entries(reportMetadata ?? {})) {
@@ -54,7 +69,9 @@ const pendingDeleteMemberAccountIDsByReportIDSelector = (reportMetadata: OnyxCol
         result[key.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '')] = pendingDeleteMemberAccountIDs;
     }
 
-    return Object.keys(result).length > 0 ? result : NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+    cachedReportMetadataCollection = reportMetadata;
+    cachedPendingDeleteMemberAccountIDsByReportID = Object.keys(result).length > 0 ? result : NO_PENDING_DELETE_MEMBER_ACCOUNT_IDS;
+    return cachedPendingDeleteMemberAccountIDsByReportID;
 };
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>): OnyxEntry<ReportMetadata> =>
