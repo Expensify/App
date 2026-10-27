@@ -129,5 +129,23 @@ describe('Policy travel member access', () => {
             // Then members who manage travel can, except that only full admins can change it for the owner and workspace admins, like Auth
             expect(canMemberChangeTravelAccess(policy, login, targetLogin)).toBe(expected);
         });
+
+        it('keeps travel admins from changing the owner even when the owner is not listed as an admin', () => {
+            // Given a Control workspace whose owner's employeeList entry doesn't say admin
+            const ownerEmail = 'owner@example.com';
+            const travelAdminEmail = 'traveladmin@example.com';
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER},
+                    [travelAdminEmail]: {email: travelAdminEmail, role: CONST.POLICY.ROLE.TRAVEL_ADMIN},
+                },
+            };
+
+            // When a travel admin checks whether they can change the owner's travel access
+            // Then they can't, because Auth treats the owner as an admin whatever role is listed
+            expect(canMemberChangeTravelAccess(policy, travelAdminEmail, ownerEmail)).toBe(false);
+        });
     });
 });
