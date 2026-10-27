@@ -13,7 +13,14 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestDraftHasUserEdits,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -145,6 +152,7 @@ function useParticipantPickerState({
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
             return;
         }
+        setMoneyRequestDraftHasUserEdits(activeTransactionID);
         // P2P chats don't support negative amounts. When a negative amount was entered before a participant
         // was selected (e.g. "Submit it to someone" from a self DM), assigning it to a P2P participant would
         // fail at submit, so keep the expense on the self DM (its default) instead of assigning the P2P
