@@ -6,6 +6,7 @@ import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/Nativ
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
+import useTabEmojiStatus from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabEmojiStatus';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -24,6 +25,9 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     // A circle reads smaller than a glyph of the same box, so the avatar is drawn a little larger than the glyphs.
     avatarSize: variables.avatarNativeTabBarIOS,
     direction: 'stacked',
+    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
+    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
+    emojiStatusOffset: variables.nativeTabIconEmojiStatusOffset,
 };
 
 /** A phone in landscape gives the bar too little height for a stacked tab, so UIKit lays its own tabs out this way. */
@@ -31,6 +35,9 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconNativeTabBarIOSLandscape,
     avatarSize: variables.avatarNativeTabBarIOSLandscape,
     direction: 'inline',
+    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadiusLandscape,
+    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSizeLandscape,
+    emojiStatusOffset: variables.nativeTabIconEmojiStatusOffset,
 };
 
 /**
@@ -41,6 +48,7 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
 function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
+    const emojiStatus = useTabEmojiStatus();
     const {windowWidth} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
     // A column has the height for a stacked tab whatever the orientation.
@@ -71,6 +79,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAcc
             color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
+            emojiStatus: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? emojiStatus : undefined,
             // A column is too narrow for the labels, so it shows the icons alone.
             label: isTabBarVertical
                 ? undefined

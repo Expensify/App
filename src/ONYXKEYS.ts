@@ -905,6 +905,12 @@ const ONYXKEYS = {
     /** Stores information for OpenUnreportedExpensesPage API call pagination */
     HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
 
+    /** Stores information for GetOutstandingReports API call pagination */
+    HAS_MORE_OUTSTANDING_REPORTS_RESULTS: 'hasMoreOutstandingReportsResults',
+
+    /** Is the outstanding reports page loading */
+    IS_LOADING_OUTSTANDING_REPORTS: 'isLoadingOutstandingReports',
+
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
 
     /** Map distance expenses from the last 90 days, deduped to one entry per unique route */
@@ -2036,6 +2042,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS]: boolean | undefined;
+    [ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
     [ONYXKEYS.REUSABLE_DISTANCE_ROUTES]: OnyxTypes.ReusableDistanceRoute[];
     [ONYXKEYS.IS_LOADING_REUSABLE_DISTANCE_ROUTES]: boolean | undefined;

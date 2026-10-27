@@ -8,7 +8,7 @@ import BootSplash from '@libs/BootSplash';
 
 import type {ViewStyle} from 'react-native';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -30,7 +30,7 @@ function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): 
     }));
 
     const hideHasBeenCalled = useRef(false);
-    const hide = useCallback(() => {
+    const hide = () => {
         // hide can only be called once
         if (hideHasBeenCalled.current) {
             return;
@@ -57,7 +57,7 @@ function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): 
                 ),
             );
         });
-    }, [opacity, onHide, scale]);
+    };
 
     useEffect(() => {
         if (!shouldHideSplash) {

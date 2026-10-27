@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 
 import type {ReactElement} from 'react';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -41,22 +41,19 @@ function BaseAutoCompleteSuggestionsImpl({
     /**
      * Render a suggestion menu item component.
      */
-    const renderItem = useCallback(
-        ({item, index}: RenderSuggestionMenuItemProps<unknown>): ReactElement => (
-            <PressableWithFeedback
-                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
-                hoverDimmingValue={1}
-                onMouseDown={(e) => e.preventDefault()}
-                onPress={() => onSelect(index)}
-                onLongPress={() => {}}
-                accessibilityLabel={accessibilityLabelExtractor(item, index)}
-                role={CONST.ROLE.MENUITEM}
-                sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
-            >
-                {renderSuggestionMenuItem(item, index)}
-            </PressableWithFeedback>
-        ),
-        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
+    const renderItem = ({item, index}: RenderSuggestionMenuItemProps<unknown>): ReactElement => (
+        <PressableWithFeedback
+            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
+            hoverDimmingValue={1}
+            onMouseDown={(e) => e.preventDefault()}
+            onPress={() => onSelect(index)}
+            onLongPress={() => {}}
+            accessibilityLabel={accessibilityLabelExtractor(item, index)}
+            role={CONST.ROLE.MENUITEM}
+            sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
+        >
+            {renderSuggestionMenuItem(item, index)}
+        </PressableWithFeedback>
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;

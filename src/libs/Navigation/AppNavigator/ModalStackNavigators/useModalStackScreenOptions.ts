@@ -19,7 +19,6 @@ import type {ParamListBase} from '@react-navigation/native';
 import type {StackCardStyleInterpolator} from '@react-navigation/stack';
 
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useCallback} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
@@ -39,58 +38,55 @@ function useWideModalStackScreenOptions() {
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useWideRHPState();
     const {sidePanelOffset} = useSidePanelState();
 
-    return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
-        ({route}) => {
-            const baseInterpolator: StackCardStyleInterpolator = isSmallScreenWidth
-                ? CardStyleInterpolators.forHorizontalIOS
-                : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
+    return ({route}: {route: PlatformStackRouteProp<ParamListBase, string>}): PlatformStackNavigationOptions => {
+        const baseInterpolator: StackCardStyleInterpolator = isSmallScreenWidth
+            ? CardStyleInterpolators.forHorizontalIOS
+            : (props) => modalCardStyleInterpolator({props, enter: {kind: 'slide-and-fade', distancePx: CONST.MODAL.RHP_ENTER_OFFSET_PX_WEB}});
 
-            let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
+        let cardStyleInterpolator: StackCardStyleInterpolator = baseInterpolator;
 
-            if (!isSmallScreenWidth) {
-                // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
-                // left edge stays put instead of being pushed off-screen, capped at what its panes can spare
-                // so the card never clips its own content. See https://github.com/Expensify/App/issues/99035
-                const sidePanelShrink = getSidePanelRHPShrink(sidePanelOffset.current, windowWidth);
+        if (!isSmallScreenWidth) {
+            // Shrink the super wide sheet by the Side Panel width while it is open so the sheet's
+            // left edge stays put instead of being pushed off-screen, capped at what its panes can spare
+            // so the card never clips its own content. See https://github.com/Expensify/App/issues/99035
+            const sidePanelShrink = getSidePanelRHPShrink(sidePanelOffset.current, windowWidth);
 
-                // Cards draw their own frame, so the container must not clip them.
-                if (superWideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelShrink)),
-                        containerStyle: styles.overflowVisible,
-                    });
-                } else if (wideRHPRouteKeys.includes(route.key)) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
-                        containerStyle: styles.overflowVisible,
-                    });
-                    // single RHPs displayed above the wide RHP need to be positioned
-                } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
-                        cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
-                        containerStyle: styles.overflowVisible,
-                    });
-                }
+            // Cards draw their own frame, so the container must not clip them.
+            if (superWideRHPRouteKeys.includes(route.key)) {
+                cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                    cardStyle: styles.getSuperWideRHPExtendedCardInterpolatorStyles(Animated.subtract(animatedSuperWideRHPWidth, sidePanelShrink)),
+                    containerStyle: styles.overflowVisible,
+                });
+            } else if (wideRHPRouteKeys.includes(route.key)) {
+                cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                    cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                    containerStyle: styles.overflowVisible,
+                });
+                // single RHPs displayed above the wide RHP need to be positioned
+            } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
+                cardStyleInterpolator = enhanceCardStyleInterpolator(baseInterpolator, {
+                    cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                    containerStyle: styles.overflowVisible,
+                });
             }
+        }
 
-            return {
-                ...hideKeyboardOnSwipe,
-                headerShown: false,
-                animationTypeForReplace: 'pop',
-                native: {
-                    contentStyle: styles.navigationScreenCardStyle,
-                },
-                web: {
-                    // The RHP has its own scrim (BaseOverlay), so stacked screens must not fade in react-navigation's dark backdrop too.
-                    cardOverlayEnabled: false,
-                    cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
-                    cardStyleInterpolator,
-                    transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
-                },
-            };
-        },
-        [StyleUtils, isSmallScreenWidth, modalCardStyleInterpolator, sidePanelOffset, styles, superWideRHPRouteKeys, windowWidth, wideRHPRouteKeys],
-    );
+        return {
+            ...hideKeyboardOnSwipe,
+            headerShown: false,
+            animationTypeForReplace: 'pop',
+            native: {
+                contentStyle: styles.navigationScreenCardStyle,
+            },
+            web: {
+                // The RHP has its own scrim (BaseOverlay), so stacked screens must not fade in react-navigation's dark backdrop too.
+                cardOverlayEnabled: false,
+                cardStyle: isSmallScreenWidth ? StyleUtils.getStyleWithEnvSafeAreaPadding(styles.navigationScreenCardStyle) : styles.navigationScreenCardStyle,
+                cardStyleInterpolator,
+                transitionSpec: isSmallScreenWidth ? undefined : RHP_WEB_TRANSITION_SPEC,
+            },
+        };
+    };
 }
 
 export default useWideModalStackScreenOptions;

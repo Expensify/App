@@ -1,9 +1,7 @@
 import type {NativeEventSubscription} from 'react-native';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
-
-import type {Route} from './ROUTES';
 
 import CONST from './CONST';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
@@ -23,7 +21,7 @@ import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
     /** Callback to set the initial URL resolved from deep linking */
-    onInitialUrl: (url: Route | null) => void;
+    onInitialUrl: (url: string | null) => void;
 };
 
 /**
@@ -63,14 +61,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
-    const trackPendingPublicRoomFromDeepLink = useCallback((url: string, isCurrentlyAuthenticated: boolean) => {
+    const trackPendingPublicRoomFromDeepLink = (url: string, isCurrentlyAuthenticated: boolean) => {
         const deepLinkReportID = getReportIDFromLink(url);
         if (!deepLinkReportID || isCurrentlyAuthenticated) {
             return;
         }
         pendingPublicRoomReportID.current = deepLinkReportID;
         hasRefetchedPublicRoom.current = false;
-    }, []);
+    };
 
     useEffect(() => {
         if (
@@ -122,7 +120,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 }
 
                 initialUrlProcessed.current = true;
-                onInitialUrl(url as Route);
+                onInitialUrl(url);
 
                 if (url) {
                     if (conciergeReportID === undefined) {
@@ -180,7 +178,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             // getInitialURL() is empty. Record it so onboarding suppression has a session-sticky signal, the same
             // way the cold path does via onInitialUrl above. Scoped to secure links so other deep links are unaffected.
             if (hasSecureLinkKey(state.url)) {
-                onInitialUrl(state.url as Route);
+                onInitialUrl(state.url);
             }
             openReportFromDeepLink(
                 state.url,
