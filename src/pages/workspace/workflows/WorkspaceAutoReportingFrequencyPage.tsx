@@ -89,11 +89,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const policyID = policy?.id;
 
-    useEffect(() => {
-        // A draft left behind when the app was closed mid edit can belong to another workspace, so start clean
-        clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM);
-        return () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM);
-    }, []);
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM), []);
     const {selectedFrequency, isSavedFrequencySelected, offset, secondOffset, hasChanges} = useSubmissionFrequencyDraft(policy);
     const [shouldShowOrderError, setShouldShowOrderError] = useState(false);
     const isOffsetOrderValid = selectedFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY || isSemiMonthlyOffsetOrderValid({offset, secondOffset});
