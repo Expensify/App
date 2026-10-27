@@ -1,7 +1,8 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback} from 'react';
+import React from 'react';
 import Animated from 'react-native-reanimated';
 
 import type BaseSearchListProps from './types';
@@ -23,12 +24,10 @@ function BaseSearchList({
     stickyHeaderIndices,
     getItemType,
 }: BaseSearchListProps) {
-    const renderItemWithoutKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchListItem; index: number}) => {
-            return renderItem(item, index, false, undefined);
-        },
-        [renderItem],
-    );
+    const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
+    const renderItemWithoutKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
+        return renderItem(item, index, undefined);
+    };
 
     return (
         <AnimatedFlashListComponent
@@ -45,7 +44,7 @@ function BaseSearchList({
             onLayout={onLayout}
             removeClippedSubviews
             drawDistance={250}
-            contentContainerStyle={contentContainerStyle}
+            {...tabRootScrollProps}
             maintainVisibleContentPosition={{disabled: true}}
             stickyHeaderIndices={stickyHeaderIndices}
             getItemType={getItemType}

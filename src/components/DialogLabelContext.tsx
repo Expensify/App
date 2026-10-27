@@ -3,7 +3,7 @@ import isHTMLElement from '@libs/isHTMLElement';
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React, {createContext, useCallback, useContext, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore} from 'react';
+import React, {createContext, useContext, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 
 type LabelEntry = {id: number; text: string};
 
@@ -79,59 +79,47 @@ function DialogLabelProvider({children, containerNode, hasDialogSemantics: hasDi
 
     const hasDialogSemantics = hasDialogSemanticsProp ?? hasDialogSemanticsFromDom;
 
-    const syncActiveLabelFromStack = useCallback(() => {
+    const syncActiveLabelFromStack = () => {
         const top = labelStackRef.current.at(-1);
         setActiveLabel((prev) => {
             const next = top?.text;
             return prev === next ? prev : next;
         });
-    }, []);
+    };
 
-    const pushLabel = useCallback(
-        (text: string): number => {
-            const id = nextIdRef.current++;
-            labelStackRef.current = [...labelStackRef.current, {id, text}];
-            initialFocusClaimedRef.current = false;
-            syncActiveLabelFromStack();
-            return id;
-        },
-        [syncActiveLabelFromStack],
-    );
+    const pushLabel = (text: string): number => {
+        const id = nextIdRef.current++;
+        labelStackRef.current = [...labelStackRef.current, {id, text}];
+        initialFocusClaimedRef.current = false;
+        syncActiveLabelFromStack();
+        return id;
+    };
 
-    const popLabel = useCallback(
-        (id: number) => {
-            labelStackRef.current = labelStackRef.current.filter((entry) => entry.id !== id);
-            syncActiveLabelFromStack();
-        },
-        [syncActiveLabelFromStack],
-    );
+    const popLabel = (id: number) => {
+        labelStackRef.current = labelStackRef.current.filter((entry) => entry.id !== id);
+        syncActiveLabelFromStack();
+    };
 
-    const claimInitialFocus = useCallback((): boolean => {
+    const claimInitialFocus = (): boolean => {
         if (initialFocusClaimedRef.current) {
             return false;
         }
         initialFocusClaimedRef.current = true;
         return true;
-    }, []);
+    };
 
-    const data: DialogLabelData = useMemo(
-        () => ({
-            containerRef,
-            isInsideDialog: hasDialogSemantics,
-            // Only expose a name when the container is a dialog (wide RHP).
-            dialogAriaLabel: hasDialogSemantics ? activeLabel : undefined,
-        }),
-        [hasDialogSemantics, activeLabel],
-    );
+    const data: DialogLabelData = {
+        containerRef,
+        isInsideDialog: hasDialogSemantics,
+        // Only expose a name when the container is a dialog (wide RHP).
+        dialogAriaLabel: hasDialogSemantics ? activeLabel : undefined,
+    };
 
-    const actions: DialogLabelActions = useMemo(
-        () => ({
-            pushLabel,
-            popLabel,
-            claimInitialFocus,
-        }),
-        [pushLabel, popLabel, claimInitialFocus],
-    );
+    const actions: DialogLabelActions = {
+        pushLabel,
+        popLabel,
+        claimInitialFocus,
+    };
 
     return (
         <DialogLabelDataContext.Provider value={data}>

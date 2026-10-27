@@ -15,7 +15,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -46,16 +46,11 @@ function DistanceEReceiptPanel({transaction}: DistanceEReceiptPanelProps) {
     // The thumbnail this card draws is the stored route map. An edit that makes the server rebuild the receipt
     // invalidates its URL, and a route error means there is no trip to draw, so show the pending map for both.
     const canShowStoredRouteMap = !hasPendingDistanceReceiptRegeneration(transaction) && !hasDistanceRouteErrors(transaction);
-    const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
-    const sortedWaypoints = useMemo<WaypointCollection>(
-        () =>
-            // The waypoint keys are sometimes out of order
-            Object.keys(waypoints)
-                .sort((keyA, keyB) => getWaypointIndex(keyA) - getWaypointIndex(keyB))
-                .map((key) => ({[key]: waypoints[key]}))
-                .reduce((result, obj) => (obj ? Object.assign(result, obj) : result), {}),
-        [waypoints],
-    );
+    const waypoints = transaction?.comment?.waypoints ?? {};
+    const sortedWaypoints: WaypointCollection = Object.keys(waypoints)
+        .sort((keyA, keyB) => getWaypointIndex(keyA) - getWaypointIndex(keyB))
+        .map((key) => ({[key]: waypoints[key]}))
+        .reduce((result, obj) => (obj ? Object.assign(result, obj) : result), {});
     return (
         <View style={styles.eReceiptPanel}>
             <ImageSVG

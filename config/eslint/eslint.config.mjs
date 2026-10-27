@@ -315,6 +315,8 @@ const config = defineConfig([
             'rulesdir/no-layout-spacing-conditional': 'error',
             'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
+            'rulesdir/no-unsafe-onyx-read': 'error',
+            'rulesdir/no-onyx-get-snapshot-key': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -551,6 +553,8 @@ const config = defineConfig([
     {
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
+            // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
+            'rulesdir/no-manual-memoization': 'error',
             'rulesdir/prefer-locale-compare-from-context': 'error',
             'rulesdir/no-object-keys-includes': 'error',
         },
@@ -619,6 +623,15 @@ const config = defineConfig([
         },
         rules: {
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
+
+            // `ignorePrimitives: true` narrows this to the cases a type checker can decide: it reports
+            // `||` only when the left operand cannot be `''`, `0` or `false`, so `||` and `??` are
+            // provably equivalent. When the left operand can hold one of those, whether it counts as
+            // "missing" is domain knowledge the rule does not have — many API fields represent "unset"
+            // as an empty string rather than `null`, and several Onyx keys require `|| undefined` so an
+            // empty string never reaches a collection subscription.
+            // See contributingGuides/STYLE.md#accessing-object-properties-and-default-values
+            '@typescript-eslint/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
         },
     },
 
@@ -643,7 +656,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['src/libs/Navigation/types.ts'],
+        files: ['src/libs/Navigation/types.ts', 'src/libs/Navigation/paramLists/**/*.ts'],
         rules: {
             'no-restricted-syntax': [
                 'error',
@@ -847,6 +860,8 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        // Standalone npm package with its own dependencies and typecheck (see web/cloudflare-worker/README.md)
+        'web/cloudflare-worker/**/*',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
         'src/languages/el.ts',

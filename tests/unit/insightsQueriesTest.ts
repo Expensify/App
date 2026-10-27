@@ -20,7 +20,9 @@ const SPEND_SPEC = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
 
 type InsightsPayload = {
     hash: number;
+    groupBy: string;
     inputQuery: string;
+    insightsHashes: Record<string, unknown>;
 };
 
 /** Reads back the payload a built request sends to the backend. */
@@ -54,7 +56,7 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.MONTH};
 
             // When its request is built
-            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true);
 
             // Then it is addressed to the spend dashboard and names the snapshot each chart's data belongs in
             const payload = parsePayload(request);
@@ -70,16 +72,21 @@ describe('insightsQueries', () => {
             });
         });
 
-        it('sends the same request whether or not the dashboard is compared', () => {
+        it('requests the same data whether or not the dashboard is compared, saving the Compare mode along', () => {
             // Given the spend dashboard shown on its own
-            const standalone = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, true);
+            const standalone = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts, true);
 
             // When it is compared against the previous period
             const filters: InsightsFilters = {...FILTERS, compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD};
-            const compared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
+            const compared = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true);
 
             // Then every response carries all comparisons, so switching one never fetches again or stores the response apart
-            expect(compared).toEqual(standalone);
+            expect(compared?.hash).toBe(standalone?.hash);
+            expect(compared?.snapshotHashes).toEqual(standalone?.snapshotHashes);
+
+            // And the backend saves the Compare mode with the rest of the filters, so it's restored after signing in again
+            expect(parsePayload(compared)?.inputQuery).toBe(buildInsightsQueryString(filters));
+            expect(parsePayload(compared)?.inputQuery).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
         });
 
         it('requests only the current period for users without the compare beta', () => {
@@ -87,7 +94,7 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.MONTH};
 
             // When its request is built without comparisons
-            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, false);
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, false);
 
             // Then each chart names only its own snapshot, so the backend doesn't compute periods nobody sees
             const payload = parsePayload(request);
@@ -99,12 +106,28 @@ describe('insightsQueries', () => {
             expect(request?.snapshotHashes).toEqual(Object.values(expectedHashes).map(({snapshotHash}) => snapshotHash));
         });
 
+        it('requests only the supporting charts shown on the dashboard', () => {
+            // Given the spend dashboard with only its first supporting chart shown, as when no workspace in scope is eligible for the rest
+            const [shownChart, ...hiddenCharts] = SPEND_SPEC.supportingCharts;
+
+            // When its request is built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, [shownChart], true);
+
+            // Then the hidden charts are left out, so the backend doesn't compute graphs nobody sees
+            const hiddenChartHashes = hiddenCharts.map((chart) => buildSearchQueryJSON(applyInsightsFilters(chart, FILTERS))?.hash);
+            expect(Object.keys(parsePayload(request)?.insightsHashes ?? {})).toEqual([SPEND_SPEC.headlineChart.graphKey, shownChart.graphKey]);
+            for (const hash of hiddenChartHashes) {
+                expect(request?.snapshotHashes).not.toContain(hash);
+            }
+            expect(request?.supportingCharts.map(({chart}) => chart)).toEqual([shownChart]);
+        });
+
         it('hashes every set of filters on its own', () => {
             // Given the spend dashboard grouped by month
-            const monthly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, true);
+            const monthly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts, true);
 
             // When the same dashboard is grouped by quarter instead
-            const quarterly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER}, true);
+            const quarterly = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.QUARTER}, SPEND_SPEC.supportingCharts, true);
 
             // Then each request carries the hash of the query it asks for, so the two responses are stored apart
             expect(monthly?.hash).toBe(parsePayload(monthly)?.hash);
@@ -116,7 +139,7 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'};
 
             // When its request is built
-            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true);
 
             // Then the query carries those filters and nothing else, such as the sorting of a table no chart renders
             expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD policyID:A1 date:year-to-date');
@@ -130,7 +153,7 @@ describe('insightsQueries', () => {
             };
 
             // When its request is built
-            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true);
 
             // Then the query is bounded by the range, both ends included, and the charts ask for snapshots of it
             expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date>=2026-01-01 date<=2026-03-31');
@@ -142,19 +165,33 @@ describe('insightsQueries', () => {
             const filters: InsightsFilters = {...FILTERS, date: {on: '2026-03-04'}};
 
             // When its request is built
-            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true);
 
-            // Then the query names that day, the same way it names a preset
+            // Then the query names that day the same way it names a preset, and its one point is grouped by day, the only grouping a single date offers
             expect(parsePayload(request)?.inputQuery).toBe('groupBy:month groupCurrency:USD date:2026-03-04');
+            expect(parsePayload(request)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(parsePayload(request)).toEqual(expect.objectContaining({insightsHashes: buildExpectedHashes(filters)}));
         });
+
+        it('saves the selected grouping while querying the one fitted to the date range', () => {
+            // Given a quarterly dashboard narrowed to a month, which only offers Day and Week
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-03-01', to: '2026-03-31'}, groupBy: CONST.SEARCH.GROUP_BY.QUARTER};
+
+            // When its request is built
+            const payload = parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true));
+
+            // Then the backend saves quarter, so a longer range brings it back, while the charts are grouped by week
+            expect(payload?.inputQuery).toBe('groupBy:quarter groupCurrency:USD date>=2026-03-01 date<=2026-03-31');
+            expect(payload?.groupBy).toBe(CONST.SEARCH.GROUP_BY.WEEK);
+        });
+
         it('leaves the workspaces out of the query until some are selected', () => {
             // Given a dashboard requested with no workspace selected
-            const allWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, true);
+            const allWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts, true);
 
             // When two workspaces are selected
             const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1', 'B2']};
-            const twoWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true);
+            const twoWorkspaces = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true);
 
             // Then only the second query names them, and its charts point at different snapshots
             expect(parsePayload(allWorkspaces)?.inputQuery).not.toContain('policyID');
@@ -172,7 +209,7 @@ describe('insightsQueries', () => {
             const queryString = buildInsightsQueryString(filters);
 
             // Then it is the very query the request carries
-            expect(queryString).toBe(parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, true))?.inputQuery);
+            expect(queryString).toBe(parsePayload(buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts, true))?.inputQuery);
         });
     });
 
@@ -219,8 +256,8 @@ describe('insightsQueries', () => {
         });
 
         it('groups the headline chart by day while supporting charts keep their own group-by', () => {
-            // Given the page filters grouped by day
-            const filters: InsightsFilters = {...FILTERS, groupBy: CONST.SEARCH.GROUP_BY.DAY};
+            // Given the page filters over a month, grouped by day
+            const filters: InsightsFilters = {...FILTERS, date: {from: '2026-03-01', to: '2026-03-31'}, groupBy: CONST.SEARCH.GROUP_BY.DAY};
 
             // When the filters are applied to the headline chart and to every supporting chart
             const headlineQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
@@ -229,6 +266,17 @@ describe('insightsQueries', () => {
             // Then only the headline chart, which declares no group-by, is grouped by day
             expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
             expect(supportingGroupBys).toEqual(SPEND_SPEC.supportingCharts.map((chart) => chart.groupBy));
+        });
+
+        it('groups the headline chart by day on a single date, whatever grouping is saved', () => {
+            // Given the page filters saved as quarterly and narrowed to a single date
+            const filters: InsightsFilters = {...FILTERS, date: {on: '2026-03-04'}, groupBy: CONST.SEARCH.GROUP_BY.QUARTER};
+
+            // When the filters are applied to the headline chart
+            const headlineQuery = applyInsightsFilters(SPEND_SPEC.headlineChart, filters);
+
+            // Then its one point is grouped by day, so it's labeled with the date rather than the quarter
+            expect(buildSearchQueryJSON(headlineQuery)?.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
         });
     });
 });

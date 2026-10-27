@@ -2,6 +2,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
@@ -24,7 +26,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type QuickbooksDesktopAutoSyncPageBaseParams = {
     policy: OnyxEntry<Policy>;
@@ -35,15 +37,21 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const config = policy?.connections?.quickbooksDesktop?.config;
     const {autoSync, pendingFields} = config ?? {};
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(navigateBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
-    }, [policyID, navigateBackTo]);
+    const goBack = () => {
+        Navigation.goBack(
+            navigateBackTo ??
+                (policyID
+                    ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))
+                    : undefined),
+        );
+    };
 
     return (
         <ConnectionLayout

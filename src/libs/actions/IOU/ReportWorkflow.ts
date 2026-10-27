@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -40,7 +41,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses,
     hasOutstandingChildRequest,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -90,6 +90,7 @@ type ApproveMoneyRequestFunctionParams = {
 
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReportTransactions: OnyxTypes.Transaction[];
     policy: OnyxEntry<OnyxTypes.Policy>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
@@ -104,6 +105,7 @@ type SubmitReportFunctionParams = {
     delegateEmail: string | undefined;
     delegateAccountID: number | undefined;
     submitterLogin: string | undefined;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     managerEmail?: string;
     /** When provided (e.g. from the submit-to popover selection), used for optimistic managerID before falling back to email resolution. */
     managerAccountID?: number;
@@ -114,6 +116,9 @@ type SubmitReportFunctionParams = {
      */
     shouldExportToPDF?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** Set when the user confirmed "Submit anyway" on a report with violations. */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 /**
@@ -988,6 +993,7 @@ function unapproveExpenseReport(
 
 function submitReport({
     expenseReport,
+    expenseReportTransactions,
     policy,
     rules,
     currentUserAccountIDParam,
@@ -1001,9 +1007,11 @@ function submitReport({
     delegateEmail,
     delegateAccountID,
     submitterLogin,
+    personalDetailsByLogins,
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
+    shouldResolveAcknowledgedViolations,
     isTrackIntentUser,
     getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
@@ -1019,9 +1027,9 @@ function submitReport({
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
     const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
     const trimmedManagerEmail = managerEmail?.trim();
-    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
+    const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList, personalDetailsByLogins) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
-    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin, rules);
+    const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin, rules, personalDetailsByLogins);
 
     // When an explicit manager email can't be resolved to an accountID, send the email alone rather than a mismatched
     // accountID from the approval chain, which would point the server at someone other than the chosen approver.
@@ -1031,11 +1039,10 @@ function submitReport({
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
     // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
-    const reportTransactions = getReportTransactions(expenseReport.reportID);
-    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
 
-    if (hasOnlyHeldExpenses(reportTransactions)) {
+    if (hasHeldExpenses && heldTransactions.length === expenseReportTransactions.length) {
         return;
     }
 
@@ -1305,7 +1312,7 @@ function submitReport({
 
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
-    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    // exportReportToPDF does so the report PDF download modal shows progress and auto-downloads once the filename arrives.
     if (shouldExportToPDF) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1339,6 +1346,7 @@ function submitReport({
                   optimisticHoldReportExpenseActionIDs,
               }
             : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     onSubmitted?.();

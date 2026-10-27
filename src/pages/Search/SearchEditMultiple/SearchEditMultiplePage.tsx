@@ -12,6 +12,8 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -60,7 +62,7 @@ import {
 } from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -171,6 +173,9 @@ function SearchEditMultiplePage() {
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
     const areAttendeesEnabled = areSelectedTransactionsExpenses && isAttendeeTrackingEnabledForSelection;
+
+    useLoadPolicyCategories(policy?.areCategoriesEnabled ? policyID : undefined);
+    useLoadPolicyTags(policy?.areTagsEnabled ? policyID : undefined);
 
     useEffect(() => {
         return () => {
@@ -382,7 +387,7 @@ function SearchEditMultiplePage() {
                     {areAttendeesEnabled && (
                         <MenuItemField
                             name={translate('iou.attendees')}
-                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, localeCompare) : ''}
+                            value={draftTransaction?.comment?.attendees?.length ? getAttendeesListDisplayString(draftTransaction.comment.attendees, formatPhoneNumber, localeCompare) : ''}
                             onPress={isAttendeesDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP)}
                             isDisabled={isAttendeesDisabled}
                         />

@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -33,6 +34,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
@@ -43,11 +45,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -95,6 +98,7 @@ function TransactionGroupListExpandedImpl({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const delegateAccountID = useDelegateAccountID();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
@@ -107,31 +111,26 @@ function TransactionGroupListExpandedImpl({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
-    const neededReportIDs = useMemo(() => {
-        const ids = new Set<string>();
-        for (const transaction of visibleTransactions) {
-            if (transaction.reportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
-            }
-            if (transaction.reportAction?.childReportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+    const ids = new Set<string>();
+    for (const transaction of visibleTransactions) {
+        if (transaction.reportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+        }
+        if (transaction.reportAction?.childReportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+        }
+    }
+    const neededReportIDs = ids;
+
+    const reportsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        const result: OnyxCollection<OnyxTypes.Report> = {};
+        for (const key of Object.keys(reports ?? {})) {
+            if (neededReportIDs.has(key)) {
+                result[key] = reports?.[key];
             }
         }
-        return ids;
-    }, [visibleTransactions]);
-
-    const reportsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
-            const result: OnyxCollection<OnyxTypes.Report> = {};
-            for (const key of Object.keys(reports ?? {})) {
-                if (neededReportIDs.has(key)) {
-                    result[key] = reports?.[key];
-                }
-            }
-            return result;
-        },
-        [neededReportIDs],
-    );
+        return result;
+    };
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {
@@ -170,6 +169,7 @@ function TransactionGroupListExpandedImpl({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
@@ -227,6 +227,7 @@ function TransactionGroupListExpandedImpl({
                         delegateAccountID,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
                         shouldNavigate: false,
+                        fullPolicySnapshotLastModifiedByPolicyID,
                     });
                     if (targetReportID) {
                         openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: transactionItem.transactionID}), event);
@@ -246,6 +247,7 @@ function TransactionGroupListExpandedImpl({
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
+                    fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 return;
             }
@@ -301,6 +303,10 @@ function TransactionGroupListExpandedImpl({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as ListItem);
@@ -354,14 +360,29 @@ function TransactionGroupListExpandedImpl({
                         <PressableWithFeedback
                             onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : (event) => handleOnPress(transaction, event)}
                             disabled={isTransactionPendingDelete(transaction) && !transaction.isSelected}
-                            onLongPress={() => onLongPress?.(transaction)}
+                            onLongPress={() => {
+                                if (shouldSuppressCopyableTextRowLongPress()) {
+                                    return;
+                                }
+                                onLongPress?.(transaction);
+                            }}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
-                            onMouseDown={(e) => e.preventDefault()}
+                            shouldAllowTextSelection
+                            onMouseDown={(e) => {
+                                const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                                if (isCopyableTarget) {
+                                    return;
+                                }
+                                e.preventDefault();
+                            }}
+                            onTouchStart={(event) => {
+                                markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                            }}
                             hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                            dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                             id={transaction.transactionID}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                         >

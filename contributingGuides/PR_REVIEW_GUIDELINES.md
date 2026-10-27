@@ -58,6 +58,7 @@ For a comprehensive guide on standards and best practices for both PR authors an
 
 1. Make sure any `setTimeout`s are absolutely necessary, not just a workaround for a situation that isn’t fully understood (e.g. a race condition).
 2. Ensure Onyx is used appropriately. ([docs](https://github.com/expensify/react-native-onyx#merging-data))
+3. Work delayed until a navigation or modal transition ends should use the shared primitives, not inline state flushed on focus or a guessed `setTimeout`. See [DEFER_AFTER_PAINT.md](DEFER_AFTER_PAINT.md).
 
 ## Considerations around code reuse
 

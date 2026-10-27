@@ -18,7 +18,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -31,7 +31,6 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const config = policy?.connections?.xero?.config;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path);
-    const travelBillingPath = `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path}`;
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const travelPayableAccount = bankAccounts?.find((account) => account.id === config?.export?.travelInvoicingPayableAccountID);
@@ -39,7 +38,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
     return (
         <ConnectionLayout
             displayName="DynamicXeroTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -55,7 +54,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             <FormHelpMessage
                 isError={false}
                 shouldShowRedDotIndicator={false}
-                message={translate('workspace.xero.travelInvoicingDescription')}
+                message={translate('workspace.xero.travelBillingDescription')}
                 style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
             />
             <OfflineWithFeedback
@@ -63,12 +62,12 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
                 errorRowStyles={[styles.ph5]}
             >
                 <MenuItemField
-                    name={translate('workspace.common.travelInvoicingPayableAccount')}
+                    name={translate('workspace.common.travelBillingPayableAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path, travelBillingPath));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path));
                     }}
                     value={travelPayableAccount?.name}
                 >

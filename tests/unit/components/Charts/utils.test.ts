@@ -1,4 +1,4 @@
-import BAR_INNER_PADDING, {BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
+import BAR_INNER_PADDING, {BAR_MAX_WIDTH, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, PieSlice} from '@components/Charts/types';
 import {
     edgeLabelsFit,
@@ -6,10 +6,12 @@ import {
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getAxisLabelStep,
     getBarLayout,
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -21,7 +23,21 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getBarChartHeight, getBarChartLoadingHeight, getCartesianChartHeight, getPieChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    LABEL_ROTATIONS,
+    MAX_BAR_LABEL_LINES,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
+import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 const LINE_HEIGHT = 16;
 
@@ -263,20 +279,20 @@ describe('findSliceAtPosition', () => {
 
 describe('processDataIntoSlices', () => {
     it('returns empty array for empty data', () => {
-        expect(processDataIntoSlices([], {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
+        expect(processDataIntoSlices([], CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
 
     it('returns empty array when all values are zero', () => {
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 0},
-            {label: 'B', total: 0},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 0}},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 0}},
         ];
-        expect(processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
+        expect(processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0})).toEqual([]);
     });
 
     it('creates a single slice covering 360 degrees for one data point', () => {
-        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, -90);
+        const data: ChartDataPoint[] = [{label: 'Only', values: {[CHART_SERIES_KEY.PRIMARY]: 100}}];
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, -90);
 
         expect(slices).toHaveLength(1);
         expect(slices.at(0)?.label).toBe('Only');
@@ -288,26 +304,26 @@ describe('processDataIntoSlices', () => {
     });
 
     it('uses the provided startAngle for the first slice', () => {
-        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, 45);
+        const data: ChartDataPoint[] = [{label: 'Only', values: {[CHART_SERIES_KEY.PRIMARY]: 100}}];
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0}, 45);
 
         expect(slices.at(0)?.startAngle).toBe(45);
         expect(slices.at(0)?.endAngle).toBe(405);
     });
 
     it('defaults to VictoryTheme.pie.startAngle when no startAngle is provided', () => {
-        const data: ChartDataPoint[] = [{label: 'Only', total: 100}];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const data: ChartDataPoint[] = [{label: 'Only', values: {[CHART_SERIES_KEY.PRIMARY]: 100}}];
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.startAngle).toBe(VictoryTheme.pie.startAngle);
     });
 
     it('sorts slices by absolute value descending', () => {
         const data: ChartDataPoint[] = [
-            {label: 'Small', total: 10},
-            {label: 'Large', total: 90},
+            {label: 'Small', values: {[CHART_SERIES_KEY.PRIMARY]: 10}},
+            {label: 'Large', values: {[CHART_SERIES_KEY.PRIMARY]: 90}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.label).toBe('Large');
         expect(slices.at(1)?.label).toBe('Small');
@@ -315,10 +331,10 @@ describe('processDataIntoSlices', () => {
 
     it('treats negative values as positive for slice sizing', () => {
         const data: ChartDataPoint[] = [
-            {label: 'Positive', total: 75},
-            {label: 'Negative', total: -25},
+            {label: 'Positive', values: {[CHART_SERIES_KEY.PRIMARY]: 75}},
+            {label: 'Negative', values: {[CHART_SERIES_KEY.PRIMARY]: -25}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices).toHaveLength(2);
         expect(slices.at(0)?.value).toBe(75);
@@ -329,11 +345,11 @@ describe('processDataIntoSlices', () => {
 
     it('preserves originalIndex mapping after sorting', () => {
         const data: ChartDataPoint[] = [
-            {label: 'Small', total: 10},
-            {label: 'Medium', total: 50},
-            {label: 'Large', total: 100},
+            {label: 'Small', values: {[CHART_SERIES_KEY.PRIMARY]: 10}},
+            {label: 'Medium', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
+            {label: 'Large', values: {[CHART_SERIES_KEY.PRIMARY]: 100}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         expect(slices.at(0)?.originalIndex).toBe(2); // Large was at index 2
         expect(slices.at(1)?.originalIndex).toBe(1); // Medium was at index 1
@@ -342,11 +358,11 @@ describe('processDataIntoSlices', () => {
 
     it('produces angles that sum to 360 degrees', () => {
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 33},
-            {label: 'B', total: 33},
-            {label: 'C', total: 34},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 33}},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 33}},
+            {label: 'C', values: {[CHART_SERIES_KEY.PRIMARY]: 34}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         const totalSweep = slices.reduce((sum, s) => sum + (s.endAngle - s.startAngle), 0);
         expect(totalSweep).toBeCloseTo(360, 5);
@@ -354,39 +370,42 @@ describe('processDataIntoSlices', () => {
 
     it('chains consecutive angles without gaps', () => {
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 50},
-            {label: 'B', total: 30},
-            {label: 'C', total: 20},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 30}},
+            {label: 'C', values: {[CHART_SERIES_KEY.PRIMARY]: 20}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
 
         for (let i = 1; i < slices.length; i++) {
             expect(slices.at(i)?.startAngle).toBeCloseTo(slices.at(i - 1)?.endAngle ?? 0, 10);
         }
     });
 
-    it('assigns distinct colors from the chart palette', () => {
+    it('draws each slice in the color of its point', () => {
+        // Given points that each carry the color their slice is drawn in
         const data: ChartDataPoint[] = [
-            {label: 'A', total: 40},
-            {label: 'B', total: 30},
-            {label: 'C', total: 20},
-            {label: 'D', total: 10},
+            {label: 'A', values: {[CHART_SERIES_KEY.PRIMARY]: 10}, color: '#111'},
+            {label: 'B', values: {[CHART_SERIES_KEY.PRIMARY]: 30}, color: '#222'},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
-        const colors = slices.map((s) => s.color);
-        const uniqueColors = new Set(colors);
 
-        expect(uniqueColors.size).toBe(4);
+        // When the data is turned into slices
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 0, centerY: 0, radius: 0, innerRadius: 0});
+
+        // Then each slice keeps its point's color, even after the slices are sorted by size
+        expect(slices.map((slice) => [slice.label, slice.color])).toEqual([
+            ['B', '#222'],
+            ['A', '#111'],
+        ]);
     });
 
     it('places tooltipPosition at the ring midpoint along each slice mid-angle', () => {
         // Two equal slices from -90° produce mid-angles 0° (right) and 180° (left).
         // tooltipRadius = (innerRadius + radius) / 2 = (60 + 100) / 2 = 80.
         const data: ChartDataPoint[] = [
-            {label: 'Right', total: 50},
-            {label: 'Left', total: 50},
+            {label: 'Right', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
+            {label: 'Left', values: {[CHART_SERIES_KEY.PRIMARY]: 50}},
         ];
-        const slices = processDataIntoSlices(data, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60}, -90);
+        const slices = processDataIntoSlices(data, CHART_SERIES_KEY.PRIMARY, {centerX: 200, centerY: 150, radius: 100, innerRadius: 60}, -90);
 
         expect(slices.at(0)?.tooltipPosition.x).toBeCloseTo(280, 5);
         expect(slices.at(0)?.tooltipPosition.y).toBeCloseTo(150, 5);
@@ -637,9 +656,7 @@ describe('rotatedLabelYOffset', () => {
     });
 });
 
-// Bar chart domain padding constants, mirrored from BarChartContent.
-const BAR_PAD_TOP = 32;
-const BAR_PAD_BOTTOM = 1;
+const {top: BAR_PAD_TOP, bottom: BAR_PAD_BOTTOM} = VERTICAL_BAR_DOMAIN_PADDING;
 
 describe('getNiceYAxisTicks', () => {
     it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
@@ -651,7 +668,7 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('treats flat positive series as range [0, value] using bar chart padding', () => {
-        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 1, 2, 3]);
+        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]);
     });
 
     it('returns correct ticks for varied positive data with bar chart padding', () => {
@@ -675,7 +692,7 @@ describe('getNiceYAxisTicks', () => {
     });
 
     it('returns correct ticks for varied negative data with bar chart padding', () => {
-        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
+        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-80, -60, -40, -20, 0]);
     });
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
@@ -751,6 +768,122 @@ describe('getBarLayout', () => {
     });
 });
 
+describe('getCartesianChartHeight', () => {
+    const ROTATED_LABEL_HEIGHT = 120;
+
+    it('should give the loading box and a chart with one line of labels the same height', () => {
+        // Given the loading box, which has no labels to measure, and a loaded chart whose labels fit on one line
+        const loadingHeight = getCartesianChartHeight();
+
+        // When the loaded chart sizes its box from the measured label strip
+        const loadedHeight = getCartesianChartHeight(X_AXIS_LABEL_MIN_HEIGHT - 1);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadedHeight).toBe(loadingHeight);
+    });
+
+    it('should grow the box when rotated labels need more room than one line', () => {
+        // Given labels rotated so their strip is taller than one line of text
+        // When the chart sizes its box
+        const height = getCartesianChartHeight(ROTATED_LABEL_HEIGHT);
+
+        // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
+    });
+});
+
+describe('getBarChartLoadingHeight', () => {
+    // ExpensifyNeue's ascent plus descent at the 12px label size, (950 + 230) / 1000 of the em, which Skia measures for each label line
+    const SKIA_LABEL_LINE_HEIGHT = 14.16;
+
+    it('should give the loading box the height of a chart whose labels wrap', () => {
+        // Given a bar chart with wrapped labels, which keeps two lines of label space whatever the names are
+        const loadedHeight = getBarChartHeight(true, MAX_BAR_LABEL_LINES * SKIA_LABEL_LINE_HEIGHT);
+
+        // When the loading box is sized before the chart has measured anything
+        const loadingHeight = getBarChartLoadingHeight(true, true);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadingHeight).toBeCloseTo(loadedHeight, 5);
+    });
+});
+
+describe('getPieChartLoadingHeight', () => {
+    // The narrowest card that fits the side legend: the 250px donut, the 24px gap and the 180px legend column
+    const SIDE_LEGEND_MIN_CARD_WIDTH = 454;
+
+    it('should reserve the donut height for a side legend once the card is measured', () => {
+        // Given a responsive legend in a card just wide enough for it to sit beside the donut, on the narrow layout
+        // When the loading box is sized from the measured card width
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH, true, true, true);
+
+        // Then it keeps the donut's height, since five legend rows fit beside it, and the measured width wins over the layout
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should reserve a full stacked legend under the donut when the card is too narrow for a side legend', () => {
+        // Given a responsive legend in a card 1px too narrow for the side legend, on the wide layout
+        // When the loading box is sized from the measured card width, before the slice count is known
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, false, true, true);
+
+        // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
+        const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
+        const legendHeight = rowCount * variables.fontSizeNormalHeight + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
+    });
+
+    it('should reserve only the donut when the legend is hidden', () => {
+        // Given a responsive pie with its legend turned off, in a card too narrow for a side legend
+        // When the loading box is sized
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, false, true);
+
+        // Then it keeps the donut's height alone, since the chart draws no legend to stack
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should assume a stacked legend on the narrow layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the narrow layout, where phone cards are too narrow for a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, true, true, true);
+
+        // Then it matches the stacked height a phone card measures into, so the box does not change when the width lands
+        const stackedHeight = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, true, true);
+        expect(height).toBe(stackedHeight);
+    });
+
+    it('should assume a side legend on the wide layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the wide layout, where a typical desktop card fits a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, false, true, true);
+
+        // Then it keeps the donut's height that a desktop card measures into, so the box does not change when the width lands
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+});
+
+describe('getCartesianPlotBounds', () => {
+    const PADDING_LEFT = VictoryTheme.axis.padding.left;
+
+    it('reserves the right gutter for labels and the left base padding', () => {
+        // Given a 300px container with a 30px right gutter
+        // When computing the plot bounds
+        // Then the plot spans from the left padding to the gutter, where victory-native puts it,
+        // so labels laid out before the chart mounts line up with the plot it draws
+        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30, width: 300 - 30 - PADDING_LEFT});
+    });
+
+    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
+        // Given a container narrower than the right gutter itself
+        // When computing the plot bounds
+        // Then the plot collapses to zero width at the left padding, because a negative width would break the bar and
+        // label layouts that are sized from it
+        const bounds = getCartesianPlotBounds(10, 30);
+        expect(bounds.left).toBe(PADDING_LEFT);
+        expect(bounds.right).toBe(PADDING_LEFT);
+        expect(bounds.width).toBe(0);
+    });
+});
+
 describe('getDomainPaddingForEdgeSpace', () => {
     it('returns the padding victory-native shrinks back to the requested edge space', () => {
         // Given a 200px plot and the space wanted before the first and after the last point
@@ -771,5 +904,97 @@ describe('getDomainPaddingForEdgeSpace', () => {
         // When converting it to domain padding
         // Then it is returned as is instead of dividing by zero or going negative
         expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
+    });
+});
+
+describe('getAxisLabelStep', () => {
+    const MIN_GAP = 24;
+
+    const getEvenPointXs = (count: number, spacing: number) => Array.from({length: count}, (_, index) => index * spacing);
+
+    it('labels every point when neighboring labels keep the minimum gap', () => {
+        // Given 20px labels on points 50px apart, which leaves a 30px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(20), pointXs, steps: [1, 2, 7, 14], minGap: MIN_GAP});
+
+        // Then the smallest step is used, so no label is hidden needlessly
+        expect(step).toBe(1);
+    });
+
+    it('moves to the next listed step when neighboring labels are too close', () => {
+        // Given 30px labels on points 50px apart, which leaves only a 20px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(30), pointXs, steps: [1, 2, 7, 14], minGap: MIN_GAP});
+
+        // Then every other point is labeled, which widens the gap to 70px
+        expect(step).toBe(2);
+    });
+
+    it('accepts a gap exactly equal to the minimum gap', () => {
+        // Given 26px labels on points 50px apart, which leaves exactly a 24px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(26), pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then the minimum gap counts as enough room, so every point stays labeled
+        expect(step).toBe(1);
+    });
+
+    it('tries multiples of the last listed step when no listed step fits', () => {
+        // Given 30px labels on points 10px apart, too dense for steps 1 and 2
+        const pointXs = getEvenPointXs(10, 10);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(10).fill(30), pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then 4 is still too tight (10px gap), and 6 is the first multiple of 2 that leaves a 30px gap
+        expect(step).toBe(6);
+    });
+
+    it('labels only the first point when no step fits', () => {
+        // Given 3 points 10px apart with 30px labels, where even the first and last labels overlap
+        const pointXs = getEvenPointXs(3, 10);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(3).fill(30), pointXs, steps: [1], minGap: MIN_GAP});
+
+        // Then the step reaches past the last point, so only the first label is drawn instead of overlapping ones
+        expect(step).toBe(3);
+    });
+
+    it('labels only the first and last points when the only step spans the whole axis', () => {
+        // Given 5 points and the single step the narrow layout passes, points.length - 1
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(30), pointXs, steps: [4], minGap: MIN_GAP});
+
+        // Then that step is used, so the first and last points are labeled
+        expect(step).toBe(4);
+    });
+
+    it("checks each label's own width", () => {
+        // Given a wide first label that reaches the second label but clears the third
+        const pointXs = [0, 50, 100];
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: [80, 20, 20], pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then step 1 is rejected because of the first label's width, even though the narrow labels would fit
+        expect(step).toBe(2);
+    });
+
+    it('labels a single point with the smallest step', () => {
+        // Given one point, which has no neighbor its label could overlap
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: [30], pointXs: [0], steps: [1, 2], minGap: MIN_GAP});
+
+        // Then the smallest step is used and the point stays labeled
+        expect(step).toBe(1);
     });
 });

@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import type {PressableWithDelayToggleProps} from './Pressable/PressableWithDelayToggle';
 
@@ -38,10 +38,9 @@ function CopyTextToClipboard({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
-    const copyToClipboard = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+    const copyToClipboard = () => {
         Clipboard.setString(urlToCopy || text || '');
-    }, [text, urlToCopy]);
+    };
 
     return (
         <PressableWithDelayToggle

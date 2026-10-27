@@ -25,7 +25,7 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -93,6 +93,18 @@ const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
+/** Reads the expenses currently in Onyx for a report, i.e. what a component would pass as the report's transactions. */
+async function getReportTransactionsFromOnyx(reportID: string | undefined): Promise<Transaction[]> {
+    let allTransactions: OnyxCollection<Transaction>;
+    await getOnyxData({
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+        callback: (transactions) => {
+            allTransactions = transactions;
+        },
+    });
+    return Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
+}
+
 describe('actions/IOU/PayMoneyRequest', () => {
     beforeAll(() => {
         Onyx.init({
@@ -237,17 +249,20 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     mockFetch?.pause?.();
                     if (!chatReport || !iouReport) {
                         return waitForBatchedUpdates();
                     }
+                    const iouReportTransactions = await getReportTransactionsFromOnyx(iouReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         chatReport,
                         iouReport,
+                        iouReportTransactions,
                         introSelected: undefined,
                         currentUserAccountID,
                         currentUserLogin,
@@ -463,16 +478,19 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     if (!chatReport || !expenseReport) {
                         return waitForBatchedUpdates();
                     }
+                    const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
                         chatReport,
                         iouReport: expenseReport,
+                        iouReportTransactions,
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
@@ -643,17 +661,20 @@ describe('actions/IOU/PayMoneyRequest', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     mockFetch?.fail?.();
                     if (!chatReport || !expenseReport) {
                         return waitForBatchedUpdates();
                     }
+                    const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: 'ACH',
                         chatReport,
                         iouReport: expenseReport,
+                        iouReportTransactions,
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
@@ -707,11 +728,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // When paying the IOU report
             const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -808,11 +831,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // expense the requestor deleted in the meantime
             mockFetch?.fail?.();
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -853,11 +878,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 mockFetch?.pause?.();
 
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport,
+                    iouReportTransactions: [],
                     introSelected: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     currentUserLogin: CARLOS_EMAIL,
@@ -885,6 +912,66 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 });
 
                 expect(payReportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+
+                mockFetch?.resume?.();
+            });
+            it('records the caller’s bank account details on an expense payment instead of reading cached accounts', async () => {
+                // Given an expense report and an account whose cached number differs from the caller’s snapshot.
+                const bankAccountID = 999;
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX1111'}}});
+                const chatReport = {
+                    ...createRandomReport(0, undefined),
+                    lastReadTime: DateUtils.getDBTime(),
+                    lastVisibleActionCreated: DateUtils.getDBTime(),
+                };
+                const iouReport = {
+                    ...createRandomReport(1, undefined),
+                    chatType: undefined,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    total: 10,
+                };
+                mockFetch?.pause?.();
+
+                // When paying with the account provided by the caller.
+                payMoneyRequest({
+                    bankAccountList: {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX9876'}}},
+                    methodID: bankAccountID,
+                    isASAPSubmitBetaEnabled: false,
+                    conciergeChat: undefined,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    chatReport,
+                    iouReport,
+                    iouReportTransactions: [],
+                    introSelected: undefined,
+                    currentUserAccountID: CARLOS_ACCOUNT_ID,
+                    currentUserLogin: CARLOS_EMAIL,
+                    isSelfTourViewed: false,
+                    userBillingGracePeriodEnds: undefined,
+                    amountOwed: 0,
+                    chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    chatReportActions: undefined,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                });
+
+                await waitForBatchedUpdates();
+
+                const payReportAction = await new Promise<ReportAction | undefined>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                        callback: (reportActions) => {
+                            Onyx.disconnect(connection);
+                            resolve(Object.values(reportActions ?? {}).pop());
+                        },
+                    });
+                });
+
+                // Then the action records the selected account and its current number for every viewer.
+                expect(payReportAction && isMoneyRequestAction(payReportAction) ? getOriginalMessage(payReportAction) : undefined).toEqual(
+                    expect.objectContaining({bankAccountID, accountNumber: 'XXXX9876'}),
+                );
 
                 mockFetch?.resume?.();
             });
@@ -966,11 +1053,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         policyID: CONST.POLICY.ID_FAKE,
                     };
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         chatReport: partialPayChatReport,
                         iouReport,
+                        iouReportTransactions: [transaction1, transaction2],
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
@@ -1066,11 +1155,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
             const newExpenseReportID = payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport: expenseReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -1173,11 +1264,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 return expenseReport;
             };
 
-            const pay = (expenseReport: Report) =>
+            const pay = (expenseReport: Report, iouReportTransactions: Transaction[]) =>
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport: expenseReport,
+                    iouReportTransactions,
                     introSelected: undefined,
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     currentUserLogin: RORY_EMAIL,
@@ -1201,7 +1294,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
                 const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
 
-                const newReportID = pay(expenseReport);
+                const newReportID = pay(expenseReport, [validTransaction, scanFailedTransaction]);
                 await waitForBatchedUpdates();
 
                 expect(newReportID).toBeDefined();
@@ -1219,7 +1312,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
                 const expenseReport = await setUpReport([scanFailedTransaction]);
 
-                const newReportID = pay(expenseReport);
+                const newReportID = pay(expenseReport, [scanFailedTransaction]);
                 await waitForBatchedUpdates();
 
                 expect(newReportID).toBeUndefined();
@@ -1232,7 +1325,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const scanFailedTransaction = buildTransaction('scanFailed1', -5000, true);
                 const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
 
-                const newReportID = pay(expenseReport);
+                const newReportID = pay(expenseReport, [validTransaction, scanFailedTransaction]);
                 await waitForBatchedUpdates();
 
                 expect(newReportID).toBeUndefined();
@@ -1263,11 +1356,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -1318,11 +1413,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -1493,11 +1590,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -1567,11 +1666,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -1631,11 +1732,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.mocked(Navigation.navigate).mockClear();
 
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -1674,11 +1777,13 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
+                bankAccountList: undefined,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
                 iouReport,
+                iouReportTransactions: [],
                 introSelected: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 currentUserLogin: CARLOS_EMAIL,
@@ -2107,17 +2212,20 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         },
                     }),
                 )
-                .then(() => {
+                .then(async () => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (!chatReport || !expenseReport) {
                         return waitForBatchedUpdates();
                     }
+                    const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
+                        bankAccountList: undefined,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         chatReport,
                         iouReport: expenseReport,
+                        iouReportTransactions,
                         introSelected: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
                         currentUserLogin: CARLOS_EMAIL,
@@ -2623,12 +2731,15 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // When the expense report is paid elsewhere (but really, any payment option would work)
             if (chatReport && expenseReport) {
                 mockFetch?.pause?.();
+                const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 payMoneyRequest({
+                    bankAccountList: undefined,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport: expenseReport,
+                    iouReportTransactions,
                     introSelected: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     currentUserLogin: CARLOS_EMAIL,
