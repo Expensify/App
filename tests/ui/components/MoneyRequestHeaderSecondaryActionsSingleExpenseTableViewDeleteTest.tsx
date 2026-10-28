@@ -10,6 +10,7 @@ import getCentralPaneReportID from '@libs/Navigation/helpers/getCentralPaneRepor
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {navigateBackOnDeleteTransaction} from '@libs/ReportUtils';
+// eslint-disable-next-line no-restricted-imports -- type-only namespace import, used solely to type jest.requireActual for the ReportUtils mock below
 import type * as ReportUtils from '@libs/ReportUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
@@ -80,11 +81,11 @@ jest.mock('@hooks/useDeleteTransactions', () => ({
     default: jest.fn(() => ({deleteTransactions: mockDeleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete: jest.fn(() => false)})),
 }));
 
+const mockIouReport = iouReport;
 jest.mock('@hooks/useGetIOUReportFromReportAction', () => ({
     __esModule: true,
     default: jest.fn(() => ({iouReport: mockIouReport, chatReport: undefined, isChatIOUReportArchived: false})),
 }));
-const mockIouReport = iouReport;
 
 jest.mock('@hooks/useReportTransactionsCollection', () => ({
     __esModule: true,

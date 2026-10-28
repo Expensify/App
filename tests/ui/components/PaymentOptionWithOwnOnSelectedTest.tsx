@@ -9,6 +9,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import type {GestureResponderEvent} from 'react-native';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
@@ -38,7 +39,14 @@ jest.mock('@components/ButtonWithDropdownMenu', () => jest.fn(() => null));
 const mockedBulkActionBar = jest.mocked(BulkActionBar);
 const mockedButtonWithDropdownMenu = jest.mocked(ButtonWithDropdownMenu);
 
-type OnSubItemSelected = (item: PopoverMenuItem, index: number, event?: undefined) => void;
+type OnSubItemSelected = (item: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+
+function getOnSubItemSelected(onSubItemSelected: OnSubItemSelected | undefined): OnSubItemSelected {
+    if (!onSubItemSelected) {
+        throw new Error('onSubItemSelected was not passed to the menu');
+    }
+    return onSubItemSelected;
+}
 
 // An invoice's "Mark as paid" item, which pays from its own onSelected when the menu runs it.
 const invoicePayElsewhereItem = {text: 'Mark as paid', value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, onSelected: jest.fn()};
@@ -60,7 +68,7 @@ function renderBulkActionBar(onSelectionModePaymentSelect: jest.Mock): OnSubItem
             onClearSelection={jest.fn()}
         />,
     );
-    return mockedBulkActionBar.mock.calls.at(-1)?.at(0)?.onSubItemSelected as OnSubItemSelected;
+    return getOnSubItemSelected(mockedBulkActionBar.mock.calls.at(-1)?.at(0)?.onSubItemSelected);
 }
 
 function renderKYCDropdown(onPaymentSelect: jest.Mock): OnSubItemSelected {
@@ -69,9 +77,11 @@ function renderKYCDropdown(onPaymentSelect: jest.Mock): OnSubItemSelected {
             primaryAction=""
             applicableSecondaryActions={[]}
             onPaymentSelect={onPaymentSelect}
+            onSuccessfulKYC={jest.fn()}
+            ref={{current: null}}
         />,
     );
-    return mockedButtonWithDropdownMenu.mock.calls.at(-1)?.at(0)?.onSubItemSelected as OnSubItemSelected;
+    return getOnSubItemSelected(mockedButtonWithDropdownMenu.mock.calls.at(-1)?.at(0)?.onSubItemSelected);
 }
 
 describe('Payment options that pay from their own onSelected', () => {
