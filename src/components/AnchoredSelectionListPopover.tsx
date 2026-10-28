@@ -53,7 +53,7 @@ type AnchoredSelectionListPopoverProps = {
 
     /** The list */
     children: ReactNode;
-} & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
+} & Pick<PopoverWithMeasuredContentProps, 'isVisible' | 'anchorPosition' | 'anchorAlignment' | 'shouldMeasureAnchorPositionFromTop'>;
 
 /**
  * The container a field's selection list opens in: a pop-over on a wide layout, a bottom sheet on a narrow one, sized
