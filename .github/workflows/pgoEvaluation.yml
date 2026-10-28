@@ -47,12 +47,10 @@ jobs:
         env:
           CHECKOUT_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           MAPBOX_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-          JOURNEY_FIXTURE: ${{ secrets.PGO_JOURNEY_FIXTURE }}
         run: |
           test -n "$CHECKOUT_TOKEN" || { echo '::error::Add the existing OS_BOTIFY_TOKEN repository secret with access to Mobile-Expensify.'; exit 1; }
           test -n "$MAPBOX_TOKEN" || { echo '::error::Add the existing MAPBOX_SDK_DOWNLOAD_TOKEN repository secret.'; exit 1; }
-          test -n "$PGO_EMULATOR_ACCOUNT_EMAIL" && test -n "$PGO_EMULATOR_PARTNER_USER_ID" && test -n "$PGO_EMULATOR_PARTNER_USER_SECRET" || { echo '::error::Add the test account secrets EXPENSIFY_PARTNER_PASSWORD_EMAIL, EXPENSIFY_PARTNER_USER_ID and EXPENSIFY_PARTNER_USER_SECRET.'; exit 1; }
-          test -n "$JOURNEY_FIXTURE" || { echo '::error::Add the PGO_JOURNEY_FIXTURE secret described in scripts/pgo/EVALUATION.md.'; exit 1; }
+          test -n "$PGO_EMULATOR_ACCOUNT_EMAIL" && test -n "$PGO_EMULATOR_PARTNER_USER_ID" && test -n "$PGO_EMULATOR_PARTNER_USER_SECRET" || { echo '::error::Add the test account secrets EXPENSIFY_PARTNER_PASSWORD_EMAIL, EXPENSIFY_PARTNER_USER_ID and EXPENSIFY_PARTNER_USER_SECRET described in scripts/pgo/EVALUATION.md.'; exit 1; }
       - name: Checkout the candidate and its pinned native sources
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -76,16 +74,6 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh "$MAPBOX_TOKEN"
       - name: Install device automation
         run: npm install --global "agent-device@$AGENT_DEVICE_VERSION"
-      - name: Write the test account journey fixture
-        env:
-          JOURNEY_FIXTURE: ${{ secrets.PGO_JOURNEY_FIXTURE }}
-        run: |
-          set -o pipefail
-          fixture="$RUNNER_TEMP/pgo-journey-fixture.json"
-          printf '%s' "$JOURNEY_FIXTURE" > "$fixture"
-          # Log lines can print these values one at a time, so mask each one.
-          jq -r '[.accountEmail, .description, .report.query, .report.resultLabelPrefix, .report.title, .personalChat.query, .personalChat.resultLabelPrefix, .personalChat.title] | .[] | strings' "$fixture" | while IFS= read -r value; do echo "::add-mask::$value"; done
-          echo "PGO_EMULATOR_FIXTURE_PATH=$fixture" >> "$GITHUB_ENV"
 
       - name: Read repository Java version
         if: matrix.platform == 'android'
@@ -203,16 +191,6 @@ jobs:
           IS_HYBRID_BUILD: 'true'
       - name: Install device automation
         run: npm install --global "agent-device@$AGENT_DEVICE_VERSION"
-      - name: Write the test account journey fixture
-        env:
-          JOURNEY_FIXTURE: ${{ secrets.PGO_JOURNEY_FIXTURE }}
-        run: |
-          set -o pipefail
-          fixture="$RUNNER_TEMP/pgo-journey-fixture.json"
-          printf '%s' "$JOURNEY_FIXTURE" > "$fixture"
-          # Log lines can print these values one at a time, so mask each one.
-          jq -r '[.accountEmail, .description, .report.query, .report.resultLabelPrefix, .report.title, .personalChat.query, .personalChat.resultLabelPrefix, .personalChat.title] | .[] | strings' "$fixture" | while IFS= read -r value; do echo "::add-mask::$value"; done
-          echo "PGO_EMULATOR_FIXTURE_PATH=$fixture" >> "$GITHUB_ENV"
 
       - name: Read repository Java version
         if: matrix.platform == 'android'

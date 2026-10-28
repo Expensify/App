@@ -2,11 +2,13 @@
 import {describe, expect, it} from 'bun:test';
 
 import {parseBootedIOSSimulators} from '@scripts/lib/nativeAppBenchmark';
+import {emulatorJourneyFixture, roomLabelPrefix, selfChatTitle} from '@scripts/pgo/emulatorAccount';
 import type {BenchmarkResult, TrainingResult} from '@scripts/pgo/emulatorEvaluation';
 import {evaluationResults} from '@scripts/pgo/emulatorEvaluation';
 import {needsEmulatorSignIn, parseEmulatorSignIn, SESSION_REFRESH_MS} from '@scripts/pgo/emulatorSignIn';
 import {evaluationReport} from '@scripts/pgo/evaluationReport';
 import type {EvaluationCohort, EvaluationPlan} from '@scripts/pgo/evaluationSchema';
+import type {JourneyNode} from '@scripts/pgo/journeyDevice';
 import {emulatorEntryFile, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME} from '@scripts/pgo/shared';
 
 import {existsSync} from 'node:fs';
@@ -15,6 +17,10 @@ const hash = 'a'.repeat(64);
 const otherHash = 'b'.repeat(64);
 const candidate: EvaluationPlan['candidate'] = {appSha: 'a'.repeat(40), mobileSha: 'b'.repeat(40), version: '9.4.94-0', environment: 'preview'};
 const noChecklist = () => Promise.reject(new Error('The emulator report must not read a checklist.'));
+
+function nodes(...labels: string[]): JourneyNode[] {
+    return labels.map((label) => ({label, value: '', identifier: '', type: 'Button', enabled: true, width: 300, height: 60, x: 0, y: 0}));
+}
 
 function training(overrides: Partial<TrainingResult> = {}): TrainingResult {
     return {
@@ -83,6 +89,32 @@ describe('PGO emulator evaluation', () => {
         expect(needsEmulatorSignIn(session, 'other@example.com', now)).toBe(true);
         expect(needsEmulatorSignIn({...session, creationDate: undefined}, 'ci@example.com', now)).toBe(true);
         expect(needsEmulatorSignIn({...session, creationDate: now - SESSION_REFRESH_MS - 1}, 'ci@example.com', now)).toBe(true);
+    });
+
+    it('reads the self-chat and busy room of the CI account from search instead of a fixture secret', () => {
+        // Given search results as the app labels them, including a self-chat whose subtitle became its last message.
+        const selfChat = nodes('Search for ci@example.com', 'CI Tester (you), PGO run 1 message 2');
+        const rooms = nodes('#announce, Crowded Policy (Do Not Delete) • Welcome', '#announcements-old, Other workspace');
+        // When the runner reads the journey targets.
+        const title = selfChatTitle(selfChat);
+        const prefix = roomLabelPrefix(rooms, '#announce');
+        // Then it finds the one "(you)" chat and the one #announce room, waits while results load, and stops on ambiguity.
+        expect(title).toBe('CI Tester (you)');
+        expect(prefix).toBe('#announce, Crowded Policy (Do Not Delete)');
+        expect(selfChatTitle(nodes('Search for ci@example.com'))).toBeUndefined();
+        expect(() => roomLabelPrefix(nodes('#announce, Workspace A', '#announce, Workspace B'), '#announce')).toThrow('2 #announce rooms');
+        expect(() => selfChatTitle(nodes('A (you), a@example.com', 'B (you), b@example.com'))).toThrow('2 chats titled');
+    });
+
+    it('binds the generated fixture to the CI account so training messages go only to its own chat', () => {
+        // Given the values read from the signed-in app.
+        // When the runner writes the journey fixture.
+        const fixture = emulatorJourneyFixture('ci@example.com', 'CI Tester (you)', '#announce, Crowded Policy (Do Not Delete)');
+        // Then it passes the journey's own fixture checks and names the account's self-chat as the only message target.
+        expect(fixture.personalChat).toEqual({query: 'ci@example.com', resultLabelPrefix: 'CI Tester (you), ci@example.com', title: 'CI Tester (you)'});
+        expect(fixture.report).toEqual({query: 'announce', resultLabelPrefix: '#announce, Crowded Policy (Do Not Delete)', title: '#announce'});
+        expect(fixture.allowMessages).toBe(true);
+        expect(() => emulatorJourneyFixture('ci@example.com', 'CI Tester', '#announce, Workspace')).toThrow('(you)');
     });
 
     it('builds the real app only for the app workload and keeps the synthetic verification entry otherwise', () => {

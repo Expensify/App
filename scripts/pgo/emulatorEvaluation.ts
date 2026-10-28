@@ -1,37 +1,30 @@
 #!/usr/bin/env bun
-// cspell:ignore cooldown profdata sdcard simctl
+// cspell:ignore cooldown profdata
 /** Train and benchmark the real app on disposable emulators with the release-candidate evaluation plan. */
 import {createHash} from 'node:crypto';
-import {appendFileSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
-import {tmpdir} from 'node:os';
+import {appendFileSync, copyFileSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {basename, join, relative} from 'node:path';
 
 import type {PlatformName} from '../lib/nativeAppBenchmark';
 import type {EvaluationCohort, EvaluationPlan, EvaluationResult} from './evaluationSchema';
 import type {BenchmarkOrder} from './journeyBenchmark';
-import type {JourneyFixture} from './journeyConfig';
-import type {JourneyDevice} from './journeyDevice';
 import type {PlatformAdapter} from './shared';
 
 import {PLATFORM_NAMES} from '../lib/nativeAppBenchmark';
-import {capture, environmentString, fail, findFiles, parseChoice, rootDirectory, run, runAllowFailure, sleep} from '../lib/scriptUtils';
+import {capture, environmentString, fail, findFiles, parseChoice, rootDirectory, run, runAllowFailure} from '../lib/scriptUtils';
 import createAndroidPgoAdapter from './android';
 import {androidEmulatorIdentifier} from './emulator';
-import {EMULATOR_SIGN_IN_FILE, parseEmulatorSignIn} from './emulatorSignIn';
+import {signInEmulator} from './emulatorAccount';
 import {evaluationReport} from './evaluationReport';
 import {benchmarkStagePlan, directoryNames, newBatch, readCohort} from './evaluationRun';
 import {isGitID, isRecord} from './evaluationSchema';
 import createIOSPgoAdapter from './ios';
 import {bootIOSVerificationSimulator} from './iosSimulator';
-import {parseJourneyFixture} from './journeyConfig';
-import {createJourneyDevice} from './journeyDevice';
-import {waitForTab} from './journeyWorkload';
 import {validateTraining} from './localProof';
 import {fileHash, sourceIdentity, toolchainIdentity} from './proof';
 
 const BENCHMARK_ORDERS = ['release-first', 'optimized-first'] as const;
 const APPS_ARCHIVE = 'apps.tar';
-const SIGN_IN_TIMEOUT_MS = 180_000;
 
 type TrainingResult = {
     schema: 1;
@@ -104,10 +97,8 @@ function buildBaseline(platform: PlatformName): void {
 async function train(platform: PlatformName): Promise<void> {
     const device = emulatorDevice(platform);
     const adapter = createAdapter(platform, device);
-    const {path: fixturePath, fixture} = readFixture();
     const output = publicDirectory(platform);
     const result = emptyTrainingResult(platform);
-    const deviceArgs = ['--fixture', fixturePath, '--device', device, '--app-id', adapter.appID()];
     let stage = 'install-instrumented';
     try {
         result.artifactSha256.release = fileHash(adapter.artifactPaths.release);
@@ -116,7 +107,7 @@ async function train(platform: PlatformName): Promise<void> {
         prepareEmulator(platform, device);
         adapter.install('instrumented');
         stage = 'account-preflight';
-        await signInEmulator(platform, device, adapter, fixture);
+        const deviceArgs = ['--fixture', await signInEmulator(platform, device, adapter.appID()), '--device', device, '--app-id', adapter.appID()];
         runScript('journey.ts', [platform, ...deviceArgs, '--preflight']);
 
         stage = 'training';
@@ -144,7 +135,8 @@ async function train(platform: PlatformName): Promise<void> {
             fail('The training profile changed during the optimized build.');
         }
         result.artifactSha256.optimized = fileHash(adapter.artifactPaths.optimized);
-        result.toolchain = {identitySha256: sha256(toolchainIdentity(adapter)), fixtureSha256: sha256(readFileSync(fixturePath))};
+        // The generated fixture holds the secret account email, so its hash is not published.
+        result.toolchain = {identitySha256: sha256(toolchainIdentity(adapter))};
         mkdirSync(appsDirectory(platform), {recursive: true});
         run('tar', [
             '-cf',
@@ -167,7 +159,6 @@ async function train(platform: PlatformName): Promise<void> {
 async function benchmark(platform: PlatformName, order: BenchmarkOrder): Promise<void> {
     const device = emulatorDevice(platform);
     const adapter = createAdapter(platform, device);
-    const {path: fixturePath, fixture} = readFixture();
     const output = publicDirectory(platform);
     const result: BenchmarkResult = {schema: 1, platform, order, status: 'failed', artifactSha256: {release: '', optimized: ''}, cohorts: []};
     let stage = 'candidate-guard';
@@ -184,7 +175,7 @@ async function benchmark(platform: PlatformName, order: BenchmarkOrder): Promise
         stage = 'account-preflight';
         prepareEmulator(platform, device);
         adapter.install('release');
-        await signInEmulator(platform, device, adapter, fixture);
+        const fixturePath = await signInEmulator(platform, device, adapter.appID());
         runScript('journey.ts', [platform, '--fixture', fixturePath, ...deviceArgs, '--preflight']);
         for (const {scenario} of benchmarkStagePlan().filter((plan) => plan.order === order)) {
             stage = `${scenario.name}-${order}`;
@@ -333,94 +324,6 @@ function readBenchmark(input: unknown, platform: PlatformName, order: BenchmarkO
     return input as BenchmarkResult;
 }
 
-/** Place the CI account's partner login on the device, then wait until the CI entry has signed the app in. */
-async function signInEmulator(platform: PlatformName, device: string, adapter: PlatformAdapter, fixture: JourneyFixture): Promise<void> {
-    const signIn = parseEmulatorSignIn({
-        email: process.env.PGO_EMULATOR_ACCOUNT_EMAIL,
-        partnerUserID: process.env.PGO_EMULATOR_PARTNER_USER_ID,
-        partnerUserSecret: process.env.PGO_EMULATOR_PARTNER_USER_SECRET,
-        partnerName: process.env.PGO_EMULATOR_PARTNER_NAME,
-        partnerPassword: process.env.PGO_EMULATOR_PARTNER_PASSWORD,
-    });
-    if (signIn.email.toLowerCase() !== fixture.accountEmail.toLowerCase()) {
-        fail('The journey fixture must describe the CI test account.');
-    }
-    const appID = adapter.appID();
-    if (platform === 'ios') {
-        // Build the automation's XCTest runner once, outside the per-command timeout used by every journey step.
-        run('agent-device', ['prepare', 'ios-runner', '--platform', 'ios', '--udid', device, '--timeout', '1200000']);
-    }
-    const session = createJourneyDevice({platform, device, appID, session: `pgo-${platform}-sign-in-${Date.now()}`});
-    try {
-        if (platform === 'android') {
-            // The app creates its files directory on first launch. A directory that adb created first could belong to the shell user instead.
-            session.open(true);
-            await waitForAndroidFilesDirectory(device, appID);
-            pushAndroidSignIn(device, appID, JSON.stringify(signIn));
-        } else {
-            const documents = join(capture('xcrun', ['simctl', 'get_app_container', device, appID, 'data']).trim(), 'Documents');
-            mkdirSync(documents, {recursive: true});
-            writeFileSync(join(documents, EMULATOR_SIGN_IN_FILE), JSON.stringify(signIn), {mode: 0o600});
-        }
-        session.open(true);
-        acceptPermissionAlert(session);
-        const deadline = Date.now() + SIGN_IN_TIMEOUT_MS;
-        for (;;) {
-            try {
-                await waitForTab(session, 'Inbox');
-                break;
-            } catch (error) {
-                // The sign-in screen stays visible until Authenticate returns and the account's first data load mounts the tabs.
-                if (Date.now() > deadline) {
-                    throw error;
-                }
-            }
-            await sleep(2000);
-        }
-        acceptPermissionAlert(session);
-    } finally {
-        session.command('close');
-    }
-}
-
-async function waitForAndroidFilesDirectory(device: string, appID: string): Promise<void> {
-    const deadline = Date.now() + SIGN_IN_TIMEOUT_MS;
-    while (!runAllowFailure('adb', ['-s', device, 'shell', 'test', '-d', androidFilesDirectory(appID)])) {
-        if (Date.now() > deadline) {
-            fail(`The app did not create ${androidFilesDirectory(appID)} after launching.`);
-        }
-        await sleep(1000);
-    }
-}
-
-function pushAndroidSignIn(device: string, appID: string, contents: string): void {
-    const temporary = mkdtempSync(join(tmpdir(), 'pgo-sign-in-'));
-    try {
-        const path = join(temporary, EMULATOR_SIGN_IN_FILE);
-        writeFileSync(path, contents, {mode: 0o600});
-        run('adb', ['-s', device, 'push', path, `${androidFilesDirectory(appID)}/${EMULATOR_SIGN_IN_FILE}`]);
-    } finally {
-        rmSync(temporary, {recursive: true, force: true});
-    }
-}
-
-function androidFilesDirectory(appID: string): string {
-    return `/sdcard/Android/data/${appID}/files`;
-}
-
-/** The iOS simulator cannot pre-grant notifications, so accept the one prompt a fresh install shows. */
-function acceptPermissionAlert(session: JourneyDevice): void {
-    if (session.platform !== 'ios') {
-        return;
-    }
-    try {
-        session.command('alert', 'wait', '10000');
-        session.command('alert', 'accept');
-    } catch {
-        // No prompt appeared, or it was already answered.
-    }
-}
-
 function prepareEmulator(platform: PlatformName, device: string): void {
     if (platform !== 'android') {
         return;
@@ -461,11 +364,6 @@ function emulatorDevice(platform: PlatformName): string {
         return androidEmulatorIdentifier(process.env.PGO_ANDROID_ARCH);
     }
     return environmentString('PGO_IOS_SIMULATOR_ID') ?? fail('Boot the simulator first; PGO_IOS_SIMULATOR_ID is missing.');
-}
-
-function readFixture(): {path: string; fixture: JourneyFixture} {
-    const path = environmentString('PGO_EMULATOR_FIXTURE_PATH') ?? fail('PGO_EMULATOR_FIXTURE_PATH must point to the CI account journey fixture.');
-    return {path, fixture: parseJourneyFixture(JSON.parse(readFileSync(path, 'utf8')))};
 }
 
 function emptyTrainingResult(platform: PlatformName): TrainingResult {

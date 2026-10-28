@@ -92,15 +92,13 @@ describe('PGO emulator evaluation workflow', () => {
             'EXPENSIFY_PARTNER_USER_SECRET',
             'MAPBOX_SDK_DOWNLOAD_TOKEN',
             'OS_BOTIFY_TOKEN',
-            'PGO_JOURNEY_FIXTURE',
         ]);
         expect(text).not.toContain('PGO_ANDROID_DEVICE_ID');
         expect(text).not.toContain('PGO_IOS_DEVICE_ID');
         expect(text).not.toContain('issues: write');
         expect(JSON.stringify(jobs.report)).not.toContain('secrets.');
-        // Then the fixture stays outside every uploaded directory.
+        // Then every upload comes from the public result directories, never from the runner's private files.
         const uploads = Object.values(jobs).flatMap((job) => steps(job).filter((step) => String(step.uses).startsWith('actions/upload-artifact@')));
-        expect(text).toContain('fixture="$RUNNER_TEMP/pgo-journey-fixture.json"');
         for (const upload of uploads) {
             expect(isRecord(upload.with) && String(upload.with.path)).toMatch(/^(\.pgo\/ci\/|pgo-report$)/);
         }
