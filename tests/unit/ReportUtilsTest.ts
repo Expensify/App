@@ -19506,6 +19506,36 @@ describe('ReportUtils', () => {
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
 
+        it('should leave report fields that failed to be created out of the report field list', async () => {
+            // Given a policy with a saved field and a field that failed to be created, which is still pending ADD with its error
+            const policyID = '3';
+            const baseField = createMock<PolicyReportField>({type: CONST.REPORT_FIELD_TYPES.TEXT, values: [], disabledOptions: [], defaultValue: ''});
+            const savedField = {...baseField, fieldID: 'field_id_SAVED', name: 'Saved'};
+            const failedField = {...baseField, fieldID: 'field_id_FAILED', name: 'Failed', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                fieldList: {expensify_field_id_SAVED: savedField, expensify_field_id_FAILED: failedField},
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- ErrorFields doesn't model the nested fieldList.<fieldKey>.defaultValue shape the server uses
+                errorFields: {fieldList: {expensify_field_id_FAILED: {defaultValue: {1: 'Error'}}}} as unknown as ErrorFields,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When an expense report is built before the error is dismissed
+            const expenseReport = buildOptimisticExpenseReport({
+                rules: undefined,
+                chatReportID: undefined,
+                policyID,
+                payeeAccountID: 1,
+                total: 100,
+                currency: CONST.CURRENCY.USD,
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then only the saved field is copied to the report, because the failed field doesn't exist on the server
+            expect(Object.keys(expenseReport.fieldList ?? {})).toEqual(['expensify_field_id_SAVED']);
+        });
+
         it('should keep the English workspace fallback in the report name when another locale is loaded', async () => {
             // Given a chat report that cannot be resolved, so the report name falls back to the "unavailable workspace" copy
             const chatReportID = '9999';

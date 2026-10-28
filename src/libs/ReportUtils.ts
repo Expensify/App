@@ -8028,7 +8028,7 @@ function buildOptimisticIOUReport(
         parentReportID: chatReportID,
         created,
         lastVisibleActionCreated: created,
-        fieldList: policy?.fieldList,
+        fieldList: policy?.fieldList ? getReportFieldsWithoutFailedAdds(policy.fieldList, policy.errorFields) : undefined,
         parentReportActionID,
     };
 }
@@ -8253,7 +8253,7 @@ function buildOptimisticExpenseReport({
     }
     // Otherwise, keep the default format: `${policyName} owes ${formattedTotal}`
 
-    expenseReport.fieldList = policy?.fieldList;
+    expenseReport.fieldList = policy?.fieldList ? getReportFieldsWithoutFailedAdds(policy.fieldList, policy.errorFields) : undefined;
 
     return expenseReport;
 }

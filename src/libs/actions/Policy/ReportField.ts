@@ -343,7 +343,10 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         return;
     }
 
-    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !resolvedReportFieldKeys.includes(key)));
+    // Fields that failed to be created don't exist on the server, so they're left out of the remaining fields we send
+    const updatedReportFields = Object.fromEntries(
+        Object.entries(ReportUtils.getReportFieldsWithoutFailedAdds(allReportFields, policy.errorFields)).filter(([key]) => !resolvedReportFieldKeys.includes(key)),
+    );
     const optimisticReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         return acc;
@@ -353,6 +356,9 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
         acc[reportFieldKey] = null;
         return acc;
     }, {});
+
+    // Only the deleted fields' errors are cleared, so other fields keep theirs (for example, a field that failed to be created)
+    const successErrorFields = {fieldList: successReportFields};
 
     const failureReportFields = resolvedReportFieldKeys.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyReportField>>>>((acc, reportFieldKey) => {
         acc[reportFieldKey] = {pendingAction: null};
@@ -375,7 +381,7 @@ function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsPa
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     fieldList: successReportFields,
-                    errorFields: null,
+                    errorFields: successErrorFields,
                 },
             },
         ],
