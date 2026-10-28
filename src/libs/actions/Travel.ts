@@ -1,8 +1,9 @@
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {FlightFareRules, FlightSearchFilters, FlightSearchLeg, TravelAirport} from '@src/types/onyx/TravelFlightSearch';
@@ -120,26 +121,32 @@ function searchTravelAirports(policyID: string, query: string): Promise<TravelAi
  * previous leg's searchID and the fare picked from it. The results replace travelFlightSearch.
  */
 function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: FlightSearchFilters = {}, legIndex = 0, searchID = '', selectedFareID = '') {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH,
-            value: {
-                query: {policyID, legs, filters},
-                legIndex,
-                isLoading: true,
-            },
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH,
-            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-        },
-    ];
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {query: {policyID, legs, filters}, legIndex, isLoading: true});
 
-    API.read(READ_COMMANDS.SEARCH_FLIGHTS, {policyID, legs: JSON.stringify(legs), filters: JSON.stringify(filters), searchID, selectedFareID, legIndex}, {optimisticData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the results instead of writing Onyx, so they are stored here
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, {
+        policyID,
+        legs: JSON.stringify(legs),
+        filters: JSON.stringify(filters),
+        searchID,
+        selectedFareID,
+        legIndex,
+    })
+        .then((response) => {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                throw new Error(response?.message ?? 'Flight search failed');
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {
+                searchID: response.searchID,
+                legIndex: response.legIndex,
+                itineraries: response.itineraries,
+                filterOptions: response.filterOptions,
+                isLoading: false,
+            });
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+        });
 }
 
 /**
@@ -154,22 +161,29 @@ function getFlightFareRules(policyID: string, searchID: string, fareID: string):
  * Starts checkout for the fare picked on the last leg of the search, replacing travelFlightCheckout
  */
 function startFlightCheckout(policyID: string, searchID: string, fareID: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT>> = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT,
-            value: {policyID, searchID, fareID, isLoading: true},
-        },
-    ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT,
-            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-        },
-    ];
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, {policyID, searchID, fareID, isLoading: true});
 
-    API.read(READ_COMMANDS.START_FLIGHT_CHECKOUT, {policyID, searchID, fareID}, {optimisticData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the checkout instead of writing Onyx, so it is stored here
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.START_FLIGHT_CHECKOUT, {policyID, searchID, fareID})
+        .then((response) => {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                throw new Error(response?.message ?? 'Flight checkout failed');
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, {
+                checkoutResponseID: response.checkoutResponseID,
+                seatMapResponseID: response.seatMapResponseID,
+                itinerary: response.itinerary,
+                priceSummary: response.priceSummary,
+                requiredTravelerFields: response.requiredTravelerFields,
+                seatMaps: response.seatMaps,
+                selectedSeats: {},
+                paymentSources: response.paymentSources,
+                isLoading: false,
+            });
+        })
+        .catch(() => {
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+        });
 }
 
 /**

@@ -1,6 +1,6 @@
 import {acceptSpotnanaTerms, clearFlightBooking, getFlightFareRules, searchFlights, searchTravelAirports, setTravelProvisioningTaxID, startFlightCheckout} from '@libs/actions/Travel';
-import {makeRequestWithSideEffects, read} from '@libs/API';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {makeRequestWithSideEffects} from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TravelProvisioning} from '@src/types/onyx';
@@ -10,11 +10,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 const mockMakeRequestWithSideEffects = jest.mocked(makeRequestWithSideEffects);
-const mockRead = jest.mocked(read);
 
 const DOMAIN = 'example.com';
 const POLICY_ID = 'policy-1';
@@ -94,66 +94,79 @@ describe('actions/Travel', () => {
     });
 
     describe('searchFlights', () => {
-        it('sends the legs and filters as JSON and replaces the previous search with a loading state', () => {
-            // Given a round trip search for the first leg with a nonstop filter
-            const filters = {maxStops: 0};
+        it('sends the legs and filters as JSON, shows loading, then stores the results the server returns', async () => {
+            // Given the server returns one flight row for the first leg
+            const itineraries = [{itineraryID: 'flight_1', flights: [], fares: []}];
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 200, searchID: SEARCH_ID, legIndex: 0, itineraries});
 
-            // When the traveler searches
-            searchFlights(POLICY_ID, ROUND_TRIP_LEGS, filters);
+            // When the traveler searches a round trip with a nonstop filter
+            const searchRequest = searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {maxStops: 0});
+            await waitForBatchedUpdates();
 
-            // Then the first leg is searched with no previous search, and the old results are cleared while loading
-            expect(mockRead).toHaveBeenCalledWith(
-                READ_COMMANDS.SEARCH_FLIGHTS,
-                {policyID: POLICY_ID, legs: JSON.stringify(ROUND_TRIP_LEGS), filters: JSON.stringify(filters), searchID: '', selectedFareID: '', legIndex: 0},
-                expect.objectContaining({
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH,
-                            value: {query: {policyID: POLICY_ID, legs: ROUND_TRIP_LEGS, filters}, legIndex: 0, isLoading: true},
-                        },
-                    ],
-                }),
-            );
+            // Then the first leg is requested with no previous search, and the key shows loading until it returns
+            expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, {
+                policyID: POLICY_ID,
+                legs: JSON.stringify(ROUND_TRIP_LEGS),
+                filters: JSON.stringify({maxStops: 0}),
+                searchID: '',
+                selectedFareID: '',
+                legIndex: 0,
+            });
+            await searchRequest;
+            await waitForBatchedUpdates();
+            const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
+            expect(flightSearch).toMatchObject({query: {policyID: POLICY_ID, legs: ROUND_TRIP_LEGS}, searchID: SEARCH_ID, legIndex: 0, itineraries, isLoading: false});
         });
 
-        it('carries the previous search and picked fare to the return leg and shows an error when the request fails', () => {
-            // Given the traveler picked an outbound fare
-            // When the return leg is searched
-            searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {}, 1, SEARCH_ID, FARE_ID);
+        it('carries the previous search and picked fare to the return leg and shows an error when the request fails', async () => {
+            // Given the server rejects the request
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'});
 
-            // Then the request names the previous search and fare, and a failed request stops loading with an error
-            const [command, params, onyxData] = mockRead.mock.calls.at(0) ?? [];
-            expect(command).toBe(READ_COMMANDS.SEARCH_FLIGHTS);
-            expect(params).toEqual(expect.objectContaining({searchID: SEARCH_ID, selectedFareID: FARE_ID, legIndex: 1}));
-            const failureUpdate = onyxData?.failureData?.at(0);
-            expect(failureUpdate?.key).toBe(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
-            expect(failureUpdate?.value).toMatchObject({isLoading: false});
-            expect(failureUpdate?.value).toHaveProperty('errors');
+            // When the return leg is searched
+            await searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {}, 1, SEARCH_ID, FARE_ID);
+            await waitForBatchedUpdates();
+
+            // Then the request names the previous search and fare, and loading stops with an error
+            expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(
+                SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS,
+                expect.objectContaining({searchID: SEARCH_ID, selectedFareID: FARE_ID, legIndex: 1}),
+            );
+            const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
+            expect(flightSearch?.isLoading).toBe(false);
+            expect(flightSearch).toHaveProperty('errors');
         });
     });
 
     describe('startFlightCheckout', () => {
-        it('replaces the previous checkout with a loading state and shows an error when the request fails', () => {
-            // Given the traveler picked the fare for the last leg
-            // When checkout starts
-            startFlightCheckout(POLICY_ID, SEARCH_ID, FARE_ID);
+        it('stores the checkout the server returns, and shows an error when the request fails', async () => {
+            // Given the server returns a checkout once and then fails
+            mockMakeRequestWithSideEffects
+                .mockResolvedValueOnce({jsonCode: 200, checkoutResponseID: 'checkout-response-id', requiredTravelerFields: ['DATE_OF_BIRTH']})
+                .mockRejectedValueOnce(new Error('Network error'));
 
-            // Then the previous checkout is replaced while loading, and a failed request stops loading with an error
-            const [command, params, onyxData] = mockRead.mock.calls.at(0) ?? [];
-            expect(command).toBe(READ_COMMANDS.START_FLIGHT_CHECKOUT);
-            expect(params).toEqual({policyID: POLICY_ID, searchID: SEARCH_ID, fareID: FARE_ID});
-            expect(onyxData?.optimisticData).toEqual([
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT,
-                    value: {policyID: POLICY_ID, searchID: SEARCH_ID, fareID: FARE_ID, isLoading: true},
-                },
-            ]);
-            const failureUpdate = onyxData?.failureData?.at(0);
-            expect(failureUpdate?.key).toBe(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT);
-            expect(failureUpdate?.value).toMatchObject({isLoading: false});
-            expect(failureUpdate?.value).toHaveProperty('errors');
+            // When checkout starts for the picked fare
+            await startFlightCheckout(POLICY_ID, SEARCH_ID, FARE_ID);
+            await waitForBatchedUpdates();
+
+            // Then the checkout is stored for the picked fare
+            expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.START_FLIGHT_CHECKOUT, {policyID: POLICY_ID, searchID: SEARCH_ID, fareID: FARE_ID});
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT)).toMatchObject({
+                policyID: POLICY_ID,
+                fareID: FARE_ID,
+                checkoutResponseID: 'checkout-response-id',
+                requiredTravelerFields: ['DATE_OF_BIRTH'],
+                isLoading: false,
+            });
+
+            // When checkout is started again and the request fails
+            await startFlightCheckout(POLICY_ID, SEARCH_ID, FARE_ID);
+            await waitForBatchedUpdates();
+
+            // Then the previous checkout is replaced, and loading stops with an error
+            const flightCheckout = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT);
+            expect(flightCheckout?.checkoutResponseID).toBeUndefined();
+            expect(flightCheckout?.isLoading).toBe(false);
+            expect(flightCheckout).toHaveProperty('errors');
         });
     });
 

@@ -3,7 +3,8 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
-import type {FlightFareRules, TravelAirport} from './TravelFlightSearch';
+import type {FlightPaymentSource, FlightPriceSummary, FlightSeatMap, FlightCheckoutLeg} from './TravelFlightCheckout';
+import type {FlightFareRules, FlightItinerary, FlightPolicyViolation, FlightSearchFilterOptions, TravelAirport} from './TravelFlightSearch';
 import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
@@ -92,6 +93,47 @@ type Response<TKey extends OnyxKey> = {
 
     /** Full fare rule text per leg of a flight fare */
     fareRules?: FlightFareRules[];
+
+    /** Spotnana's flight search ID, needed to fetch the next leg and to start checkout */
+    searchID?: string;
+
+    /** Which leg flight search results are for, 0 for the first leg */
+    legIndex?: number;
+
+    /** One flight search result per flight row */
+    itineraries?: FlightItinerary[];
+
+    /** Values present in flight search results, for the filter menus */
+    filterOptions?: FlightSearchFilterOptions;
+
+    /** Spotnana checkout workflow ID, needed to book */
+    checkoutResponseID?: string;
+
+    /** Spotnana seat map workflow ID, needed to book */
+    seatMapResponseID?: string;
+
+    /** The itinerary at flight checkout */
+    itinerary?: {
+        legs: FlightCheckoutLeg[];
+
+        /** Travel policy rules the itinerary breaks, empty when in policy */
+        policyViolations: FlightPolicyViolation[];
+
+        /** Whether the itinerary is made of independent tickets */
+        isSeparateTicket: boolean;
+    };
+
+    /** Price of the itinerary at flight checkout */
+    priceSummary?: FlightPriceSummary;
+
+    /** Traveler fields the airline requires, such as DATE_OF_BIRTH */
+    requiredTravelerFields?: string[];
+
+    /** One seat map per flight, in flight order */
+    seatMaps?: FlightSeatMap[];
+
+    /** The traveler's cards that can pay for flights */
+    paymentSources?: FlightPaymentSource[];
 
     /** User authorization token to authorize Pusher connections */
     auth?: string;
