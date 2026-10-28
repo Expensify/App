@@ -35,7 +35,7 @@ import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    getTagListName,
+    getTagListKeyByOrderWeight,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -81,10 +81,11 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const currentTagListName = getTagListName(policyTags, orderWeight);
+    const currentTagListKey = getTagListKeyByOrderWeight(policyTags, orderWeight);
+    const currentPolicyTag = currentTagListKey ? policyTags?.[currentTagListKey] : undefined;
+    const currentTagListName = currentPolicyTag?.name ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
-    const currentPolicyTag = policyTags?.[currentTagListName];
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path : DYNAMIC_ROUTES.WORKSPACE_TAG_LIST_VIEW.path);

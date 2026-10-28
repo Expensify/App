@@ -97,6 +97,7 @@ import {
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
+    getTagListKeyByOrderWeight,
     getTravelStep,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
@@ -3377,6 +3378,31 @@ describe('PolicyUtils', () => {
             ])('%s', (_description, orderWeight, expected) => {
                 const tagList = getTagListByOrderWeight(policyTags, orderWeight);
                 expect(tagList.name).toEqual(expected);
+            });
+        });
+        describe('getTagListKeyByOrderWeight', () => {
+            // Given tag lists that share a name but are stored under unique Onyx keys, as a no-header import with
+            // GL codes in adjacent columns can return them
+            const tagListsWithDuplicateNames: PolicyTagLists = {
+                Clients: {name: 'Clients', orderWeight: 0, required: false, tags: {}},
+                'Sub-projects': {name: 'Sub-projects', orderWeight: 1, required: false, tags: {}},
+                'Sub-projects_2': {name: 'Sub-projects', orderWeight: 2, required: false, tags: {}},
+            };
+
+            it.each([
+                ['returns the key of the first list with a repeated name', 1, 'Sub-projects'],
+                ['returns the key of the second list with a repeated name', 2, 'Sub-projects_2'],
+                ['returns undefined when no list has the orderWeight', 3, undefined],
+            ])('%s', (_description, orderWeight, expected) => {
+                // When the key is looked up by orderWeight
+                // Then the key of the matching list is returned, not its name
+                expect(getTagListKeyByOrderWeight(tagListsWithDuplicateNames, orderWeight)).toBe(expected);
+            });
+
+            it('returns undefined when there are no tag lists', () => {
+                // Given no tag lists
+                // When / Then
+                expect(getTagListKeyByOrderWeight(undefined, 0)).toBeUndefined();
             });
         });
         describe('hasAnyTagGLCode', () => {

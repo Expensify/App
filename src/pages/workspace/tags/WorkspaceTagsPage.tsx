@@ -168,7 +168,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const tagsList = isMultiLevelTags
         ? policyTagLists.reduce<Record<string, PolicyTagList>>((acc, policyTagList) => {
-              acc[policyTagList.name] = policyTagList;
+              acc[String(policyTagList.orderWeight)] = policyTagList;
               return acc;
           }, {})
         : policyTagLists?.at(0)?.tags;
@@ -325,7 +325,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             const isSwitchEnabled = policyTagList.required && areTagsEnabled;
             const tagCount = Object.keys(policyTagList?.tags ?? {}).length;
             acc.push({
-                keyForList: policyTagList.name,
+                // Tag list names can repeat, so key each row by its unique orderWeight.
+                keyForList: String(policyTagList.orderWeight),
                 value: policyTagList.name,
                 name: getCleanedTagName(policyTagList.name),
                 orderWeight: policyTagList.orderWeight,
