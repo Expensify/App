@@ -759,7 +759,7 @@ function getSystemMessageDisplayState(
                 !Number.isFinite(elapsedTime) ||
                 elapsedTime < 0 ||
                 elapsedTime > CONST.REPORT.ACTIONS.MAX_SYSTEM_MESSAGE_COLLAPSE_TIME ||
-                getReportActionActorAccountID(nextAction, undefined, undefined) !== actorAccountID ||
+                Number(getReportActionActorAccountID(nextAction, undefined, undefined)) !== Number(actorAccountID) ||
                 getDelegateAccountIDFromReportAction(nextAction) !== getDelegateAccountIDFromReportAction(reportAction) ||
                 getHumanAgentAccountIDFromReportAction(nextAction) !== getHumanAgentAccountIDFromReportAction(reportAction)
             ) {
