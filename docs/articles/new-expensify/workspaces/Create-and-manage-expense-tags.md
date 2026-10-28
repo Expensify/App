@@ -176,8 +176,7 @@ By default, tag GL codes are hidden from members. Workspace Admins on the Contro
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), select **Workspaces** > **[workspace name]**.
 2. Select **Tags**.
 3. Select **More**.
-4. Select **Settings**.
-5. Turn on **Show GL codes when selecting a tag**.
+4. Enable **Show GL codes when selecting a tag**.
 
 Once enabled, each tag displays its GL code as a second line beneath the tag name in the tag picker, and members can search for a tag by its GL code.
 
@@ -249,7 +248,7 @@ Multi-level tags are available on Control workspaces only. If your Control works
 
 ## Can members see Tag GL codes?
 
-By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can turn on **Show GL codes when selecting a tag** in **Tags** > **More** > **Settings** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).
+By default, no. Tag GL codes are visible only to Workspace Admins. However, a Workspace Admin can enable **Show GL codes when selecting a tag** in **Tags** > **More** to display each tag's GL code in the tag picker for members. If that setting is off, you can still include the GL code in the tag name (for example: `1001 - Marketing`).
 
 ## Can I add GL codes to dependent multi-level tags?
 
