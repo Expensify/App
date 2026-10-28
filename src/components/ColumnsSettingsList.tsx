@@ -68,8 +68,14 @@ type ColumnsSettingsListProps = {
     /** The default columns for the active group-by mode when no customization has been applied */
     defaultGroupColumns?: SearchCustomColumnIds[];
 
-    /** Callback fired with the updated column list when the user saves changes, and whether that list is the default selection */
-    onSave: (columns: SearchCustomColumnIds[], isDefaultSelection: boolean) => void;
+    /** Callback fired with the updated column list when the user saves changes */
+    onSave: (columns: SearchCustomColumnIds[]) => void;
+
+    /** Callback fired when the user resets the columns. When provided, it replaces resetting the selection in place */
+    onReset?: () => void;
+
+    /** Whether to show the reset columns link when `onReset` is provided */
+    shouldShowResetColumns?: boolean;
 
     /** The active Search type, used to resolve type-specific column labels */
     type?: SearchDataTypes;
@@ -84,6 +90,8 @@ function ColumnsSettingsList({
     groupColumns = [],
     defaultGroupColumns = [],
     onSave,
+    onReset,
+    shouldShowResetColumns = false,
     type,
 }: ColumnsSettingsListProps) {
     const theme = useTheme();
@@ -224,12 +232,18 @@ function ColumnsSettingsList({
     };
 
     const resetColumns = () => {
+        if (onReset) {
+            onReset();
+            return;
+        }
         setColumns(defaultColumns);
     };
 
     const handleSave = () => {
-        onSave(selectedColumnIds, isDefaultState);
+        onSave(selectedColumnIds);
     };
+
+    const isResetColumnsVisible = onReset ? shouldShowResetColumns : !isDefaultState;
 
     const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
@@ -251,7 +265,7 @@ function ColumnsSettingsList({
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {isResetColumnsVisible && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={styles.flex1}>
                 <ScrollView

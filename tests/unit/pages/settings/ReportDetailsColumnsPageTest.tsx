@@ -53,8 +53,8 @@ it('filters unsupported saved columns, defaults invalid-only storage, and preser
     const savedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
     const props = renderColumns(savedColumns);
     expect([props.currentColumns, jest.mocked(setReportDetailsColumns).mock.calls.length]).toEqual([mockSavedColumns, 0]);
-    props.onSave(savedColumns, false);
-    props.onSave([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], false);
+    props.onSave(savedColumns);
+    props.onSave([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
     expect(jest.mocked(setReportDetailsColumns)).toHaveBeenCalledWith([CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], mockSavedColumns);
     expect(jest.mocked(Navigation.goBack)).toHaveBeenCalledTimes(2);
 });

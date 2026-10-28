@@ -99,10 +99,10 @@ function SearchColumnsPage() {
         !currentSearchResults?.data &&
         !isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
 
-    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[], isDefaultSelection: boolean) => {
+    const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
-            columns: isDefaultSelection ? [] : selectedColumnIds,
+            columns: selectedColumnIds,
         };
 
         const currentQueryJSON = getCurrentSearchQueryJSON();
@@ -115,6 +115,11 @@ function SearchColumnsPage() {
         // Only the columns change, so it's still the same search - carry the key over rather than letting it be
         // re-derived from the new query.
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey: currentSearchKey}), {forceReplace: true});
+    };
+
+    // Resetting drops the columns from the query so the table goes back to deriving them from the data.
+    const resetColumns = () => {
+        applyChanges([]);
     };
 
     if (isSeedPending) {
@@ -131,6 +136,8 @@ function SearchColumnsPage() {
             groupColumns={allGroupCustomColumns}
             defaultGroupColumns={defaultGroupCustomColumns}
             onSave={applyChanges}
+            onReset={resetColumns}
+            shouldShowResetColumns={!!currentSearchQueryJSON?.columns?.length}
             type={queryType}
         />
     );
