@@ -22,112 +22,23 @@ jobs:
               - '!docs/**/*.md'
               - '!docs/**/*.csv'
 
-      # If the previous run of this check on the PR already passed, pass now.
-      # Step names below are part of that decision: a path-filter skip is not a pass, but a previous short-circuit is.
+      # A local action is resolved from the workspace, so the previous-run check cannot run before this checkout.
+      - name: Checkout
+        if: steps.filter.outputs.should_run == 'true'
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      # A pass on an older SHA of this pull request still counts. A lookup failure falls through and re-runs the checklist.
       - name: Check previous run
         id: previous
         if: steps.filter.outputs.should_run == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+        uses: ./.github/actions/javascript/didPreviousReviewerChecklistPass
         with:
-          github-token: ${{ github.token }}
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            const headRef = context.payload.pull_request.head.ref;
-            const {owner, repo} = context.repo;
-            const checklistStepName = 'reviewerChecklist.js';
-            const previousRunStepName = 'Check previous run';
-
-            core.setOutput('passed', 'false');
-
-            function belongsToPullRequest(run, shas) {
-                if (run.pull_requests?.some((pullRequest) => pullRequest.number === prNumber)) {
-                    return true;
-                }
-                // Fork pull_request_review runs often leave pull_requests empty, so match the head SHA instead.
-                return Boolean(run.head_sha) && shas.has(run.head_sha);
-            }
-
-            function passedChecklist(job) {
-                if (!job || job.conclusion !== 'success') {
-                    return false;
-                }
-                const steps = job.steps ?? [];
-                const checklistStep = steps.find((step) => step.name === checklistStepName);
-                if (checklistStep?.conclusion === 'success') {
-                    return true;
-                }
-                // This run itself skipped the checklist because an earlier one passed. A path-filter skip does not
-                // run this step, so it is not treated as a pass.
-                const previousRunStep = steps.find((step) => step.name === previousRunStepName);
-                return previousRunStep?.conclusion === 'success';
-            }
-
-            try {
-                const commits = await github.paginate(github.rest.pulls.listCommits, {
-                    owner,
-                    repo,
-                    pull_number: prNumber,
-                    per_page: 100,
-                });
-                const shas = new Set(commits.map((commit) => commit.sha));
-
-                const iterator = github.paginate.iterator(github.rest.actions.listWorkflowRuns, {
-                    owner,
-                    repo,
-                    workflow_id: 'reviewerChecklist.yml',
-                    branch: headRef,
-                    event: 'pull_request_review',
-                    per_page: 100,
-                });
-
-                let previousRun;
-                let pages = 0;
-                for await (const page of iterator) {
-                    pages += 1;
-                    const runs = Array.isArray(page.data) ? page.data : (page.data.workflow_runs ?? []);
-                    previousRun = runs.find((run) => run.id !== context.runId && belongsToPullRequest(run, shas));
-                    if (previousRun || pages >= 3) {
-                        break;
-                    }
-                }
-
-                if (!previousRun) {
-                    core.info(`No previous reviewer checklist run found for PR #${prNumber}. The check will run.`);
-                    return;
-                }
-
-                core.info(`Previous run ${previousRun.html_url} is ${previousRun.status}/${previousRun.conclusion ?? 'pending'}.`);
-                if (previousRun.status !== 'completed' || previousRun.conclusion !== 'success') {
-                    core.info('Previous run did not pass. The check will run.');
-                    return;
-                }
-
-                const {data: jobs} = await github.rest.actions.listJobsForWorkflowRun({
-                    owner,
-                    repo,
-                    run_id: previousRun.id,
-                    per_page: 100,
-                });
-                const checklistJob = jobs.jobs.find((job) => job.name === 'checklist');
-                if (!passedChecklist(checklistJob)) {
-                    core.info('Previous run succeeded without a passing reviewer checklist. The check will run.');
-                    return;
-                }
-
-                core.info('Previous reviewer checklist run passed. Skipping checkout and re-run.');
-                core.setOutput('passed', 'true');
-            } catch (error) {
-                const message = error instanceof Error ? error.message : String(error);
-                core.warning(`Could not check the previous reviewer checklist run, so the check will run. ${message}`);
-                core.setOutput('passed', 'false');
-            }
-
-      - name: Checkout
-        if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.passed != 'true'
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
 
       - name: reviewerChecklist.js
-        if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.passed != 'true'
+        if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.PASSED != 'true'
         uses: ./.github/actions/javascript/reviewerChecklist
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
