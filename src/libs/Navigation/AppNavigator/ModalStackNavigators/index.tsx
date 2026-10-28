@@ -263,6 +263,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
     [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicWorkspaceConfirmationForTravelPage').default,
     [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Travel/DynamicVerifyAccountPage').default,
     [SCREENS.TRAVEL.ENABLE]: () => require<ReactComponentModule>('../../../../pages/Travel/EnableTravel').default,
+    [SCREENS.TRAVEL.FLIGHT_BOOKING_DEV]: () => require<ReactComponentModule>('../../../../pages/Travel/FlightBookingDevPage').default,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
