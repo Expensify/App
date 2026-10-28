@@ -1,4 +1,4 @@
-import type {SearchCompareMode, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
 import {hashText} from '@libs/UserUtils';
@@ -74,9 +74,11 @@ function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashbo
     return {...queryJSON, hash: hashText(hashSource, 2 ** 32)};
 }
 
-/** Builds the dashboard-wide query the whole page is narrowed by. */
+/** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
-    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy, compare: filters.compare});
+    // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the serializer accepts any groupBy string, and `parseInsightsFilters` reads `runningTotal` back off the raw query
+    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
 /** Builds a chart's query with the page's filters applied. */

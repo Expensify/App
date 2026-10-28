@@ -7,8 +7,8 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 /**
- * When the native tab bar has no Account item, the Account tab is drawn over the other tabs
- * as a full screen with the bar hidden, and it needs its own way back.
+ * When the native tab bar has no Account item, the Account tab is drawn inside another tab and has no history of its
+ * own, so the Android back button needs its own way back.
  */
 function useIsSettingsDrawnOverTabs() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();

@@ -2,6 +2,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -13,6 +14,7 @@ import navigationRef from '@navigation/navigationRef';
 import useAccessibleDashboards from '@pages/Insights/useAccessibleDashboards';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -30,6 +32,7 @@ type InsightsTabButtonProps = {
 };
 
 function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
@@ -44,7 +47,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
         interceptAnonymousUser(() => {
             const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
             Navigation.navigate(getInsightsTabRoute(rootState, accessibleDashboards));
-        });
+        }, session);
     };
 
     if (isWideLayout) {
