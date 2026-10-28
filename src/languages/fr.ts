@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
-        feedback: {prompt: 'Cette réponse était-elle utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
+        feedback: {prompt: 'Cela vous a-t-il été utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1197,6 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
+        compliance: 'Conformité',
+        runningTotal: 'Total cumulé',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -2517,7 +2519,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Voulez-vous vraiment fusionner les comptes ?',
-            lossOfUnsubmittedData: (login: string) => `La fusion de vos comptes est irréversible et entraînera la perte de toutes les dépenses non soumises pour <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `La fusion de vos comptes est irréversible. Toutes les dépenses et notes de frais de <strong>${login}</strong>, y compris les brouillons et les dépenses non déclarées, seront déplacées vers le compte que vous conservez.`,
             enterSecurityCode: (login: string) => `Pour continuer, veuillez saisir le code de sécurité envoyé à <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Code de sécurité incorrect ou non valide. Veuillez réessayer ou demander un nouveau code.',
@@ -2865,6 +2868,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
             getStarted: 'Commencer',
             headerTitle: 'Remboursements globaux',
+            payingReportSubtitle: 'Les comptes bancaires de l’entreprise et de l’employé utilisent des devises différentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Payer des personnes dans le monde entier', subtitle: 'Activez les remboursements globaux sur votre compte en USD.'},
     },
@@ -3024,6 +3028,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
+        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
+        collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6796,6 +6802,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             provisioningError:
                                 'Nous n’avons pas pu configurer certains membres de votre espace de travail pour la facturation de voyage consolidée. Veuillez réessayer plus tard ou contacter Concierge pour obtenir de l’aide.',
                             sendInvoiceNowCta: 'Envoyer la facture maintenant',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Le plafond de dépenses mensuel par membre ne peut pas dépasser le plafond de voyage actuel de ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configurer un nouveau flux de voyage',
                         feedSelectorIntro:
@@ -8952,11 +8960,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 applyExpenseDefaultsDescription: 'Mettre à jour les champs automatiquement',
                 flagForReview: 'Marquer pour examen',
                 flagForReviewDescription: 'Avertir lorsque vos conditions sont remplies',
-                requireFields: 'Définir les exigences des champs',
-                requireFieldsShort: 'Exiger des champs',
+                requireFields: 'Exiger des champs',
                 requireFieldsDescription: 'Reçus, catégories, etc.',
-                createAgentRule: 'Décrire la règle de l’agent',
-                createAgentRuleDescription: 'Créez des règles flexibles qui s’exécutent quand vous en avez besoin.',
                 describeItBelow: 'Ou décrivez-la simplement ci-dessous',
                 describeRulePlaceholder: 'Bloquer toutes les dépenses supérieures à 2 000 $',
                 selectTemplateOrDescribe: 'Sélectionnez un modèle ou décrivez une règle pour continuer',
@@ -10419,6 +10424,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Depuis le début de l’année',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Cette semaine',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Semaine dernière',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Ce trimestre',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Trimestre dernier',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Cette année',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Année dernière',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: '30 derniers jours',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: '90 derniers jours',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: '6 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernier relevé',
                 },
                 customDay: 'Jour personnalisé',
@@ -10522,6 +10536,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
                 hint: 'S’applique uniquement aux transactions par carte.',
             },
+            searchFilters: 'Filtres de recherche',
+            noFiltersSelected: 'Aucun filtre sélectionné',
         },
         display: {
             label: 'Affichage',
@@ -10555,6 +10571,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         noCategory: 'Aucune catégorie',
         noMerchant: 'Aucun commerçant',
         noTag: 'Aucun tag',
+        noVendor: 'Aucun fournisseur',
         expenseType: 'Type de dépense',
         receiptType: 'Type de reçu',
         receiptTypeValues: {
@@ -11948,6 +11965,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
             completeHrSetup: 'Terminer la configuration RH',
             theresAProblemWithAnHRConnection: 'Un problème est survenu avec une connexion RH',
+            theresAProblemWithYourAgent: 'Il y a un problème avec votre/vos agent(s)',
         },
     },
     emptySearchView: {
@@ -12046,6 +12064,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
         currentView: 'Vue actuelle',
+        currentViewGroupsOnly: 'Vue actuelle (groupes uniquement)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

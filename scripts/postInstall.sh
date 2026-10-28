@@ -39,3 +39,6 @@ bun scripts/applyPatches.ts
 # files, and project mode does not follow `references`. `npx tsc` at the repo root therefore checks
 # nothing and exits 0. Use `npx tsc --build`, which walks the references, or `npm run typecheck`.
 ln -sfn ../typescript/bin/tsc "$ROOT_DIR/node_modules/.bin/tsc"
+
+# Keep the Worker independently installable for deploy CI, but include it in normal local App setup.
+bun scripts/installCloudflareWorker.ts
