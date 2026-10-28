@@ -41,6 +41,7 @@ type BaseFloatingCameraButtonProps = {
 };
 
 function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {textLight, success} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -94,7 +95,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);
-        });
+        }, session);
     };
 
     return (

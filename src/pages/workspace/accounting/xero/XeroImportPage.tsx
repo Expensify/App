@@ -21,7 +21,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -31,42 +31,39 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
 
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+    const currentXeroOrganizationName = getCurrentXeroOrganizationName(policy ?? undefined);
 
-    const sections = useMemo(
-        () => [
-            {
-                description: translate('workspace.accounting.accounts'),
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
-                title: translate('workspace.accounting.importAsCategory'),
-                subscribedSettings: [CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES],
+    const sections = [
+        {
+            description: translate('workspace.accounting.accounts'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS.getRoute(policyID)),
+            title: translate('workspace.accounting.importAsCategory'),
+            subscribedSettings: [CONST.XERO_CONFIG.ENABLE_NEW_CATEGORIES],
+        },
+        {
+            description: translate('workspace.xero.trackingCategories'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
+            title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
+            subscribedSettings: [
+                CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
+                ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
+            ],
+        },
+        {
+            description: translate('workspace.xero.customers'),
+            action: () => {
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
             },
-            {
-                description: translate('workspace.xero.trackingCategories'),
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID)),
-                title: importTrackingCategories ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
-                subscribedSettings: [
-                    CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
-                    ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
-                ],
-            },
-            {
-                description: translate('workspace.xero.customers'),
-                action: () => {
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
-                },
-                title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
-                subscribedSettings: [CONST.XERO_CONFIG.IMPORT_CUSTOMERS],
-            },
-            {
-                description: translate('workspace.accounting.taxes'),
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
-                title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
-                subscribedSettings: [CONST.XERO_CONFIG.IMPORT_TAX_RATES],
-            },
-        ],
-        [translate, policy, importTrackingCategories, importCustomers, importTaxRates, policyID],
-    );
+            title: importCustomers ? translate('workspace.accounting.importTypes.TAG') : translate('workspace.xero.notImported'),
+            subscribedSettings: [CONST.XERO_CONFIG.IMPORT_CUSTOMERS],
+        },
+        {
+            description: translate('workspace.accounting.taxes'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
+            title: importTaxRates ? translate('workspace.accounting.imported') : translate('workspace.xero.notImported'),
+            subscribedSettings: [CONST.XERO_CONFIG.IMPORT_TAX_RATES],
+        },
+    ];
 
     return (
         <ConnectionLayout
