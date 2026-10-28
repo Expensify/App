@@ -8,6 +8,7 @@ import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxValues} from '@src/ONYXKEYS';
+import type {Domain} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Connections} from '@src/types/onyx/Policy';
 
@@ -319,6 +320,90 @@ describe('useWorkspacesTabIndicatorStatus', () => {
         });
     });
 
+    describe('domain admin pending requests (info)', () => {
+        const domainAdminAccountID = 555;
+        const requesterAccountID = 777;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                        [domainKey]: domainWithAdmin,
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('returns HAS_PENDING_DOMAIN_ADMIN_REQUESTS status with success color', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS);
+            expect(indicatorColor).toBe(defaultTheme.success);
+        });
+    });
+
+    describe('domain errors take priority over domain admin pending requests', () => {
+        const domainAdminAccountID = 555;
+        const requesterAccountID = 777;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}domain1` as const;
+        const domainErrorsKey = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}domain1` as const;
+
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            const domainWithAdmin: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'domain.com',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_defaultSecurityGroupID: '',
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                domain_adminRequesters: {[requesterAccountID]: 'read'},
+            };
+            Reflect.set(domainWithAdmin, `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${domainAdminAccountID}`, domainAdminAccountID);
+
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {accountID: domainAdminAccountID, email: userID},
+                        [domainKey]: domainWithAdmin,
+                        [domainErrorsKey]: {errors: {domainError: 'Domain error'}},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('shows red domain error instead of the green pending-requests indicator', async () => {
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS);
+            expect(indicatorColor).toBe(defaultTheme.danger);
+        });
+    });
+
     describe('missing data', () => {
         beforeAll(async () => {
             // Clear all Onyx data first to ensure clean state
@@ -431,6 +516,60 @@ describe('useWorkspacesTabIndicatorStatus', () => {
 
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS);
             expect(indicatorColor).toBe(defaultTheme.danger);
+        });
+    });
+
+    describe('archived policy with errors', () => {
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            // Given an archived workspace that still has a policy error and an accounting sync error
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            archivedDate: '2026-10-08 12:00:00.000',
+                            errors: {policyError: 'Policy error'},
+                            connections: {
+                                intacct: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]>>({
+                                    lastSync: {
+                                        errorMessage: 'Invalid credentials',
+                                        isSuccessful: false,
+                                        errorDate: new Date().toISOString(),
+                                    },
+                                }),
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                            stageInProgress: null,
+                            connectionName: 'intacct',
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('does not show an indicator because errors on an archived workspace cannot be resolved', async () => {
+            // When the Workspaces tab indicator status is computed
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor, indicatorPolicyID} = result.current;
+
+            // Then the archived workspace is ignored, so no RBR is shown on the tab
+            expect(status).toBeUndefined();
+            expect(indicatorColor).toBe(defaultTheme.success);
+            expect(indicatorPolicyID).toBeUndefined();
         });
     });
 });

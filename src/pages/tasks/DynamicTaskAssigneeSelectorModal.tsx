@@ -37,7 +37,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector} from '@selectors/Account';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 function DynamicTaskAssigneeSelectorModal() {
@@ -52,7 +52,7 @@ function DynamicTaskAssigneeSelectorModal() {
     const reportID = !isNewTaskFlow && route.params && 'reportID' in route.params ? route.params.reportID : undefined;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -87,6 +87,11 @@ function DynamicTaskAssigneeSelectorModal() {
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
 
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
+
+    const isEditingTask = !isNewTaskFlow && !!report;
+    const [draftAssignee, setDraftAssignee] = useState<ListItem>();
+
+    const isPersistedAssignee = (accountID?: number) => task?.assigneeAccountID === accountID || task?.report?.managerID === accountID;
 
     const sectionsList = (() => {
         const list = [];
@@ -136,11 +141,13 @@ function DynamicTaskAssigneeSelectorModal() {
             isDisabled: option.isDisabled ?? undefined,
             login: option.login ?? undefined,
             shouldShowSubscript: undefined,
-            isSelected: task?.assigneeAccountID === option.accountID || task?.report?.managerID === option.accountID,
+            // The staged assignee drives the checkmark once the user picks one, otherwise the saved assignee does.
+            isSelected: draftAssignee ? draftAssignee.accountID === option.accountID : isPersistedAssignee(option.accountID),
         })),
     }));
 
-    const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
+    // Focus the saved assignee rather than the staged one, so staging a row doesn't move the initial focus target.
+    const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => isPersistedAssignee(mode.accountID))?.keyForList;
 
     const selectReport = (option: ListItem) => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
@@ -224,9 +231,23 @@ function DynamicTaskAssigneeSelectorModal() {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
     };
 
+    const confirmButtonOptions = isEditingTask
+        ? {
+              showButton: true,
+              text: translate('common.save'),
+              onConfirm: () => {
+                  if (!draftAssignee) {
+                      return;
+                  }
+                  selectReport(draftAssignee);
+              },
+              isDisabled: !draftAssignee || draftAssignee.accountID === report?.managerID,
+          }
+        : undefined;
+
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={isEditingTask}
             testID="DynamicTaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
@@ -238,13 +259,14 @@ function DynamicTaskAssigneeSelectorModal() {
                     <SelectionListWithSections
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
-                        onSelectRow={selectReport}
+                        onSelectRow={isEditingTask ? setDraftAssignee : selectReport}
+                        confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
                         textInputOptions={textInputOptions}
                         initialScrollIndex={0}
                         initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
+                        isLoadingNewOptions={!!isSearchingForUsers}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
                     />

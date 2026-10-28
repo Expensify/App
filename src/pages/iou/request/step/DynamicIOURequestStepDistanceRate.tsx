@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -40,12 +41,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
 import {policyTypeSelector} from '@selectors/Policy';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
@@ -77,7 +78,7 @@ function DynamicIOURequestStepDistanceRate({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -85,6 +86,7 @@ function DynamicIOURequestStepDistanceRate({
     const personalPolicy = usePersonalPolicy();
     const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -126,7 +128,8 @@ function DynamicIOURequestStepDistanceRate({
     const delegateAccountID = useDelegateAccountID();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [formError, setFormError] = useState('');
 
@@ -134,10 +137,12 @@ function DynamicIOURequestStepDistanceRate({
     // This keeps the problematic rate shown as selected so the user understands what they need to change.
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
+    const [draftRateID, setDraftRateID] = useState<string | undefined>();
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const sortedRates = [...Object.values(rates)].sort((a, b) => localeCompare(a.name ?? '', b.name ?? ''));
+    const sortedRates = [...Object.values(rates)].sort((a, b) => DistanceRequestUtils.compareRatesByDisplayName(a, b, localeCompare));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -153,7 +158,7 @@ function DynamicIOURequestStepDistanceRate({
             currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
                 ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate)
                 : rate.unit;
-        const effectiveRateID = pendingRateID ?? currentRateID;
+        const effectiveRateID = draftRateID ?? pendingRateID ?? currentRateID;
         const isSelected = effectiveRateID
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
@@ -161,7 +166,7 @@ function DynamicIOURequestStepDistanceRate({
         const dateLabel = DistanceRequestUtils.getRateDateLabel(rate, translate, dateFnsLocale);
         const alternateText = [rate.name ? rateForDisplay : '', dateLabel].filter(Boolean).join(' • ');
         return {
-            text: rate.name ?? rateForDisplay,
+            text: DistanceRequestUtils.getRateDisplayName(rate) ?? rateForDisplay,
             alternateText,
             keyForList: rate.customUnitRateID ?? rateForDisplay,
             value: rate.customUnitRateID,
@@ -238,6 +243,7 @@ function DynamicIOURequestStepDistanceRate({
                 // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
                 setLastSelectedDistanceRate(policy, customUnitRateID);
                 updateMoneyRequestDistanceRate({
+                    isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
                     parentReport,
@@ -260,6 +266,7 @@ function DynamicIOURequestStepDistanceRate({
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    rules,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
@@ -270,6 +277,20 @@ function DynamicIOURequestStepDistanceRate({
         setFormError('');
         saveAndNavigateBack();
     }
+
+    const confirmButtonOptions = isEditing
+        ? {
+              showButton: true,
+              text: translate('common.save'),
+              onConfirm: () => {
+                  if (!draftRateID) {
+                      return;
+                  }
+                  selectDistanceRate(draftRateID);
+              },
+              isDisabled: !draftRateID || draftRateID === currentRateID,
+          }
+        : undefined;
 
     return (
         <StepScreenWrapper
@@ -290,7 +311,16 @@ function DynamicIOURequestStepDistanceRate({
             <SelectionList
                 data={orderedOptions}
                 ListItem={SingleSelectListItem}
-                onSelectRow={({value}) => selectDistanceRate(value ?? '')}
+                onSelectRow={({value}) => {
+                    if (!isEditing) {
+                        selectDistanceRate(value ?? '');
+                        return;
+                    }
+                    // Clear a previous over-limit error so it doesn't linger against a rate the user has moved away from.
+                    setFormError('');
+                    setDraftRateID(value);
+                }}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={pinnedRateID}
                 shouldScrollToFocusedIndexOnMount={false}

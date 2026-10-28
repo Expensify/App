@@ -1,17 +1,21 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import LinkButton from '@components/Button/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
+import {useSyncedHorizontalScroll} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -28,22 +32,25 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
-import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
+import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
+import {createAndOpenSearchTransactionThread, getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionPreviewData} from '@userActions/Search';
-import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
+import {CAROUSEL_SOURCE, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -76,6 +83,7 @@ function TransactionGroupListExpandedImpl({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     hideSearchTableHeader,
+    syncScrollKey,
 }: TransactionGroupListExpandedProps<ListItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -86,12 +94,14 @@ function TransactionGroupListExpandedImpl({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const delegateAccountID = useDelegateAccountID();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -101,31 +111,26 @@ function TransactionGroupListExpandedImpl({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
-    const neededReportIDs = useMemo(() => {
-        const ids = new Set<string>();
-        for (const transaction of visibleTransactions) {
-            if (transaction.reportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
-            }
-            if (transaction.reportAction?.childReportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+    const ids = new Set<string>();
+    for (const transaction of visibleTransactions) {
+        if (transaction.reportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+        }
+        if (transaction.reportAction?.childReportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+        }
+    }
+    const neededReportIDs = ids;
+
+    const reportsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        const result: OnyxCollection<OnyxTypes.Report> = {};
+        for (const key of Object.keys(reports ?? {})) {
+            if (neededReportIDs.has(key)) {
+                result[key] = reports?.[key];
             }
         }
-        return ids;
-    }, [visibleTransactions]);
-
-    const reportsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
-            const result: OnyxCollection<OnyxTypes.Report> = {};
-            for (const key of Object.keys(reports ?? {})) {
-                if (neededReportIDs.has(key)) {
-                    result[key] = reports?.[key];
-                }
-            }
-            return result;
-        },
-        [neededReportIDs],
-    );
+        return result;
+    };
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {
@@ -143,6 +148,8 @@ function TransactionGroupListExpandedImpl({
                 visibleColumns,
                 type: transactionsSnapshot?.search.type,
                 fallbackPolicyID: policyForMovingExpensesID,
+                shouldShowViolationsColumn: queryHasViolationFilter(transactionsQueryJSON),
+                isVendorColumnAvailable,
             });
         }
     }
@@ -162,17 +169,20 @@ function TransactionGroupListExpandedImpl({
     const currentOffset = transactionsSnapshotMetadata?.offset ?? 0;
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
-    const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
-    const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
-    const shouldShowYearForSomeTransaction = transactions.some((transaction) => transaction.shouldShowYear);
+    const {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: shouldShowYearForSomeTransaction, isActionColumnWide} = getGroupColumnWidthFlags(transactions);
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
-    const isActionColumnWide = transactions.some((transaction) => !!transaction.isActionColumnWide || isDeletedTransaction(transaction));
+    // Shared with GroupHeader so the two always agree on the table's width.
+    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, windowWidth, isLargeScreenWidth);
+
+    // syncScrollKey is only set when the header is split out (wide web); otherwise this is a no-op.
+    const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
     const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
@@ -211,15 +221,16 @@ function TransactionGroupListExpandedImpl({
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
-                        betas,
                         personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
+                        delegateAccountID,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
                         shouldNavigate: false,
+                        fullPolicySnapshotLastModifiedByPolicyID,
                     });
                     if (targetReportID) {
-                        openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}), event);
+                        openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: transactionItem.transactionID}), event);
                     }
                     return;
                 }
@@ -231,20 +242,20 @@ function TransactionGroupListExpandedImpl({
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
-                    betas,
                     personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
+                    delegateAccountID,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
+                    fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 return;
             }
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo});
-            // Marked after the new-tab guard: opening in a new tab never mounts the screen that would consume the hint, so it would pin this report wide on a later visit.
+            markReportRHPWidth(reportID, 'wide');
+            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: transactionItem.transactionID});
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
-            markReportRHPWidth(reportID, 'wide');
             Navigation.navigate(route);
         };
 
@@ -260,13 +271,14 @@ function TransactionGroupListExpandedImpl({
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
+        const carouselOptions = {source: CAROUSEL_SOURCE.search(transactionsQueryJSON?.hash), snapshotHash: transactionsQueryJSON?.hash};
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs);
+            setActiveTransactionIDs(siblingTransactionIDs, carouselOptions);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs, carouselOptions).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
@@ -291,6 +303,10 @@ function TransactionGroupListExpandedImpl({
     }
 
     const handleOnPress = (transaction: TransactionListItemType, event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isMobileSelectionModeEnabled || isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction)) {
             onSelectionButtonPress?.(transaction as ListItem);
@@ -306,10 +322,6 @@ function TransactionGroupListExpandedImpl({
         }
         openReportInRHP(transaction, event);
     };
-
-    const dataColumns = currentColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)) ?? [];
-    const minTableWidth = getTableMinWidth(dataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide);
-    const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
 
     const content = (
         <View style={[styles.flexColumn, styles.flex1]}>
@@ -348,14 +360,29 @@ function TransactionGroupListExpandedImpl({
                         <PressableWithFeedback
                             onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : (event) => handleOnPress(transaction, event)}
                             disabled={isTransactionPendingDelete(transaction) && !transaction.isSelected}
-                            onLongPress={() => onLongPress?.(transaction)}
+                            onLongPress={() => {
+                                if (shouldSuppressCopyableTextRowLongPress()) {
+                                    return;
+                                }
+                                onLongPress?.(transaction);
+                            }}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
-                            onMouseDown={(e) => e.preventDefault()}
+                            shouldAllowTextSelection
+                            onMouseDown={(e) => {
+                                const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                                if (isCopyableTarget) {
+                                    return;
+                                }
+                                e.preventDefault();
+                            }}
+                            onTouchStart={(event) => {
+                                markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                            }}
                             hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
                             wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                            dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                             id={transaction.transactionID}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
                         >
@@ -376,7 +403,7 @@ function TransactionGroupListExpandedImpl({
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
                                     checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                                    onCheckboxPress={() => onSelectionButtonPress?.(transaction as ListItem)}
+                                    onCheckboxPress={(_transactionID, shiftKey) => onSelectionButtonPress?.(transaction as ListItem, undefined, shiftKey)}
                                     columns={currentColumns}
                                     onButtonPress={(event) => handleButtonPress(transaction, event)}
                                     style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
@@ -421,10 +448,12 @@ function TransactionGroupListExpandedImpl({
 
     return shouldScrollHorizontally ? (
         <ScrollView
+            ref={horizontalScrollViewRef}
             horizontal
             showsHorizontalScrollIndicator
             style={styles.flex1}
             contentContainerStyle={{width: minTableWidth}}
+            {...horizontalSyncProps}
         >
             {content}
         </ScrollView>

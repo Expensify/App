@@ -15,30 +15,30 @@ import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type TaskHeaderActionButtonProps = {
-    report: OnyxTypes.Report;
+    reportID: string;
 };
 
-function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const parentReport = useParentReport(report.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReport = useParentReport(reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
     const parentReportAction = useParentReportAction(report);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
-    if (!canWriteInReport(report)) {
+    if (!report || !canWriteInReport(report)) {
         return null;
     }
 
@@ -49,7 +49,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                 isDisabled={!isTaskActionable}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (isActiveTaskEditRoute(report.reportID)) {
+                    if (isActiveTaskEditRoute(reportID)) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {

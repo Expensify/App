@@ -1,8 +1,11 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
 
 import Navigation from '@libs/Navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -26,19 +29,28 @@ function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSu
     const {translate} = useLocalize();
 
     return (
-        <MenuItemWithTopDescription
-            shouldShowRightIcon
-            title={value}
-            description={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
-            onPress={() => {
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(() => {
                 if (!policyID) {
                     return;
                 }
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
-            }}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={errorText}
-        />
+            })}
+        >
+            <MenuItemField.Row
+                name={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
+                value={value}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 

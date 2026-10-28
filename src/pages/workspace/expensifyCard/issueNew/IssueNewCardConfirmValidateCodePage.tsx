@@ -6,7 +6,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -24,7 +23,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 type IssueNewCardConfirmValidateCodePageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -42,7 +41,6 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const defaultFundID = useDefaultFundID(policyID);
-    const {isBetaEnabled} = usePermissions();
     const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
     const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
     const personalDetails = usePersonalDetails();
@@ -64,17 +62,14 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
         clearIssueNewCardFlow(policyID);
     }, [backPath, isSuccessful, policyID, shouldUseBackToParam]);
 
-    const handleSubmit = useCallback(
-        (validateCode: string) => {
-            // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, assigneeTimeZone, data);
-        },
-        [isBetaEnabled, data, defaultFundID, policyID, assigneeTimeZone],
-    );
+    const handleSubmit = (validateCode: string) => {
+        // The request carries no feedCountry, so the backend resolves it from the domain's provisioned card programs
+        issueExpensifyCard(defaultFundID, policyID, validateCode, assigneeTimeZone, data);
+    };
 
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

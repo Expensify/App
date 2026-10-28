@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function DynamicContactMethodsPage() {
@@ -37,9 +37,9 @@ function DynamicContactMethodsPage() {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const options = useMemo(() => getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email), [translate, formatPhoneNumber, loginList, session?.email]);
+    const options = getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email);
 
-    const addNewContactMethod = useCallback(() => {
+    const addNewContactMethod = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
@@ -54,7 +54,7 @@ function DynamicContactMethodsPage() {
             return;
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path));
-    }, [isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
+    };
 
     return (
         <ScreenWrapper

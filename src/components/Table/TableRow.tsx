@@ -1,4 +1,5 @@
 import Checkbox from '@components/Checkbox';
+import {useEditingCellState} from '@components/EditableCell';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -6,23 +7,29 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {GestureResponderEvent, PressableStateCallbackType} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import {rendersColumnHeader} from './buildTableListData';
+import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
 import {assignCellColumnIndexes, getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from './tableAccessibility';
 import {useTableContext, useTableRowSemanticID} from './TableContext';
@@ -48,6 +55,9 @@ type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible' | 'accessibil
 
     /** Optional content rendered below the row grid */
     rowFooter?: React.ReactNode;
+
+    /** Whether the row is a group header, i.e. a row that labels the rows below it instead of holding data */
+    isGroupHeader?: boolean;
 };
 
 export default function TableRow({
@@ -59,18 +69,25 @@ export default function TableRow({
     sentryLabel,
     interactive,
     onPress,
+    onPressIn,
+    onHoverIn,
     offlineWithFeedback,
     checkboxReplacementElement,
     rowFooter,
+    isGroupHeader = false,
     id,
     'aria-hidden': ariaHidden,
     focusable,
     fullDisabled,
     tabIndex,
+    shouldAllowTextSelection = false,
+    dataSet,
     ...props
 }: TableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -84,9 +101,30 @@ export default function TableRow({
         shouldEnableSelectionInNarrowPaneModal = false,
         tableListMetadata,
         dynamicGridTemplateColumns,
+        listProps,
+        shouldFooterRenderAsLastRow,
+        rowWidth,
     } = useTableContext();
+    const {handleCopyableTextRowPress, markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowLongPress} = useCopyableTextRowPress();
     const semanticRowID = useTableRowSemanticID();
-    const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
+
+    // Inline cell editing shares this app-global state. While any cell is being edited, a row press is the click that
+    // dismisses the editor rather than a navigation intent, so navigation must be suppressed for that tap.
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const wasEditingOnMouseDownRef = useRef(false);
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+
+    // Saving an inline edit can unmount the cell Hoverable without firing onHoverOut, which leaves hoveredComponentBG stuck.
+    // Disable hover until the next intentional hover. Same workaround as spend transaction rows.
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4114490080
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const semanticTableHasHeader = rendersColumnHeader(tableListMetadata);
     const isAccessibilityHidden = semanticRowID === null || ariaHidden === true;
     const inertProps = isAccessibilityHidden ? {inert: true} : {};
 
@@ -103,10 +141,13 @@ export default function TableRow({
     // the static ones. They're only ever set on wide web layouts.
     const gridTemplateColumns = dynamicGridTemplateColumns ? [...dynamicGridTemplateColumns] : getGridTemplateColumns(columns);
     const isSelectionCheckboxVisible = selectionEnabled && (isMobileSelectionEnabled || !selectionUsesNarrowLayout);
+    const rowDataSet = {...dataSet, ...TABLE_ROW_DATA_SET, ...(shouldAllowTextSelection ? COPYABLE_ROW_DATA_SET : {})};
 
     const isDisabled = !!disabled || isAccessibilityHidden;
     const isFirstRow = rowIndex === 0;
-    const isLastRow = rowIndex === rowCount - 1;
+    // A footer that continues the rows owns the rounded bottom corners instead of the last row.
+    const doesFooterOwnBottomRadius = !!shouldFooterRenderAsLastRow && !!listProps?.ListFooterComponent;
+    const isLastRow = rowIndex === rowCount - 1 && !doesFooterOwnBottomRadius;
 
     if (selectionEnabled && isSelectionCheckboxVisible) {
         gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
@@ -122,14 +163,30 @@ export default function TableRow({
         return null;
     }
 
+    // A group header only labels the rows below it, so it sizes to its own content rather than being pinned to a data-row
+    // height, and keeps the same padding on every layout.
+    let rowHeightStyle: ViewStyle | undefined = styles.tableRowHeight;
+    let rowVerticalPaddingStyle: ViewStyle = styles.tableRowVerticalPadding;
+    let rowContentHeightStyle: ViewStyle | undefined = styles.tableRowContentHeight;
+    if (isGroupHeader) {
+        rowHeightStyle = undefined;
+        rowContentHeightStyle = undefined;
+    } else if (shouldUseNarrowTableLayout) {
+        rowHeightStyle = styles.tableRowHeightCompact;
+        rowVerticalPaddingStyle = styles.tableRowVerticalPaddingCompact;
+        rowContentHeightStyle = styles.tableRowContentHeightCompact;
+    }
+
     const tableRowPressableStyles = [
-        styles.mh5,
-        styles.highlightBG,
-        styles.userSelectNone,
+        pageGutterMargin,
+        // The list sizes rows from a measurement, so without this the background wouldn't follow a drag.
+        !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
+        isGroupHeader ? styles.hoveredComponentBG : styles.highlightBG,
+        !shouldAllowTextSelection && styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
-        shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
+        rowHeightStyle,
     ];
 
     const tableRowContentContainerStyles = [
@@ -138,7 +195,7 @@ export default function TableRow({
         animatedHighlightStyle,
         isLastRow && styles.tableBottomRadius,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
-        shouldUseNarrowTableLayout ? styles.pv4 : styles.pv2,
+        rowVerticalPaddingStyle,
     ];
 
     const tableRowContentStyles = [
@@ -148,12 +205,13 @@ export default function TableRow({
         styles.alignContentCenter,
         styles.gap3,
         styles.dFlex,
+        rowContentHeightStyle,
         // Use Grid on web when available (will override flex if supported)
         !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];
 
     const tableRowPressableHoverStyle = (() => {
-        if (isDisabled || !interactive) {
+        if (isDisabled || !interactive || shouldDisableHoverStyle) {
             return undefined;
         }
         if (item.selected) {
@@ -162,9 +220,14 @@ export default function TableRow({
         return styles.hoveredComponentBG;
     })();
 
+    const enableHoverStyle: PressableWithFeedbackProps['onHoverIn'] = (event) => {
+        setShouldDisableHoverStyle(false);
+        onHoverIn?.(event);
+    };
+
     const renderChildren = (state: PressableStateCallbackType) => {
         if (typeof children === 'function') {
-            return children(state);
+            return children({...state, hovered: !!state.hovered && !shouldDisableHoverStyle});
         }
 
         return children;
@@ -182,7 +245,9 @@ export default function TableRow({
     const renderSelectionCheckbox = () => {
         const checkbox = checkboxReplacementElement ?? (
             <Checkbox
-                shouldStopMouseDownPropagation
+                // While editing, let mousedown reach the row so it can snapshot the dismiss tap
+                // and skip preventDefault. Spend checkboxes do the same.
+                shouldStopMouseDownPropagation={!isEditingCell}
                 containerStyle={styles.m0}
                 style={styles.flex1}
                 isChecked={!!item.selected}
@@ -206,30 +271,63 @@ export default function TableRow({
     };
 
     const handleRowPress = (event?: GestureResponderEvent | KeyboardEvent | undefined) => {
-        if (isDisabled || !interactive) {
+        // Consume the tap that dismissed an editing cell. A second tap will activate the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
             return;
         }
 
-        if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
-            onPress?.(event);
+        // react-native-web fires onPress on Space for role="button" elements. Suppress it while a cell is being edited.
+        if (isEditingCell) {
             return;
         }
 
-        if (item.disabled) {
-            return;
-        }
+        handleCopyableTextRowPress(
+            () => {
+                if (isDisabled || !interactive) {
+                    return;
+                }
 
-        if (!item.isSelectionDisabled) {
-            handleCheckboxPress(event);
-        }
+                if (!selectionUsesNarrowLayout || !isMobileSelectionEnabled || !selectionEnabled) {
+                    onPress?.(event);
+                    return;
+                }
+
+                if (item.disabled) {
+                    return;
+                }
+
+                if (!item.isSelectionDisabled) {
+                    handleCheckboxPress(event);
+                }
+            },
+            {shouldCheck: shouldAllowTextSelection},
+        );
     };
 
     const handleRowLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress(shouldAllowTextSelection)) {
+            return;
+        }
+
         if (isDisabled || item.disabled || !selectionEnabled || isMobileSelectionEnabled || !shouldEnableMobileSelectionLongPress || !interactive || item.isSelectionDisabled) {
             return;
         }
 
         tableMethods.setMobileSelectionModalRowKey(item.keyForList);
+    };
+
+    // Snapshot at pointer down because blur clears isEditingCell before onPress.
+    // Overwrite so a press that never reaches onPress (popover dismiss) cannot stick.
+    const captureEditingOnMouseDown = () => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+    };
+
+    // Native never fires onMouseDown. On web, keep a flag already set by mousedown if
+    // blur cleared isEditingCell between the two events.
+    const captureEditingOnPressIn = () => {
+        wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
     };
 
     return (
@@ -245,34 +343,47 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
+                shouldAllowTextSelection={shouldAllowTextSelection}
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
+                onHoverIn={enableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}
                 role={interactive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 {...getRowAccessibilityProps(isTableSemanticsEnabled, rowIndex, false, semanticTableHasHeader)}
                 onMouseDown={(e) => {
+                    captureEditingOnMouseDown();
+
                     const target = e?.target;
+                    const isCopyableTextMouseDown = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    const isCopyableTarget = markMouseDownOnCopyableText(target, isCopyableTextMouseDown, {shouldSuppressNextPress: e.detail > 1});
 
-                    if (!(target instanceof HTMLElement)) {
+                    if (isCopyableTarget) {
+                        return;
+                    }
+
+                    // Inputs must receive the mousedown so they can take focus.
+                    if (target instanceof HTMLElement && target.tagName === CONST.ELEMENT_NAME.INPUT) {
+                        return;
+                    }
+
+                    // Keep the filter bar focused. While an inline editor is open, let the browser blur it so the value saves.
+                    if (!isEditingCell) {
                         e.preventDefault();
-                        return;
                     }
-
-                    if (target.tagName === CONST.ELEMENT_NAME.INPUT) {
-                        return;
-                    }
-
-                    if (target.closest('[role="switch"]') || target.closest('[role="checkbox"]')) {
-                        e.preventDefault();
-                        return;
-                    }
-
-                    e.preventDefault();
+                }}
+                onTouchStart={(e) => {
+                    const isCopyableTextTouchStart = shouldAllowTextSelection && isPressStartOnCopyableText(e);
+                    markTouchStartOnCopyableText(e, isCopyableTextTouchStart);
                 }}
                 onPress={(event) => handleRowPress(event)}
+                onPressIn={(event) => {
+                    captureEditingOnPressIn();
+                    onPressIn?.(event);
+                }}
                 onLongPress={handleRowLongPress}
                 {...props}
                 {...inertProps}
+                dataSet={rowDataSet}
                 focusable={isAccessibilityHidden ? false : focusable}
                 fullDisabled={isAccessibilityHidden || fullDisabled}
                 tabIndex={isAccessibilityHidden ? -1 : tabIndex}

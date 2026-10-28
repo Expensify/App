@@ -1,8 +1,14 @@
 import {APPROVER_TYPE} from '@pages/DynamicReportChangeApproverPage';
 import type {ApproverType} from '@pages/DynamicReportChangeApproverPage';
-import {shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
+import {canReassignAllReports, shouldAutoApplyApprover} from '@pages/Search/SearchChangeApproverPage';
 
-import type {Report} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../../utils/createMock';
 
 const ADD_APPROVER_OPTION: {keyForList: ApproverType} = {keyForList: APPROVER_TYPE.ADD_APPROVER};
 const BYPASS_APPROVER_OPTION: {keyForList: ApproverType} = {keyForList: APPROVER_TYPE.BYPASS_APPROVER};
@@ -12,6 +18,53 @@ function buildReport(reportID: string): Report {
 }
 
 describe('SearchChangeApproverPage', () => {
+    describe('canReassignAllReports', () => {
+        const policyID = 'policyA';
+        const policy = createMock<Policy>({
+            id: policyID,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
+        const report = createMock<Report>({
+            reportID: 'reportA',
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+        const allPolicies = {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy} as OnyxCollection<Policy>;
+
+        it('should return true when every selected report can be reassigned', () => {
+            expect(
+                canReassignAllReports({
+                    selectedReports: [{reportID: report.reportID, policyID}],
+                    onyxReports: {[report.reportID]: report},
+                    allPolicies,
+                }),
+            ).toBe(true);
+        });
+
+        it('should return false when a report is no longer processing', () => {
+            expect(
+                canReassignAllReports({
+                    selectedReports: [{reportID: report.reportID, policyID}],
+                    onyxReports: {[report.reportID]: {...report, statusNum: CONST.REPORT.STATUS_NUM.APPROVED}},
+                    allPolicies,
+                }),
+            ).toBe(false);
+        });
+
+        it('should return false when a selected report is missing from Onyx', () => {
+            expect(
+                canReassignAllReports({
+                    selectedReports: [{reportID: report.reportID, policyID}],
+                    onyxReports: {},
+                    allPolicies,
+                }),
+            ).toBe(false);
+        });
+    });
+
     describe('shouldAutoApplyApprover', () => {
         it('should return false when no reports are selected', () => {
             const result = shouldAutoApplyApprover({
@@ -44,6 +97,19 @@ describe('SearchChangeApproverPage', () => {
                 onyxReports: {reportA: buildReport('reportA')},
                 approverTypes: [ADD_APPROVER_OPTION],
                 selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
+            });
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when some selected policies are missing from Onyx', () => {
+            const result = shouldAutoApplyApprover({
+                isLoadingBulkChangeApproverPage: false,
+                selectedReports: [{reportID: 'reportA'}],
+                onyxReports: {reportA: buildReport('reportA')},
+                approverTypes: [ADD_APPROVER_OPTION],
+                selectedApproverType: APPROVER_TYPE.ADD_APPROVER,
+                areSelectedPoliciesLoaded: false,
             });
 
             expect(result).toBe(false);

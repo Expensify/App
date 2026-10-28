@@ -10,6 +10,7 @@ import {
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
@@ -50,13 +51,14 @@ describe('libs/NextStepUtils', () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
         const report = buildOptimisticExpenseReport({
+            rules: undefined,
             chatReportID: 'fake-chat-report-id-1',
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             policyID,
             payeeAccountID: 1,
             total: -500,
             currency: CONST.CURRENCY.USD,
-            betas: [CONST.BETAS.ALL],
+            isASAPSubmitBetaEnabled: true,
         }) as Report;
 
         beforeAll(() => {
@@ -102,8 +104,9 @@ describe('libs/NextStepUtils', () => {
                     'fake-parent-report-action-id-4',
                     policy,
                     '2025-03-31 13:23:11',
-                    [CONST.BETAS.ALL],
+                    true,
                     getCurrencyDecimalsLocal,
+                    undefined,
                 );
 
                 const expectedResult: ReportNextStep = {
@@ -112,6 +115,7 @@ describe('libs/NextStepUtils', () => {
                     actorAccountID: currentUserAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report: emptyReport,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -137,6 +141,7 @@ describe('libs/NextStepUtils', () => {
                     actorAccountID: currentUserAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -161,6 +166,7 @@ describe('libs/NextStepUtils', () => {
                     actorAccountID: currentUserAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -191,6 +197,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -223,6 +230,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -256,6 +264,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -281,6 +290,7 @@ describe('libs/NextStepUtils', () => {
                 describe('monthly on the 2nd', () => {
                     const buildMonthlyOnThe2ndNextStep = () =>
                         buildOptimisticNextStep({
+                            rules: undefined,
                             report,
                             policy: {
                                 ...policy,
@@ -347,6 +357,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -380,6 +391,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -414,6 +426,7 @@ describe('libs/NextStepUtils', () => {
                         },
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -444,6 +457,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: currentUserAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy: {
                             ...policy,
@@ -474,9 +488,10 @@ describe('libs/NextStepUtils', () => {
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: -1,
+                    actorAccountID: ownerAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -502,9 +517,10 @@ describe('libs/NextStepUtils', () => {
                     const expectedResult: ReportNextStep = {
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        actorAccountID: -1,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -542,6 +558,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: strangeAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -574,6 +591,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: currentUserAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -600,6 +618,7 @@ describe('libs/NextStepUtils', () => {
                         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -628,6 +647,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -656,6 +676,7 @@ describe('libs/NextStepUtils', () => {
                         actorAccountID: strangeAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -683,8 +704,9 @@ describe('libs/NextStepUtils', () => {
                         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
-                        policy,
+                        policy: {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO},
                         currentUserAccountIDParam: currentUserAccountID,
                         currentUserEmailParam: currentUserEmail,
                         hasViolations: false,
@@ -700,16 +722,49 @@ describe('libs/NextStepUtils', () => {
                 });
             });
 
-            test('non-payer', () => {
+            test.each([
+                ['the current spelling', CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+                ['the deprecated spelling', CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL],
+            ])('manual reimbursements using %s', (_, reimbursementChoice) => {
+                // Given a workspace that reimburses outside Expensify (Indirect)
+                const manualPolicy = {...policy, reimbursementChoice};
+
+                // When the report is approved
+                const result = buildOptimisticNextStep({
+                    rules: undefined,
+                    report,
+                    policy: manualPolicy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                    shouldFixViolations: false,
+                    isUnapprove: false,
+                    isReopen: false,
+                    isTrackIntentUser: false,
+                });
+
+                // Then no further action is required, matching the next step the server returns for these workspaces
+                const expectedResult: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                    icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                };
+                expect(result).toMatchObject(expectedResult);
+            });
+
+            test('non-payer still waits for an admin to pay', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
                     const expectedResult: ReportNextStep = {
-                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-                        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+                        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -735,9 +790,10 @@ describe('libs/NextStepUtils', () => {
                 const expectedResult: ReportNextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: -1,
+                    actorAccountID: ownerAccountID,
                 };
                 const result = buildOptimisticNextStep({
+                    rules: undefined,
                     report,
                     policy,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -767,9 +823,10 @@ describe('libs/NextStepUtils', () => {
                     const expectedResult: ReportNextStep = {
                         messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                        actorAccountID: -1,
+                        actorAccountID: ownerAccountID,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -794,6 +851,7 @@ describe('libs/NextStepUtils', () => {
                         icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
                     };
                     const result = buildOptimisticNextStep({
+                        rules: undefined,
                         report,
                         policy,
                         currentUserAccountIDParam: currentUserAccountID,
@@ -826,23 +884,33 @@ describe('libs/NextStepUtils', () => {
         });
 
         it('returns true for manual approve failures when the current user is the approver', () => {
-            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, true)).toBe(true);
+            // Given a manual DEW approve failure surfaced as the HAS_DEW_APPROVE_FAILED reason, which is already approver-gated
+            // When the next step is evaluated
+            // Then the "fix the issues" next step is shown
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true)).toBe(true);
         });
 
         it('returns true when automaticAction is absent (treated as manual failure)', () => {
-            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(), true, true)).toBe(true);
+            // Given a DEW approve failure with no automaticAction flag
+            // When the next step is evaluated
+            // Then it is treated as a manual failure and the next step is shown
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(), true)).toBe(true);
         });
 
         it('returns false for auto-approve failures so the normal workflow next step is kept', () => {
-            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(true), true, true)).toBe(false);
+            // Given an auto-approval block, which the approver resolves by approving manually rather than by fixing issues
+            // When the next step is evaluated
+            // Then the normal workflow next step is kept
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(true), true)).toBe(false);
         });
 
-        it('returns false when the current user is not the approver', () => {
-            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), true, false)).toBe(false);
-        });
-
+        // The "current user is not the approver" case is covered in ReportUtilsTest instead: the approver gate now lives in
+        // getReasonAndReportActionThatRequiresAttention, so a non-approver never gets HAS_DEW_APPROVE_FAILED in the first place.
         it('returns false when there is no active DEW approve failure', () => {
-            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), false, true)).toBe(false);
+            // Given no active DEW approve failure on the report
+            // When the next step is evaluated
+            // Then the next step is not shown
+            expect(shouldShowDynamicExternalWorkflowApproveErrorNextStep(createDEWApproveFailedAction(false), false)).toBe(false);
         });
     });
 
@@ -873,13 +941,14 @@ describe('libs/NextStepUtils', () => {
 
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-1',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -889,6 +958,7 @@ describe('libs/NextStepUtils', () => {
             } as Report;
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [],
@@ -900,16 +970,64 @@ describe('libs/NextStepUtils', () => {
             expect(result).toBe(currentNextStep);
         });
 
+        it('returns the change workspace next step when the policy is archived', () => {
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-archived',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                nextStep: currentNextStep,
+            } as Report;
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                archivedDate: '2026-01-01 00:00:00',
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+                icon: CONST.NEXT_STEP.ICONS.BOX,
+            });
+        });
+
         it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-2',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -935,6 +1053,7 @@ describe('libs/NextStepUtils', () => {
             };
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [transaction],
@@ -974,13 +1093,14 @@ describe('libs/NextStepUtils', () => {
 
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-3',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -993,6 +1113,7 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [],
@@ -1027,13 +1148,14 @@ describe('libs/NextStepUtils', () => {
 
             const report: Report = {
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-4',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 policyID,
@@ -1062,6 +1184,7 @@ describe('libs/NextStepUtils', () => {
             await waitForBatchedUpdates();
 
             const result = getReportNextStep({
+                rules: undefined,
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
                 transactions: [transaction],
@@ -1177,6 +1300,80 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe('<next-step>15th</next-step>');
         });
 
+        it.each([
+            {
+                name: 'weekly on a custom day',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, autoReportingOffset: 3},
+                expectedETA: 'on Wednesday',
+            },
+            {
+                name: 'weekly on the default day',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, autoReportingOffset: 7},
+                expectedETA: 'on Sunday',
+            },
+            {
+                name: 'twice a month on custom days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 10,
+                    autoReportingOffsetSecondSemiMonthly: 20,
+                },
+                expectedETA: 'on the 10th and 20th of each month',
+            },
+            {
+                name: 'twice a month on a custom day and the last day',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 10,
+                    autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                },
+                expectedETA: 'on the 10th and the last day of each month',
+            },
+            {
+                name: 'twice a month on the default days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 15,
+                    autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                },
+                expectedETA: 'on the 1st and 16th of each month',
+            },
+            {
+                name: 'monthly on the last weekday',
+                eta: {
+                    dateTime: '2026-10-30',
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                    autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH,
+                },
+                expectedETA: 'on the last Friday of the month',
+            },
+        ])('renders the automatic-submit eta for $name from the schedule the backend sends', async ({eta, expectedETA}) => {
+            // Given English translations and a next step whose eta carries the workspace schedule next to the legacy etaKey or dateTime
+            IntlStore.load(CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta,
+            };
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+
+            // Then custom schedules show their own day, and default schedules keep the legacy text
+            expect(message).toBe(`<next-step>${expectedETA}</next-step>`);
+        });
+
         describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {
             // `buildNextStepMessage` renders a date-only `eta.dateTime` with date-fns, which uses the ambient system
             // timezone. Jest is pinned to UTC (`TZ=utc`) and V8 caches that at process start, so we cannot change the
@@ -1265,13 +1462,14 @@ describe('libs/NextStepUtils', () => {
         const getOpenSubmitAndCloseReport = (): Report =>
             ({
                 ...buildOptimisticExpenseReport({
+                    rules: undefined,
                     chatReportID: 'chat-track-intent',
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: currentUserAccountID,
                     total: -500,
                     currency: CONST.CURRENCY.USD,
-                    betas: [CONST.BETAS.ALL],
+                    isASAPSubmitBetaEnabled: true,
                 }),
                 ownerAccountID: currentUserAccountID,
                 managerID: currentUserAccountID,
@@ -1286,6 +1484,7 @@ describe('libs/NextStepUtils', () => {
             const report = getOpenSubmitAndCloseReport();
 
             const result = buildOptimisticNextStep({
+                rules: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -1306,6 +1505,7 @@ describe('libs/NextStepUtils', () => {
             const report = getOpenSubmitAndCloseReport();
 
             const result = buildOptimisticNextStep({
+                rules: undefined,
                 report,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,

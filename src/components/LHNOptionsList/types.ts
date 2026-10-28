@@ -1,11 +1,8 @@
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -17,8 +14,9 @@ type CustomLHNOptionsListProps = {
     /** Extra styles for the section list container */
     contentContainerStyles?: StyleProp<ViewStyle>;
 
-    data: Report[];
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
+    /** The ordered IDs of the reports to render */
+    data: string[];
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<ComponentRef<typeof View> | null>) => void;
 
     /** Toggle between compact and default view of the option */
     optionMode: OptionMode;
@@ -27,6 +25,9 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /** Header rendered as the list's first item */
+    listHeaderComponent?: React.ReactNode;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps;
@@ -35,27 +36,16 @@ type OptionRowLHNDataProps = {
     /** Whether row should be focused */
     isOptionFocused?: boolean;
 
-    personalDetails?: PersonalDetailsList;
-    fullReport: OnyxEntry<Report>;
-    oneTransactionThreadReport: OnyxEntry<Report>;
-
-    /** The policy which the user has access to and which the report could be tied to */
-    policy?: OnyxEntry<Policy>;
-
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportID: string;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<ComponentRef<typeof View> | null>) => void;
 
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
-
-    reportAttributes: OnyxEntry<ReportAttributes>;
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
     /** TestID of the row, indicating order */
     testID: number;
@@ -65,7 +55,7 @@ type OptionRowLHNProps = {
     isOptionFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<ComponentRef<typeof View> | null>) => void;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
@@ -83,6 +73,6 @@ type OptionRowLHNProps = {
     shouldShowMarkAsDoneCopy?: boolean;
 };
 
-type RenderItemProps = {item: Report; index: number};
+type RenderItemProps = {item: string; index: number};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

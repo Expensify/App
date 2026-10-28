@@ -1,18 +1,24 @@
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {useCallback, useMemo, useState} from 'react';
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
+import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import {useAllPersonalDetails} from './usePersonalDetails';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type UseFilteredOptionsConfig = {
     /** Maximum number of recent reports to pre-filter and process (default: 500). */
@@ -33,6 +39,8 @@ type UseFilteredOptionsConfig = {
      * an option per contact on open. Leave false for contact pickers (default: false).
      */
     deferContactsUntilSearch?: boolean;
+    /** The user's default workspace. Its expense chat is always kept by the recent-reports pre-filter */
+    activePolicyID?: string;
 };
 
 type UseFilteredOptionsResult = {
@@ -48,6 +56,12 @@ type UseFilteredOptionsResult = {
     hasMore: boolean;
     /** Whether currently loading the next batch */
     isLoadingMore: boolean;
+    /**
+     * Resolves a single report from the same reports snapshot `options` was built from. Consumers that need an
+     * option's related report (e.g. its parent chat report) pass this to the option builders instead of making them
+     * read a module-level `Onyx.connect()` cache, and without opening a second reports-collection subscription.
+     */
+    getReportByID: (reportID: string | undefined) => OnyxEntry<Report>;
 };
 
 /**
@@ -78,77 +92,71 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P, batchSize = 100, isSearching = false, deferContactsUntilSearch = false, activePolicyID} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useAllPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [pendingDeleteMemberAccountIDsByReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA, {selector: pendingDeleteMemberAccountIDsByReportIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportAttributesDerived = useReportAttributes();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale, dateFnsLocale} = useLocalize();
+    const {preferredLocale, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
-    const sortedActions = useSortedActions();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
+    // Kept referentially stable so consumers can pass it into memoized option builders without busting their caches.
+    const getReportByID = (reportID: string | undefined): OnyxEntry<Report> => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
+
     // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
-    const options: OptionList | null = useMemo(
-        () =>
-            enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(
-                      allPersonalDetails,
-                      allReports,
-                      reportAttributesDerived,
-                      privateIsArchivedMap,
-                      allPolicies,
-                      {
-                          currentUserAccountID,
-                          dateFnsLocale,
-                          convertToDisplayString,
-                          conciergeReportID,
-                          maxRecentReports: reportsLimit,
-                          includeP2P,
-                          isSearching,
-                          deferContactsUntilSearch,
-                          locale: preferredLocale,
-                      },
-                      undefined,
-                      undefined,
-                      isTrackIntentUser,
-                      sortedActions,
-                  )
-                : null,
-        [
-            enabled,
-            allReports,
-            allPersonalDetails,
-            reportAttributesDerived,
-            privateIsArchivedMap,
-            allPolicies,
-            conciergeReportID,
-            reportsLimit,
-            includeP2P,
-            isSearching,
-            deferContactsUntilSearch,
-            preferredLocale,
-            isTrackIntentUser,
-            sortedActions,
-            currentUserAccountID,
-            dateFnsLocale,
-            convertToDisplayString,
-        ],
-    );
+    const options: OptionList | null =
+        enabled && allReports && allPersonalDetails
+            ? createFilteredOptionList(
+                  allPersonalDetails,
+                  allReports,
+                  reportAttributesDerived,
+                  privateIsArchivedMap,
+                  allPolicies,
+                  {
+                      currentUserAccountID,
+                      currentUserLogin,
+                      transactionThreadIDs,
+                      lastActions,
+                      dateFnsLocale,
+                      convertToDisplayString,
+                      conciergeReportID,
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      isSearching,
+                      deferContactsUntilSearch,
+                      locale: preferredLocale,
+                      pendingDeleteMemberAccountIDsByReportID,
+                      formatPhoneNumber,
+                      activePolicyID,
+                  },
+                  rules,
+                  undefined,
+                  undefined,
+                  isTrackIntentUser,
+                  sortedActions,
+              )
+            : null;
 
     // When isSearching is set to true, the createFilteredOptionList returns all reports
     const hasMore = !isSearching && options ? reportsLimit < totalReports : false;
@@ -162,9 +170,9 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
 
     // Expand the window to cover every report in a single step. Used when the visible list is empty so the
     // option list is rebuilt once to surface any surviving row, instead of paginating batch-by-batch.
-    const loadAll = useCallback(() => {
+    const loadAll = () => {
         setReportsLimit((prev) => (prev < totalReports ? totalReports : prev));
-    }, [totalReports]);
+    };
 
     return {
         options,
@@ -175,6 +183,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
         // Options are derived synchronously from reportsLimit, so there is no
         // intermediate "loading" state between calling loadMore and the recomputed options.
         isLoadingMore: false,
+        getReportByID,
     };
 }
 

@@ -5,8 +5,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyReportField} from './Policy';
-import type {TripData} from './TripData';
+import type {AutoReportingOffset, PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -66,6 +65,18 @@ type ReportNextStep = {
 
         /** The ETA date time */
         dateTime?: string;
+
+        /** The submission frequency the ETA was calculated from */
+        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+        /** The submission day the ETA was calculated from */
+        autoReportingOffset?: AutoReportingOffset;
+
+        /** The second twice a month submission day the ETA was calculated from */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The workspace timezone the ETA was calculated in */
+        timeZone?: string;
     };
 
     /** The fill color of the icon */
@@ -90,6 +101,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The date the report was approved */
         approved?: string;
 
+        /** The date the report was paid */
+        paid?: string;
+
         /** Custom field 1 value for the report submitter */
         submitterUserID?: string;
 
@@ -110,6 +124,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Currency of `creditedAmount` */
         creditedCurrency?: string;
+
+        /** Comma separated IDs of the report's settled withdrawals, in ascending order */
+        withdrawalIDs?: string;
 
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
@@ -132,6 +149,10 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The time when user read the last message */
         lastReadTime?: string;
+
+        /** reportActionID the user explicitly marked as unread. Unlike lastReadTime it is stable across the
+         *  optimistic→confirmed transition, so the "New" marker can anchor on a self-authored action. */
+        manuallyMarkedUnreadReportActionID?: string | null;
 
         /** The sequence number of the last report visit */
         lastReadSequenceNumber?: number;
@@ -176,6 +197,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the report manager */
         managerID?: number;
 
+        /** Calendar link for the support rep assigned to a support ticket */
+        supportTicketCalendarLink?: string;
+
         lastVisibleActionLastModified?: string;
 
         /** HTML content of the last message in the report */
@@ -215,6 +239,13 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         isWaitingOnBankAccount?: boolean;
+
+        /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
+        canCancelReimbursement?: boolean;
+
+        /** Whether the report can't be paid until the cancelled reimbursement finishes processing */
+        isWaitingForCancelledReimbursement?: boolean;
+
         isCancelledIOU?: boolean;
         hasReportBeenRetracted?: boolean;
         hasReportBeenReopened?: boolean;
@@ -239,20 +270,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
-
-        /** The trip data for a trip room */
-        tripData?: {
-            /** The start date of a trip */
-            startDate?: string;
-
-            /** The end date of a trip */
-            endDate?: string;
-
-            /** The trip ID in spotnana */
-            tripID: string;
-
-            payload?: TripData;
-        };
 
         welcomeMessage?: string;
         nextStep?: ReportNextStep;

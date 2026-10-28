@@ -8,11 +8,13 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {Policy, PolicyCategories, TaxRate} from '@src/types/onyx';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import {getDecodedCategoryName} from './CategoryUtils';
+import {getTaxByID} from './PolicyUtils';
 
 const CATEGORY_TAX_RULE_KEY_PREFIX = 'category-tax:';
 
@@ -28,9 +30,38 @@ function isCategoryRuleDraft(form: MerchantRuleForm | undefined, editingCategory
     return !!editingCategoryName || form?.ruleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY || !!form?.categoriesToMatch?.length;
 }
 
-/** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own — it needs a rate to choose from. */
+/** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own, it needs a rate to choose from. */
 function hasUsableTaxRates(policy: Policy | undefined): boolean {
     return !!policy?.tax?.trackingEnabled && Object.keys(policy?.taxRates?.taxes ?? {}).length > 0;
+}
+
+/**
+ * Whether a rule may pick this rate. A disabled rate, or one on its way out, is not an option for any rule, and the
+ * workspace default is not one for a category rule, since writing that rate is what deletes the rule.
+ *
+ * The tax picker and the chooser that decides whether to offer a category rule at all both read this, so a locked
+ * option and an empty picker can't disagree about what counts as a usable rate.
+ */
+function isSelectableTaxRate(policy: Policy | undefined, taxID: string, taxRate: TaxRate, isCategoryRule: boolean): boolean {
+    return !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !(isCategoryRule && taxID === policy?.taxRates?.defaultExternalID);
+}
+
+/** Returns the category tax rule draft for generated values. It keeps the generated tax rate only when a category rule can use it. */
+function getCategoryTaxRuleDraftFromGeneratedValues({tax, ...values}: GeneratedRuleValues, policy: Policy | undefined): Partial<MerchantRuleForm> {
+    const taxRate = tax ? policy?.taxRates?.taxes?.[tax] : undefined;
+    const selectableTax = tax && taxRate && isSelectableTaxRate(policy, tax, taxRate, true) ? tax : undefined;
+    return {...values, tax: selectableTax, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY};
+}
+
+/**
+ * Whether a new category tax default has any rate to choose. Holding rates is not enough: they can all be disabled, or
+ * the workspace default can be the only one left, which a category rule can't use.
+ */
+function hasSelectableCategoryTaxRate(policy: Policy | undefined): boolean {
+    if (!hasUsableTaxRates(policy)) {
+        return false;
+    }
+    return Object.entries(policy?.taxRates?.taxes ?? {}).some(([taxID, taxRate]) => isSelectableTaxRate(policy, taxID, taxRate, true));
 }
 
 function getCategoryTaxRuleKey(categoryName: string) {
@@ -71,7 +102,8 @@ function getCategoryTaxRuleTaxID(expenseRules: ExpenseRule[] | undefined, catego
 }
 
 /** The `Name (Value)` tax label. Prefers the workspace rate so renames read correctly, then the label the rule saved
- * inline, then the raw ID. */
+ * inline, then the raw ID. Callers with no inline label should check `getTaxByID` first: an ID is a fallback for
+ * a merchant rule that carries its own name, not something to show an admin. */
 function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undefined, savedTaxRate?: {name?: string; value?: string}): string {
     if (!taxID) {
         return '';
@@ -139,7 +171,9 @@ function getCategoryTaxRulesTableData({
                 const categoryName = getRuleCategoryName(rule) ?? '';
                 const decodedCategoryName = getDecodedCategoryName(categoryName);
                 const taxID = rule.tax?.field_id_TAX?.externalID;
-                const taxDisplayName = getTaxRateDisplayName(policy, taxID);
+                // Blank rather than the raw ID once the rate is gone from the workspace, matching the editor this row
+                // opens. The rule still holds the ID, so it starts naming the rate again if the rate comes back.
+                const taxDisplayName = taxID && getTaxByID(policy, taxID) ? getTaxRateDisplayName(policy, taxID) : '';
                 const conditionText = translate('workspace.rules.expenseDefaultsTable.categoryIs', decodedCategoryName);
                 const ruleDescription = translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', fieldLabel, taxDisplayName);
                 const pendingAction = getPendingAction(rule);
@@ -168,13 +202,17 @@ function getCategoryNameFromTaxRuleKey(key: string): string {
 
 export {
     categoryHasTaxRule,
+    getCategoryTaxRuleDraftFromGeneratedValues,
     getCategoryNameFromTaxRuleKey,
     getCategoryTaxRulesTableData,
     getCategoryTaxRuleTaxID,
     getRuleCategoryName,
+    getRuleDeletionPendingAction,
     getTaxRateDisplayName,
+    hasSelectableCategoryTaxRate,
     hasUsableTaxRates,
     isCategoryRuleDraft,
     isCategoryTaxRuleKey,
+    isSelectableTaxRate,
     matchesCategoryTaxRule,
 };

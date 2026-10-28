@@ -43,10 +43,11 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
-    const canAddTransactionToReport = canAddTransaction(report, isReportArchived);
+    const canAddTransactionToReport = canAddTransaction(report, rules, isReportArchived);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,

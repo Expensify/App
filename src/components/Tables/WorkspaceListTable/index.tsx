@@ -1,8 +1,10 @@
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,6 +20,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
@@ -61,11 +64,16 @@ type WorkspaceListTableProps = {
     /** Called when the user picks Delete in a row menu, so the page can mount the delete flow */
     onDeleteWorkspace: (policyID: string) => void;
 
+    /** Called when the user picks Archive in a row menu, so the page can mount the archive flow */
+    onArchiveWorkspace: (policyID: string) => void;
+
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
 };
 
-export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+export default function WorkspaceListTable({ref, workspaces, headerComponent, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {contentInsetAdjustmentBehavior} = useTabRootScrollProps();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -127,7 +135,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     const searchBarComponent = (
         <Table.FilterBar
             label={translate('workspace.common.findWorkspace')}
-            shouldShowClearFiltersButton={canSeeFilter}
+            shouldShowResetFiltersButton={canSeeFilter}
         />
     );
     const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
@@ -139,6 +147,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                 rowIndex={index}
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 onDeleteWorkspace={onDeleteWorkspace}
+                onArchiveWorkspace={onArchiveWorkspace}
                 pendingDeletePolicyID={pendingDeletePolicyID}
             />
         );
@@ -188,7 +197,8 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         ? [
               {
                   buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
-                  buttonAction: () => interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route))),
+                  buttonAction: () =>
+                      interceptAnonymousUser(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION.path, ROUTES.WORKSPACES_LIST.route)), session),
                   buttonText: translate('workspace.new.newWorkspace'),
               },
           ]
@@ -207,6 +217,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
+            contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />

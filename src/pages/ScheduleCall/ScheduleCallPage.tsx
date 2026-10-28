@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -32,8 +32,8 @@ import type {ReportNameValuePairs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {compareAsc, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import {compareAsc, format} from 'date-fns';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import AvailableBookingDay from './AvailableBookingDay';
@@ -81,11 +81,9 @@ function ScheduleCallPage() {
     }, [adminsRoomReportID]);
 
     // Clear selected time when user comes back to the selection screen
-    useFocusEffect(
-        useCallback(() => {
-            saveBookingDraft({timeSlot: null});
-        }, []),
-    );
+    useFocusEffect(() => {
+        saveBookingDraft({timeSlot: null});
+    });
 
     useEffect(() => {
         return () => {
@@ -94,11 +92,11 @@ function ScheduleCallPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
-        saveBookingDraft({date});
-    }, []);
+    const loadTimeSlotsAndSaveDate = (date: Date) => {
+        saveBookingDraft({date: format(date, CONST.DATE.FNS_FORMAT_STRING)});
+    };
 
-    const timeSlotDateMap: Record<string, TimeSlot[]> = useMemo(() => {
+    const timeSlotDateMap: Record<string, TimeSlot[]> = (() => {
         if (!calendlySchedule?.data) {
             return {};
         }
@@ -135,13 +133,13 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone, dateFnsLocale]);
+    })();
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
     const lastDate = selectableDates.at(selectableDates.length - 1);
-    const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
-    const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
+    const minDate = DateUtils.parseCalendarDate(firstDate);
+    const maxDate = DateUtils.parseCalendarDate(lastDate);
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
@@ -152,12 +150,8 @@ function ScheduleCallPage() {
     }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
 
     // When there is only one time slot on the row, it will take full width of the row, use a hidden filler item to keep 2 columns
-    const timeFillerItem = useMemo(() => {
-        if (timeSlotsForSelectedData.length % 2 === 0) {
-            return null;
-        }
-
-        return (
+    const timeFillerItem =
+        timeSlotsForSelectedData.length % 2 === 0 ? null : (
             <View
                 key="time-filler-col"
                 aria-hidden
@@ -165,7 +159,6 @@ function ScheduleCallPage() {
                 style={[styles.twoColumnLayoutCol, styles.visibilityHidden]}
             />
         );
-    }, [styles.twoColumnLayoutCol, styles.visibilityHidden, timeSlotsForSelectedData.length]);
 
     return (
         <ScreenWrapper
@@ -190,10 +183,10 @@ function ScheduleCallPage() {
                                 collapsable={false}
                             >
                                 <CalendarPicker
-                                    value={scheduleCallDraft?.date}
+                                    value={DateUtils.parseCalendarDate(scheduleCallDraft?.date)}
                                     minDate={minDate}
                                     maxDate={maxDate}
-                                    selectableDates={Object.keys(timeSlotDateMap)}
+                                    isDateSelectable={(date) => !!timeSlotDateMap[format(date, CONST.DATE.FNS_FORMAT_STRING)]}
                                     DayComponent={AvailableBookingDay}
                                     onSelected={loadTimeSlotsAndSaveDate}
                                 />
@@ -242,7 +235,9 @@ function ScheduleCallPage() {
                                             enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
                                         >
-                                            <Button.Text>{DateUtils.formatTimeInTimeZoneWithPeriod(translate, timeSlot.startTime, userTimezone)}</Button.Text>
+                                            <Button.Text>
+                                                {DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}
+                                            </Button.Text>
                                         </Button>
                                     ))}
                                     {timeFillerItem}

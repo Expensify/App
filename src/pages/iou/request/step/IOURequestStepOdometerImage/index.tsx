@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -42,7 +42,7 @@ import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {PanResponder, View} from 'react-native';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
@@ -294,14 +294,14 @@ function IOURequestStepOdometerImage({
         </>
     );
 
-    const revokeDropBlobUrls = useCallback(() => {
+    const revokeDropBlobUrls = () => {
         for (const url of dropBlobUrlsRef.current) {
             if (url.startsWith('blob:')) {
                 URL.revokeObjectURL(url);
             }
         }
         dropBlobUrlsRef.current = [];
-    }, []);
+    };
 
     const handleDrop = (event: DragEvent) => {
         const files = Array.from(event.dataTransfer?.files ?? []).filter((file) => CONST.FILE_TYPE_REGEX.IMAGE.test(file.name));

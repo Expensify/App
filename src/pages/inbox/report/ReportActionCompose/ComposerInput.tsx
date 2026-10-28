@@ -1,6 +1,5 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -29,6 +28,7 @@ import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSe
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
@@ -65,10 +65,9 @@ function ComposerInput() {
         containerRef.current?.measureInWindow(callback);
     };
 
-    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
@@ -90,12 +89,11 @@ function ComposerInput() {
                 ref={setComposerRef}
                 suggestionsRef={suggestionsRef}
                 isNextModalWillOpenRef={isNextModalWillOpenRef}
-                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
                 reportID={reportID}
                 policyID={report?.policyID}
                 includeChronos={chatIncludesChronos(report)}
                 isGroupPolicyReport={isGroupPolicyReport}
+                shouldSkipAutoFocus={shouldSkipAutoFocus}
                 isMenuVisible={isMenuVisible}
                 inputPlaceholder={inputPlaceholder}
                 isComposerFullSize={isComposerFullSize}

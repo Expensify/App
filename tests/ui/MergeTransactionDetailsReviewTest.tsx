@@ -41,16 +41,6 @@ jest.mock('@libs/Navigation/Navigation', () => {
 
 const Stack = createPlatformStackNavigator<Record<string, {transactionID: string}>>();
 
-// Expose each field row's description and title so the rendered distance can be read back
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title}: {description?: string; title?: string}) => (
-        <RN.View testID={`field-${description}`}>
-            <RN.Text>{title}</RN.Text>
-        </RN.View>
-    );
-});
-
 TestHelper.setupGlobalFetchMock();
 
 const MERGE_TRANSACTION_ID = 'mergeDistanceTransaction';
@@ -186,7 +176,7 @@ describe('Merging distance expenses across workspaces', () => {
         );
         await waitForBatchedUpdatesWithAct();
         // Matched loosely because the unit label reads as either "mi" or "miles", depending on the field's short form flag
-        expect(screen.getByTestId('field-Distance • Original: 10.20 mi')).toHaveTextContent(/^9\.20 (mi|miles)$/);
+        expect(screen.getByLabelText(/^Distance • Original: 10\.20 mi, 9\.20 (mi|miles)$/)).toBeOnTheScreen();
     });
 
     it('deducts nothing when the merged expense is put on the report of a workspace that excludes nothing', async () => {
@@ -285,7 +275,7 @@ describe('Merging identical distance expenses without conflicts', () => {
         // And the confirmation page renders the reimbursable distance against the distance it was deducted from
         await renderConfirmationPage();
         // Matched loosely because the unit label reads as either "mi" or "miles", depending on the field's short form flag
-        expect(screen.getByTestId('field-Distance • Original: 10.20 mi')).toHaveTextContent(/^9\.20 (mi|miles)$/);
+        expect(screen.getByLabelText(/^Distance • Original: 10\.20 mi, 9\.20 (mi|miles)$/)).toBeOnTheScreen();
     });
 
     it('deducts nothing from a manually entered distance, which the workspace cannot recognize a commute in', async () => {
@@ -302,6 +292,6 @@ describe('Merging identical distance expenses without conflicts', () => {
 
         // And the confirmation page renders the whole distance, with no distance deducted from it
         await renderConfirmationPage();
-        expect(screen.getByTestId('field-Distance')).toHaveTextContent(/^10\.20 (mi|miles)$/);
+        expect(screen.getByLabelText(/^Distance, 10\.20 (mi|miles)$/)).toBeOnTheScreen();
     });
 });

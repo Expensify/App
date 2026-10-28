@@ -5,8 +5,8 @@
  * imports keep working), extended with the compound sub-components following the
  * composition-over-configuration pattern.
  *
- * The row's accessibility label is derived from the `Title`/`Description` text, followed by the
- * hints trailing leaves register.
+ * The row's accessibility label is derived from the text leaves, top line first, followed by the facts
+ * trailing leaves register. Gesture hints go to `accessibilityHint` instead, which native reads apart.
  *
  * @example Simple navigation row
  * ```tsx
@@ -32,16 +32,27 @@ import MenuItemLeading from './layout/MenuItemLeading';
 import MenuItemRoot from './layout/MenuItemRoot';
 import MenuItemRow from './layout/MenuItemRow';
 import MenuItemTrailing from './layout/MenuItemTrailing';
+import MenuItemDescription from './leaves/content/MenuItemDescription';
+import MenuItemFieldName from './leaves/content/MenuItemFieldName';
+import MenuItemFieldNamePlaceholder from './leaves/content/MenuItemFieldNamePlaceholder';
+import MenuItemFieldValue from './leaves/content/MenuItemFieldValue';
+import MenuItemFieldValueHTML from './leaves/content/MenuItemFieldValueHTML';
+import MenuItemLabel from './leaves/content/MenuItemLabel';
+import MenuItemTitle from './leaves/content/MenuItemTitle';
+import MenuItemHelpText from './leaves/helpText/MenuItemHelpText';
+import MenuItemHelpTextHTML from './leaves/helpText/MenuItemHelpTextHTML';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
-import MenuItemDescription from './leaves/text/description/MenuItemDescription';
-import MenuItemDescriptionPlaceholder from './leaves/text/description/MenuItemDescriptionPlaceholder';
-import MenuItemLabel from './leaves/text/MenuItemLabel';
-import MenuItemTitle from './leaves/text/MenuItemTitle';
+import MenuItemIconNarrow from './leaves/leading/MenuItemIconNarrow';
+import MenuItemBrickRoadIndicator from './leaves/trailing/icons/MenuItemBrickRoadIndicator';
 import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
+import MenuItemDownCaret from './leaves/trailing/icons/MenuItemDownCaret';
 import MenuItemNewWindowIcon from './leaves/trailing/icons/MenuItemNewWindowIcon';
+import MenuItemCopy from './leaves/trailing/MenuItemCopy';
+import MenuItemExternalLink from './leaves/trailing/MenuItemExternalLink';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- The barrel attaches the compound API to the legacy component. This is not a usage.
 const MenuItem = Object.assign(LegacyMenuItem, {
     Root: MenuItemRoot,
     Row: MenuItemRow,
@@ -49,13 +60,23 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Content: MenuItemContent,
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
+    IconNarrow: MenuItemIconNarrow,
     Label: MenuItemLabel,
     Title: MenuItemTitle,
     Description: MenuItemDescription,
-    DescriptionPlaceholder: MenuItemDescriptionPlaceholder,
+    FieldName: MenuItemFieldName,
+    FieldNamePlaceholder: MenuItemFieldNamePlaceholder,
+    FieldValue: MenuItemFieldValue,
+    FieldValueHTML: MenuItemFieldValueHTML,
+    BrickRoadIndicator: MenuItemBrickRoadIndicator,
     Chevron: MenuItemChevron,
+    DownCaret: MenuItemDownCaret,
     NewWindowIcon: MenuItemNewWindowIcon,
     RightLabel: MenuItemRightLabel,
+    Copy: MenuItemCopy,
+    ExternalLink: MenuItemExternalLink,
+    HelpText: MenuItemHelpText,
+    HelpTextHTML: MenuItemHelpTextHTML,
 });
 
 export default MenuItem;

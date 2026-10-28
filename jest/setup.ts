@@ -2,6 +2,7 @@ import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
+import type React from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
@@ -18,6 +19,7 @@ import '@src/polyfills/requestIdleCallback';
 
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+import setupMockLegendList from './setupMockLegendList';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -27,6 +29,7 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+setupMockLegendList();
 
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
@@ -34,6 +37,14 @@ Object.assign(global, {TextDecoder, TextEncoder});
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
+
+// Gesture Handler 3 throws in __DEV__ when a GestureDetector has no GestureHandlerRootView above it. In the app every screen
+// renders under the root view in App.tsx, but tests render screens on their own, so the context pretends a root view is always present.
+// Jest resolves the package through `main` (lib/module), so the compiled file is the one to mock.
+jest.mock('react-native-gesture-handler/lib/module/GestureHandlerRootViewContext', () => ({
+    __esModule: true,
+    default: jest.requireActual<typeof React>('react').createContext(true),
+}));
 
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
 // Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
@@ -75,6 +86,13 @@ jest.mock('expo-location', () => ({
         High: 4,
         Highest: 5,
         BestForNavigation: 6,
+    },
+    ActivityType: {
+        Other: 1,
+        AutomotiveNavigation: 2,
+        Fitness: 3,
+        OtherNavigation: 4,
+        Airborne: 5,
     },
 }));
 
@@ -332,6 +350,10 @@ jest.mock('@shopify/react-native-skia', () => ({
     listFontFamilies: jest.fn(() => []),
 }));
 
+// The native tab bar icons are drawn with Skia's imperative API, which the mock above leaves out, so the tabs get no icons.
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer', () => jest.fn(() => undefined));
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage', () => jest.fn(() => undefined));
+
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
     createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
@@ -347,6 +369,8 @@ jest.mock('victory-native', () => ({
     CartesianChart: jest.fn(
         ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
     ),
+    Pie: {Chart: jest.fn(() => null)},
+    PolarChart: jest.fn(() => null),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up

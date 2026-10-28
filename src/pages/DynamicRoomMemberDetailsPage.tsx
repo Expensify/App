@@ -1,5 +1,5 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -12,6 +12,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,8 +22,8 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
-import {isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isRoomMemberProtectedByPolicyRole} from '@libs/PolicyUtils';
+import {isPolicyExpenseChat, isThreadMemberProtectedByParentReport} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -48,19 +49,27 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policy = usePolicy(report?.policyID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path);
     const {showConfirmModal} = useConfirmModal();
 
     const accountID = Number(route.params.accountID);
+    const [personalDetail] = usePersonalDetail(accountID);
     const member = report?.participants?.[accountID];
-    const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
+    const details = personalDetail ?? ({} as PersonalDetails);
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
-    const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
+    // Check the selected member's own role on the policy, not the viewer's, and fail closed when their login is missing.
+    // Kept in sync with the members list through the shared helper.
+    const isSelectedMemberProtectedByPolicyRole = isRoomMemberProtectedByPolicyRole(policy, details.login, accountID);
+    // Select only the derived boolean so this page doesn't re-render on every unrelated change to the parent report.
+    const [isSelectedMemberProtectedByParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
+        selector: (parentReport) => isThreadMemberProtectedByParentReport(parentReport, accountID),
+    });
+    const shouldDisableRemoveUser =
+        (isPolicyExpenseChat(report) && isSelectedMemberProtectedByPolicyRole) || isSelectedMemberCurrentUser || isSelectedMemberOwner || !!isSelectedMemberProtectedByParentReport;
     const askForConfirmationToRemove = () => {
         showConfirmModal({
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,

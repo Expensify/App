@@ -5,9 +5,10 @@ import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
 import type {OriginalParent, PlaybackActionsContext, PlaybackActionsContextValues, PlaybackStateContext, PlaybackStateContextValues} from './types';
@@ -37,82 +38,71 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const video = usePlaybackContextVideoRefs(resetContextProperties);
 
-    const updateCurrentURLAndReportID: PlaybackActionsContextValues['updateCurrentURLAndReportID'] = useCallback(
-        (url, report, reportID) => {
-            if (!reportID) {
-                return;
-            }
+    const updateCurrentURLAndReportID: PlaybackActionsContextValues['updateCurrentURLAndReportID'] = (url, report, reportID) => {
+        if (!reportID) {
+            return;
+        }
 
-            if (currentlyPlayingURLRef.current && url !== currentlyPlayingURLRef.current) {
-                video.pause();
-            }
+        if (currentlyPlayingURLRef.current && url !== currentlyPlayingURLRef.current) {
+            video.pause();
+        }
 
-            // If there's no URL (image case), pause the player by setting currentlyPlayingURL
-            // without triggering the resetPlayerData in useEffect below
-            if (!url) {
-                setCurrentlyPlayingURL(reportID);
-                currentlyPlayingURLRef.current = reportID;
-                return;
-            }
+        // If there's no URL (image case), pause the player by setting currentlyPlayingURL
+        // without triggering the resetPlayerData in useEffect below
+        if (!url) {
+            setCurrentlyPlayingURL(reportID);
+            currentlyPlayingURLRef.current = reportID;
+            return;
+        }
 
-            const isReportAChatThread = isChatThread(report);
-            let reportIDtoSet;
-            if (isReportAChatThread) {
-                reportIDtoSet = findURLInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID;
-            } else {
-                reportIDtoSet = reportID;
-            }
+        const isReportAChatThread = isChatThread(report);
+        const reportIDtoSet = isReportAChatThread ? (findURLInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID) : reportID;
 
-            // Always set currentRouteReportID so that shareVideoPlayerElements can match.
-            // When the video is in a thread/child report but the focused route shows a parent report,
-            // the IDs won't match. We still need to set it so video controls work properly.
-            setCurrentRouteReportID(reportIDtoSet);
+        // Always set currentRouteReportID so that shareVideoPlayerElements can match.
+        // When the video is in a thread/child report but the focused route shows a parent report,
+        // the IDs won't match. We still need to set it so video controls work properly.
+        setCurrentRouteReportID(reportIDtoSet);
 
-            setCurrentlyPlayingURL(url);
-            currentlyPlayingURLRef.current = url;
-        },
-        [video],
-    );
+        setCurrentlyPlayingURL(url);
+        currentlyPlayingURLRef.current = url;
+    };
 
-    const updatePlayerStatus = useCallback((newStatus: VideoPlayerStatus) => {
+    const updatePlayerStatus = (newStatus: VideoPlayerStatus) => {
         playerStatus.current = newStatus;
-    }, []);
+    };
 
-    const requestDonorReRegistration = useCallback(() => {
+    const requestDonorReRegistration = () => {
         // Reset currentRouteReportID so the reportID guard in shareVideoPlayerElements is bypassed,
         // allowing the real donor (e.g. chat player) to re-register even if its reportID no longer
         // matches the stale currentRouteReportID left behind by the non-shared (narrow) player.
         setCurrentRouteReportID(NO_REPORT_ID);
         setShareVersion((v) => v + 1);
-    }, []);
+    };
 
-    const shareVideoPlayerElements: PlaybackActionsContextValues['shareVideoPlayerElements'] = useCallback(
-        (
-            videoPlayerRef: VideoPlayer | null,
-            videoViewRef: VideoView | null,
-            parent: View | HTMLDivElement | null,
-            child: View | HTMLDivElement | null,
-            shouldNotAutoPlay: boolean,
-            {shouldUseSharedVideoElement, url, reportID},
-        ) => {
-            // When currentRouteReportID is NO_REPORT_ID it means a forced re-registration was requested
-            // (e.g. after narrow→wide resize). In that case we skip the reportID check so any non-shared
-            // player whose URL matches can reclaim the context refs.
-            const hasReportIDMismatch = currentRouteReportID !== NO_REPORT_ID && reportID !== currentRouteReportID;
-            if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || hasReportIDMismatch) {
-                return;
-            }
+    const shareVideoPlayerElements: PlaybackActionsContextValues['shareVideoPlayerElements'] = (
+        videoPlayerRef: VideoPlayer | null,
+        videoViewRef: VideoView | null,
+        parent: ComponentRef<typeof View> | HTMLDivElement | null,
+        child: ComponentRef<typeof View> | HTMLDivElement | null,
+        shouldNotAutoPlay: boolean,
+        {shouldUseSharedVideoElement, url, reportID},
+    ) => {
+        // When currentRouteReportID is NO_REPORT_ID it means a forced re-registration was requested
+        // (e.g. after narrow→wide resize). In that case we skip the reportID check so any non-shared
+        // player whose URL matches can reclaim the context refs.
+        const hasReportIDMismatch = currentRouteReportID !== NO_REPORT_ID && reportID !== currentRouteReportID;
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || hasReportIDMismatch) {
+            return;
+        }
 
-            video.updateRefs(videoPlayerRef, videoViewRef);
-            setOriginalParent(parent);
-            setSharedElement(child);
-            // Prevents autoplay when uploading the attachment
-            if (!shouldNotAutoPlay) {
-                video.play();
-            }
-        },
-        [currentRouteReportID, currentlyPlayingURL, video],
-    );
+        video.updateRefs(videoPlayerRef, videoViewRef);
+        setOriginalParent(parent);
+        setSharedElement(child);
+        // Prevents autoplay when uploading the attachment
+        if (!shouldNotAutoPlay) {
+            video.play();
+        }
+    };
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {

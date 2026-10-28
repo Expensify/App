@@ -8,8 +8,13 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
 
     return {
         ...responsiveLayoutValues,
-        shouldUseNarrowLayoutIgnoringWideRHP: responsiveLayoutValues.shouldUseNarrowLayout,
         isWideRHPDisplayedOnWideLayout: false,
         isSuperWideRHPDisplayedOnWideLayout: false,
     };
 }
+
+function useIsDisplayedInWideRHP(): boolean {
+    return false;
+}
+
+export {useIsDisplayedInWideRHP};

@@ -18,6 +18,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {useCallback, useMemo} from 'react';
 
+import useDelegateAccountID from './useDelegateAccountID';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -34,7 +36,6 @@ function useAutoCreateTrackWorkspace() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserEmail,
         currentUserAccountID,
         localCurrencyCode,
@@ -62,7 +63,9 @@ function useAutoCreateTrackWorkspace() {
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const {isBetaEnabled} = usePermissions();
+    const delegateAccountID = useDelegateAccountID();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
@@ -80,7 +83,7 @@ function useAutoCreateTrackWorkspace() {
                 ? createWorkspace({
                       policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice,
                       currency: localCurrencyCode,
@@ -93,11 +96,11 @@ function useAutoCreateTrackWorkspace() {
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
                       onboardingPurposeSelected,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
                       hasOwnedPaidPolicy,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -118,6 +121,8 @@ function useAutoCreateTrackWorkspace() {
                     isSelfTourViewed,
                     conciergeChat,
                     selfDMReport,
+                    currentUserAccountID,
+                    delegateAccountID,
                 });
 
                 if (isSidePanelReportSupported) {
@@ -140,6 +145,7 @@ function useAutoCreateTrackWorkspace() {
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
                     reportNameValuePairs,
+                    isAnonymousUser,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -163,16 +169,17 @@ function useAutoCreateTrackWorkspace() {
             activePolicy,
             isSelfTourViewed,
             onboardingMessages,
-            betas,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
             reportNameValuePairs,
+            isAnonymousUser,
             mergedAccountConciergeReportID,
             conciergeChat,
             selfDMReport,
+            delegateAccountID,
         ],
     );
 

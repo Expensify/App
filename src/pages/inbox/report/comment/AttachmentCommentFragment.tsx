@@ -1,6 +1,8 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
 import {getHtmlWithAttachmentID} from '@libs/ReportActionsUtils';
+import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 
@@ -15,14 +17,23 @@ type AttachmentCommentFragmentProps = {
     addExtraMargin: boolean;
     reportActionID?: string;
     styleAsDeleted: boolean;
+    isEdited?: boolean;
 };
 
-function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted, reportActionID}: AttachmentCommentFragmentProps) {
+function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted, reportActionID, isEdited = false}: AttachmentCommentFragmentProps) {
     const styles = useThemeStyles();
-    const htmlContent = getHtmlWithAttachmentID(styleAsDeleted ? `<del>${html}</del>` : html, reportActionID);
+    const htmlWithIDs = getHtmlWithAttachmentID(styleAsDeleted ? `<del>${html}</del>` : html, reportActionID);
+    const attachmentHtml = wrapAttachmentAnchorsInBlocks(htmlWithIDs, reportActionID);
+    // Only a file card gets its own block, so only a file card can carry the label without it sharing the card's line.
+    const editedTag = isEdited && attachmentHtml !== htmlWithIDs ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
+    const htmlContent = `${attachmentHtml}${editedTag}`;
+    const endSendMessageVisibleSpanOnLayout = useSendMessageSpanMarks(reportActionID);
 
     return (
-        <View style={addExtraMargin ? styles.mt2 : {}}>
+        <View
+            style={addExtraMargin ? styles.mt2 : {}}
+            onLayout={endSendMessageVisibleSpanOnLayout}
+        >
             <RenderCommentHTML
                 containsOnlyEmojis={false}
                 source={source}

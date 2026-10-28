@@ -3,7 +3,7 @@ import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,13 +13,19 @@ import useOnyx from './useOnyx';
 
 const policyIdMapper = (policy: OnyxEntry<Policy>) => policy?.id;
 
+/** Whether the outstanding reports of every workspace are listed, instead of those of the selected workspace only */
+function shouldListAllPolicies(selectedPolicyID: string | undefined, personalPolicyID: string | undefined, selectedReport: OnyxEntry<Report>) {
+    return !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
+}
+
 export default function useOutstandingReports(selectedReportID: string | undefined, selectedPolicyID: string | undefined, ownerAccountID: number | undefined, isEditing: boolean) {
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [allPoliciesID] = useMappedPolicies(policyIdMapper);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
-    const shouldUseAllPolicies = !selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport);
+    const shouldUseAllPolicies = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Early return if no reports are available to prevent useless loop
     if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
@@ -34,7 +40,7 @@ export default function useOutstandingReports(selectedReportID: string | undefin
                 continue;
             }
 
-            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
+            const reports = getOutstandingReportsForUser(policyID, ownerAccountID, rules, reportNameValuePairs, outstandingReportsByPolicyID[policyID] ?? {}, isEditing);
             result.push(...reports);
         }
         return result;
@@ -44,5 +50,14 @@ export default function useOutstandingReports(selectedReportID: string | undefin
         return [];
     }
 
-    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, reportNameValuePairs, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isEditing);
+    return getOutstandingReportsForUser(
+        selectedPolicyID,
+        ownerAccountID,
+        rules,
+        reportNameValuePairs,
+        outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+        isEditing,
+    );
 }
+
+export {shouldListAllPolicies};

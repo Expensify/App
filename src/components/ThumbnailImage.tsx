@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -65,10 +65,13 @@ type ThumbnailImageProps = {
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 
-    resizeMode?: ImageResizeMode;
+    resizeMode?: ImageProps['resizeMode'];
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 function ThumbnailImage({
@@ -92,6 +95,7 @@ function ThumbnailImage({
     onLoad,
     resizeMode,
     previewUri,
+    recyclingKey,
 }: ThumbnailImageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
@@ -158,6 +162,7 @@ function ThumbnailImage({
                     onLoad={onLoad}
                     resizeMode={resizeMode}
                     previewUri={previewUri}
+                    recyclingKey={recyclingKey}
                 />
             </View>
         </View>

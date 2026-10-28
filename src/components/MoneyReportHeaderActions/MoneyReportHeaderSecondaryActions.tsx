@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -30,10 +30,13 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShareActions from '@hooks/useShareActions';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -53,6 +56,8 @@ import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/P
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
+    canApproveIOU,
+    canIOUBePaid as canIOUBePaidAction,
     hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -63,12 +68,11 @@ import {
 import {isPending} from '@libs/TransactionUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {canApproveIOU, canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
@@ -86,6 +90,8 @@ type MoneyReportHeaderSecondaryActionsProps = {
     isReportInSearch?: boolean;
     backTo?: Route;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
@@ -93,7 +99,7 @@ const MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
@@ -104,7 +110,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -113,7 +119,6 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
@@ -129,13 +134,15 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {},
     );
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const {login: currentUserLogin, accountID, email, displayName} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
 
     const {isOffline} = useNetwork();
@@ -151,7 +158,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
     const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const allTransactions = Object.values(reportTransactions);
+    const moneyReportTransactions = Object.values(reportTransactions);
     const singleTransaction = nonPendingDeleteTransactions.length === 1 ? nonPendingDeleteTransactions.at(0) : undefined;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -164,11 +171,12 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
-    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(allTransactions);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyReportTransactions);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
 
@@ -199,10 +207,13 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
+                isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
+                invoiceReportTransactions: moneyReportTransactions,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -213,32 +224,34 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 paymentMethod,
                 activePolicy,
                 conciergeChat,
-                betas,
                 isSelfTourViewed,
-                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate),
+                defaultWorkspaceName: generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate),
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                rules,
             });
         } else {
-            startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 getCurrencyDecimals,
+                isASAPSubmitBetaEnabled,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
+                iouReportTransactions: moneyReportTransactions,
                 introSelected,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
                 chatReportPolicy,
-                betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: () => {
                     startAnimation();
                 },
@@ -246,6 +259,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                rules,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -254,19 +268,33 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
                     isLoading: !!currentSearchResults?.search?.isLoading,
+                    shouldReturnTripRooms,
                 });
             }
         }
     };
 
     // Payment button derivations
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, false, undefined, invoiceReceiverPolicy);
+    const canIOUBePaid = canIOUBePaidAction(
+        moneyRequestReport,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin ?? '',
+        accountID,
+        undefined,
+        false,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    );
     const onlyShowPayElsewhere =
-        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, undefined, invoiceReceiverPolicy);
+        !canIOUBePaid &&
+        canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived, invoiceReceiverPolicy);
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
-    const hasOnlyPendingTransactions = allTransactions.length > 0 && allTransactions.every((t) => isPending(t));
+    const hasOnlyPendingTransactions = moneyReportTransactions.length > 0 && moneyReportTransactions.every((t) => isPending(t));
     const shouldShowApproveButton =
-        (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, allTransactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
+        (canApproveIOU(moneyRequestReport, policy, reportMetadata, currentUserPersonalDetails.accountID, moneyReportTransactions) && !hasOnlyPendingTransactions) ||
+        isApprovedAnimationRunning;
     const isApproveDisabled = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
@@ -366,8 +394,12 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {exportActionEntries} = useExportActions({
         reportID,
         policy,
-        onPDFModalOpen: openPDFDownload,
+        onPDFModalOpen: () => {
+            openPDFDownload();
+        },
     });
+
+    const shareActions = useShareActions({reportID, policy});
 
     // Compute list of applicable secondary action keys
     const secondaryActions = moneyRequestReport
@@ -389,6 +421,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               outstandingReportsByPolicyID,
               isChatReportArchived,
               isOffline,
+              rules,
+              cardList,
           })
         : [];
 
@@ -404,6 +438,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             },
         },
         ...exportActionEntries,
+        ...shareActions,
         ...lifecycleActionEntries,
         ...expenseActions,
         ...holdRejectActions,
@@ -441,7 +476,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 isASAPSubmitBetaEnabled,
                 confirmApproval: () => confirmApproval(),
                 iouReport: moneyRequestReport,
-                betas,
+                rules,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
@@ -473,6 +508,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             primaryAction={primaryAction}
             applicableSecondaryActions={applicableSecondaryActions}
             dropdownMenuRef={dropdownMenuRef}
+            isDisabled={isDisabled}
             onOptionsMenuHide={handleOptionsMenuHide}
             ref={kycWallRef}
             shouldPutHeaderTextAfterBackButton
@@ -480,7 +516,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     );
 }
 
-function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''}) {
+function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction, isDisabled}: {primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ''; isDisabled?: boolean}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -496,6 +532,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 innerStyles={innerStyles}
                 style={shouldTakeRemainingWidth ? styles.w100 : undefined}
+                isDisabled={isDisabled}
                 onPress={() => {}}
             >
                 <Button.Text>{translate('common.more')}</Button.Text>
@@ -505,7 +542,7 @@ function MoneyReportHeaderSecondaryActionsPlaceholder({primaryAction}: {primaryA
     );
 }
 
-function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, backTo, dropdownMenuRef, isDisabled}: MoneyReportHeaderSecondaryActionsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const shouldTakeRemainingWidth = (shouldUseNarrowLayout || isMediumScreenWidth) && !primaryAction && !isInLandscapeMode;
@@ -517,7 +554,12 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
             anchorAlignment={MORE_MENU_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}
         >
             <NavigationDeferredMount
-                placeholder={<MoneyReportHeaderSecondaryActionsPlaceholder primaryAction={primaryAction} />}
+                placeholder={
+                    <MoneyReportHeaderSecondaryActionsPlaceholder
+                        primaryAction={primaryAction}
+                        isDisabled={isDisabled}
+                    />
+                }
                 // RHPReportScreen remounts this tree on setParams arrow-nav without firing a transition,
                 // so we must not wait for one — see https://github.com/Expensify/App/issues/88931.
                 waitForUpcomingTransition={false}
@@ -528,6 +570,7 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
                     isReportInSearch={isReportInSearch}
                     backTo={backTo}
                     dropdownMenuRef={dropdownMenuRef}
+                    isDisabled={isDisabled}
                 />
             </NavigationDeferredMount>
         </ReportSubmitToPopoverAnchor>

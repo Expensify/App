@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -16,7 +18,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -29,7 +31,6 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const config = policy?.connections?.xero?.config;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path);
-    const travelBillingPath = `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path}`;
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const travelPayableAccount = bankAccounts?.find((account) => account.id === config?.export?.travelInvoicingPayableAccountID);
@@ -37,7 +38,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
     return (
         <ConnectionLayout
             displayName="DynamicXeroTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -46,29 +47,32 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
-            <MenuItemWithTopDescription
-                title={translate('workspace.xero.bankTransactions')}
-                description={translate('workspace.accounting.exportAs')}
-                helperText={translate('workspace.xero.travelInvoicingDescription')}
-                interactive={false}
-                shouldShowRightIcon={false}
+            <MenuItemField
+                name={translate('workspace.accounting.exportAs')}
+                value={translate('workspace.xero.bankTransactions')}
+            />
+            <FormHelpMessage
+                isError={false}
+                shouldShowRedDotIndicator={false}
+                message={translate('workspace.xero.travelBillingDescription')}
+                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
             />
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
                 errorRowStyles={[styles.ph5]}
             >
-                <MenuItemWithTopDescription
-                    title={travelPayableAccount?.name}
-                    description={translate('workspace.common.travelInvoicingPayableAccount')}
+                <MenuItemField
+                    name={translate('workspace.common.travelBillingPayableAccount')}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path, travelBillingPath));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT.path));
                     }}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={travelPayableAccount?.name}
+                >
+                    {areSettingsInErrorFields(payableAccountSetting, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             <TravelBillingContinuousReconciliationSection
                 policy={policy}

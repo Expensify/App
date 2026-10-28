@@ -4,8 +4,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
 
+import memoize, {equivalentArgsComparator} from '@libs/memoize';
 import {filterOption, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -38,6 +40,11 @@ type UseSearchSelectorConfig = {
 
     /** When set, only the logins in this set are turned into options */
     includeLoginsOnly?: Set<string>;
+
+    /**
+     * When set, only the agents in this set are turned into options.
+     */
+    agentsWhitelist?: Set<number>;
 
     includeRecentReports?: boolean;
     includeCurrentUser?: boolean;
@@ -136,6 +143,43 @@ const defaultListOptions = {
 };
 
 /**
+ * How many option lists the caches below hold. Consumers mount one selector at a time, except the Search filters
+ * popover, which keeps three people filters alive next to each other (from, to and attendee, on expense searches).
+ * An eviction in the first cache makes the second one miss, because its result is an identity-compared argument of
+ * `getValidOptions`.
+ */
+const MAX_CACHED_OPTION_LISTS = 3;
+
+/** Filtering the whole option list is a pure derivation of its inputs, so remounting consumers reuse the result. */
+const memoizedGetValidOptions = memoize(getValidOptions, {
+    maxSize: MAX_CACHED_OPTION_LISTS,
+    equality: equivalentArgsComparator,
+    monitoringName: 'usePersonalDetailSearchSelector.getValidOptions',
+});
+
+/** Marks the options matching the selected accountIDs, so the copy of the list is reused while the inputs are unchanged. */
+const buildSelectedOptions = (options: OptionData[], selectedAccountIDs: Set<string>) =>
+    options.map((option) => ({
+        ...option,
+        isSelected: selectedAccountIDs.has(option.accountID.toString()),
+    }));
+
+const memoizedBuildSelectedOptions = memoize(buildSelectedOptions, {
+    maxSize: MAX_CACHED_OPTION_LISTS,
+    equality: equivalentArgsComparator,
+    monitoringName: 'usePersonalDetailSearchSelector.buildSelectedOptions',
+});
+
+/** Releases the cached lists. */
+function clearPersonalDetailSearchSelectorCaches() {
+    memoizedGetValidOptions.cache.clear();
+    memoizedBuildSelectedOptions.cache.clear();
+}
+
+// Both caches hold option lists built for the signed-in account.
+registerSessionCleanupCallback(clearPersonalDetailSearchSelectorCaches);
+
+/**
  * Base hook that provides search functionality with selection logic for option lists.
  * This contains the core logic without platform-specific dependencies.
  */
@@ -148,6 +192,7 @@ function usePersonalDetailSearchSelectorBase({
     excludeLogins = CONST.EMPTY_OBJECT,
     excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
     includeLoginsOnly,
+    agentsWhitelist,
     includeRecentReports = true,
     onSelectionChange,
     onSingleSelect,
@@ -164,7 +209,7 @@ function usePersonalDetailSearchSelectorBase({
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
+    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly, agentsWhitelist});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
 
@@ -182,11 +227,18 @@ function usePersonalDetailSearchSelectorBase({
         return (defaultOptions ?? []).concat(allowedContactOptions);
     })();
     const areOptionsInitialized = !isPersonalDetailsOptionsLoading;
-    const transformedOptions: OptionData[] =
-        optionsWithContacts?.map((option) => ({
-            ...option,
-            isSelected: selectedAccountIDs.has(option.accountID.toString()),
-        })) ?? [];
+
+    // With nothing selected the options already carry the right state, so the list is passed through instead of a copy
+    // of every option being built and then held in the cache.
+    const transformedOptions: OptionData[] = (() => {
+        if (!optionsWithContacts) {
+            return [];
+        }
+        if (selectedAccountIDs.size === 0) {
+            return optionsWithContacts;
+        }
+        return memoizedBuildSelectedOptions(optionsWithContacts, selectedAccountIDs);
+    })();
 
     const selectedOptions = (() => {
         const options: OptionData[] = [];
@@ -203,15 +255,19 @@ function usePersonalDetailSearchSelectorBase({
         return options;
     })();
 
+    // Trim before matching, otherwise a leading/trailing space makes Str.isValidEmail fail in getUserToInviteOption
+    // and the "invite user" option disappears for logins that don't have an account yet.
+    const trimmedSearchTerm = debouncedSearchTerm.trim();
+
     const optionsList = !areOptionsInitialized
         ? defaultListOptions
-        : getValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
+        : memoizedGetValidOptions(transformedOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, {
               excludeLogins,
               excludeFromSuggestionsOnly,
               includeSelectedOptions: shouldKeepSelectedInAvailableOptions,
               includeRecentReports,
               recentAttendees,
-              searchString: debouncedSearchTerm,
+              searchString: trimmedSearchTerm,
               maxElements,
               recentMaxElements: maxRecentReportsToShow,
               includeUserToInvite,
@@ -320,4 +376,5 @@ function usePersonalDetailSearchSelectorBase({
 }
 
 export default usePersonalDetailSearchSelectorBase;
+export {clearPersonalDetailSearchSelectorCaches};
 export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn};

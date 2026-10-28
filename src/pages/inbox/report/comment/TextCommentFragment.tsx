@@ -7,13 +7,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {wrapAttachmentAnchorsInBlocks} from '@libs/AttachmentAnchorUtils';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import hydrateEmojiHtml from '@libs/hydrateEmojiHtml';
 import Parser from '@libs/Parser';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import {fontScale} from '@styles/typography';
 
@@ -67,12 +68,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const processedTextArray = splitTextWithEmojis(message);
 
-    const endSendMessageVisibleSpanOnLayout = () => {
-        if (!reportActionID) {
-            return;
-        }
-        endSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`);
-    };
+    const endSendMessageVisibleSpanOnLayout = useSendMessageSpanMarks(reportActionID);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
@@ -103,7 +99,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
+        htmlWithTag = adjustExpensifyLinksForEnv(wrapAttachmentAnchorsInBlocks(getHtmlWithAttachmentID(htmlWithTag, reportActionID), reportActionID));
 
         return (
             <View onLayout={endSendMessageVisibleSpanOnLayout}>

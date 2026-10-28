@@ -1,5 +1,6 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchStaticList from '@components/Search/SearchStaticList';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -12,7 +13,10 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 
+import createMock from '../utils/createMock';
+
 const mockConciergeReportID = jest.fn((): string | undefined => undefined);
+const mockFullPolicySnapshotLastModifiedByPolicyID = jest.fn((): Record<string, number> | undefined => undefined);
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: jest.fn(() => ({accountID: 999, email: 'me@expensify.com'})),
@@ -23,6 +27,10 @@ jest.mock('@hooks/useOnyx', () =>
         // ONYXKEYS.CONCIERGE_REPORT_ID — the key cannot be imported inside a jest.mock factory
         if (key === 'conciergeReportID') {
             return [mockConciergeReportID()];
+        }
+        // ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT
+        if (key === 'ramOnlyFullPolicySnapshot_') {
+            return [mockFullPolicySnapshotLastModifiedByPolicyID()];
         }
         return [undefined];
     }),
@@ -54,6 +62,7 @@ jest.mock('@react-navigation/native', () => {
 });
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
     getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
 }));
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -65,9 +74,6 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         removeListener: jest.fn(),
         getCurrentRoute: jest.fn(),
     },
-}));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
 }));
 jest.mock('@components/TransactionItemRow', () => jest.fn(() => null));
 jest.mock('@components/Skeletons/SearchRowSkeleton', () => jest.fn(() => null));
@@ -132,5 +138,35 @@ describe('SearchStaticList', () => {
         );
 
         expect(getSectionsSpy).toHaveBeenCalledWith(expect.objectContaining({conciergeReportID: undefined}));
+    });
+
+    it('sends the full policy snapshot markers when opening an expense that has no transaction thread yet', () => {
+        // Given a workspace expense without a transaction thread, and a full policy snapshot marker for its policy
+        mockFullPolicySnapshotLastModifiedByPolicyID.mockReturnValue({policy1: 123});
+        const item = createMock<TransactionListItemType>({
+            keyForList: 'transaction1',
+            transactionID: 'transaction1',
+            reportID: 'report1',
+            policyID: 'policy1',
+            report: {reportID: 'report1', policyID: 'policy1'},
+        });
+        jest.spyOn(SearchUIUtils, 'getSortedSections').mockReturnValueOnce([item]);
+        const createAndOpenSearchTransactionThreadSpy = jest.spyOn(SearchUIUtils, 'createAndOpenSearchTransactionThread').mockImplementation(() => undefined);
+        const queryJSON = buildSearchQueryJSON('type:expense');
+        if (!queryJSON) {
+            throw new Error('failed to build queryJSON');
+        }
+        render(
+            <SearchStaticList
+                searchResults={EMPTY_SEARCH_RESULTS}
+                queryJSON={queryJSON}
+            />,
+        );
+
+        // When the expense row is pressed
+        fireEvent.press(screen.getAllByRole('button').at(0) ?? screen.getByRole('button'));
+
+        // Then the thread is created with the markers, so OpenReport can skip the large policy collections
+        expect(createAndOpenSearchTransactionThreadSpy).toHaveBeenCalledWith(expect.objectContaining({fullPolicySnapshotLastModifiedByPolicyID: {policy1: 123}}));
     });
 });

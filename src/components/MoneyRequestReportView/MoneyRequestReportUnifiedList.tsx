@@ -3,14 +3,17 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
+
 import variables from '@styles/variables';
 
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {ExternalScrollFlashListTableHandle} from './ExternalScrollFlashListTable';
@@ -45,13 +48,12 @@ function unifiedListItemType(item: UnifiedListItem) {
 }
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
-    /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
+    /** Ref to the underlying list, shared via the ActionList context. */
     ref: FlatListRefType;
 };
 
 /**
- * Forwards the shared ActionList context ref to the underlying FlashList. That context slot predates this FlashList-based
- * list and is still shared with the legacy report list, so it is typed for a FlatList. Mirroring InvertedFlashList, the
+ * Forwards the shared ActionList context ref to the underlying FlashList. Mirroring InvertedFlashList, the
  * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
  * needed. The scroll manager relies on the FlashList registering into this slot.
  */
@@ -86,6 +88,9 @@ type MoneyRequestReportUnifiedListProps = {
     /** ID of the report action deep-linked to, if any. */
     linkedReportActionID: string | undefined;
 
+    /** First revealed action to mount for a manual expansion's focus handoff. */
+    focusRequestedReportActionID?: string;
+
     /** ID of a newly added transaction to highlight, if any. */
     newTransactionID?: string;
 
@@ -95,15 +100,15 @@ type MoneyRequestReportUnifiedListProps = {
     accessibilityLabel: string;
 
     /** Called when the list lays out. */
-    onLayout: () => void;
+    onLayout: (event: LayoutChangeEvent) => void;
 
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 
     /** Called when the user starts dragging the list. */
     onScrollBeginDrag: () => void;
 
-    onContentSizeChange: () => void;
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onContentSizeChange: (width: number, height: number) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
@@ -135,6 +140,7 @@ function MoneyRequestReportUnifiedList({
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
+    focusRequestedReportActionID,
     newTransactionID,
     listRef,
     accessibilityLabel,
@@ -182,6 +188,24 @@ function MoneyRequestReportUnifiedList({
     // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
     const viewableItemsRef = useRef<ViewToken[]>([]);
 
+    const expandedFocusIndex = focusRequestedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === focusRequestedReportActionID) : -1;
+    useEffect(() => {
+        if (expandedFocusIndex < 0) {
+            return;
+        }
+
+        const dataIndex = expandedFocusIndex + reportActionIndexOffset;
+        if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+            return;
+        }
+
+        // Resolve the transaction offset here, where the virtualized list's data is owned.
+        const frame = requestAnimationFrame(() => {
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [expandedFocusIndex, focusRequestedReportActionID, reportActionIndexOffset, listRef]);
+
     // Handle to the nested table (horizontal mode) — read for row page positions, never driven to scroll (its scroll is a no-op).
     const tableRef = useRef<ExternalScrollFlashListTableHandle>(null);
 
@@ -214,13 +238,13 @@ function MoneyRequestReportUnifiedList({
 
     const handleLayout = (event: LayoutChangeEvent) => {
         setViewportHeight(event.nativeEvent.layout.height);
-        onLayout();
+        onLayout(event);
     };
 
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChanged>[0]) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
@@ -229,7 +253,7 @@ function MoneyRequestReportUnifiedList({
         }
         onViewableItemsChanged({
             ...info,
-            viewableItems: info.viewableItems.map((item) => ({...item, index: item.index !== null ? item.index - reportActionIndexOffset : null})),
+            viewableItems: info.viewableItems.map((item) => ({...item, index: typeof item.index === 'number' ? item.index - reportActionIndexOffset : item.index})),
         });
     };
 
@@ -270,6 +294,22 @@ function MoneyRequestReportUnifiedList({
         });
         return () => cancelAnimationFrame(rafId);
     }, [linkedReportActionID, initialScrollIndex, listRef]);
+
+    // This list owns the report-action-ID-to-data-index mapping, so it resolves the scroll request against its own rows —
+    // same request the inbox `ReportActionsList` handles for the non-money-request view.
+    useScrollToEditingReportAction({
+        visibleReportActions,
+        scrollToIndex: (index) => {
+            const dataIndex = index + reportActionIndexOffset;
+
+            // Already on screen, so its editor has mounted and taken focus — scrolling would only yank the user.
+            if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+                return;
+            }
+
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        },
+    });
 
     // Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
     // drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which
@@ -394,4 +434,4 @@ function MoneyRequestReportUnifiedList({
     );
 }
 
-export default memo(MoneyRequestReportUnifiedList);
+export default MoneyRequestReportUnifiedList;

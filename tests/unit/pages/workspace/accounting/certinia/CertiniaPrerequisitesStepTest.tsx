@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {ScrollViewProps} from '@components/ScrollView';
 import TextLink from '@components/TextLink';
 
@@ -16,7 +16,7 @@ import React from 'react';
 import createMock from '../../../../../utils/createMock';
 import {translateLocal} from '../../../../../utils/TestHelper';
 
-jest.mock('@components/ButtonComposed', () => ({
+jest.mock('@components/Button', () => ({
     __esModule: true,
     default: Object.assign(
         jest.fn(() => null),

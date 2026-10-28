@@ -2,89 +2,72 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
-import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import {shouldUseUpdateNetSuiteTokens} from '@libs/actions/connections';
 import {connectPolicyToNetSuite, updateNetSuiteTokens} from '@libs/actions/connections/NetSuiteCommands';
 import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 
+import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
-import React, {useCallback, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import connectToNetSuiteOAuthSetup from './connectToNetSuiteOAuthSetup';
 
-function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps) {
+function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
-    const {isBetaEnabled} = usePermissions();
     const {environmentURL} = useEnvironment();
-    const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
-
-    const isOAuthFlow = isBetaEnabled(CONST.BETAS.NETSUITE_OAUTH);
-    const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     const formInputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-    const validate = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
+    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
+        const inputs = isOAuthFlow ? [INPUT_IDS.NETSUITE_ACCOUNT_ID] : Object.values(INPUT_IDS);
 
-            for (const formInput of formInputs) {
-                if (formValues[formInput]) {
-                    continue;
-                }
-                addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+        for (const formInput of inputs) {
+            if (formValues[formInput]) {
+                continue;
             }
-            return errors;
-        },
-        [formInputs, translate],
-    );
+            addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
 
-    const connectPolicy = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
-            if (!policyID) {
-                return;
-            }
+    const connectPolicy = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        if (!policyID) {
+            return;
+        }
 
-            if (isOAuthFlow) {
-                if (!is2FAEnabled) {
-                    setIsRequire2FAModalOpen(true);
-                    return;
-                }
-                connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL);
-                return;
-            }
+        if (isOAuthFlow) {
+            connectToNetSuiteOAuthSetup(policyID, formValues[INPUT_IDS.NETSUITE_ACCOUNT_ID], environmentURL, isMigration);
+            return;
+        }
 
-            if (shouldUseUpdateNetSuiteTokens(policy)) {
-                updateNetSuiteTokens(policyID, formValues);
-            } else {
-                connectPolicyToNetSuite(policyID, formValues);
-            }
-            onNext();
-        },
-        [onNext, policyID, policy, isOAuthFlow, is2FAEnabled, environmentURL],
-    );
+        if (shouldUseUpdateNetSuiteTokens(policy)) {
+            updateNetSuiteTokens(policyID, formValues);
+        } else {
+            connectPolicyToNetSuite(policyID, formValues);
+        }
+        onNext();
+    };
 
     return (
         <>
@@ -100,6 +83,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
+                footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View
@@ -127,19 +111,6 @@ function NetSuiteTokenInputForm({onNext, policyID}: CustomSubPageTokenInputProps
                     </View>
                 ))}
             </FormProvider>
-            {isOAuthFlow && !is2FAEnabled && (
-                <RequireTwoFactorAuthenticationModal
-                    onSubmit={() => {
-                        setIsRequire2FAModalOpen(false);
-                        Navigation.navigate(getTwoFactorAuthRoute());
-                    }}
-                    onCancel={() => {
-                        setIsRequire2FAModalOpen(false);
-                    }}
-                    isVisible={isRequire2FAModalOpen}
-                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredNetSuiteDescription')}
-                />
-            )}
         </>
     );
 }

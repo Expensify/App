@@ -17,6 +17,7 @@ const avatarSizes = {
     avatarSizeXxSmall: 20,
     avatarSizeXSmall: 24,
     avatarSizeSmall: 28,
+    avatarSizeMidSmall: 32,
     avatarSizeMedium: 40,
     avatarSizeLarge: 48,
     avatarSizeXLarge: 52,
@@ -30,7 +31,19 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    floatingTabBarHeight: 60,
+    floatingTabBarHorizontalInset: 16,
+    // How far the selected pill reaches past its tab on each side, whatever the label's length.
+    floatingTabBarSelectedOverhang: 4,
+    // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
+    floatingTabBarLabelInset: 8,
+    floatingTabBarBottomInset: 8,
+    // Home, Inbox, Spend and Workspaces, with Insights or Account as the fifth.
+    floatingTabBarTabCount: 5,
+    // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
+    debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
+    contentHeaderNarrowHeight: getValueUsingPixelRatio(64, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeXSmall: getValueUsingPixelRatio(20, 24),
@@ -41,6 +54,7 @@ export default {
     spacing2: 8,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
+    hairlineBorderWidth: 0.5,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
@@ -53,6 +67,7 @@ export default {
     componentBorderWidth: 8,
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
+    widgetItemButtonMinWidth: 68,
     ...avatarSizes,
     avatarPreview: 360,
     avatarPreviewLarge: 720,
@@ -93,6 +108,47 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
+    /** Glyph size in the floating tab bar. */
+    iconFloatingTabBar: 20,
+    /** Account avatar size in the floating tab bar. */
+    avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    // The tab glyphs are drawn about this far above the bottom of their box.
+    floatingTabBarGlyphBottomInset: 1,
+    /** Glyph size in the iOS native tab bar. */
+    iconNativeTabBarIOS: 22,
+    /** Account avatar size in the iOS native tab bar. */
+    avatarNativeTabBarIOS: 26,
+    /** Glyph size in the iOS native tab bar in landscape, where UIKit lays the label beside a smaller icon. */
+    iconNativeTabBarIOSLandscape: 18,
+    /** Account avatar size in the iOS native tab bar in landscape. */
+    avatarNativeTabBarIOSLandscape: 21,
+    /** Radius of the status dot drawn into a native tab bar icon. */
+    nativeTabIconDotRadius: 4,
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    nativeTabIconDotCutout: 2,
+    /** Radius of the emoji status badge drawn into the account icon of a native tab bar. */
+    nativeTabIconEmojiStatusRadius: 6,
+    /** Size of the emoji drawn in that badge. */
+    nativeTabIconEmojiStatusFontSize: 8,
+    /** Radius of that badge on the smaller landscape avatar of the iOS native tab bar, where a full-size badge would run into the status dot. */
+    nativeTabIconEmojiStatusRadiusLandscape: 5,
+    /** Size of the emoji drawn in that landscape badge. */
+    nativeTabIconEmojiStatusFontSizeLandscape: 7,
+    /** How far the emoji status badge of an iOS native tab bar icon sits past the bottom-right corner of the avatar, as the JS badge hangs off its avatar. */
+    nativeTabIconEmojiStatusOffset: 2,
+    /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
+    nativeTabIconLabelGap: 6,
+    /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
+    iosNativeTabBarHorizontalInset: 25,
+    // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
+    // share of the bar lets that pill reach over the label next to it.
+    iosNativeTabBarLabelInset: 8,
+    /** Material's BottomNavigationView row, without the gesture inset under it. */
+    androidNativeTabBarHeight: 80,
+    /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
+    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 50,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
@@ -102,10 +158,14 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     sidePanelResponsiveWidthBreakpoint: 1300,
+    connectionCardMinWidth: 300,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     sidePanelWidth: 375,
+    rhpFloatingCardMargin: 12,
+    // The frame width compensates for this border.
+    rhpFloatingCardBorderWidth: 1,
     // Screen inset shared by the top- and bottom-anchored growl containers so both stay in sync.
     growlNotificationInset: 20,
     receiptPaneRHPMaxWidth: 465,
@@ -115,12 +175,19 @@ export default {
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
     centeredContentMaxWidth: 1200,
+    insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
+    chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
-    sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
-    searchSidebarExpandedWidth: 320,
+    sideBarWithLHBWidth: 260,
+    inboxSideBarWidth: 360,
+    superWideRHPLeftMargin: 360,
+    // RHP panel width. Kept separate from sideBarWidth (the LHN) so the two can differ.
+    rhpWidth: 440,
+    // The expense report's right pane can differ from the skinny RHP.
+    wideRHPRightPaneWidth: 460,
+    searchSidebarExpandedWidth: 260,
     searchSidebarCollapsedWidth: 76,
     navigationTabBarSize: 72,
     popoverMargin: 18,
@@ -129,10 +196,13 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    popoverSearchInputHeight: 64,
+    popoverVerticalPadding: 32,
     tableHeaderContentHeight: 20,
     tableRowHeight: 56,
     tableRowHeightCompact: 60,
     tableRowPaddingVertical: 8,
+    tableRowPaddingVerticalCompact: 16,
     tableRowPaddingHorizontal: 12,
     htmlTableRowMinHeight: 40,
     htmlTableHeaderRowMinHeight: 30,
@@ -141,17 +211,17 @@ export default {
     htmlTableChevronColumnWidth: 20,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
+    bulkActionBarPaddingVertical: 20,
     tableCheckboxColumnWidth: 20,
     tableStatusColumnWidth: 56,
     tableTypeColumnWidth: 84,
     tableRequireFieldsTypeColumnWidth: 112,
     tableSwitchColumnWidth: 58,
     tableCaretColumnWidth: 20,
-    tableLastFourColumnWidth: 72,
-    tableCardStatusColumnWidth: 128,
+    tableMemberCellAvatarWidth: avatarSizes.avatarSizeSmall + 12,
     workspaceTagsTableCountColumnWidth: 100,
     domainTableActionColumnWidth: 64,
-    domainAdminsTableActionColumnWidth: 140,
+    domainAdminsTableActionColumnWidth: 220,
     agentsTableActionColumnWidth: 260,
     workspaceTableActionColumnWidth: 64,
     workspaceMembersRoleColumnWidth: 148,
@@ -159,6 +229,8 @@ export default {
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
+    // Lighter scrim for the floating RHP card. Other modal backdrops keep overlayOpacity.
+    rhpOverlayOpacity: 0.5,
     // fontSizeExtraSmall is fixed at 9, so the line height must never scale below the font's natural line height (~1.18em = 10.62),
     // otherwise Android clamps the descent and clips descenders and underlines at small device font scales.
     lineHeightXSmall: Math.max(getValueUsingPixelRatio(11, 17), 11),
@@ -232,6 +304,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollFadeWidth: 32,
     tabSelectorScrollMarginInline: 20,
     tabSelectorMaxTabLabelWidth: 256,
     filterPillMaxWidth: 256,
@@ -243,7 +316,10 @@ export default {
     popoverWidth: 375,
     compactPopoverMenuWidth: 300,
     compactPopoverMenuVerticalMargin: 100,
-    searchRouterPopoverWidth: 512,
+    searchRouterPopoverWidth: 600,
+    searchRouterPopoverMaxHeight: 520,
+    searchRouterPopoverTopOffset: 100,
+    searchRouterPopoverMinTopOffset: 16,
     bankAccountActionPopoverRightSpacing: 32,
     bankAccountActionPopoverTopSpacing: 14,
     addPaymentPopoverRightSpacing: 23,
@@ -283,22 +359,28 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
+    growlNotificationZIndex: 10001,
     popoverZIndex: 10000,
     modalBaseZIndex: 9999,
+    autoCompleteSuggestionsZIndex: 9999,
     sidePanelZIndex: 9998,
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
-    sectionMargin: 20,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
+    earlyRenewalOfferHeroWidth: 268,
+    earlyRenewalOfferHeroHeight: 194,
+    earlyRenewalOfferOptionIllustrationSize: 68,
+    earlyRenewalOfferBackgroundWidth: 628,
+    earlyRenewalOfferBackgroundHeight: 368,
+    earlyRenewalOfferBackgroundOffsetTop: -24,
     tripsIllustrationW: 168,
     tripsIllustrationH: 150,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
     onboardingModalWidth: 640,
-    aiFeaturesPromoModalWidth: 440,
     productMarketingWindowWidth: 320,
     productMarketingWindowMaxWidthNarrow: 450,
     productMarketingWindowVisualAspectRatio: 7 / 4,
@@ -306,6 +388,7 @@ export default {
     productMarketingWindowOffset: 20,
     productMarketingWindowOffsetNarrow: 12,
     productMarketingWindowHorizontalOffsetNarrow: 16,
+    wiseGlobalReimbursementsIntroIllustrationSize: 250,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,
@@ -352,6 +435,8 @@ export default {
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
     agentRulePromptInputHeight: 340,
+    describeRulePromptInputHeight: 312,
+    describeNewRulePromptInputHeight: 96,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
@@ -401,6 +486,7 @@ export default {
     navigationTabBarInboxTooltipShiftHorizontal: 36,
     accountSwitcherTooltipShiftVertical: 7,
     accountSwitcherTooltipShiftHorizontal: 4,
+    accountAvatarTooltipShiftHorizontal: -4,
     expenseReportsTypeTooltipShiftHorizontal: 10,
     hasFilterNegationTooltipShiftHorizontal: -16,
     hasFilterNegationTooltipShiftVertical: 40,
@@ -411,12 +497,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -118,
-    minimalTopBarWithFiltersOffset: -162,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 118,
-    searchListContentWithFiltersMarginTop: 162,
+    searchListContentMarginTop: 120,
+    searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
+    // Above the search page header (zIndex 10), whose top bar floats over the list and reaches the footer when the screen is short.
+    searchFooterZIndex: 11,
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
@@ -527,4 +613,25 @@ export default {
     permissionViewPaddingVertical: 108,
     permissionViewPaddingHorizontal: 61,
     permissionViewPaddingVerticalLandscape: 16,
+
+    // Search table chrome, shared by the dynamic column sizing and the horizontal scroller.
+    // The gap a row renders between two adjacent columns, matching its `gap3` styling.
+    searchTableColumnGap: 12,
+    // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
+    searchTableRowChromeWidth: (20 + 12) * 2,
+    searchTableRowCheckboxWidth: 24,
+    // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
+    statusBadgeChromeWidth: 6 * 2 + 1 * 2,
+    // Padding on every side of an editable cell. The edit button sits at this same inset.
+    editableCellPadding: 4,
+    // Border kept on each side so the focus ring does not shift the value.
+    editableCellBorderWidth: 1,
+    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring.
+    editableCellChromeWidth: 4 * 2 + 1 * 2,
+    // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
+    editableCellEditButtonSize: 28,
+    editableCellEditButtonWidth: 28 + 4,
+    // How short a value has to be before that edit button is worth reserving room for.
+    narrowEditableContentWidth: 60,
+    pieChartLegendMargin: 32,
 } as const;

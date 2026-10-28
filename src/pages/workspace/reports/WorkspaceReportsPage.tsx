@@ -1,6 +1,8 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -8,6 +10,7 @@ import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -37,6 +40,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {Str} from 'expensify-common';
 import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceReportFieldsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS>;
 
@@ -46,6 +50,7 @@ function WorkspaceReportFieldsPage({
     },
 }: WorkspaceReportFieldsPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding} = useLayoutSpacing();
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {translate} = useLocalize();
@@ -127,7 +132,7 @@ function WorkspaceReportFieldsPage({
                             isCentralPane
                             renderTitle={renderReportTitle}
                             renderSubtitle={renderReportSubtitle}
-                            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+                            containerStyles={cardPadding}
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue ?? policy?.pendingAction}
@@ -137,14 +142,16 @@ function WorkspaceReportFieldsPage({
                                 errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.reports.customNameTitle')}
-                                    title={Str.htmlDecode(titleField?.defaultValue ?? '')}
-                                    shouldShowRightIcon={canWriteReportFields}
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
-                                    interactive={canWriteReportFields}
-                                />
+                                <View style={styles.mt6}>
+                                    <MenuItemSectionRoot onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}>
+                                        <MenuItemField.Row
+                                            name={translate('workspace.reports.customNameTitle')}
+                                            value={titleField?.defaultValue ? Str.htmlDecode(titleField.defaultValue) : undefined}
+                                        >
+                                            {canWriteReportFields && <MenuItem.Chevron />}
+                                        </MenuItemField.Row>
+                                    </MenuItemSectionRoot>
+                                </View>
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
                                 pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}

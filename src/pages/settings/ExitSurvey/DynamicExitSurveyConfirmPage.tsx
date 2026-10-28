@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -29,7 +30,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ExitSurveyOffline from './ExitSurveyOffline';
@@ -49,18 +50,17 @@ function DynamicExitSurveyConfirmPage() {
         isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
 
     const parentBackPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path);
-    const backPath: Route = useMemo(() => {
-        if (isOffline || !exitSurveyResponse) {
-            return ROUTES.SETTINGS;
-        }
-
+    let backPath: Route;
+    if (isOffline || !exitSurveyResponse) {
+        backPath = ROUTES.SETTINGS;
+    } else {
         const reasonPathSuffix = DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path;
         if (parentBackPath.endsWith(reasonPathSuffix)) {
-            return parentBackPath;
+            backPath = parentBackPath;
+        } else {
+            backPath = `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
         }
-
-        return `${parentBackPath.replace(/\/+$/, '')}/${reasonPathSuffix}` as Route;
-    }, [isOffline, exitSurveyResponse, parentBackPath]);
+    }
 
     const goToExpensifyClassic = () => {
         switchToOldDot(exitSurveyResponse);
@@ -94,16 +94,15 @@ function DynamicExitSurveyConfirmPage() {
                 )}
             </View>
             <FixedFooter>
-                <Button
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_EXIT_SURVEY.GO_TO_CLASSIC}
                     onPress={goToExpensifyClassic}
-                    isDisabled={isOffline}
                 >
                     <Button.KeyboardShortcut />
                     <Button.Text>{translate(shouldShowQuickTips ? 'exitSurvey.takeMeToExpensifyClassic' : 'exitSurvey.goToExpensifyClassic')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
             </FixedFooter>
         </ScreenWrapper>
     );

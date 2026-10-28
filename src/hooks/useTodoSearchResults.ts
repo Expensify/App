@@ -1,15 +1,22 @@
-import type {SearchKey} from '@libs/SearchUIUtils';
+import type {SearchFooterTotal} from '@components/Search/types';
+
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {doesTransactionMatchFooterTotal} from '@libs/SearchUIUtils';
 import {getTodoReportsForSearchKey} from '@libs/TodosUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {useState} from 'react';
 // We need direct access to useOnyx from react-native-onyx to avoid reading search snapshots instead of live to-do data
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
+
+import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
 
 type TodoSearchResultsData = SearchResults['data'];
 
@@ -20,9 +27,16 @@ type TodoMetadata = {
     total: number;
     /** Currency of the first report, used as reference currency */
     currency: string | undefined;
+    /** The server's report count, minus the reports that have left the list since its response */
+    reportCount?: number;
 };
 
-function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>): TodoMetadata {
+/**
+ * The count and total the footer shows for a live to-do search. `footerTotal` is the breakdown the query asks for:
+ * the total covers only the expenses that belong in it, while the count stays every expense the search matched,
+ * which is how the backend answers a snapshot search.
+ */
+function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>, footerTotal: SearchFooterTotal | undefined): TodoMetadata {
     let count = 0;
     let total = 0;
     let currency: string | undefined;
@@ -37,7 +51,7 @@ function computeMetadata(reports: Report[], transactionsByReportID: Record<strin
             count += reportTransactions.length;
 
             for (const transaction of reportTransactions) {
-                if (transaction.groupAmount) {
+                if (transaction.groupAmount && doesTransactionMatchFooterTotal(transaction, footerTotal)) {
                     total -= transaction.groupAmount;
                 }
 
@@ -49,6 +63,41 @@ function computeMetadata(reports: Report[], transactionsByReportID: Record<strin
     }
 
     return {count, total, currency};
+}
+
+/** Report IDs, each mapped to true */
+type ReportIDSet = Record<string, boolean>;
+
+/** Counted reports this device has listed, per to-do list */
+type SeenReportIDsBySearchKey = Partial<Record<SearchKey, ReportIDSet>>;
+
+type TodoReportCountParams = {
+    /** The server's figures for the search, from its snapshot */
+    serverSearch: SearchResults['search'] | undefined;
+
+    /** The to-do list as search data */
+    liveData: TodoSearchResultsData;
+
+    /** Whether every collection that decides which reports are to-dos has loaded */
+    isLoaded: boolean;
+
+    /** Counted reports this device has listed for the search */
+    seenReportIDs: ReportIDSet;
+};
+
+/**
+ * The server's report count, minus the counted reports this device listed that have since left the list. Reports it
+ * never listed, such as one with a receipt still scanning, never count as left.
+ */
+function getTodoReportCount({serverSearch, liveData, isLoaded, seenReportIDs}: TodoReportCountParams): number | undefined {
+    if (serverSearch?.reportCount === undefined) {
+        return undefined;
+    }
+
+    // Until everything has loaded, reports that still match are missing from the list, so none counts as left.
+    const countedReportIDs = isLoaded ? Object.keys(serverSearch.countedReportIDs ?? {}) : [];
+    const departedReportCount = countedReportIDs.filter((reportID) => seenReportIDs[reportID] && !liveData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).length;
+    return Math.max(serverSearch.reportCount - departedReportCount, 0);
 }
 
 /**
@@ -126,20 +175,27 @@ function buildSearchResultsData(
 
 /**
  * Builds live SearchResults-shaped data and metadata for a single to-do search (submit/approve/pay/export).
+ * Its report count is the server's from `serverSearch`, minus the reports that have left the list since.
  * Returns `undefined` (and skips all classification work) when `searchKey` is not provided, so the app-wide
  * SearchResultsProvider only does work while a to-do search is actually being viewed.
  */
-function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSearchResultsData; metadata: TodoMetadata} | undefined {
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+function useTodoSearchResults(
+    searchKey: SearchKey | undefined,
+    footerTotal: SearchFooterTotal | undefined,
+    serverSearch: SearchResults['search'] | undefined,
+): {data: TodoSearchResultsData; metadata: TodoMetadata} | undefined {
+    const [allReports, reportsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allReportNameValuePairs, reportNameValuePairsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allTransactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allReportActions, reportActionsResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReportMetadata, reportMetadataResult] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
+    const [bankAccountList, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const [personalDetailsList, personalDetailsResult] = useAllPersonalDetailsWithoutSnapshots();
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules, rulesResult] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [seenReportIDsBySearchKey, setSeenReportIDsBySearchKey] = useState<SeenReportIDsBySearchKey>({});
 
     if (!searchKey) {
         return undefined;
@@ -147,6 +203,20 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
 
     const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const login = personalDetailsList?.[userAccountID]?.login ?? session?.email ?? '';
+    const areTransactionsLoaded = transactionsMetadata.status === 'loaded';
+    // Every input of getTodoReportsForSearchKey must be listed here, or a report still loading counts as left.
+    const isLoaded = !isLoadingOnyxValue(
+        reportsResult,
+        policiesResult,
+        reportNameValuePairsResult,
+        transactionsMetadata,
+        reportActionsResult,
+        reportMetadataResult,
+        bankAccountListResult,
+        sessionResult,
+        personalDetailsResult,
+        rulesResult,
+    );
 
     const {reports, transactionsByReportID} = getTodoReportsForSearchKey(searchKey, {
         allReports,
@@ -159,13 +229,25 @@ function useTodoSearchResults(searchKey: SearchKey | undefined): {data: TodoSear
         bankAccountList,
         currentUserAccountID: userAccountID,
         login,
-        areTransactionsLoaded: transactionsMetadata.status === 'loaded',
+        areTransactionsLoaded,
+        rules,
     });
 
-    const metadata = computeMetadata(reports, transactionsByReportID);
     const data = buildSearchResultsData(reports, transactionsByReportID, allPolicies, allReportActions, allReportNameValuePairs, personalDetailsList, allTransactionViolations);
+    const {count, total, currency} = computeMetadata(reports, transactionsByReportID, footerTotal);
 
-    return {data, metadata};
+    // A counted report can only leave the list after this device has listed it, so remember the ones it has, per to-do list.
+    const seenReportIDs = seenReportIDsBySearchKey[searchKey] ?? {};
+    const newlySeenReportIDs = isLoaded
+        ? Object.keys(serverSearch?.countedReportIDs ?? {}).filter((reportID) => !seenReportIDs[reportID] && !!data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
+        : [];
+    if (newlySeenReportIDs.length > 0) {
+        setSeenReportIDsBySearchKey({...seenReportIDsBySearchKey, [searchKey]: {...seenReportIDs, ...Object.fromEntries(newlySeenReportIDs.map((reportID) => [reportID, true]))}});
+    }
+    const reportCount = getTodoReportCount({serverSearch, liveData: data, isLoaded, seenReportIDs});
+
+    return {data, metadata: {count, total, currency, reportCount}};
 }
 
 export default useTodoSearchResults;
+export {getTodoReportCount};

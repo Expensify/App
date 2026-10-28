@@ -24,7 +24,10 @@ const mockAPI = jest.mocked(API);
 jest.mock('@libs/Navigation/Navigation');
 const mockNavigation = jest.mocked(Navigation);
 
-jest.mock('@libs/PersonalDetailsUtils');
+jest.mock('@libs/PersonalDetailsUtils', () => {
+    const actual = jest.requireActual<typeof PersonalDetailsUtils>('@libs/PersonalDetailsUtils');
+    return {...actual, getFormattedStreet: jest.fn(), createDisplayName: jest.fn()};
+});
 const mockPersonalDetailsUtils = jest.mocked(PersonalDetailsUtils);
 
 jest.mock('@libs/UserAvatarUtils');
@@ -45,6 +48,54 @@ describe('actions/PersonalDetails', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe('setPersonalDetailsAndRevealExpensifyCard', () => {
+        const personalDetails = {
+            legalFirstName: 'Test',
+            legalLastName: 'User',
+            phoneNumber: '+15005550006',
+            addressCity: 'San Francisco',
+            addressStreet: '123 Main St',
+            addressStreet2: '',
+            addressZip: '94105',
+            addressCountry: 'US',
+            dob: '1990-01-01',
+            addressState: 'CA',
+            addressProvince: '',
+        };
+
+        it.each([
+            [CONST.JSON_CODE.TOO_MANY_REQUESTS, 'validateCodeForm.error.tooManyAttempts'],
+            [CONST.JSON_CODE.INCORRECT_VALIDATE_CODE, 'validateCodeForm.error.incorrectSecurityCode'],
+            [CONST.HTTP_STATUS.INTERNAL_SERVER_ERROR, 'cardPage.unexpectedError'],
+            [CONST.HTTP_STATUS.UNAUTHORIZED, 'cardPage.cardDetailsLoadingFailure'],
+        ])('maps response %s to %s', async (jsonCode, translationKey) => {
+            mockAPI.makeRequestWithSideEffects.mockResolvedValue({jsonCode});
+
+            await expect(PersonalDetailsActions.setPersonalDetailsAndRevealExpensifyCard(personalDetails, 123, '123456')).rejects.toBe(translationKey);
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns card details after a successful reveal', async () => {
+            const cardDetails = {
+                pan: '4111111111111111',
+                expiration: '12/30',
+                cvv: '123',
+            };
+            mockAPI.makeRequestWithSideEffects.mockResolvedValue({
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                ...cardDetails,
+            });
+
+            await expect(PersonalDetailsActions.setPersonalDetailsAndRevealExpensifyCard(personalDetails, 123, '123456')).resolves.toEqual(cardDetails);
+        });
+
+        it('preserves the connection error for failed requests', async () => {
+            mockAPI.makeRequestWithSideEffects.mockRejectedValue(new Error('Network error'));
+
+            await expect(PersonalDetailsActions.setPersonalDetailsAndRevealExpensifyCard(personalDetails, 123, '123456')).rejects.toBe('cardPage.cardDetailsLoadingFailure');
+        });
     });
 
     describe('updateAddress', () => {

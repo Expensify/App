@@ -1,4 +1,4 @@
-import type {ComposerProps, ComposerRef} from '@components/Composer/types';
+import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
-import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Log from '@libs/Log';
 import Parser from '@libs/Parser';
@@ -21,11 +21,17 @@ import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
-import type {NativeSyntheticEvent, TextInputChangeEvent, TextInputPasteEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 
-import mimeDb from 'mime-db';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
+
+type TextInputPasteEvent = NativeSyntheticEvent<{
+    items: Array<{
+        type: string;
+        data: string;
+    }>;
+}>;
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -47,7 +53,7 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<MarkdownTextInput | null>(null);
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
+    const textContainsOnlyEmojis = containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
@@ -78,73 +84,60 @@ function Composer({
 
     /**
      * Set the TextInput Ref
-     * @param {Element} el
+     * @param el
      */
-    const setTextInputRef = useCallback(
-        (el: AnimatedMarkdownTextInputRef | null) => {
-            textInputRef.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
+    const setTextInputRef = (el: AnimatedMarkdownTextInputRef | null) => {
+        textInputRef.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-            if (typeof ref !== 'function' || textInputRef.current === null) {
-                return;
+        if (typeof ref !== 'function' || textInputRef.current === null) {
+            return;
+        }
+
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        ref(textInputRef.current);
+    };
+
+    const onClear = ({nativeEvent}: TextInputChangeEvent) => {
+        onClearProp(nativeEvent.text);
+    };
+
+    const pasteFile = (e: TextInputPasteEvent) => {
+        const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
+            const mimeType = clipboardFile?.type ?? '';
+            const fileURI = clipboardFile?.data;
+            const baseFileName = fileURI?.split('/').pop() ?? 'file';
+            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+            const fileExtension = originalFileExtension || (getExtensionFromMimeType(mimeType) ?? 'bin');
+            const fileName = `${stem}.${fileExtension}`;
+            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+
+            try {
+                const size = await getFileSize(file.uri ?? '');
+                return {...file, size};
+            } catch {
+                return file;
             }
+        });
 
-            // This callback prop is used by the parent component using the constructor to
-            // get a ref to the inner textInput element e.g. if we do
-            // <constructor ref={el => this.textInput = el} /> this will not
-            // return a ref to the component, but rather the HTML element by default
-            ref(textInputRef.current as ComposerRef);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isInLandscapeMode],
-    );
-
-    const onClear = useCallback(
-        ({nativeEvent}: TextInputChangeEvent) => {
-            onClearProp(nativeEvent.text);
-        },
-        [onClearProp],
-    );
-
-    const pasteFile = useCallback(
-        (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
-                const mimeType = clipboardFile?.type ?? '';
-                const fileURI = clipboardFile?.data;
-                const baseFileName = fileURI?.split('/').pop() ?? 'file';
-                const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-                const fileExtension = originalFileExtension || (mimeDb[mimeType]?.extensions?.[0] ?? 'bin');
-                const fileName = `${stem}.${fileExtension}`;
-                const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-
-                try {
-                    const size = await getFileSize(file.uri ?? '');
-                    return {...file, size};
-                } catch {
-                    return file;
+        // Use Promise.allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
+        Promise.allSettled(filePromises).then((results) => {
+            const files: FileObject[] = [];
+            for (const [index, result] of results.entries()) {
+                if (result.status === 'fulfilled' && result.value !== undefined) {
+                    files.push(result.value);
+                } else if (result.status === 'rejected') {
+                    Log.warn('Pasted file could not be processed', {error: result.reason, index});
                 }
-            });
+            }
+            onPasteFile(files);
+        });
+    };
 
-            // Use Promise.allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
-            Promise.allSettled(filePromises).then((results) => {
-                const files: FileObject[] = [];
-                for (const [index, result] of results.entries()) {
-                    if (result.status === 'fulfilled' && result.value !== undefined) {
-                        files.push(result.value);
-                    } else if (result.status === 'rejected') {
-                        Log.warn('Pasted file could not be processed', {error: result.reason, index});
-                    }
-                }
-                onPasteFile(files);
-            });
-        },
-        [onPasteFile],
-    );
-
-    const maxHeightStyle = useMemo(
-        () => StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize),
-        [StyleUtils, isComposerFullSize, maxLines, isInLandscapeMode],
-    );
-    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
+    const maxHeightStyle = StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize);
+    const composerStyle = StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]);
 
     return (
         <RNMarkdownTextInput

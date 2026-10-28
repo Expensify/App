@@ -171,6 +171,38 @@ describe('Avatar', () => {
             expect(getHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeTruthy();
         });
 
+        it('keeps the fallback Icon when the size changes after a failed load', async () => {
+            const {rerender} = renderUserAvatar({
+                source: UPLOADED_AVATAR_URL,
+                accountID: 1,
+                size: CONST.AVATAR_SIZE.DEFAULT,
+            });
+
+            await waitForBatchedUpdates();
+
+            mockImageErrorHandlerRef.current?.();
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeTruthy();
+
+            rerender(
+                <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+                    <UserAvatar
+                        source={UPLOADED_AVATAR_URL}
+                        accountID={1}
+                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                    />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(FALLBACK_ICON_TEST_ID)).toBeTruthy();
+        });
+
         it('renders the custom fallback Icon when no source is provided', async () => {
             renderUserAvatar({
                 accountID: 1,
@@ -312,6 +344,26 @@ describe('Avatar', () => {
                     <WorkspaceAvatar
                         name={WORKSPACE_NAME}
                         avatarID={123}
+                    />
+                </ComposeProviders>,
+            );
+
+            await waitForBatchedUpdates();
+
+            expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
+            expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
+        });
+
+        it('WorkspaceAvatar still renders the default workspace icon when avatarID is missing', async () => {
+            const workspaceFallbackTestID = getDefaultWorkspaceAvatarTestID(WORKSPACE_NAME);
+
+            // A `policy_` Onyx record is merged field-by-field, so `policy.id` can still be undefined on the
+            // fallback-icon branch. That used to throw out of render and white-screen the whole app.
+            render(
+                <ComposeProviders components={[ThemeProviderWithLight, ThemeStylesProvider, OnyxListItemProvider, LocaleContextProvider]}>
+                    <WorkspaceAvatar
+                        name={WORKSPACE_NAME}
+                        avatarID={undefined}
                     />
                 </ComposeProviders>,
             );

@@ -3,7 +3,7 @@ import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, 
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {isMergeConnectionName} from '@libs/merge/MergeUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isCollectPolicy} from '@libs/PolicyUtils/policyType';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,15 +16,9 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {syncMerge} from './merge';
+import {MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS, syncMerge} from './merge';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
-
-/** Client-side "initial sync modal shown" flag for each Merge connection, cleared when the connection is removed. */
-const MERGE_INITIAL_SYNC_MODAL_SHOWN_KEYS = {
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN,
-    [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: ONYXKEYS.COLLECTION.POLICY_MERGE_ATS_INITIAL_SYNC_MODAL_SHOWN,
-} as const;
 
 function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
     const policyID = policy.id;
@@ -90,7 +84,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
-    if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
+    if (isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -165,6 +159,21 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         }
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_DUALENTRY, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DUALENTRY_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_CAMPFIRE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_DIGITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZOHO_BOOKS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            return {
+                readCommand: READ_COMMANDS.SYNC_POLICY_TO_BUSINESS_CENTRAL,
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.BUSINESS_CENTRAL_SYNC_CONNECTION,
+            };
         }
         default:
             return undefined;
@@ -380,6 +389,15 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DUALENTRY_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION;
             break;
         default:
             stageInProgress = null;

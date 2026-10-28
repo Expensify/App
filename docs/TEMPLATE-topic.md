@@ -3,7 +3,7 @@
 Topic articles explain a single product concept, feature, or behavior. They provide the context members need to understand related tasks by explaining the permissions, prerequisites, rules, and concepts that apply across those tasks, while leaving step-by-step instructions to individual Task articles.
 
 ---
-title: [Natural, searchable topic title]
+title: [Natural, Searchable Topic Title in Title Case]
 description: Briefly summarize the concept and why it matters.
 keywords: [[primary topic], [feature name], [related search phrases]]
 internalScope: Audience is [target audience]. Covers [single concept or feature]. Does not cover [related tasks or adjacent concepts].
@@ -48,12 +48,16 @@ TITLE GUIDELINES
 
 Choose a natural, searchable title that clearly describes the concept using the product's terminology.
 
+Use title case for the title. Use sentence case for every ## heading.
+
+Follow docs/HELPSITE_NAMING_CONVENTIONS.md for UI references, navigation, and capitalization.
+
 Examples:
 
-- Billing and subscriptions
-- Annual subscriptions
-- Workspace roles
-- Approval workflows
+- Billing and Subscriptions
+- Annual Subscriptions
+- Workspace Roles
+- Approval Workflows
 
 Avoid:
 
@@ -68,11 +72,11 @@ Titles may:
 
 Examples:
 
-- Billing and subscriptions
-- Billing issues
-- Annual subscriptions
-- Workspace roles
-- Understand approval workflows
+- Billing and Subscriptions
+- Billing Issues
+- Annual Subscriptions
+- Workspace Roles
+- Understand Approval Workflows
 
 Avoid:
 

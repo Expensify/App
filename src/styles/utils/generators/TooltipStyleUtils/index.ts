@@ -9,6 +9,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 
+import type {ComponentRef} from 'react';
 import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 
@@ -38,7 +39,7 @@ type TooltipStyles = {
 };
 
 type TooltipParams = {
-    tooltip: View | HTMLDivElement | null;
+    tooltip: ComponentRef<typeof View> | HTMLDivElement | null;
     windowWidth: number;
     xOffset: number;
     yOffset: number;

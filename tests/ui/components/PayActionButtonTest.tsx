@@ -84,7 +84,6 @@ jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
 
 jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     __esModule: true,
-    canIOUBePaid: jest.fn(() => true),
     approveMoneyRequest: jest.fn(),
 }));
 
@@ -95,6 +94,7 @@ jest.mock('@libs/ReportUtils', () => {
     return {
         ...actual,
         __esModule: true,
+        canIOUBePaid: jest.fn(() => true),
         hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
         hasViolations: jest.fn(() => false),
@@ -118,7 +118,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: jest.fn(() => ({accountID: 1, email: 'payer@test.com', login: 'payer@test.com', localCurrencyCode: 'USD'})),
 }));
-jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: jest.fn(() => ({isBetaEnabled: () => false}))}));
+jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}))}));
 jest.mock('@hooks/useLastWorkspaceNumber', () => ({__esModule: true, default: jest.fn(() => 0)}));
 jest.mock('@hooks/useCurrencyList', () => ({__esModule: true, useCurrencyListActions: jest.fn(() => ({convertToDisplayString: () => '$100.00'}))}));
 jest.mock('@hooks/useParticipantsInvoiceReport', () => ({__esModule: true, default: jest.fn(() => undefined)}));

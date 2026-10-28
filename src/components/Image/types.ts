@@ -3,7 +3,7 @@ import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoa
 import type CONST from '@src/CONST';
 
 import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
-import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
@@ -34,6 +34,10 @@ type BaseImageProps = {
      *  the load with the higher priority will be started first.
      *  Maps to SDWebImageHighPriority (iOS) and Glide.Priority.IMMEDIATE (Android). */
     priority?: ValueOf<typeof CONST.IMAGE_LOADING_PRIORITY> | null;
+
+    /** Identity of the picture for the native view. Defaults to a key derived from the source, which clears the view every
+     *  time the same picture changes URI (a fresh attachment goes picker path, cache copy, remote URL). Ignored on web. */
+    recyclingKey?: string;
 };
 
 type ImageOwnProps = BaseImageProps & {
@@ -44,7 +48,7 @@ type ImageOwnProps = BaseImageProps & {
     isAuthTokenRequired?: boolean;
 
     /** How should the image fit within its container */
-    resizeMode?: ImageResizeMode;
+    resizeMode?: RNImageProps['resizeMode'];
 
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
@@ -57,8 +61,8 @@ type ImageOwnProps = BaseImageProps & {
 
     onError?: () => void;
 
-    /** Progress events while the image is downloading */
-    onProgress?: () => void;
+    /** Download progress. Not emitted on web, nor natively when the response has no Content-Length. */
+    onProgress?: (event: {loaded: number; total: number}) => void;
 
     objectPosition?: ImageObjectPosition;
 

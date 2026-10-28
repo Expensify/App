@@ -14,7 +14,6 @@ import {View} from 'react-native';
 
 import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
-import SearchSaveButton from './SearchSaveButton';
 
 type SearchActionsBarNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -28,7 +27,6 @@ function SearchActionsBarNarrow({queryJSON, searchResults, onSort}: SearchAction
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <SearchAdvancedFiltersButton queryJSON={queryJSON} />
-            <SearchSaveButton />
             <SearchDisplayDropdownButton
                 queryJSON={queryJSON}
                 searchResults={searchResults}

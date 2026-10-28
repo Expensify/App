@@ -2,6 +2,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -14,12 +15,21 @@ import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type PushRowModalProps = {
     isVisible: boolean;
-    selectedOption: string;
+
+    /** Keys of the checked rows. A single selection has at most one. */
+    selectedOptions: string[];
+
+    /** Rows toggle instead of closing the modal, and a Save button calls onConfirm */
+    canSelectMultiple?: boolean;
+
     onOptionChange: (option: string) => void;
+
+    /** Called by the Save button when `canSelectMultiple` */
+    onConfirm?: () => void;
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
@@ -36,30 +46,27 @@ type ListItemType = {
     isSelected: boolean;
 };
 
-function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
+function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, onOptionChange, onConfirm, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const initialSelectedValue = useInitialSelection(selectedOption || undefined, {isVisible});
-    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
 
-    const options = useMemo(
-        () =>
-            Object.entries(optionsList).map(([key, value]) => ({
-                value: key,
-                text: value,
-                keyForList: key,
-                isSelected: key === selectedOption,
-                searchValue: StringUtils.sanitizeString(value),
-            })),
-        [optionsList, selectedOption],
-    );
+    const options = Object.entries(optionsList).map(([key, value]) => ({
+        value: key,
+        text: value,
+        keyForList: key,
+        isSelected: selectedOptions.includes(key),
+        searchValue: StringUtils.sanitizeString(value),
+    }));
 
     const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
-        onClose();
+        if (!canSelectMultiple) {
+            onClose();
+        }
     };
 
     const handleClose = () => {
@@ -69,15 +76,12 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
 
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions);
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-            label: searchInputTitle,
-            value: searchValue,
-            onChangeText: setSearchValue,
-        }),
-        [debouncedSearchValue, searchInputTitle, searchResults.length, searchValue, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        label: searchInputTitle,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     return (
         <Modal
@@ -99,11 +103,14 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 />
                 <SelectionList
                     data={searchResults}
-                    ListItem={SingleSelectListItem}
+                    canSelectMultiple={canSelectMultiple}
+                    ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
                     onSelectRow={handleSelectRow}
+                    onSelectionButtonPress={canSelectMultiple ? handleSelectRow : undefined}
+                    confirmButtonOptions={canSelectMultiple ? {showButton: true, text: translate('common.save'), onConfirm} : undefined}
                     textInputOptions={textInputOptions}
                     searchValueForFocusSync={debouncedSearchValue}
-                    initiallyFocusedItemKey={initialSelectedValue}
+                    initiallyFocusedItemKey={initialSelectedValues.at(0)}
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator

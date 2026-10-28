@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
@@ -30,7 +30,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
@@ -60,12 +60,26 @@ function DynamicTwoFactorAuthPage() {
     };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    // EnableTwoFactorAuth mints a new secret on every call. Guard the in-flight request so a focus
+    // flicker before recovery codes land cannot send a second Toggle and invalidate the first QR code.
+    const hasRequestedEnableRef = useRef(false);
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
     const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
     const recoveryCodes = account?.recoveryCodes;
+
+    // A failed EnableTwoFactorAuth leaves no codes. Clear the guard only after that request has
+    // finished, so the next focus can retry without firing a second request while one is in flight.
+    const wasEnableRequestLoadingRef = useRef(false);
+    useEffect(() => {
+        const isLoading = !!account?.isLoading;
+        if (wasEnableRequestLoadingRef.current && !isLoading && !account?.recoveryCodes) {
+            hasRequestedEnableRef.current = false;
+        }
+        wasEnableRequestLoadingRef.current = isLoading;
+    }, [account?.isLoading, account?.recoveryCodes]);
 
     useEffect(() => {
         if (!isUserValidated) {
@@ -92,6 +106,11 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
+        if (hasRequestedEnableRef.current) {
+            return;
+        }
+        hasRequestedEnableRef.current = true;
+
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
     }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress]);
@@ -106,7 +125,7 @@ function DynamicTwoFactorAuthPage() {
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
-            onBackButtonPress={() => quitAndNavigateBack(backPath)}
+            onBackButtonPress={() => quitAndNavigateBack(is2FAEnabled, backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (

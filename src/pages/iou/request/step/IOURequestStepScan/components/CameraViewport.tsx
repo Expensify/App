@@ -7,18 +7,24 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getFirstLine from '@libs/cameraCapture/getFirstLine';
+import {getZoomProp} from '@libs/cameraCapture/getWideLensZoom';
+import cameraPlatformConfig from '@libs/cameraCapture/platformConfig';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
-import type {ViewStyle} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
+import type {ReactNode, RefObject} from 'react';
+import type {LayoutChangeEvent, ViewStyle} from 'react-native';
+import type {TapGesture} from 'react-native-gesture-handler';
 import type {PermissionStatus} from 'react-native-permissions';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {Camera, CameraDevice, CameraDeviceFormat} from 'react-native-vision-camera';
+import type {CameraDevice, CameraOutput, CameraRef, CameraSessionConfig} from 'react-native-vision-camera';
 
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
@@ -28,16 +34,13 @@ import NavigationAwareCamera from './NavigationAwareCamera/Camera';
 
 type CameraViewportProps = {
     /** Ref to the underlying Camera instance */
-    camera: RefObject<Camera | null>;
+    camera: RefObject<CameraRef | null>;
 
     /** The active camera device descriptor */
     device: CameraDevice;
 
-    /** The selected camera format (resolution / FPS) */
-    format: CameraDeviceFormat | undefined;
-
-    /** Target frames-per-second for the camera preview */
-    fps: number;
+    /** Outputs the session streams to, such as the photo output captures are taken from */
+    outputs: CameraOutput[];
 
     /** Aspect ratio used to size the camera viewfinder */
     cameraAspectRatio: number | undefined;
@@ -45,8 +48,11 @@ type CameraViewportProps = {
     /** Whether the device is currently in landscape orientation */
     isInLandscapeMode: boolean;
 
+    /** Whether a portrait viewfinder should overflow the container to fill the screen (cropping the preview) */
+    shouldFillPortraitViewport?: boolean;
+
     /** Gesture handler for tap-to-focus */
-    tapGesture: GestureType;
+    tapGesture: TapGesture;
 
     /** Animated style driving the focus indicator ring */
     cameraFocusIndicatorAnimatedStyle: AnimatedStyle<ViewStyle>;
@@ -58,13 +64,25 @@ type CameraViewportProps = {
     isAttachmentPickerActive: boolean;
 
     /** Whether a photo has been captured (forces camera inactive) */
-    didCapturePhoto: boolean;
+    didCapturePhoto?: boolean;
 
-    /** Callback fired when the camera finishes initializing */
-    onInitialized: () => void;
+    /** Whether a full-resolution capture is still running; keeps the camera session active even after didCapturePhoto so the capture is not cancelled */
+    hasPendingPhotoCapture?: boolean;
 
-    /** Whether the multi-scan feature is available */
-    canUseMultiScan: boolean;
+    /** Callback fired each time the session finishes configuring, so the outputs' negotiated sizes can be read */
+    onConfigured?: () => void;
+
+    /** Callback fired with the session config VisionCamera picked, before `onConfigured` */
+    onSessionConfigSelected?: (config: CameraSessionConfig) => void;
+
+    /** Callback fired when the camera preview is laid out */
+    onLayout?: (event: LayoutChangeEvent) => void;
+
+    /** Whether the flash button is rendered on top of the viewfinder */
+    shouldShowFlashButton: boolean;
+
+    /** Sentry label for the flash button */
+    flashSentryLabel?: string;
 
     /** Current camera permission status; used to disable the flash button until granted */
     cameraPermissionStatus: PermissionStatus | null;
@@ -75,50 +93,97 @@ type CameraViewportProps = {
     hasFlash: boolean;
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
+
+    /** Extra content rendered below the viewfinder, inside the camera view */
+    children?: ReactNode;
 };
 
 function CameraViewport({
     camera,
     device,
-    format,
-    fps,
+    outputs,
     cameraAspectRatio,
     isInLandscapeMode,
+    shouldFillPortraitViewport = true,
     tapGesture,
     cameraFocusIndicatorAnimatedStyle,
     blinkStyle,
     isAttachmentPickerActive,
-    didCapturePhoto,
-    onInitialized,
-    canUseMultiScan,
+    didCapturePhoto = false,
+    hasPendingPhotoCapture = false,
+    onConfigured,
+    onSessionConfigSelected,
+    onLayout,
+    shouldShowFlashButton,
+    flashSentryLabel = CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH,
     cameraPermissionStatus,
     flash,
     hasFlash,
     setFlash,
+    children,
 }: CameraViewportProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt']);
+    const [isPreviewLive, setIsPreviewLive] = useState(false);
+    // iOS keeps showing the previous session's last frame until the restarted session delivers a new one. Restarting on the
+    // ultra-wide (zoom 1) also lets close receipts focus at once, instead of waiting on the wide lens to hand over to macro.
+    const shouldHidePreview = cameraPlatformConfig.shouldHidePreviewUntilLive && !isPreviewLive;
+    const previewStartCount = useRef(0);
+
+    // VisionCamera applies the `zoom` prop in an effect after the render that reveals the preview, so revealing first
+    // would show a frame or two of the ultra-wide lens. Switch to the wide lens through the controller, then reveal.
+    const revealPreviewOnWideLens = () => {
+        const startCount = previewStartCount.current;
+        const reveal = () => {
+            if (startCount !== previewStartCount.current) {
+                return;
+            }
+            setIsPreviewLive(true);
+        };
+        const wideLensZoom = getZoomProp(device);
+        const controller = camera.current?.controller;
+        if (!cameraPlatformConfig.shouldHidePreviewUntilLive || wideLensZoom === undefined || !controller) {
+            reveal();
+            return;
+        }
+        controller.setZoom(wideLensZoom).then(reveal, (error: unknown) => {
+            Log.info('[Camera] could not switch to the wide lens before revealing the preview', false, {error: getErrorMessage(error)});
+            reveal();
+        });
+    };
+
+    const hidePreview = () => {
+        previewStartCount.current += 1;
+        setIsPreviewLive(false);
+    };
 
     return (
         <View style={[styles.cameraView, styles.alignItemsCenter]}>
             <GestureDetector gesture={tapGesture}>
-                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
+                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode, shouldFillPortraitViewport)}>
                     <NavigationAwareCamera
                         ref={camera}
                         device={device}
-                        format={format}
-                        fps={fps}
-                        style={styles.flex1}
-                        zoom={device.neutralZoom}
-                        photo
+                        outputs={outputs}
+                        style={[styles.flex1, shouldHidePreview && styles.opacity0]}
+                        zoom={shouldHidePreview ? 1 : getZoomProp(device)}
                         cameraTabIndex={1}
-                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
-                        onInitialized={onInitialized}
-                        // Use TextureView on Android to fix partially blank images for takeSnapshot()
-                        androidPreviewViewType="texture-view"
+                        forceInactive={isAttachmentPickerActive || (didCapturePhoto && !hasPendingPhotoCapture)}
+                        shouldStayActiveWhenBlurred={hasPendingPhotoCapture}
+                        onConfigured={onConfigured}
+                        onPreviewStarted={revealPreviewOnWideLens}
+                        onPreviewStopped={hidePreview}
+                        onSessionConfigSelected={onSessionConfigSelected}
+                        // VisionCamera's default handler is console.error, which pops LogBox over the camera.
+                        onError={(error) => Log.warn('[Camera] VisionCamera error', {summary: getFirstLine(error.message), message: error.message})}
+                        onLayout={onLayout}
+                        // With 'device', a phone held flat keeps its last landscape reading and the photo is saved
+                        // rotated. Following the UI also matches v4, whose snapshots took the preview's orientation.
+                        orientationSource="interface"
+                        implementationMode="compatible"
                     />
                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                     <Animated.View
@@ -127,12 +192,12 @@ function CameraViewport({
                     />
                 </View>
             </GestureDetector>
-            {canUseMultiScan ? (
+            {shouldShowFlashButton ? (
                 <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flash')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+                        sentryLabel={flashSentryLabel}
                         disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                         onPress={() => setFlash((prevFlash) => !prevFlash)}
                     >
@@ -145,6 +210,7 @@ function CameraViewport({
                     </PressableWithFeedback>
                 </View>
             ) : null}
+            {children}
         </View>
     );
 }

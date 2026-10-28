@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 import type {BaseOnboardingEmployeesProps} from './types';
 
@@ -50,29 +50,17 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const onboardingFlowContext = useMemo(
-        () => ({
-            signupQualifier: onboardingValues?.signupQualifier,
-            isFromPublicDomain: account?.isFromPublicDomain,
-            hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
-            purposeSelected: purposeSelected ?? undefined,
-            isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
-            isAccountValidated: isCurrentUserValidated(loginList, session?.email),
-            hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
-        }),
-        [
-            account?.hasAccessibleDomainPolicies,
-            account?.isFromPublicDomain,
-            joinablePolicies,
-            loginList,
-            onboardingValues?.isMergeAccountStepSkipped,
-            onboardingValues?.signupQualifier,
-            purposeSelected,
-            session?.email,
-        ],
-    );
+    const onboardingFlowContext = {
+        signupQualifier: onboardingValues?.signupQualifier,
+        isFromPublicDomain: account?.isFromPublicDomain,
+        hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
+        purposeSelected: purposeSelected ?? undefined,
+        isMergeAccountStepSkipped: onboardingValues?.isMergeAccountStepSkipped,
+        isAccountValidated: isCurrentUserValidated(loginList, session?.email),
+        hasJoinablePolicies: Object.keys(joinablePolicies ?? {}).length > 0,
+    };
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         const previousRoute = getPreviousOnboardingRoute(SCREENS.ONBOARDING.EMPLOYEES, onboardingFlowContext, route.params?.backTo);
 
         if (previousRoute) {
@@ -81,35 +69,34 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         }
 
         Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingFlowContext, route.params?.backTo]);
+    };
 
-    const companySizeOptions: OnboardingListItem[] = useMemo(() => {
-        const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-        const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-        return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
-            .filter((size) => {
-                // Always hide the deprecated 1-10 option.
-                if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
-                    return false;
-                }
-                // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-10.
-                if (isVsb) {
-                    return size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
-                }
-                // For SMB-qualified users, hide 1-4 and 5-10 since they already indicated 10+.
-                if (isSmb) {
-                    return size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
-                }
-                return true;
-            })
-            .map((companySize): OnboardingListItem => {
-                return {
-                    text: translate(`onboarding.employees.${companySize}`),
-                    keyForList: companySize,
-                    isSelected: companySize === selectedCompanySize,
-                };
-            });
-    }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
+    const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const companySizeOptions: OnboardingListItem[] = Object.values(CONST.ONBOARDING_COMPANY_SIZE)
+        .filter((size) => {
+            // Always hide deprecated options.
+            if (size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM || size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO || size === CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL) {
+                return false;
+            }
+            // For VSB-qualified users (1-9 from landing page), only show 1-4 and 5-9.
+            if (isVsb) {
+                return size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
+            }
+            // For SMB-qualified users, hide 1-4 and 5-9 since they already indicated 10+.
+            if (isSmb) {
+                return size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM;
+            }
+            return true;
+        })
+        .map((companySize): OnboardingListItem => {
+            return {
+                text: translate(`onboarding.employees.${companySize}`),
+                keyForList: companySize,
+                isSelected: companySize === selectedCompanySize,
+                itemStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : [],
+            };
+        });
 
     const submitCompanySize = () => {
         if (!selectedCompanySize) {
@@ -166,7 +153,6 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 shouldUpdateFocusedIndex
                 ListItem={SingleSelectListItem}
                 footerContent={footerContent}
-                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />
         </ScreenWrapper>
     );

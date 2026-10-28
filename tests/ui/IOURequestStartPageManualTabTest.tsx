@@ -3,6 +3,8 @@ import {act, render, screen} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as OnyxTabNavigatorModule from '@libs/Navigation/OnyxTabNavigator';
+
 import IOURequestStartPage from '@pages/iou/request/IOURequestStartPage';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -10,9 +12,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+
+import type * as CreateMockModule from '../utils/createMock';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -30,8 +35,12 @@ jest.mock('@rnmapbox/maps', () => ({
     setAccessToken: jest.fn(),
 }));
 
+jest.mock('react-native-tab-view', () => ({TabView: () => null, TabBar: () => null, SceneMap: jest.fn()}));
+
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 // The page is rendered outside a navigator screen, so give the hooks that read the route a static one.
@@ -44,13 +53,23 @@ jest.mock('@react-navigation/native', () => ({
 // Render every tab screen inline so the manual tab content is mounted without driving the real tab navigator.
 jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
+    const actual = jest.requireActual<typeof OnyxTabNavigatorModule>('@libs/Navigation/OnyxTabNavigator');
+    const createMock = jest.requireActual<typeof CreateMockModule>('../utils/createMock').default;
+    const createNavigator = <const TTabName extends string>(names: Parameters<typeof actual.createOnyxTabNavigator<TTabName>>[0]) => {
+        const pair = actual.createOnyxTabNavigator(names);
+        const OnyxTabNavigator = ({children}: Parameters<typeof pair.OnyxTabNavigator>[0]) => ReactModule.createElement(ReactModule.Fragment, null, children);
+        // Production Screen is a null marker. This mock deliberately renders its children for page-content cases.
+        const Screen = <TRouteName extends TTabName>(props: Parameters<typeof pair.TopTab.Screen<TRouteName>>[0]) => {
+            const child = props.children;
+            const content = typeof child === 'function' ? child(createMock<Parameters<typeof child>[0]>({})) : child;
+            return ReactModule.createElement(ReactModule.Fragment, null, content);
+        };
+        return {...pair, OnyxTabNavigator, TopTab: {...pair.TopTab, Screen}};
+    };
     return {
-        __esModule: true,
-        default: ({children}: {children: React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, children),
-        TopTab: {
-            Screen: ({children}: {children: () => React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, typeof children === 'function' ? children() : children),
-        },
-        TabScreenWithFocusTrapWrapper: ({children}: {children: React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, children),
+        ...actual,
+        createOnyxTabNavigator: createNavigator,
+        TabScreenWithFocusTrapWrapper: ({children}: Parameters<typeof actual.TabScreenWithFocusTrapWrapper>[0]) => ReactModule.createElement(ReactModule.Fragment, null, children),
     };
 });
 
@@ -98,17 +117,13 @@ describe('IOURequestStartPage manual tab content', () => {
 
         /** The flow the page is started for - this is what decides whether tabs are rendered. */
         iouType?: IOUType;
-
-        /** Whether the new manual expense flow beta is on. */
-        isNewManualExpenseFlowEnabled?: boolean;
     };
 
     /**
-     * Seeds the beta, the manual tab selection and a draft transaction of the given request type, then renders the page.
+     * Seeds the manual tab selection and a draft transaction of the given request type, then renders the page.
      */
-    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT, isNewManualExpenseFlowEnabled = true}: RenderStartPageOptions) {
+    async function renderStartPage({iouRequestType, iouType = CONST.IOU.TYPE.SUBMIT}: RenderStartPageOptions) {
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, isNewManualExpenseFlowEnabled ? [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW] : []);
             await Onyx.set(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                 transactionID: TRANSACTION_ID,
@@ -122,21 +137,23 @@ describe('IOURequestStartPage manual tab content', () => {
         render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <NavigationContainer>
-                        <IOURequestStartPage
-                            route={{
-                                key: 'Money_Request_Create-1',
-                                name: SCREENS.MONEY_REQUEST.CREATE,
-                                // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
-                                params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
-                            }}
-                            report={undefined}
-                            reportDraft={undefined}
-                            // @ts-expect-error the page under test doesn't call into navigation.
-                            navigation={undefined}
-                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
-                        />
-                    </NavigationContainer>
+                    <PortalProvider>
+                        <NavigationContainer>
+                            <IOURequestStartPage
+                                route={{
+                                    key: 'Money_Request_Create-1',
+                                    name: SCREENS.MONEY_REQUEST.CREATE,
+                                    // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
+                                    params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
+                                }}
+                                report={undefined}
+                                reportDraft={undefined}
+                                // @ts-expect-error the page under test doesn't call into navigation.
+                                navigation={undefined}
+                                defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                            />
+                        </NavigationContainer>
+                    </PortalProvider>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );
@@ -205,15 +222,6 @@ describe('IOURequestStartPage manual tab content', () => {
         await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, iouType: CONST.IOU.TYPE.INVOICE});
 
         // Then it still lands on the amount page first
-        expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
-        expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
-    });
-
-    it('keeps the amount page as the landing page for the pay flow when the beta is off', async () => {
-        // Given a pay flow started without the new manual expense flow beta
-        await renderStartPage({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, iouType: CONST.IOU.TYPE.PAY, isNewManualExpenseFlowEnabled: false});
-
-        // Then the legacy amount-first flow is preserved
         expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
     });

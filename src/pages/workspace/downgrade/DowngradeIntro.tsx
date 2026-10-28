@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';

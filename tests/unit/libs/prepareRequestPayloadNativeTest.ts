@@ -1,13 +1,16 @@
 import type PrepareRequestPayload from '@libs/prepareRequestPayload/types';
 
-const mockCheckFileExists = jest.fn<Promise<boolean>, [string | undefined]>();
+type MockFileCheckResult = {exists: boolean; error?: {message: string; code?: string}};
+const mockCheckFileExists = jest.fn<Promise<MockFileCheckResult>, [string | undefined]>();
 jest.mock('@libs/fileDownload/checkFileExists', () => ({
     __esModule: true,
-    default: mockCheckFileExists,
+    default: (path: string | undefined) => mockCheckFileExists(path).then((result) => result.exists),
+    checkFileExistsWithReason: mockCheckFileExists,
 }));
 
+const mockReadFileAsync = jest.fn<Promise<unknown>, unknown[]>(() => Promise.resolve(null));
 jest.mock('@libs/fileDownload/FileUtils', () => ({
-    readFileAsync: jest.fn(() => Promise.resolve(null)),
+    readFileAsync: (...args: unknown[]) => mockReadFileAsync(...args),
 }));
 
 const mockValidateFormDataParameter = jest.fn();
@@ -22,13 +25,22 @@ jest.mock('@libs/telemetry/ReceiptObservability', () => ({
 }));
 
 const RECEIPTS_FOLDER = '/Containers/Data/Application/CURRENT/Documents/Receipts-Upload';
+const mockSettle = jest.fn<Promise<void>, [string]>(() => Promise.resolve());
+
+const mockResolveReceiptUri = (source?: string) => {
+    const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
+    return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+};
+
 jest.mock('@libs/ReceiptStorage', () => ({
     __esModule: true,
     default: {
-        resolve: (source?: string) => {
-            const name = source?.includes('/Receipts-Upload/') ? source.split('/').pop() : undefined;
-            return name ? `file://${RECEIPTS_FOLDER}/${name}` : source;
+        locate: (source?: string) => {
+            const uri = mockResolveReceiptUri(source);
+            return mockCheckFileExists(uri).then(({exists}) => (exists ? uri : undefined));
         },
+        resolve: (source?: string) => mockResolveReceiptUri(source),
+        settle: (durableName: string) => mockSettle(durableName),
     },
 }));
 
@@ -43,7 +55,7 @@ describe('prepareRequestPayload (native)', () => {
     });
 
     it('should include receipt in FormData when the file exists', async () => {
-        mockCheckFileExists.mockResolvedValue(true);
+        mockCheckFileExists.mockResolvedValue({exists: true});
 
         const receipt = {
             source: 'file:///var/mobile/Documents/Receipts-Upload/receipt.jpg',
@@ -59,7 +71,7 @@ describe('prepareRequestPayload (native)', () => {
     });
 
     it('should log a joinable [Receipt] dropped line and omit receipt from FormData when file does not exist', async () => {
-        mockCheckFileExists.mockResolvedValue(false);
+        mockCheckFileExists.mockResolvedValue({exists: false, error: {message: 'ENOENT: no such file', code: 'ENOENT'}});
 
         const receipt = {
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
@@ -79,12 +91,16 @@ describe('prepareRequestPayload (native)', () => {
             transactionID: 'txn-456',
             command: 'RequestMoney',
             source: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
+            localUri: 'file:///var/mobile/Library/Caches/ImageManipulator/receipt.jpg',
             fileName: 'receipt.jpg',
+            // The errno separates a deleted file from one that is there but unreadable
+            statError: {message: 'ENOENT: no such file', code: 'ENOENT'},
+            receiptsFolder: {exists: false},
         });
     });
 
     it('should recover a queued receipt whose stored path names a stale container, by re-rooting the filename', async () => {
-        mockCheckFileExists.mockResolvedValue(true);
+        mockCheckFileExists.mockResolvedValue({exists: true});
 
         const receipt = {
             // Written before an app upgrade. The device no longer has this container.
@@ -103,7 +119,7 @@ describe('prepareRequestPayload (native)', () => {
     });
 
     it('should still report a genuinely missing file as dropped', async () => {
-        mockCheckFileExists.mockResolvedValue(false);
+        mockCheckFileExists.mockResolvedValue({exists: false, error: {message: 'ENOENT: no such file', code: 'ENOENT'}});
 
         const receipt = {
             source: 'file:///Containers/Data/Application/CURRENT/Documents/Receipts-Upload/gone.jpg',
@@ -130,6 +146,40 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.get('amount')).toBe('100');
     });
 
+    it('should append a queued offline file as a plain part that carries its own name and type', async () => {
+        // Given a file read back for an offline request as a React Native File, whose name and type are prototype getters
+        const uri = 'file:///data/user/0/app/files/Download/Receipts-Upload/report_123.csv';
+        class NativeFile {
+            uri = uri;
+
+            private readonly data = {name: 'report.csv', type: 'text/csv'};
+
+            get name() {
+                return this.data.name;
+            }
+
+            get type() {
+                return this.data.type;
+            }
+        }
+        mockReadFileAsync.mockResolvedValueOnce(new NativeFile());
+        const appendSpy = jest.spyOn(FormData.prototype, 'append');
+
+        // When the payload is prepared for a request that was queued offline
+        await prepareRequestPayload('AddTextAndAttachment', {file: {uri, source: uri, name: 'report.csv', type: 'text/csv'}}, true);
+
+        // Then the appended part carries the name and type as its own properties, which is what the multipart body is built from
+        const [, part] = appendSpy.mock.calls.find(([key]) => key === 'file') ?? [];
+        expect(Object.entries(part ?? {})).toEqual(
+            expect.arrayContaining([
+                ['uri', uri],
+                ['name', 'report.csv'],
+                ['type', 'text/csv'],
+            ]),
+        );
+        appendSpy.mockRestore();
+    });
+
     it('should handle non-receipt data normally', async () => {
         const formData = await prepareRequestPayload('SomeCommand', {amount: '100', currency: 'USD'}, false);
 
@@ -142,5 +192,71 @@ describe('prepareRequestPayload (native)', () => {
 
         expect(formData.get('amount')).toBe('100');
         expect(formData.has('undefinedField')).toBe(false);
+    });
+
+    describe('a receipt sent as a file object without a source, as a request queued by an older app version sends it', () => {
+        /** `clearAllMocks` keeps a `mockReturnValue`, so a deferred one would leak into the next test. */
+        beforeEach(() => {
+            mockSettle.mockReturnValue(Promise.resolve());
+        });
+
+        /** The payload walks one key per microtask, so settle the whole queue rather than counting hops. */
+        const flushMicrotasks = () =>
+            new Promise((resolve) => {
+                setImmediate(resolve);
+            });
+
+        it('claims the file before reading it, and waits only while a claimed swap finishes renaming', async () => {
+            // Given a swap that has already committed to renaming the receipt file
+            let releaseCommittedSwap: () => void = () => {};
+            mockSettle.mockReturnValue(
+                new Promise<void>((resolve) => {
+                    releaseCommittedSwap = resolve;
+                }),
+            );
+
+            // When an old queued ReplaceReceipt request is prepared with only the file object
+            let hasPrepared = false;
+            const prepared = prepareRequestPayload(
+                'ReplaceReceipt',
+                {
+                    transactionID: '1',
+                    receipt: {uri: `file://${RECEIPTS_FOLDER}/CAM-1.jpg`, name: 'CAM-1.jpg', type: 'image/jpeg'},
+                },
+                false,
+            ).then((formData) => {
+                hasPrepared = true;
+                return formData;
+            });
+            await flushMicrotasks();
+
+            // Then the file is claimed by name and the payload waits for the swap to finish
+            expect(mockSettle).toHaveBeenCalledWith('CAM-1.jpg');
+            // `settle` only holds the payload while a swap has already committed to its two renames, since
+            // reading the receipt mid-rename would send the old bytes, the new ones, or nothing at all.
+            expect(hasPrepared).toBe(false);
+
+            releaseCommittedSwap();
+            await prepared;
+            expect(hasPrepared).toBe(true);
+            expect(mockValidateFormDataParameter).toHaveBeenCalledWith('ReplaceReceipt', 'receipt', expect.objectContaining({name: 'CAM-1.jpg'}));
+        });
+
+        it('never reaches locate, since a file object carries no receipt source to resolve', async () => {
+            // Given an old queued ReplaceReceipt request whose receipt has a uri but no source
+            // When the payload is prepared
+            await prepareRequestPayload(
+                'ReplaceReceipt',
+                {
+                    transactionID: '1',
+                    receipt: {uri: `file://${RECEIPTS_FOLDER}/CAM-1.jpg`, name: 'CAM-1.jpg', type: 'image/jpeg'},
+                },
+                false,
+            );
+
+            // Then nothing checks the filesystem or reports the receipt as dropped, because there is no source to locate
+            expect(mockCheckFileExists).not.toHaveBeenCalled();
+            expect(mockLogReceiptDropped).not.toHaveBeenCalled();
+        });
     });
 });

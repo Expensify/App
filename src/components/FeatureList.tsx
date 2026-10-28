@@ -15,7 +15,7 @@ import {View} from 'react-native';
 
 import type DotLottieAnimation from './LottieAnimations/types';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
@@ -116,7 +116,6 @@ function FeatureList({
                                 interactive={false}
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
-                                containerStyle={[styles.m0, styles.wAuto]}
                                 numberOfLinesTitle={0}
                             />
                         </View>

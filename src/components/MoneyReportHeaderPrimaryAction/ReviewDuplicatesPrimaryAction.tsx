@@ -1,9 +1,10 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -16,29 +17,32 @@ import {isDuplicate} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import React from 'react';
 
 import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
     const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
@@ -61,6 +65,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 const threadID =
                     transactionThreadReportID ??
@@ -75,13 +80,14 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                               },
                               {
                                   introSelected,
-                                  betas,
                                   conciergeChat,
                                   isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                                   hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                   currentUserEmail: email,
                                   currentUserAccountID: accountID,
                                   personalDetails,
+                                  fullPolicySnapshotLastModifiedByPolicyID:
+                                      moneyRequestReport?.policyID && fullPolicySnapshotLastModified ? {[moneyRequestReport.policyID]: fullPolicySnapshotLastModified} : undefined,
                               },
                           )
                         : undefined);

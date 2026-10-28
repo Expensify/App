@@ -6,11 +6,14 @@ import Log from '@libs/Log';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
 import * as ReportUtils from '@libs/ReportUtils';
 
+import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
+import type {SubmitLock} from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
@@ -32,9 +35,10 @@ const mockResolveChatTargetForSubmitCleanup = jest.fn();
 const mockSendInvoiceAction = jest.fn();
 const mockSplitBillAction = jest.fn();
 const mockSplitBillAndOpenReportAction = jest.fn();
+const mockStartSplitBillAction = jest.fn();
 const mockResolveOptimisticSplitChatReportID = jest.fn();
 const mockDismissModalAndOpenReportInInboxTab = jest.fn();
-const mockReserveDeferredWriteChannel = jest.fn();
+const mockMarkPendingSearchWrite = jest.fn();
 const mockIsSearchTopmostFullScreenRoute = jest.fn();
 
 jest.mock('@userActions/IOU/TrackExpense', () => ({
@@ -54,7 +58,7 @@ jest.mock('@userActions/IOU/Split', () => ({
     splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
     splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
     resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
-    startSplitBill: jest.fn(),
+    startSplitBill: (...args: unknown[]) => mockStartSplitBillAction(...args),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
@@ -67,9 +71,9 @@ jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => 
     default: (...args: unknown[]) => mockDismissModalAndOpenReportInInboxTab(...args),
 }));
 
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    ...jest.requireActual('@libs/deferredLayoutWrite'),
-    reserveDeferredWriteChannel: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args),
+jest.mock('@libs/pendingSearchWrite', () => ({
+    ...jest.requireActual('@libs/pendingSearchWrite'),
+    markPendingSearchWrite: (...args: unknown[]) => mockMarkPendingSearchWrite(...args),
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => ({
@@ -98,7 +102,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
+    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useLastWorkspaceNumber', () => ({
@@ -197,14 +201,40 @@ function buildPerDiemTransaction(overrides: Partial<Transaction> = {}): Transact
     });
 }
 
+function buildOverriddenMapDistanceTransaction(): Transaction {
+    return buildTransaction({
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+        comment: {
+            customUnit: {
+                quantity: 29,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            },
+            waypoints: {
+                waypoint0: {address: 'San Francisco', lat: 37.7749, lng: -122.4194},
+                waypoint1: {address: 'New York', lat: 40.7128, lng: -74.006},
+            },
+        },
+        routes: {route0: {distance: 2900000, geometry: {coordinates: []}}},
+    });
+}
+
+// Rendered once per test, outside the hook under test, so its state survives that hook's re-renders.
+let submitLockResult: {current: SubmitLock};
+
+beforeEach(() => {
+    submitLockResult = renderHook(() => useSubmitLock()).result;
+});
+
 function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[0]> = {}): Parameters<typeof useExpenseSubmission>[0] {
     const transaction = buildTransaction();
     return {
         transaction,
         transactions: [transaction],
         receiptFiles: {},
+        canEnterScanFieldsManually: false,
         report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT} as Report,
         reportID: REPORT_ID,
+        reportDrafts: {},
         policy: createMock<Policy>({id: 'policy-1'}),
         policyCategories: {} as PolicyCategories,
         isDraftPolicy: false,
@@ -213,7 +243,6 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         participants: [{accountID: 42, login: 'them@test.com', selected: true}],
         iouType: CONST.IOU.TYPE.REQUEST,
         action: CONST.IOU.ACTION.CREATE,
-        requestType: undefined,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
         isOdometerDistanceRequest: false,
@@ -226,6 +255,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         isPolicyExpenseChat: false,
         draftTransactionIDs: [DRAFT_ID],
         privateIsArchivedMap: {},
+        submitLock: submitLockResult.current,
         ...overrides,
     };
 }
@@ -269,7 +299,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
                 // When the request is created before a persisted chat can be resolved
                 await act(async () => {
-                    result.current.createTransaction(false, false);
+                    result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
                 });
                 await waitForBatchedUpdatesWithAct();
 
@@ -283,12 +313,92 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             }
         });
 
+        describe('receipt state on a Scan the user filled in', () => {
+            function buildScanParams(transactionOverrides: Partial<Transaction>, cachedReceiptState: Receipt['state']) {
+                const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, ...transactionOverrides});
+                return buildParams({
+                    transaction,
+                    transactions: [transaction],
+                    canEnterScanFieldsManually: true,
+                    receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: cachedReceiptState})},
+                });
+            }
+
+            async function submit(params: Parameters<typeof useExpenseSubmission>[0]) {
+                const {result} = renderHook(() => useExpenseSubmission(params));
+                await waitForBatchedUpdatesWithAct();
+                await act(async () => {
+                    result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
+                });
+                await waitForBatchedUpdatesWithAct();
+            }
+
+            it('submits `open` when all three fields are entered, even while the cached receipt still says SCAN_READY', async () => {
+                // Given a scan the user filled in whose receipt was validated before the last field was entered
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: true, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.SCAN_READY));
+
+                // Then SmartScan is told to leave the receipt alone rather than overwriting what the user typed
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
+                    }),
+                );
+            });
+
+            it('submits `scanready` once a field is cleared again, even while the cached receipt still says OPEN', async () => {
+                // Given a scan whose date the user cleared after having filled all three fields
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: true, isCreatedSet: false}, CONST.IOU.RECEIPT_STATE.OPEN));
+
+                // Then SmartScan is asked to read the receipt so the cleared field still gets filled in
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.SCAN_READY}),
+                    }),
+                );
+            });
+
+            it('submits `open` for a P2P scan with the amount and date entered but no merchant', async () => {
+                // Given a P2P scan (not a workspace chat) whose merchant the user left blank (#101147)
+                await submit(buildScanParams({isAmountSet: true, isMerchantSet: false, isCreatedSet: true}, CONST.IOU.RECEIPT_STATE.SCAN_READY));
+
+                // Then the merchant isn't required, so SmartScan is told to leave the entered values alone
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
+                    }),
+                );
+            });
+
+            it('sends no override on surfaces that do not expose the scan fields, leaving the validated receipt state alone', async () => {
+                // Given a manual expense with an attached receipt, which the validator already marked `open`
+                const transaction = buildTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL});
+                await submit(
+                    buildParams({
+                        transaction,
+                        transactions: [transaction],
+                        canEnterScanFieldsManually: false,
+                        receiptFiles: {[TRANSACTION_ID]: createMock<Receipt>({state: CONST.IOU.RECEIPT_STATE.OPEN})},
+                    }),
+                );
+
+                // Then no override is sent and the action keeps using the state the validator wrote onto the receipt
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        transactionParams: expect.objectContaining({
+                            receiptState: undefined,
+                            receipt: expect.objectContaining({state: CONST.IOU.RECEIPT_STATE.OPEN}),
+                        }),
+                    }),
+                );
+            });
+        });
+
         it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
             const {result} = renderHook(() => useExpenseSubmission(buildParams()));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -307,7 +417,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -345,7 +455,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -365,7 +475,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -392,7 +502,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         action: CONST.IOU.ACTION.SUBMIT,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -402,7 +511,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -438,7 +547,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                     buildParams({
                         transaction: distanceTransaction,
                         transactions: [distanceTransaction],
-                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                         isDistanceRequest: true,
                         isManualDistanceRequest: true,
                     }),
@@ -447,7 +555,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
 
             const transactionParams = mockCreateDistanceRequestAction.mock.calls.at(-1)?.at(0)?.transactionParams;
@@ -470,7 +578,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                     buildParams({
                         transaction: distanceTransaction,
                         transactions: [distanceTransaction],
-                        requestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
                         isDistanceRequest: true,
                         isManualDistanceRequest: true,
                     }),
@@ -480,7 +587,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             // When the distance request is submitted
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
 
             // Then the reserved ID is forwarded, so the chat is built at the ID the screen subscribes to
@@ -494,7 +601,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -513,7 +620,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -528,11 +635,123 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
             expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({existingTransaction: params.transactions.at(0)}));
+        });
+
+        it('sends the overridden distance and keeps the waypoints when tracking a map distance expense', async () => {
+            // Given a map distance draft whose quantity the user replaced on the Manual tab, so it no longer matches its route
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.TRACK,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is created
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the typed distance goes to the server and the waypoints go with it, because dropping them would
+            // trade the map receipt away for the number, and the request stays a map expense so the created expense
+            // still edits and renders as one
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                        validWaypoints: mapDistance.comment?.waypoints,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the overridden distance when submitting a map distance expense to a workspace', async () => {
+            // Given the same overridden map distance draft, but headed for a workspace, which goes out as a different command
+            const mapDistance = buildOverriddenMapDistanceTransaction();
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is created
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the workspace path sends the typed distance under the map type too, so both destinations store the
+            // same shape
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 29,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    }),
+                }),
+            );
+        });
+
+        it('sends the manual distance when the map route has not been fetched yet', async () => {
+            // Given a map draft picked offline, so it carries a typed quantity but no route to compare it against
+            const mapDistance = buildTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {quantity: 1, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    waypoints: {
+                        waypoint0: {address: 'Aspen', lat: 39.1911, lng: -106.8175},
+                        waypoint1: {address: 'Breckenridge', lat: 39.4817, lng: -106.0384},
+                    },
+                },
+            });
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transaction: mapDistance,
+                        transactions: [mapDistance],
+                        isDistanceRequest: true,
+                        isPolicyExpenseChat: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the expense is created
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the quantity is still treated as an override, because offline a map draft can only get one from the
+            // Manual tab, otherwise the queued request would carry no distance and the server would use the route
+            expect(mockCreateDistanceRequestAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 1,
+                        distanceRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    }),
+                }),
+            );
         });
 
         // Regression test for #94282: an expense whose sole recipient is the current user must be a self-DM track
@@ -550,7 +769,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -577,7 +796,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -591,7 +810,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -600,6 +819,58 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
     });
 
     describe('per diem path', () => {
+        // submitPerDiemExpense resolves the destination chat through getReportOrDraftReport. For an expense report
+        // whose chat only exists in REPORT_DRAFT, that draft now has to arrive via the reportDrafts param.
+        function renderPerDiemWithDraftChat(reportDrafts: Parameters<typeof useExpenseSubmission>[0]['reportDrafts']) {
+            const perDiemTransaction = buildPerDiemTransaction();
+            return renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        isPerDiemRequest: true,
+                        transaction: perDiemTransaction,
+                        transactions: [perDiemTransaction],
+                        report: {reportID: 'expense-1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'draft-chat-1'} as Report,
+                        reportDrafts,
+                    }),
+                ),
+            );
+        }
+
+        it('resolves the destination chat from the supplied reportDrafts when it has no real report', async () => {
+            const draftChat = {reportID: 'draft-chat-1', chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT} as Report;
+            const {result} = renderPerDiemWithDraftChat({[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft-chat-1`]: draftChat});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // The draft chat resolved, so no optimistic chat report has to be generated for it.
+            expect(mockSubmitPerDiemExpenseAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: undefined}));
+        });
+
+        it('ignores a draft that is only in Onyx and not in the supplied reportDrafts', async () => {
+            // The two sources disagree on purpose: Onyx has the draft, the param does not. The param has to win.
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}draft-chat-1`, {
+                reportID: 'draft-chat-1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            } as Report);
+
+            const {result} = renderPerDiemWithDraftChat({});
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Nothing resolved the destination chat, so an optimistic chat report had to be generated for it.
+            expect(mockSubmitPerDiemExpenseAction).toHaveBeenCalled();
+            expect(mockSubmitPerDiemExpenseAction).not.toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: undefined}));
+        });
+
         it('keeps initial self-DM per diem tracking on submitPerDiemExpenseForSelfDM', async () => {
             const perDiemTransaction = buildPerDiemTransaction();
 
@@ -607,7 +878,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -617,7 +887,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -632,7 +902,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -642,7 +911,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -657,7 +926,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -667,7 +935,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -685,7 +953,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
                 useExpenseSubmission(
                     buildParams({
                         iouType: CONST.IOU.TYPE.TRACK,
-                        requestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                         isPerDiemRequest: true,
                         transaction: perDiemTransaction,
                         transactions: [perDiemTransaction],
@@ -695,7 +962,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -721,7 +988,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -735,7 +1002,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -752,7 +1019,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -768,7 +1035,7 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -776,53 +1043,53 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('existing-group-chat', undefined, false);
         });
 
-        it('reserves the SEARCH channel before splitBill when the split lands back on Search (the action hardcodes shouldDeferForSearch:false)', async () => {
+        it('raises the pending Search signal before splitBill when the split lands back on Search', async () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
 
             const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
 
-        it('reserves the SEARCH channel before splitBillAndOpenReport when the split lands back on Search', async () => {
+        it('raises the pending Search signal before splitBillAndOpenReport when the split lands back on Search', async () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
 
             const {result} = renderHook(() => useExpenseSubmission(buildSplitParams({isFromGlobalCreate: true})));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockMarkPendingSearchWrite).toHaveBeenCalledTimes(1);
             expect(mockSplitBillAndOpenReportAction).toHaveBeenCalledTimes(1);
         });
 
-        it('does not reserve the SEARCH channel when the split is not landing on Search', async () => {
+        it('does not raise the pending Search signal when the split is not landing on Search', async () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
 
             const {result} = renderHook(() => useExpenseSubmission(buildSplitParams()));
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockMarkPendingSearchWrite).not.toHaveBeenCalled();
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
 
-        it('does not reserve the SEARCH channel (or run the split) when there is no login to submit with, even on Search', async () => {
-            // The shared reservation runs before the branch's login+transaction check, so it must reuse that guard or it leaks a SEARCH channel no write ever flushes.
+        it('does not raise the pending Search signal (or run the split) when there is no login to submit with, even on Search', async () => {
+            // The shared signal-raise runs before the branch's login+transaction check, so it must reuse that guard or it leaks a pending signal no write ever flushes.
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const splitTransaction = buildTransaction();
 
@@ -839,12 +1106,191 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 
-            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockMarkPendingSearchWrite).not.toHaveBeenCalled();
             expect(mockSplitBillAction).not.toHaveBeenCalled();
+        });
+
+        it('threads the optimistic chat ID into the scan split and dismisses to that chat once after the loop', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction();
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
+        });
+
+        it('starts the scan split without dismissing when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction();
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
+        });
+
+        it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({transactionID: 'transaction-1'});
+            const staleTransactionID = 'stale-transaction';
+            // The receipt is keyed to a transaction that is no longer being submitted, so there is no scan to write.
+            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // No scan is written, and the submit is not swallowed by the scan branch, which would leave the confirm page stuck.
+            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
+        });
+
+        it('writes nothing and hands the page back when a scan split has no receipt file ready', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            // A scan carries no amount until SmartScan returns, so the manual split below would write a $0 expense.
+            const scannedTransaction = buildTransaction({transactionID: 'transaction-1', amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
+            const staleTransactionID = 'stale-transaction';
+            const receiptFiles: Record<string, Receipt> = {[staleTransactionID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: scannedTransaction,
+                        transactions: [scannedTransaction],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
+            // The submit lock is released so the next tap works once the receipt map catches up.
+            expect(submitLockResult.current.isConfirmed).toBe(false);
+            expect(submitLockResult.current.formHasBeenSubmitted.current).toBe(false);
+        });
+
+        it('resolves the chat once and dismisses once when multiple receipts split into one group chat', async () => {
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
+            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
+            const receiptFiles: Record<string, Receipt> = {
+                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
+                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
+            };
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: firstSplit,
+                        transactions: [firstSplit, secondSplit],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockResolveOptimisticSplitChatReportID).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: true}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({optimisticSplitChatReportID: 'optimistic-scan-chat', isFirstSplitInBatch: false}));
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledTimes(1);
+            expect(mockDismissModalAndOpenReportInInboxTab).toHaveBeenCalledWith('optimistic-scan-chat', undefined, false);
+        });
+
+        it('marks every scan as first when the batch splits into a chat that already exists', async () => {
+            // No optimistic ID means the chat already exists, so no scan in the batch creates it.
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: undefined, chatReportID: REPORT_ID});
+            const firstSplit = buildTransaction({transactionID: 'transaction-1'});
+            const secondSplit = buildTransaction({transactionID: 'transaction-2'});
+            const receiptFiles: Record<string, Receipt> = {
+                [firstSplit.transactionID]: {source: 'file://receipt-1.jpg'},
+                [secondSplit.transactionID]: {source: 'file://receipt-2.jpg'},
+            };
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: firstSplit,
+                        transactions: [firstSplit, secondSplit],
+                        receiptFiles,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(2);
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(1, expect.objectContaining({isFirstSplitInBatch: true}));
+            expect(mockStartSplitBillAction).toHaveBeenNthCalledWith(2, expect.objectContaining({isFirstSplitInBatch: true}));
         });
     });
 });
@@ -866,7 +1312,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(false, true);
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -894,7 +1340,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(false, true);
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -916,7 +1362,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
         await waitForBatchedUpdatesWithAct();
 
         await act(async () => {
-            result.current.createTransaction(false, true);
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -931,7 +1377,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, true);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -950,7 +1396,7 @@ describe('useExpenseSubmission action-bailout safety', () => {
             await waitForBatchedUpdatesWithAct();
 
             await act(async () => {
-                result.current.createTransaction(false, false);
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false});
             });
             await waitForBatchedUpdatesWithAct();
 

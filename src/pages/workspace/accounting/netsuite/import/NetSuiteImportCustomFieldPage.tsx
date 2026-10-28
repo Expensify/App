@@ -1,9 +1,11 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
@@ -26,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -80,38 +82,32 @@ function NetSuiteImportCustomFieldPage({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
-    const listEmptyComponent = useMemo(
-        () => (
-            <WorkspaceEmptyStateSection
-                shouldStyleAsCard={false}
-                title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={illustrations.FolderWithPapers}
-                subtitleComponent={
-                    <HelpLinkComponent
-                        importCustomField={importCustomField}
-                        styles={styles}
-                        translate={translate}
-                        alignmentStyle={styles.textAlignCenter}
-                    />
-                }
-                containerStyle={[styles.flex1, styles.justifyContentCenter]}
-            />
-        ),
-        [importCustomField, styles, translate, illustrations.FolderWithPapers],
-    );
-
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.flexRow]}>
+    const listEmptyComponent = (
+        <WorkspaceEmptyStateSection
+            shouldStyleAsCard={false}
+            title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
+            icon={illustrations.FolderWithPapers}
+            subtitleComponent={
                 <HelpLinkComponent
                     importCustomField={importCustomField}
                     styles={styles}
                     translate={translate}
-                    alignmentStyle={styles.textAlignLeft}
+                    alignmentStyle={styles.textAlignCenter}
                 />
-            </View>
-        ),
-        [styles, importCustomField, translate],
+            }
+            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+        />
+    );
+
+    const listHeaderComponent = (
+        <View style={[styles.ph5, styles.flexRow]}>
+            <HelpLinkComponent
+                importCustomField={importCustomField}
+                styles={styles}
+                translate={translate}
+                alignmentStyle={styles.textAlignLeft}
+            />
+        </View>
     );
 
     return (
@@ -124,26 +120,38 @@ function NetSuiteImportCustomFieldPage({
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            shouldUseScrollView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
-            {data.length === 0 ? listEmptyComponent : listHeaderComponent}
-            {data.map((record, index) => (
-                <OfflineWithFeedback
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${record.internalID}-${index}`}
-                    pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
-                        shouldShowRightIcon
-                        title={'listName' in record ? record.listName : record.segmentName}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
-                        brickRoadIndicator={areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
-                </OfflineWithFeedback>
-            ))}
+            {data.length === 0 ? (
+                listEmptyComponent
+            ) : (
+                <ScrollView addBottomSafeAreaPadding>
+                    {listHeaderComponent}
+                    {data.map((record, index) => (
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`${record.internalID}-${index}`}
+                            pendingAction={settingsPendingAction([`${importCustomField}_${index}`], config?.pendingFields)}
+                        >
+                            <MenuItemField
+                                name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
+                                value={'listName' in record ? record.listName : record.segmentName}
+                            >
+                                {areSettingsInErrorFields([`${importCustomField}_${index}`], config?.errorFields) && (
+                                    <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                )}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                    ))}
+                </ScrollView>
+            )}
 
-            <FixedFooter style={[styles.mtAuto, styles.pt3]}>
+            <FixedFooter
+                style={[styles.pt3]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}

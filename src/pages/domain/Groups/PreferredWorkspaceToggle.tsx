@@ -1,4 +1,4 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -47,6 +47,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
 
     // When the requester is not a member of the preferred policy, BE adds a minimal {avatarURL, id, name} policy Onyx data for the policy to the policy collection, so this resolves to the configured workspace's name even for domain admins without access to that policy.
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {selector: policyNameSelector});
+    const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
 
     const [enableRestrictedPrimaryPolicyPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: domainSecurityGroupSettingPendingActionSelector('enableRestrictedPrimaryPolicy', groupID),
@@ -116,12 +117,11 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                     onClose={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'restrictedPrimaryPolicyIDErrors')}
                     errorRowStyles={[styles.mh5]}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('domain.groups.preferredWorkspace')}
-                        title={preferredPolicyName ?? firstAdminPolicy?.name}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('domain.groups.preferredWorkspace')}
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                        disabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
+                        isDisabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
+                        value={preferredWorkspaceName}
                     />
                 </OfflineWithFeedback>
             )}

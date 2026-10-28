@@ -1,9 +1,10 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -11,6 +12,7 @@ import variables from '@styles/variables';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -21,6 +23,7 @@ function DisabledPage() {
     const illustrations = useMemoizedLazyIllustrations(['LockOpen']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
 
     return (
         <TwoFactorAuthWrapper
@@ -38,7 +41,7 @@ function DisabledPage() {
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
+                    onPress={() => quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY)}
                 >
                     <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
                 </Button>

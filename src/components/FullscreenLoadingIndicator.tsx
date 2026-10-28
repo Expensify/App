@@ -12,7 +12,7 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Text from './Text';
 
 type FullScreenLoadingIndicatorIconSize = ActivityIndicatorProps['size'];
@@ -21,7 +21,7 @@ type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
     iconSize?: FullScreenLoadingIndicatorIconSize;
 
-    /** Whether the "Go Back" button appears after a timeout. */
+    /** Whether the "Go Back" button appears after a timeout. Defaults to true, pass false where going back is dead or harmful (e.g. global overlays, or a transition that is mid sign-out). */
     shouldUseGoBackButton?: boolean;
 
     onGoBack?: () => void;
@@ -35,7 +35,7 @@ type FullScreenLoadingIndicatorProps = {
 function FullScreenLoadingIndicator({
     style,
     iconSize = CONST.ACTIVITY_INDICATOR_SIZE.LARGE,
-    shouldUseGoBackButton = false,
+    shouldUseGoBackButton = true,
     onGoBack = Navigation.goBack,
     testID = '',
     extraLoadingContext,

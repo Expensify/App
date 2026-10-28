@@ -1,6 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCardName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import Navigation from '@navigation/Navigation';
 
@@ -17,7 +18,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearCardErrorField, clearCardNameValuePairsErrorField, setPersonalCardReimbursable} from '@userActions/Card';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -76,15 +77,15 @@ function PersonalCardDetailsHeaderMenu({
                     clearCardNameValuePairsErrorField(card.cardID, 'cardTitle');
                 }}
             >
-                <MenuItemWithTopDescription
-                    description={translate('workspace.moreFeatures.companyCards.cardName')}
-                    title={
+                <MenuItemField
+                    name={translate('workspace.moreFeatures.companyCards.cardName')}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path))}
+                    value={
                         customCardNames?.[cardID] ?? (isCSVImportedPersonalCard ? card?.nameValuePairs?.cardTitle : undefined) ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName)
                     }
-                    shouldShowRightIcon
-                    brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.getRoute(cardID))}
-                />
+                >
+                    {!!card?.nameValuePairs?.errorFields?.cardTitle && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
 
             <ToggleSettingOptionRow
@@ -111,13 +112,13 @@ function PersonalCardDetailsHeaderMenu({
                         clearCardErrorField(card.cardID, 'scrapeMinDate');
                     }}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={transactionStartDateTitle}
-                        shouldShowRightIcon
-                        brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.getRoute(cardID))}
-                    />
+                    <MenuItemField
+                        name={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path))}
+                        value={transactionStartDateTitle}
+                    >
+                        {!!card?.errorFields?.scrapeMinDate && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             )}
             <View style={styles.mt4}>

@@ -1,4 +1,3 @@
-import {getButtonRole} from '@components/Button/utils';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -13,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {hasReportBeenRejectedToSubmitter} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
@@ -80,7 +80,7 @@ function MoneyRequestReportPreviewBody({
     const {isTransitionPending, isScanning, reportPreviewStyles} = useReportPreviewUIState();
 
     const isReportDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const isRejectedReport = iouReport?.stateNum === CONST.REPORT.STATE_NUM.OPEN && iouReport?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+    const isRejectedReport = hasReportBeenRejectedToSubmitter(iouReport);
     const totalAmountStyle = shouldUseNarrowLayout ? [styles.flexColumnReverse, styles.alignItemsStretch] : [styles.flexRow, styles.alignItemsCenter];
 
     return (
@@ -118,7 +118,7 @@ function MoneyRequestReportPreviewBody({
                             shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
                             isReportDeleted && styles.pointerEventsNone,
                         ]}
-                        role={getButtonRole(true)}
+                        role={CONST.ROLE.BUTTON}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CARD}

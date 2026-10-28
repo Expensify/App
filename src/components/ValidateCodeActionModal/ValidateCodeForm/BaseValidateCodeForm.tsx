@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -17,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
-import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
@@ -36,7 +37,7 @@ import type {ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {AccessibilityInfo, View} from 'react-native';
 
 type ValidateCodeFormHandle = {
@@ -136,14 +137,14 @@ function BaseValidateCodeForm({
     const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
     const isFirstCountdownRunRef = useRef(true);
 
-    const clearDefaultValidationCodeError = useCallback(() => {
+    const clearDefaultValidationCodeError = () => {
         // Clear "Failed to send validateCode" error
 
         if (isEmptyObject(defaultValidateCodeError)) {
             return;
         }
         clearValidateCodeActionError('actionVerified');
-    }, [defaultValidateCodeError]);
+    };
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -262,26 +263,23 @@ function BaseValidateCodeForm({
     /**
      * Handle text input and clear formError upon text change
      */
-    const onTextInput = useCallback(
-        (text: string) => {
-            setValidateCode(text);
-            setFormError({});
+    const onTextInput = (text: string) => {
+        setValidateCode(text);
+        setFormError({});
 
-            if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
-                // Clear flow specific error
-                clearError();
+        if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
+            // Clear flow specific error
+            clearError();
 
-                // Clear "incorrect validateCode code" error
-                clearValidateCodeActionError(validateCodeActionErrorField);
-            }
-        },
-        [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
-    );
+            // Clear "incorrect validateCode code" error
+            clearValidateCodeActionError(validateCodeActionErrorField);
+        }
+    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         // Clear flow specific error
         clearError();
 
@@ -302,23 +300,17 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError, clearDefaultValidationCodeError]);
+    };
 
-    const errorText = useMemo(() => {
-        if (!canShowError) {
-            return '';
-        }
-        if (formError?.validateCode) {
-            return translate(formError?.validateCode);
-        }
-        return getLatestErrorMessage(account ?? {});
-    }, [canShowError, formError?.validateCode, account, translate]);
+    // Only this form's own input validation goes under the input. Server errors from the flow are shown above the submit button, and `account.errors` belongs to sign-in, so a
+    // stale sign-in error would otherwise show up here in an unrelated flow.
+    const errorText = canShowError && formError?.validateCode ? translate(formError.validateCode) : '';
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
-    const handleCountdownFinish = useCallback(() => {
+    const handleCountdownFinish = () => {
         setIsCountdownRunning(false);
-    }, []);
+    };
 
     // latestValidateCodeError only holds an error related to bad validateCode
     // while validateError holds flow-specific errors
@@ -407,18 +399,16 @@ function BaseValidateCodeForm({
                     </Button>
                 )}
                 {!hideSubmitButton && (
-                    <Button
-                        isDisabled={isOffline}
+                    <ButtonDisabledWhenOffline
                         onPress={validateAndSubmitForm}
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
                         sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
                     >
                         <Button.Text>{submitButtonText ?? translate('common.verify')}</Button.Text>
-                    </Button>
+                    </ButtonDisabledWhenOffline>
                 )}
             </OfflineWithFeedback>
         </>

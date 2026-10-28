@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -23,7 +23,7 @@ import type {SvgProps} from 'react-native-svg';
 import type {WebStyle} from 'react-native-web';
 import type {MergeExclusive} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import BlockingViewSubtitle from './BlockingViewSubtitle';
@@ -123,10 +123,7 @@ function BlockingView({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const SubtitleWrapper = shouldEmbedLinkWithSubtitle ? Text : View;
-    const subtitleWrapperStyle = useMemo(
-        () => (shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter]),
-        [shouldEmbedLinkWithSubtitle, styles],
-    );
+    const subtitleWrapperStyle = shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter];
     const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
     useAbsentPageSpan();

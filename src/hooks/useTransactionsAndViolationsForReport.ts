@@ -3,12 +3,14 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import {getTransactionViolations} from '@libs/TransactionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {TransactionViolations} from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 
+import {loginSelector} from '@selectors/PersonalDetails';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
 
 const DEFAULT_RETURN_VALUE: ReportTransactionsAndViolations = {transactions: {}, violations: {}};
 
@@ -16,7 +18,7 @@ function useTransactionsAndViolationsForReport(reportID?: string) {
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
+    const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
 
     const {transactions, violations} = reportID ? (allReportsTransactionsAndViolations?.[reportID] ?? DEFAULT_RETURN_VALUE) : DEFAULT_RETURN_VALUE;

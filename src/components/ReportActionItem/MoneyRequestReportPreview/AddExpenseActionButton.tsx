@@ -7,7 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
+
+import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

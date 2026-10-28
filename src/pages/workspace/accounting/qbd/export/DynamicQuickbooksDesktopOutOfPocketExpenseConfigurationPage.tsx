@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -19,6 +20,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -26,7 +28,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type QBDSectionType = {
     title?: string;
@@ -50,29 +52,26 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
     const reimbursable = qbdConfig?.export.reimbursable;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.path);
 
-    const [exportHintText, accountDescription, accountsList] = useMemo(() => {
-        let hintText: string | undefined;
-        let description: string | undefined;
-        const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop);
-        switch (reimbursable) {
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                hintText = translate('workspace.qbd.exportCheckDescription');
-                description = translate('workspace.qbd.bankAccount');
-                break;
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                hintText = translate('workspace.qbd.exportJournalEntryDescription');
-                description = translate('workspace.qbd.account');
-                break;
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                hintText = translate('workspace.qbd.exportVendorBillDescription');
-                description = translate('workspace.qbd.accountsPayable');
-                break;
-            default:
-                break;
-        }
-
-        return [hintText, description, accounts];
-    }, [policy?.connections?.quickbooksDesktop, reimbursable, translate]);
+    let hintText: string | undefined;
+    let description: string | undefined;
+    const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop);
+    switch (reimbursable) {
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            hintText = translate('workspace.qbd.exportCheckDescription');
+            description = translate('workspace.qbd.bankAccount');
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            hintText = translate('workspace.qbd.exportJournalEntryDescription');
+            description = translate('workspace.qbd.account');
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            hintText = translate('workspace.qbd.exportVendorBillDescription');
+            description = translate('workspace.qbd.accountsPayable');
+            break;
+        default:
+            break;
+    }
+    const [exportHintText, accountDescription, accountsList] = [hintText, description, accounts];
 
     const sections: QBDSectionType[] = [
         {
@@ -113,14 +112,16 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                        hintText={section.hintText}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                        <MenuItemField.Row
+                            name={section.description ?? ''}
+                            value={section.title}
+                        >
+                            {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}
             {reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (

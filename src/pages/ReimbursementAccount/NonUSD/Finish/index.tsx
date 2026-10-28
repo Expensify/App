@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -10,17 +11,18 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 
 import Navigation from '@navigation/Navigation';
 
 import {navigateToConciergeChat} from '@userActions/Report';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -34,14 +36,17 @@ function Finish() {
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, true);
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
@@ -58,7 +63,7 @@ function Finish() {
                 <Section
                     title={translate('finishStep.letsFinish')}
                     icon={illustrations.ConciergeBubble}
-                    containerStyles={[styles.mb8, styles.mh5]}
+                    containerStyles={styles.mb8}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
@@ -74,30 +79,27 @@ function Finish() {
                     title={translate('finishStep.enable2FA')}
                     icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
-                    containerStyles={[styles.mh5]}
                 >
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
-                    <View style={styles.mhn5}>
-                        <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                Navigation.navigate(getTwoFactorAuthRoute());
-                            })}
-                        >
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <MenuItem.Icon src={icons.Shield} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.NewWindowIcon />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    </View>
+                    <MenuItemSectionRoot
+                        onPress={() => {
+                            Navigation.navigate(getTwoFactorAuthRoute());
+                        }}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Shield} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
                 </Section>
             </ScrollView>
         </ScreenWrapper>

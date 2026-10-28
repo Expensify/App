@@ -1,95 +1,50 @@
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
+import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+import {getActiveVacationDelegate} from '@libs/VacationDelegateUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {VacationDelegateForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Participant} from '@src/types/onyx/IOU';
 
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useNavigationState} from '@react-navigation/native';
+import React from 'react';
+
+const draftDelegateSelector = (draft: OnyxEntry<VacationDelegateForm>) => draft?.[INPUT_IDS.DELEGATE];
 
 function VacationDelegatePage() {
     const {translate} = useLocalize();
-    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const {showConfirmModal} = useConfirmModal();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
-    const vacationDelegateRef = useRef(vacationDelegate);
-    useEffect(() => {
-        vacationDelegateRef.current = vacationDelegate;
-    }, [vacationDelegate]);
+    const [draftDelegate] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {selector: draftDelegateSelector});
+    const isFormInStack = useNavigationState((state) => state.routes.some((route) => route.name === SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE));
 
-    const showErrorModal = async (message?: string) => {
-        await showConfirmModal({
-            title: translate('statusPage.addVacationDelegate'),
-            prompt: message ?? translate('statusPage.vacationDelegateError'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
+    const onSelectRow = (option: Participant) => {
+        if (!option?.login) {
+            return;
+        }
 
-        clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+        // The pick is only saved from the form, where the clear after date is chosen too.
+        setDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM, {[INPUT_IDS.DELEGATE]: option.login});
+
+        // Opened from the form's delegate row, so go back to it. Opened straight from Profile, the form comes next, so push it
+        // and keep this picker under it for the form's back button.
+        if (isFormInStack) {
+            Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE);
     };
-
-    const showWarningModal = useCallback(
-        async (delegateLogin: string, delegateDisplayName: string | undefined) => {
-            const result = await showConfirmModal({
-                title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', Str.removeSMSDomain(delegateDisplayName ?? delegateLogin)),
-                confirmText: translate('common.confirm'),
-                cancelText: translate('common.cancel'),
-                shouldShowCancelButton: true,
-            });
-
-            if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.previousDelegate);
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                return;
-            }
-
-            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
-        },
-        [showConfirmModal, translate, currentUserLogin],
-    );
-
-    const onSelectRow = useCallback(
-        (option: Participant) => {
-            if (option?.login === vacationDelegate?.delegate) {
-                deleteVacationDelegate(vacationDelegate);
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                return;
-            }
-
-            setVacationDelegate(currentUserLogin, option?.login ?? '', false, vacationDelegate?.delegate).then((response) => {
-                if (!response?.jsonCode) {
-                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                    return;
-                }
-
-                if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
-                    showErrorModal(response.message);
-                    return;
-                }
-
-                if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
-                    showWarningModal(option?.login ?? '', option.text);
-                    return;
-                }
-
-                Navigation.goBack(ROUTES.SETTINGS_STATUS);
-            });
-        },
-        [currentUserLogin, vacationDelegate, showWarningModal, showErrorModal],
-    );
 
     return (
         <ScreenWrapper
@@ -98,10 +53,11 @@ function VacationDelegatePage() {
             shouldShowOfflineIndicator={false}
         >
             <BaseVacationDelegateSelectionComponent
-                vacationDelegate={vacationDelegate}
+                // An expired delegate reads as no delegate everywhere else, so it must not show up preselected here either
+                vacationDelegate={{...vacationDelegate, delegate: draftDelegate ?? getActiveVacationDelegate(vacationDelegate)}}
                 onSelectRow={onSelectRow}
-                headerTitle={translate('common.vacationDelegate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
+                headerTitle={translate('statusPage.vacationDelegate.chooseDelegate')}
+                onBackButtonPress={() => Navigation.goBack()}
                 cannotSetDelegateMessage={translate('statusPage.cannotSetVacationDelegate')}
                 includeCurrentUser={false}
             />

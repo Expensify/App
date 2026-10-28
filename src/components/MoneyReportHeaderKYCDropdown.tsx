@@ -14,7 +14,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import type {KYCWallProps} from './KYCWall/types';
@@ -46,6 +46,9 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     /** Callback fired when the dropdown menu hides */
     onOptionsMenuHide?: () => void;
+
+    /** Disables the "More" dropdown, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
 function MoneyReportHeaderKYCDropdown({
@@ -60,6 +63,7 @@ function MoneyReportHeaderKYCDropdown({
     shouldShowSuccessStyle,
     dropdownMenuRef,
     onOptionsMenuHide,
+    isDisabled,
     ref,
     headerText = '',
     shouldPutHeaderTextAfterBackButton = false,
@@ -108,6 +112,7 @@ function MoneyReportHeaderKYCDropdown({
                     }}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu
+                    isDisabled={isDisabled}
                     shouldPopoverUseScrollView={shouldPopoverUseScrollView(applicableSecondaryActions)}
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
@@ -125,4 +130,4 @@ function MoneyReportHeaderKYCDropdown({
     );
 }
 
-export default memo(MoneyReportHeaderKYCDropdown);
+export default MoneyReportHeaderKYCDropdown;

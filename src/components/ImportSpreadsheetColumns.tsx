@@ -14,7 +14,7 @@ import {View} from 'react-native';
 
 import type {ColumnRole} from './ImportColumn';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -36,6 +36,13 @@ type ImportSpreadsheetColumnsProps = {
 
     shouldShowColumnHeader?: boolean;
     shouldShowDropdownMenu?: boolean;
+
+    /**
+     * Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
+     * coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+     */
+    shouldAutoDetectColumns?: boolean;
+
     customHeaderText?: string;
 
     /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
@@ -52,6 +59,7 @@ function ImportSpreadsheetColumns({
     learnMoreLink,
     shouldShowColumnHeader = true,
     shouldShowDropdownMenu = true,
+    shouldAutoDetectColumns = true,
     customHeaderText,
     shouldDisableButtonWhenOffline = true,
 }: ImportSpreadsheetColumnsProps) {
@@ -99,6 +107,7 @@ function ImportSpreadsheetColumns({
                                 columnRoles={columnRoles}
                                 columnIndex={index}
                                 shouldShowDropdownMenu={shouldShowDropdownMenu}
+                                shouldAutoDetectColumn={shouldAutoDetectColumns}
                             />
                         );
                     })}

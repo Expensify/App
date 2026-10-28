@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
@@ -57,7 +57,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                                     : translate(
                                           'chronos.oooEventSummaryPartialDay',
                                           event.summary,
-                                          `${DateUtils.formatToLocalTime(translate, start)} - ${DateUtils.formatToLocalTime(translate, end)}`,
+                                          `${DateUtils.formatToLocalTime(start, dateFnsLocale)} - ${DateUtils.formatToLocalTime(end, dateFnsLocale)}`,
                                           DateUtils.formatToLongDateWithWeekday(end, dateFnsLocale),
                                       )}
                             </Text>

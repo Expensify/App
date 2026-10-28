@@ -282,7 +282,7 @@ Since our codebase is very complex, it results in a large DOM tree rendered for 
 
 One of the most common issues is related to modals, popovers, and tooltips — elements that may appear on the screen. The problem is that they are usually present in the DOM tree even when initially invisible. Because of this, the initial render time of a screen may increase, ultimately slowing down the app.
 
-The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the [`<NavigationDeferredMount />`](/src/components/NavigationDeferredMount.tsx) component. `<NavigationDeferredMount />` gates a heavy subtree behind navigation transition completion via `TransitionTracker`, rendering a cheap `placeholder` until the nav animation has finished, then mounting its `children` inside `startTransition` — ideal for heavy subtrees (e.g. report headers, page-level secondary actions) mounted during navigation transitions that pull many `useOnyx` subscriptions or heavy hooks but don't need to be interactive on first render.
+The solution is better control of invisible elements, making sure they are not included in the first render. This can be done, e.g., by a simple `return null`, smart usage of `lazy loading`, the `useTransition` hook, or the [`<NavigationDeferredMount />`](/src/components/NavigationDeferredMount.tsx) component. `<NavigationDeferredMount />` gates a heavy subtree behind navigation transition completion via `TransitionTracker`, rendering a cheap `placeholder` until the nav animation has finished, then mounting its `children` inside `startTransition` — ideal for heavy subtrees (e.g. report headers, page-level secondary actions) mounted during navigation transitions that pull many `useOnyx` subscriptions or heavy hooks but don't need to be interactive on first render. For how it fits with the other ways of deferring work past a transition, see [DEFER_AFTER_PAINT.md](DEFER_AFTER_PAINT.md).
 
 Another issue worth mentioning is unnecessary code execution, especially for elements that are never shown on a specific platform. In theory, we separate the logic between platforms by using index.tsx/index.native.tsx files, but sometimes platform-specific logic may slip in, causing unnecessary execution. For example, this may happen when logic specific to a wide layout (applicable only for web) is included.
 
@@ -368,7 +368,7 @@ ___
 ## 6. Automated Tests & QA
 *Tests are required by default. If you cannot add them, explain why.*
 - [ ] **Unit Tests:** Added to prevent regression.
-- [ ] **Reassure Tests:** Added (Required for execution time improvements).
+- [ ] **Reassure Tests:** Added (Required for re-render improvements, since CI only checks render counts). For execution time improvements, add a `measureFunction` benchmark (`npm run perf-local`) and include the local before/after numbers from one machine in the PR description.
 - [ ] **Exception:** I cannot add automated tests because: _________________
 - [ ] **Manual Verification:** I have included manual verification steps (Required).
 
@@ -381,7 +381,7 @@ ___
 ---
 
 ### Compensation
-* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$250 bounty**.
+* **Bounty:** Accepted and merged performance improvements are eligible for a flat **$175 bounty**.
 * **Scope:** We prefer smaller, atomic PRs. However, if multiple proposals are submitted for closely related logic that could have been one PR, we reserve the right to consolidate them.
 
 ___

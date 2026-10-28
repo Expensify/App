@@ -11,7 +11,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useMemo, useRef} from 'react';
+import type {ComponentRef} from 'react';
+
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import type USDPageProps from './types';
@@ -104,38 +106,33 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const requestorStepRef = useRef<View>(null);
+    const requestorStepRef = useRef<ComponentRef<typeof View>>(null);
     const isOnfidoSetupComplete = reimbursementAccount?.achData?.isOnfidoSetupComplete;
     const isKYBDocumentsRequired = getRequiredKYBDocuments(reimbursementAccount?.achData?.verifications?.externalApiResponses).length > 0;
 
-    const currentPageIndex = useMemo(() => {
-        const index = pages.findIndex((p) => p.pageName === currentPage);
-        return index >= 0 ? index : 0;
-    }, [currentPage]);
+    const index = pages.findIndex((p) => p.pageName === currentPage);
+    const currentPageIndex = index >= 0 ? index : 0;
 
     const currentEntry = pages.at(currentPageIndex);
     const CurrentPage = currentEntry?.component ?? CountryPage;
     const isRequestorStep = currentEntry?.pageName === PAGE_NAMES.REQUESTOR;
 
-    const shouldSkipVerifyIdentity = useCallback((pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete, [isOnfidoSetupComplete]);
+    const shouldSkipVerifyIdentity = (pageName?: string) => pageName === PAGE_NAMES.VERIFY_IDENTITY && isOnfidoSetupComplete;
 
     // Skip the KYB documents page unless the backend's verification checks flagged documents that still need to be uploaded.
-    const shouldSkipKYBDocs = useCallback((pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired, [isKYBDocumentsRequired]);
+    const shouldSkipKYBDocs = (pageName?: string) => pageName === PAGE_NAMES.KYB_DOCS && !isKYBDocumentsRequired;
 
     // The bank-info step renders either the Plaid or the manual variant depending on the setup type the user
     // picked earlier in the flow
-    const getSubPageForNavigation = useCallback(
-        (page: PageEntry | undefined, fallbackSubPage: string | undefined) => {
-            const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
-            if (page?.pageName === PAGE_NAMES.BANK_ACCOUNT && bankInfoSubStep) {
-                return bankInfoSubStep;
-            }
-            return fallbackSubPage;
-        },
-        [reimbursementAccount?.achData?.subStep],
-    );
+    const getSubPageForNavigation = (page: PageEntry | undefined, fallbackSubPage: string | undefined) => {
+        const bankInfoSubStep = reimbursementAccount?.achData?.subStep;
+        if (page?.pageName === PAGE_NAMES.BANK_ACCOUNT && bankInfoSubStep) {
+            return bankInfoSubStep;
+        }
+        return fallbackSubPage;
+    };
 
-    const onSubmit = useCallback(() => {
+    const onSubmit = () => {
         let nextIndex = currentPageIndex + 1;
         if (shouldSkipVerifyIdentity(pages.at(nextIndex)?.pageName)) {
             nextIndex += 1;
@@ -149,13 +146,18 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const nextPage = pages.at(nextIndex);
         Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: getSubPageForNavigation(nextPage, nextPage?.firstSubPage), backTo}));
-    }, [backTo, currentPageIndex, policyID, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
+    };
 
-    const onBackButtonPress = useCallback(() => {
+    const onBackButtonPress = () => {
         // When the bank account is pending validation it has already been submitted, so stepping back through the
-        // setup pages doesn't make sense. Pop back to the entry point screen the user came from.
+        // setup pages doesn't make sense. Leave the flow entirely rather than popping to ReimbursementAccountPage:
+        // that page redirects a pending account straight back here, so returning to it would trap the user in a loop.
         if (currentEntry?.pageName === PAGE_NAMES.VALIDATION && reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.PENDING) {
-            Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}));
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.dismissModal();
+            }
             return;
         }
 
@@ -172,7 +174,7 @@ function USDVerifiedBankAccountFlowPage({route}: USDVerifiedBankAccountFlowPageP
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: getSubPageForNavigation(prevPage, prevPage?.lastSubPage), backTo}));
-    }, [backTo, currentEntry?.pageName, currentPageIndex, policyID, reimbursementAccount?.achData?.state, shouldSkipVerifyIdentity, shouldSkipKYBDocs, getSubPageForNavigation]);
+    };
 
     return (
         <View style={[styles.flex1, styles.appBG]}>

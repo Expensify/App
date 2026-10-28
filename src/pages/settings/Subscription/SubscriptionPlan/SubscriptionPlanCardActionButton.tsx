@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
@@ -23,7 +23,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
@@ -50,15 +50,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
-    const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
+    const ownerPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
 
-    const [canPerformUpgrade, policy] = useMemo(() => {
-        const firstPolicy = ownerPolicies.at(0);
-        if (!firstPolicy || ownerPolicies.length > 1) {
-            return [false, undefined];
-        }
-        return [isPolicyAdmin(firstPolicy), firstPolicy];
-    }, [ownerPolicies]);
+    const policy = ownerPolicies.length === 1 ? ownerPolicies.at(0) : undefined;
+    const canPerformUpgrade = !!policy && isPolicyAdmin(policy);
 
     const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
         closeComparisonModal?.();

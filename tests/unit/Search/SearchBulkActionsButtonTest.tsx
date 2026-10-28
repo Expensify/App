@@ -9,27 +9,37 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+type MockBulkActionBarProps = {
+    selectedCount: number;
+    isSelectedCountLoading: boolean;
+};
+
 type MockButtonProps = {
     customText: string;
     isLoading: boolean;
 };
 
+const mockBulkActionBar = jest.fn<null, [MockBulkActionBarProps]>(() => null);
 const mockButtonWithDropdownMenu = jest.fn<null, [MockButtonProps]>(() => null);
 let mockExcludedTransactions: SelectedTransactions = {};
+let mockSearchData: Record<string, unknown> = {};
 let mockSearchCount: number | undefined;
 let mockSearchReportCount: number | undefined;
 let mockSearchIsLoading = false;
 let mockIsOffline = false;
+let mockSelectedTransactions: SelectedTransactions = {tx1: makeTransaction()};
 let mockAreAllMatchingItemsSelected = true;
+let mockShouldUseNarrowLayout = false;
 
+jest.mock('@components/BulkActionBar', () => ({
+    __esModule: true,
+    default: (props: MockBulkActionBarProps) => mockBulkActionBar(props),
+}));
 jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
     default: (props: MockButtonProps) => mockButtonWithDropdownMenu(props),
 }));
-jest.mock('@components/DecisionModal', () => () => null);
-jest.mock('@components/HoldOrRejectEducationalModal', () => () => null);
-jest.mock('@components/HoldSubmitterEducationalModal', () => () => null);
-jest.mock('@components/ReportPDFDownloadModal', () => () => null);
+jest.mock('@components/Modal/FileDownloadModal', () => () => null);
 jest.mock('@components/KYCWall', () => ({
     __esModule: true,
     default: ({children}: {children: (triggerKYCFlow: jest.Mock, buttonRef: React.RefObject<null>) => React.ReactNode}) => children(jest.fn(), {current: null}),
@@ -50,7 +60,7 @@ jest.mock('@hooks/useLocalize', () => ({
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: () => ({isOffline: mockIsOffline})}));
 jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
-    default: () => ({shouldUseNarrowLayout: false, isSmallScreenWidth: false}),
+    default: () => ({shouldUseNarrowLayout: mockShouldUseNarrowLayout, isSmallScreenWidth: mockShouldUseNarrowLayout}),
 }));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1})}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
@@ -60,24 +70,27 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
     __esModule: true,
     default: () => ({
         headerButtonsOptions: [],
+        dropdownButtonsOptions: [],
         selectedPolicyIDs: [],
         selectedTransactionReportIDs: [],
         selectedReportIDs: [],
         businessBankAccountOptions: [],
-        emptyReportsCount: 0,
         isDuplicateOptionVisible: false,
         isDuplicateReportOptionVisible: false,
         allTransactions: {},
         allReports: {},
-        searchData: {},
+        searchData: mockSearchData,
     }),
 }));
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionContext: () => ({
-        selectedTransactions: {tx1: {isSelected: true, reportID: 'report1'}},
+        selectedTransactions: mockSelectedTransactions,
         excludedTransactions: mockExcludedTransactions,
         selectedReports: [],
         areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected,
+    }),
+    useSearchSelectionActions: () => ({
+        clearSelectedTransactions: jest.fn(),
     }),
     useSearchResultsContext: () => ({
         currentSearchResults: {search: {count: mockSearchCount, reportCount: mockSearchReportCount, isLoading: mockSearchIsLoading}},
@@ -98,7 +111,7 @@ if (!queryJSON || !reportQueryJSON) {
     throw new Error('Expected the search queries to be valid');
 }
 
-function makeTransaction(): SelectedTransactions[string] {
+function makeTransaction(reportID = 'report1'): SelectedTransactions[string] {
     return {
         isSelected: true,
         canReject: false,
@@ -110,14 +123,25 @@ function makeTransaction(): SelectedTransactions[string] {
         canUnhold: false,
         isFromOneTransactionReport: false,
         action: CONST.SEARCH.ACTION_TYPES.VIEW,
-        reportID: 'report1',
+        reportID,
         policyID: 'policy1',
         amount: 100,
+        displayAmount: 100,
         currency: 'USD',
     };
 }
 
-function getButtonProps(): {customText: string; isLoading: boolean} {
+/** The wide layout's floating bar, which labels the selection with a count of its own. */
+function getBarProps(): {selectedCount: number; isSelectedCountLoading: boolean} {
+    const props = mockBulkActionBar.mock.calls.at(-1)?.at(0);
+    if (!props) {
+        throw new Error('BulkActionBar was not rendered');
+    }
+    return {selectedCount: props.selectedCount, isSelectedCountLoading: props.isSelectedCountLoading};
+}
+
+/** The narrow layout's dropdown, which is the only place the selection label itself is rendered. */
+function getButtonProps(): MockButtonProps {
     const props = mockButtonWithDropdownMenu.mock.calls.at(-1)?.at(0);
     if (!props) {
         throw new Error('ButtonWithDropdownMenu was not rendered');
@@ -125,18 +149,23 @@ function getButtonProps(): {customText: string; isLoading: boolean} {
     return {customText: props.customText, isLoading: props.isLoading};
 }
 
-describe('SearchBulkActionsButton all-matching label', () => {
+describe('SearchBulkActionsButton all-matching count', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockExcludedTransactions = {};
+        mockSelectedTransactions = {tx1: makeTransaction()};
+        mockSearchData = {};
         mockSearchCount = undefined;
         mockSearchReportCount = undefined;
         mockSearchIsLoading = false;
         mockIsOffline = false;
+        mockSelectedTransactions = {tx1: makeTransaction()};
         mockAreAllMatchingItemsSelected = true;
+        mockShouldUseNarrowLayout = false;
     });
 
     it('shows the all-matching label and keeps loading while the server count is missing', () => {
+        mockShouldUseNarrowLayout = true;
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
@@ -145,11 +174,28 @@ describe('SearchBulkActionsButton all-matching label', () => {
     });
 
     it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
+        mockShouldUseNarrowLayout = true;
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
         expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
+    });
+
+    it('counts the whole matching set on the bar, which has no room for the all-matching label', () => {
+        mockSearchCount = 172;
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getBarProps()).toEqual({selectedCount: 172, isSelectedCountLoading: false});
+    });
+
+    it('keeps the bar loading while the server count is missing, falling back to the loaded count', () => {
+        mockSearchIsLoading = true;
+
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -158,10 +204,11 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:171', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 171, isSelectedCountLoading: false});
     });
 
     it('keeps the numeric label for page-only selection', () => {
+        mockShouldUseNarrowLayout = true;
         mockAreAllMatchingItemsSelected = false;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
@@ -175,7 +222,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('shows the loaded selected count when an expense is excluded offline before the server count is available', () => {
@@ -184,7 +231,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
     });
 
     it('keeps loading for expense reports while the server report count is missing, falling back to the loaded report count', () => {
@@ -192,18 +239,28 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: true});
     });
 
     it('labels expense reports with the server report count, not the expense count', () => {
         // `count` is the expense total; `reportCount` is the matching-report total the Reports tab must show.
         mockSearchCount = 320;
         mockSearchReportCount = 50;
-        mockExcludedTransactions = {tx2: makeTransaction()};
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:50', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 50, isSelectedCountLoading: false});
+    });
+
+    it('subtracts excluded reports from the server report count', () => {
+        mockSearchCount = 320;
+        mockSearchReportCount = 50;
+        mockSelectedTransactions = {tx1: makeTransaction('report1'), tx2: makeTransaction('report2')};
+        mockExcludedTransactions = {tx3: makeTransaction('report3'), tx4: makeTransaction('report3')};
+
+        render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
+
+        expect(getBarProps()).toEqual({selectedCount: 49, isSelectedCountLoading: false});
     });
 
     it('falls back to the loaded report count for expense reports offline before the report count arrives', () => {
@@ -211,6 +268,77 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: false});
+        expect(getBarProps()).toEqual({selectedCount: 1, isSelectedCountLoading: false});
+    });
+});
+
+describe('SearchBulkActionsButton group selection label', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockExcludedTransactions = {};
+        mockSelectedTransactions = {};
+        mockSearchData = {};
+        mockSearchCount = undefined;
+        mockSearchIsLoading = false;
+        mockIsOffline = false;
+        mockAreAllMatchingItemsSelected = false;
+        mockShouldUseNarrowLayout = false;
+    });
+
+    const selectGroups = (...keys: string[]) => {
+        mockSelectedTransactions = Object.fromEntries(keys.map((key) => [key, makeTransaction()]));
+    };
+
+    it('counts the expenses a selected settlement group holds', () => {
+        // Given a selected settlement that holds 12 expenses
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12}};
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cleared`);
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then the count reflects the expenses inside the settlement
+        expect(getBarProps().selectedCount).toBe(12);
+    });
+
+    it('counts a selected cash back group as one item even though it holds no expenses', () => {
+        // Given a selected cash back row, which holds no expenses
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`);
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then it still counts as one selected item, so the header never says 0 selected
+        expect(getBarProps().selectedCount).toBe(1);
+    });
+
+    it('keeps the all-matching count when the cash back row is unchecked after selecting all', () => {
+        // Given every match is selected and the cash back row is then unchecked
+        mockAreAllMatchingItemsSelected = true;
+        mockSearchCount = 50;
+        mockSearchData = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true}};
+        mockExcludedTransactions = {[`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: makeTransaction()};
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then nothing is taken off the server count, because that count only sums expenses and the credit holds none
+        expect(getBarProps().selectedCount).toBe(50);
+    });
+
+    it('adds the cash back row to the expenses of the settlements selected alongside it', () => {
+        // Given a cash back row selected alongside a settlement of 12 expenses
+        mockSearchData = {
+            [`${CONST.SEARCH.GROUP_PREFIX}cashBack`]: {count: 0, isCashBack: true},
+            [`${CONST.SEARCH.GROUP_PREFIX}cleared`]: {count: 12},
+        };
+        selectGroups(`${CONST.SEARCH.GROUP_PREFIX}cashBack`, `${CONST.SEARCH.GROUP_PREFIX}cleared`);
+
+        // When the selection count renders
+        render(<SearchBulkActionsButton queryJSON={queryJSON} />);
+
+        // Then the cash back row adds one to the settlement's expenses
+        expect(getBarProps().selectedCount).toBe(13);
     });
 });

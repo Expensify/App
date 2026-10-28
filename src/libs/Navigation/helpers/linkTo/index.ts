@@ -1,49 +1,72 @@
-import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import {shallowCompare} from '@libs/ObjectUtils';
+import {config as linkingConfig} from '@libs/Navigation/linkingConfig/config';
+import {isRecord, shallowCompare} from '@libs/ObjectUtils';
 
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
-import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
+import type {NavigationPartialRoute, NavigationRoute, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 
 import {getActionFromState} from '@react-navigation/core';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
 
-import type {ActionPayloadParams, LinkToOptions} from './types';
+import type {LinkToOptions} from './types';
 
-import getMinimalAction from './getMinimalAction';
+import getMinimalAction, {isNamedActionPayload} from './getMinimalAction';
 
-const defaultLinkToOptions: LinkToOptions = {
+type FullScreenRoute = Omit<NavigationPartialRoute, 'state'> & Pick<NavigationRoute, 'state'>;
+
+const defaultLinkToOptions = {
     forceReplace: false,
-};
+    shouldSkipInitialSplitNavigatorSidebar: false,
+    skipMatchingFullScreenRoute: false,
+} satisfies Pick<LinkToOptions, 'forceReplace' | 'shouldSkipInitialSplitNavigatorSidebar' | 'skipMatchingFullScreenRoute'>;
+
+/** The split router reads this transient marker from the innermost screen params. */
+function addSkipInitialSidebarParam(params: unknown): Record<string, unknown> {
+    const navigationParams = isRecord(params) ? params : {};
+    if (typeof navigationParams.screen === 'string' && (navigationParams.params === undefined || isRecord(navigationParams.params))) {
+        return {...navigationParams, params: addSkipInitialSidebarParam(navigationParams.params)};
+    }
+    return {...navigationParams, shouldSkipInitialSidebar: true};
+}
+
+function addSkipInitialSidebarParamToAction(action: NavigationAction): NavigationAction {
+    if (!isNamedActionPayload(action.payload)) {
+        return action;
+    }
+    return {...action, payload: {...action.payload, params: addSkipInitialSidebarParam(action.payload.params)}};
+}
 
 /**
  * Leaf screen names that represent the root/landing view of each tab.
  * Used to distinguish plain tab switches from cross-tab deep navigations.
  */
-const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
+const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.INSIGHTS, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
 
-function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+function areNamesAndParamsEqual(currentState: NavigationState, stateFromPath: PartialState<NavigationState>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
     const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
     const areNamesEqual = currentFocusedRoute?.name === targetFocusedRoute?.name;
-    const areParamsEqual = shallowCompare(currentFocusedRoute?.params as Record<string, unknown> | undefined, targetFocusedRoute?.params as Record<string, unknown> | undefined);
+    const areParamsEqual = shallowCompare(
+        isRecord(currentFocusedRoute?.params) ? currentFocusedRoute.params : undefined,
+        isRecord(targetFocusedRoute?.params) ? targetFocusedRoute.params : undefined,
+    );
 
     return areNamesEqual && areParamsEqual;
 }
 
-function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+function arePathAndBackToEqual(stateFromPath: PartialState<NavigationState>) {
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const params = focusedRouteFromPath?.params ?? {};
 
@@ -66,15 +89,22 @@ function isNavigatingToAttachmentScreen(focusedRouteName?: string) {
     return focusedRouteName === SCREENS.REPORT_ATTACHMENTS;
 }
 
+function getReportNavigationIDs(params: NavigationPartialRoute['params']) {
+    return {
+        reportID: params && 'reportID' in params ? params.reportID : undefined,
+        reportActionID: params && 'reportActionID' in params ? params.reportActionID : undefined,
+    };
+}
+
 function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
     if (currentRoute.name !== SCREENS.REPORT || newRoute.name !== SCREENS.REPORT) {
         return false;
     }
 
-    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const currentParams = getReportNavigationIDs(currentRoute.params);
+    const newParams = getReportNavigationIDs(newRoute.params);
 
-    return currentParams?.reportID === newParams?.reportID;
+    return currentParams.reportID === newParams.reportID;
 }
 
 function isNavigatingToReportActionWithinSameReport(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
@@ -82,17 +112,17 @@ function isNavigatingToReportActionWithinSameReport(currentRoute: NavigationPart
         return false;
     }
 
-    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const currentParams = getReportNavigationIDs(currentRoute.params);
+    const newParams = getReportNavigationIDs(newRoute.params);
 
-    return currentParams?.reportID === newParams?.reportID && currentParams.reportActionID !== newParams.reportActionID;
+    return currentParams.reportID === newParams.reportID && currentParams.reportActionID !== newParams.reportActionID;
 }
 
 /**
  * Returns true when both current and target states are within TabNavigator (tab switching).
  * In this case we must keep NAVIGATE (not PUSH) because tab navigators use jumpTo/navigate.
  */
-function isSwitchingTabsWithinTabNavigator(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+function isSwitchingTabsWithinTabNavigator(currentState: NavigationState, stateFromPath: PartialState<NavigationState>) {
     const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
     const targetFullScreenRoute = stateFromPath.routes?.findLast((route) => isFullScreenName(route.name));
 
@@ -103,7 +133,7 @@ function isSwitchingTabsWithinTabNavigator(currentState: NavigationState<RootNav
  * For TAB_NAVIGATOR routes, returns the focused (active) tab screen name.
  * For other routes, returns the last nested route name (original behavior).
  */
-function getActiveScreenInRoute(route: NavigationPartialRoute): string | undefined {
+function getActiveScreenInRoute(route: FullScreenRoute): string | undefined {
     const tabState = getTabState(route);
     if (tabState) {
         const index = tabState.index ?? 0;
@@ -112,11 +142,7 @@ function getActiveScreenInRoute(route: NavigationPartialRoute): string | undefin
     return route.state?.routes?.at(-1)?.name;
 }
 
-function shouldChangeToMatchingFullScreen(
-    newFocusedRoute: ReturnType<typeof findFocusedRoute>,
-    matchingFullScreenRoute: NavigationPartialRoute,
-    lastFullScreenRoute: NavigationPartialRoute,
-) {
+function shouldChangeToMatchingFullScreen(newFocusedRoute: ReturnType<typeof findFocusedRoute>, matchingFullScreenRoute: FullScreenRoute, lastFullScreenRoute: FullScreenRoute) {
     if (matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
         return true;
     }
@@ -128,19 +154,14 @@ function shouldChangeToMatchingFullScreen(
         return true;
     }
 
-    // We always want the fullscreen route of SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD to be the SUBSCRIPTION tab of SCREENS.SETTINGS.
-    // The add payment card page can be opened via the Global create button from the create expense flow, so even when we are already on SCREENS.SETTINGS, with any tab currently open,
-    // the add payment card page can still be opened. Therefore, checking only the fullscreen name above is not sufficient, and the check below using the last route name is necessary.
-    return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
+    return false;
 }
 
 /**
  * Preserves nested split state under `params.state`, where React Navigation expects it.
  * Omitting it rebuilds the workspace split without its policy-scoped route history.
  */
-function getMatchingFullScreenRouteParams(
-    matchingFullScreenRoute: NavigationPartialRoute,
-): NavigationPartialRoute['params'] | {screen: string; params: NavigationPartialRoute['params'] | undefined} {
+function getMatchingFullScreenRouteParams(matchingFullScreenRoute: FullScreenRoute): FullScreenRoute['params'] | {screen: string; params: FullScreenRoute['params'] | undefined} {
     const lastRoute = matchingFullScreenRoute.state?.routes?.at(-1);
     if (!lastRoute) {
         return matchingFullScreenRoute.params;
@@ -159,17 +180,16 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
 
-    // We know that the options are always defined because we have default options.
-    const {forceReplace} = {...defaultLinkToOptions, ...options} as Required<LinkToOptions>;
+    const {forceReplace, shouldSkipInitialSplitNavigatorSidebar, skipMatchingFullScreenRoute} = {...defaultLinkToOptions, ...options};
 
-    const normalizedPath = normalizePath(path) as Route;
-    const normalizedPathAfterRedirection = (getMatchingNewRoute(normalizedPath) ?? normalizedPath) as Route;
+    const normalizedPath = normalizePath(path);
+    const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
-    const currentState = navigation.getRootState() as PlatformStackNavigationState<RootNavigatorParamList>;
+    const stateFromPath = getStateFromPath(normalizedPathAfterRedirection);
+    const currentState = navigation.getRootState();
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -179,7 +199,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
-    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig);
 
     // If there is no action, just reset the whole state.
     if (!action) {
@@ -191,8 +211,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     if (areNamesAndParamsEqual(currentState, stateFromPath) || arePathAndBackToEqual(stateFromPath)) {
         return;
     }
-
-    const typedPayload = (action as {payload: {name?: string; params?: ActionPayloadParams}}).payload;
 
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
@@ -221,38 +239,38 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // When something other than TAB_NAVIGATOR is on top of the stack and we're navigating
     // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
     const currentTopRoute = currentState.routes[currentState.index];
-    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
-        (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && 'payload' in action && isNamedActionPayload(action.payload) && action.payload.name === NAVIGATORS.TAB_NAVIGATOR) {
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
     // Cross-tab navigation to a deep leaf (e.g. Settings → Concierge): PUSH a new TAB_NAVIGATOR so
     // swipe-back reveals the original tab. Skipped when the target is a tab root (plain tab switch).
-    const targetTopRoute = stateFromPath.routes?.at(-1) as NavigationPartialRoute | undefined;
-    const currentActiveScreen = currentTopRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveScreenInRoute(currentTopRoute as NavigationPartialRoute) : undefined;
+    const targetTopRoute = stateFromPath.routes?.at(-1);
+    const currentActiveScreen = currentTopRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveScreenInRoute(currentTopRoute) : undefined;
     const targetActiveScreen = targetTopRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveScreenInRoute(targetTopRoute) : undefined;
     const isTargetAtTabRoot = ROOT_TAB_SCREENS.has(focusedRouteFromPath?.name ?? '');
     if (currentActiveScreen && targetActiveScreen && currentActiveScreen !== targetActiveScreen && !isTargetAtTabRoot) {
-        (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-        navigation.dispatch(action);
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+        navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(action) : action);
         return;
     }
 
     // If we deep link to a RHP page, we want to make sure we have the correct full screen route under the overlay.
     // Skip when current top is already RHP — the underlying tab is already in place, and the extra dispatch
     // would corrupt the navigation state. Issue: https://github.com/Expensify/App/issues/89006
-    if (shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!skipMatchingFullScreenRoute && shouldCheckFullScreenRouteMatching(action) && currentState.routes[currentState.index]?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         const newFocusedRoute = findFocusedRoute(stateFromPath);
         if (newFocusedRoute) {
             // getMatchingFullScreenRoute returns a TAB_NAVIGATOR wrapper; unwrap it to get the
             // actual inner tab route (e.g. REPORTS_SPLIT_NAVIGATOR) at the correct index.
             const matchingTabNavigatorRoute = getMatchingFullScreenRoute(newFocusedRoute);
             const matchingTabState = matchingTabNavigatorRoute ? getTabState(matchingTabNavigatorRoute) : undefined;
-            const matchingFullScreenRoute = matchingTabState ? (matchingTabState.routes?.at(matchingTabState.index ?? 0) as NavigationPartialRoute | undefined) : undefined;
+            const matchingFullScreenRoute: FullScreenRoute | undefined = matchingTabState ? matchingTabState.routes?.at(matchingTabState.index ?? 0) : undefined;
             // Full-screen routes only exist inside TAB_NAVIGATOR, so look at the active tab directly.
             const tabRoute = currentState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-            const tabState = tabRoute ? getTabState(tabRoute as NavigationPartialRoute) : undefined;
+            const tabState = tabRoute ? getTabState(tabRoute) : undefined;
             const tabNavigatorStateKey = tabRoute?.state?.key;
-            const lastFullScreenRoute = tabState?.routes?.at(tabState.index ?? 0) as NavigationPartialRoute | undefined;
+            const lastFullScreenRoute: FullScreenRoute | undefined = tabState?.routes?.at(tabState.index ?? 0);
             if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute)) {
                 const matchingFullScreenRouteInTabRootState = tabState?.routes?.find((route) => route.name === matchingFullScreenRoute.name);
                 if (matchingFullScreenRouteInTabRootState && matchingFullScreenRouteInTabRootState.state === undefined) {
@@ -282,13 +300,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         }
     }
 
-    const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (
-        action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
-        action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
-        !isFullScreenName((minimalAction.payload as {name?: string} | undefined)?.name)
-    ) {
-        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-    }
-    navigation.dispatch(minimalAction);
+    const {action: resolvedAction, isFocusedRouteInDifferentScope} = getMinimalAction(action, navigation.getRootState());
+    const resolvedActionName = isNamedActionPayload(resolvedAction.payload) ? resolvedAction.payload.name : undefined;
+
+    // A focused split in another workspace or domain needs a sibling in the same stack.
+    const shouldPushSiblingSplit = isFocusedRouteInDifferentScope && resolvedAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
+    const shouldPushTabNavigator = action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.payload.name === NAVIGATORS.TAB_NAVIGATOR && !isFullScreenName(resolvedActionName);
+    const minimalAction: NavigationAction = shouldPushSiblingSplit || shouldPushTabNavigator ? {...resolvedAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH} : resolvedAction;
+    navigation.dispatch(shouldSkipInitialSplitNavigatorSidebar ? addSkipInitialSidebarParamToAction(minimalAction) : minimalAction);
 }

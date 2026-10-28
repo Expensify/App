@@ -3,6 +3,7 @@ import {addMiddleware} from '@libs/Request';
 import {
     FailureTracking,
     FraudMonitoring,
+    GlobalReimbursementPayError,
     handleDeletedAccount,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
@@ -12,6 +13,8 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReconcileBulkEditReportAction,
+    ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -51,8 +54,14 @@ function registerMiddlewares() {
     // Handle supportal permission denial centrally
     addMiddleware(SupportalPermission);
 
+    // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
+    addMiddleware(GlobalReimbursementPayError);
+
     // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
     addMiddleware(HandleUnusedOptimisticID);
+
+    // Rewrites the remaining serialized requests when the response maps an optimistic agent accountID to the server-assigned one.
+    addMiddleware(ReplaceOptimisticAgentAccountID);
 
     addMiddleware(Pagination);
 
@@ -68,6 +77,9 @@ function registerMiddlewares() {
     // HandleMovedScanFailedExpenses - Retires the optimistic report built for scan-failed expenses moved on payment once the backend answers
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
+
+    // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
+    addMiddleware(ReconcileBulkEditReportAction);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.

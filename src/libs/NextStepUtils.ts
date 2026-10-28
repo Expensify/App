@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -11,8 +11,9 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
@@ -24,6 +25,14 @@ import {
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldShowMarkAsDone,
 } from './ReportUtils';
+import {
+    getAutoReportingOffsetsForFrequency,
+    getPolicyAutoReportingOffsets,
+    getWeekdayKey,
+    getWorkspaceTimezone,
+    LAST_WEEKDAY_OFFSETS,
+    sortSemiMonthlyOffsets,
+} from './SubmissionScheduleUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
@@ -45,6 +54,7 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
+    rules: OnyxCollection<Rule>;
 };
 
 type GetReportNextStepParams = {
@@ -55,7 +65,60 @@ type GetReportNextStepParams = {
     transactionViolations: OnyxCollection<TransactionViolations>;
     currentUserEmail: string;
     currentUserAccountID: number;
+    rules: OnyxCollection<Rule>;
 };
+
+/** The backend still sends the legacy ETA key for older clients, so a custom schedule is read from the schedule fields sent with it. */
+function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string | undefined {
+    const frequency = eta?.autoReportingFrequency;
+    const {offset, secondOffset} = getAutoReportingOffsetsForFrequency(frequency, {offset: eta?.autoReportingOffset, secondOffset: eta?.autoReportingOffsetSecondSemiMonthly});
+    const formatDay = (day: number) => format(setDate(new Date(), day), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale});
+
+    // Default schedules keep their legacy ETA text
+    switch (frequency) {
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+            if (offset === CONST.POLICY.AUTO_REPORTING_WEEKDAYS.SUNDAY) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.weekly.${getWeekdayKey(Number(offset))}`);
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
+            const sortedOffsets = sortSemiMonthlyOffsets({offset, secondOffset});
+            const isDefaultSchedule =
+                sortedOffsets.offset === CONST.POLICY.AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET && sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH;
+            if (typeof sortedOffsets.offset !== 'number' || isDefaultSchedule) {
+                return undefined;
+            }
+            const firstDay = formatDay(sortedOffsets.offset);
+            if (sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                return translate('nextStep.scheduleEta.twiceAMonthAndLastDay', {firstDay});
+            }
+            if (typeof sortedOffsets.secondOffset !== 'number') {
+                return undefined;
+            }
+            return translate('nextStep.scheduleEta.twiceAMonth', {firstDay, secondDay: formatDay(sortedOffsets.secondOffset)});
+        }
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            const lastWeekdayOffset = LAST_WEEKDAY_OFFSETS.find((lastWeekday) => lastWeekday === offset);
+            if (!lastWeekdayOffset) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.monthlyLastWeekday.${lastWeekdayOffset}`);
+        }
+        default:
+            return undefined;
+    }
+}
+
+/** Sent with the optimistic ETA so it reads the same as the one the backend sends. */
+function getScheduleETAFields(policy: OnyxEntry<Policy>): NonNullable<ReportNextStep['eta']> {
+    const {offset, secondOffset} = getPolicyAutoReportingOffsets(policy);
+    return {
+        autoReportingFrequency: getCorrectedAutoReportingFrequency(policy),
+        autoReportingOffset: offset,
+        autoReportingOffsetSecondSemiMonthly: secondOffset,
+        timeZone: getWorkspaceTimezone(policy),
+    };
+}
 
 function buildNextStepMessage(
     nextStep: ReportNextStep,
@@ -65,7 +128,7 @@ function buildNextStepMessage(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, translate}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -77,7 +140,11 @@ function buildNextStepMessage(
 
     let eta: string | undefined;
     let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    if (nextStep.eta?.etaKey) {
+    const scheduleETA = getScheduleETA(nextStep.eta, translate, dateFnsLocale);
+    if (scheduleETA) {
+        eta = scheduleETA;
+        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
+    } else if (nextStep.eta?.etaKey) {
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
@@ -116,6 +183,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
         isTrackIntentUser,
+        rules,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -127,7 +195,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const hasTransactions = doesReportContainTransactions(report);
-    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
+    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
@@ -166,7 +234,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy, rules})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -198,23 +266,25 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                         nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
-                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK};
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, ...getScheduleETAFields(policy)};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
-                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY};
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY, ...getScheduleETAFields(policy)};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
                         if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
-                        } else if (policy?.autoReportingOffset !== undefined) {
+                        } else if (typeof policy?.autoReportingOffset === 'number') {
                             let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
                             if (isPast(etaDateTime)) {
                                 etaDateTime = addMonths(etaDateTime, 1);
                             }
 
                             nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
+                        } else {
+                            nextStep.eta = getScheduleETAFields(policy);
                         }
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
@@ -233,6 +303,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                         isTrackIntentUser,
                         report,
                         policy,
+                        rules,
                     })
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
@@ -279,19 +350,25 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
+            const reimbursementChoice = getReimbursementChoice(policy);
+            const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
 
-            // Self review
+            // The report still needs to be paid whether or not the approver is the one who pays it.
             nextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: reimburserAccountID,
             };
             break;
+        }
 
         // Clear nextStep
         default:
@@ -316,7 +393,28 @@ function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep
     };
 }
 
-function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, transactions, policy, transactionViolations, currentUserEmail, currentUserAccountID}: GetReportNextStepParams) {
+function buildChangeWorkspaceNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+        icon: CONST.NEXT_STEP.ICONS.BOX,
+    };
+}
+
+function getReportNextStep({
+    moneyRequestReport,
+    moneyRequestReportOwnerLogin,
+    transactions,
+    policy,
+    transactionViolations,
+    currentUserEmail,
+    currentUserAccountID,
+    rules,
+}: GetReportNextStepParams) {
+    // Reports on an archived workspace can't be acted on until they're moved to another workspace
+    if (isArchivedPolicy(policy)) {
+        return buildChangeWorkspaceNextStep();
+    }
+
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const shouldShowNoFurtherAction =
         reimbursableSpend === 0 &&
@@ -339,7 +437,7 @@ function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, tr
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
@@ -355,11 +453,12 @@ function getReportNextStep({moneyRequestReport, moneyRequestReportOwnerLogin, tr
 
 /**
  * Whether to show the DEW approve-error next step.
- * Only manual approve failures (`automaticAction` false/absent) for the current approver should show it.
- * Auto-approval blocks keep the normal workflow next step.
+ * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
+ * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
+ * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
  */
-function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean, isCurrentUserTheApprover: boolean): boolean {
-    if (!hasDEWApproveFailed || !isCurrentUserTheApprover || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean): boolean {
+    if (!hasDEWApproveFailed || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
         return false;
     }
 

@@ -16,7 +16,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import {notifyNewAction} from './Report';
+import {notifyNewAction} from './Report/reportActionSubscribers';
 
 type ChronosTimerOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_CHRONOS_TIME_TRACKING>;
 
@@ -91,8 +91,8 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, p
     const lastMessageText = formatReportLastMessageText(getReportActionMessage(reportAction)?.text ?? '');
 
     // Capture the report's current last-visible message so we can restore it if the optimistic comment fails to send.
-    const previousLastVisibleAction = getLastVisibleAction(reportID);
-    const {lastMessageText: previousLastMessageText = ''} = getLastVisibleMessage(reportID);
+    const previousLastVisibleAction = getLastVisibleAction(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
+    const {lastMessageText: previousLastMessageText = ''} = getLastVisibleMessage(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
     const failureReport: Partial<Report> = previousLastMessageText
         ? {lastMessageText: previousLastMessageText, lastVisibleActionCreated: previousLastVisibleAction?.created, lastActorAccountID: previousLastVisibleAction?.actorAccountID}
         : {lastMessageText: '', lastVisibleActionCreated: ''};

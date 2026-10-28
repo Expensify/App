@@ -14,16 +14,19 @@ import useLocalize from '@hooks/useLocalize';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getCategoryDescriptionHint} from '@libs/CategoryUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
+import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
 import {hasReceipt} from '@libs/TransactionUtils';
 
@@ -37,15 +40,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -72,14 +75,16 @@ function DynamicIOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
+    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -90,12 +95,14 @@ function DynamicIOURequestStepDescription({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
-    const currentDescriptionInMarkdown = useMemo(() => {
-        if (!isTransactionDraft || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) {
-            return Parser.htmlToMarkdown(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? ''));
-        }
-        return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
-    }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
+    let currentDescriptionInMarkdown;
+    if (!isTransactionDraft || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) {
+        currentDescriptionInMarkdown = Parser.htmlToMarkdown(
+            isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? ''),
+        );
+    } else {
+        currentDescriptionInMarkdown = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+    }
 
     const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
     const [isSaved, setIsSaved] = useState(false);
@@ -105,24 +112,22 @@ function DynamicIOURequestStepDescription({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
-            const errors = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
+        const errors = {};
 
-            if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, 'moneyRequestComment', translate('common.error.characterLimitExceedCounter', values.moneyRequestComment.length, CONST.DESCRIPTION_LIMIT));
-            }
+        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+            addErrorMessage(errors, 'moneyRequestComment', translate('common.error.characterLimitExceedCounter', values.moneyRequestComment.length, CONST.DESCRIPTION_LIMIT));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
@@ -152,7 +157,9 @@ function DynamicIOURequestStepDescription({
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
+                isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
@@ -160,6 +167,7 @@ function DynamicIOURequestStepDescription({
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
+                policyVendors,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
@@ -169,6 +177,7 @@ function DynamicIOURequestStepDescription({
                 violations: allTransactionViolations,
                 getCurrencyDecimals,
                 getCurrencySymbol,
+                rules,
             });
         } else {
             setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft, hasReceipt(transaction));
@@ -181,7 +190,7 @@ function DynamicIOURequestStepDescription({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
-    const descriptionHint = transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
+    const descriptionHint = getCategoryDescriptionHint(policyCategories, transaction?.category, arePolicyRulesEnabled(policy, policyCategories));
 
     useDiscardChangesConfirmation({
         onCancel: () => {

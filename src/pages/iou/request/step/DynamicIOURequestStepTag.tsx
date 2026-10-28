@@ -1,46 +1,37 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
-import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUpdateTransactionTag from '@hooks/useUpdateTransactionTag';
 
-import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/MoneyRequest';
-import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
-import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isSelfDM} from '@libs/ReportUtils';
-import {getUpdatedTransactionTag, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagArrayFromName, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -62,7 +53,6 @@ function DynamicIOURequestStepTag({
 }: DynamicIOURequestStepTagProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAG.path);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const allTransactionViolations = useAllTransactionViolations(transactionID);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -80,25 +70,10 @@ function DynamicIOURequestStepTag({
     const policy = policyFromTransaction ?? (isEditingSplit && isSelfDM(report) ? policyForMovingExpenses : undefined);
 
     const policyID = policy?.id;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
-    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
-    const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
-    const {currentSearchHash} = useSearchQueryContext();
     const {translate} = useLocalize();
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
@@ -109,37 +84,45 @@ function DynamicIOURequestStepTag({
     const transactionTag = getTag(currentTransaction);
     const tag = getTag(currentTransaction, tagListIndex);
 
-    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policyTagLists = getTagLists(policyTags);
 
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
 
     // Surface the parent (original) transaction's tag for SPLIT_EXPENSE edits so the user can
     // re-select an "orphaned" tag from a deleted source workspace even when the active workspace
     // has no tags configured. Without this the picker would render an empty list with no way to
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const parentTransactionTag = useMemo(() => {
-        if (!isEditingSplit) {
-            return '';
-        }
+    let parentTransactionTag;
+    if (!isEditingSplit) {
+        parentTransactionTag = '';
+    } else {
         const parentTransactionID = transaction?.comment?.originalTransactionID;
         if (!parentTransactionID) {
-            return '';
+            parentTransactionTag = '';
+        } else {
+            const parentTransaction = allTransactionsForSplitParent?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${parentTransactionID}`];
+            parentTransactionTag = parentTransaction?.tag ?? '';
         }
-        const parentTransaction = allTransactionsForSplitParent?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${parentTransactionID}`];
-        return parentTransaction?.tag ?? '';
-    }, [isEditingSplit, transaction?.comment?.originalTransactionID, allTransactionsForSplitParent]);
+    }
 
-    const additionalTagsToInclude = useMemo(() => {
-        if (!parentTransactionTag) {
-            return undefined;
-        }
+    let additionalTagsToInclude: string[] | undefined;
+    if (!parentTransactionTag) {
+        additionalTagsToInclude = undefined;
+    } else {
         const parentTagAtIndex = getTagArrayFromName(parentTransactionTag).at(tagListIndex);
-        return parentTagAtIndex ? [parentTagAtIndex] : undefined;
-    }, [parentTransactionTag, tagListIndex]);
+        additionalTagsToInclude = parentTagAtIndex ? [parentTagAtIndex] : undefined;
+    }
 
-    const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists) || !!additionalTagsToInclude?.length;
+    // Backfill the policy's tags here too, not just inside TagPicker: on a lazy-loaded account an absent collection
+    // makes `hasEnabledTags` false, so without this the empty state renders, TagPicker never mounts, and the read it
+    // owns never fires — leaving the user unable to assign a tag to an untagged expense.
+    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
+
+    // An absent tags collection means "not read yet", not "this policy has no tags", so keep the picker mounted while
+    // the read is in flight and let it show its own loading state. Once the tags land, a genuinely tag-less policy
+    // falls back to the empty state as before.
+    const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists) || !!additionalTagsToInclude?.length || isLoadingPolicyTags;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
@@ -151,51 +134,10 @@ function DynamicIOURequestStepTag({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
+    const {updateTag: updateTransactionTag} = useUpdateTransactionTag({transactionID, transaction, report, policy, policyTags, tagListIndex, isEditing, isEditingSplit});
+
     const updateTag = (selectedTag: Partial<OptionData>) => {
-        const updatedTag = getUpdatedTransactionTag({
-            transactionTag,
-            selectedTagName: selectedTag.searchText ?? '',
-            currentTag: tag,
-            tagListIndex,
-            policyTags,
-            hasDependentTags,
-            hasMultipleTagLists: policy?.hasMultipleTagLists ?? false,
-        });
-
-        if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
-            saveAndNavigateBack();
-            return;
-        }
-
-        if (isEditing) {
-            updateMoneyRequestTag({
-                transactionID,
-                transactionThreadReport: report,
-                parentReport,
-                iouReportOwnerLogin,
-                tag: updatedTag,
-                policy,
-                policyTagList: policyTags,
-                policyRecentlyUsedTags,
-                policyCategories,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
-                isASAPSubmitBetaEnabled,
-                hash: currentSearchHash,
-                isOffline,
-                delegateAccountID,
-                reportPolicyTags,
-                isTrackIntentUser,
-                violations: allTransactionViolations,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-            });
-            saveAndNavigateBack();
-            return;
-        }
-
-        setMoneyRequestTag(transactionID, updatedTag);
+        updateTransactionTag(selectedTag.searchText ?? '');
         saveAndNavigateBack();
     };
 
@@ -214,7 +156,7 @@ function DynamicIOURequestStepTag({
                         icon={illustrations.EmptyStateExpenses}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                     />
                     {isPolicyAdmin(policy) && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>

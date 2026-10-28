@@ -56,9 +56,6 @@ type MapViewProps = {
     /** Unit of measurement for distance */
     unit?: Unit;
 
-    /** Reference to the outerElement */
-    ref?: React.ForwardedRef<MapViewHandle>;
-
     shouldDisplayCurrentLocation?: boolean;
 
     /** Whether it should display the compass overlay on the map */
@@ -78,6 +75,11 @@ type GPSMapViewProps = Omit<MapViewProps, 'directionCoordinates' | 'initialState
 
     /** List of coordinates which together forms a direction. */
     directionCoordinates: Coordinate[][];
+};
+
+type GPSMapViewContentProps = Omit<GPSMapViewProps, 'accessToken'> & {
+    /** Whether the foreground location permissions are granted */
+    foregroundLocationPermissionsGranted: boolean;
 };
 
 type GPSDirectionProps = {
@@ -184,14 +186,6 @@ type WayPoint = {
     markerType: MapMarkerType;
 };
 
-/** Represents a handle to interact with a map view. */
-type MapViewHandle = {
-    flyTo: (location: Coordinate, zoomLevel: number, animationDuration?: number) => void;
-
-    /** Fit the map view to a bounding box */
-    fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
-};
-
 type DistanceSymbolMarkerProps = {distanceSymbolCoordinate: Coordinate; children: React.ReactNode; onPress: () => void};
 
 type AlternateDirectionsProps = Required<Pick<DirectionsProps, 'directionCoordinates' | 'alternateDirection'>> & Pick<DirectionsProps, 'setIsAlternateDirectionSelected'>;
@@ -200,6 +194,7 @@ export type {
     WayPoint,
     MapViewProps,
     GPSMapViewProps,
+    GPSMapViewContentProps,
     DirectionProps,
     PendingMapViewProps,
     Coordinate,

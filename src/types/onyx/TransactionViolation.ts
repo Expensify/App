@@ -4,6 +4,8 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 import type {ValueOf} from 'type-fest';
 
+import type {RuleFilterNode} from './RuleFilters';
+
 /**
  * Names of violations.
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
@@ -115,14 +117,20 @@ type TransactionViolationData = {
     /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
     missingFields?: string[];
 
-    /** True when the violation should render Xero "Supplier" wording instead of the default "Vendor" copy */
-    isSupplierViolation?: boolean;
-
     /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
     startDate?: string;
 
     /** End date of the rate's valid range (for customUnitRateOutOfDateRange) */
     endDate?: string;
+
+    /** Number of nights the limit was averaged over, for overLimit/overCategoryLimit on a multi-day reservation */
+    nights?: number;
+
+    /** ID of the rule that triggered this violation */
+    ruleID?: number;
+
+    /** Filters from the rule that triggered this violation */
+    filters?: RuleFilterNode;
 };
 
 /** Model of a transaction violation */

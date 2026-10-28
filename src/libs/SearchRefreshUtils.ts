@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {search} from './actions/Search';
 
@@ -10,9 +10,11 @@ type RefreshSearchParams = {
     shouldCalculateTotals: boolean;
     isOffline: boolean;
     isLoading: boolean;
+    /** Keeps a refresh of the Trips search asking for trip rooms, or it overwrites them with travel expenses */
+    shouldReturnTripRooms: boolean;
 };
 
-function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKey, shouldCalculateTotals, isOffline, isLoading}: RefreshSearchParams) {
+function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKey, shouldCalculateTotals, isOffline, isLoading, shouldReturnTripRooms}: RefreshSearchParams) {
     if (!currentSearchQueryJSON || isOffline) {
         return;
     }
@@ -22,6 +24,7 @@ function refreshSearchAfterReportAction({currentSearchQueryJSON, currentSearchKe
         offset: 0,
         queryJSON: currentSearchQueryJSON,
         isLoading,
+        shouldReturnTripRooms,
     });
 }
 

@@ -31,7 +31,6 @@ type NumericTextInputProps = {
     | 'prefixContainerStyle'
     | 'shouldApplyPaddingToContainer'
     | 'shouldUseDefaultLineHeightForPrefix'
-    | 'submitBehavior'
     | 'testID'
     | 'touchableInputWrapperStyle'
 >;

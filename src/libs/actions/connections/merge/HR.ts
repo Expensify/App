@@ -67,8 +67,5 @@ function updateMergeHRGroups(policyID: string, groups: string[], currentGroups?:
     write(WRITE_COMMANDS.UPDATE_MERGE_GROUPS, {policyID, groups}, {optimisticData, successData, failureData});
 }
 
-function setMergeHRInitialSyncModalShown(policyID: string) {
-    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_MERGE_HR_INITIAL_SYNC_MODAL_SHOWN}${policyID}`, true);
-}
-
-export {updateMergeHRGroups, setMergeHRInitialSyncModalShown};
+// eslint-disable-next-line import/prefer-default-export
+export {updateMergeHRGroups};

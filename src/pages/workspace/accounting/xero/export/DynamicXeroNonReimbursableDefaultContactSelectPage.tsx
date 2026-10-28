@@ -3,17 +3,18 @@ import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useInitialValue from '@hooks/useInitialValue';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
+import {getXeroSuppliers, isXeroVendorMatchingActive, settingsPendingAction, sortVendors} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -22,9 +23,9 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 // Empty string persisted to defaultVendor when the admin wants to disable the fallback
@@ -34,119 +35,109 @@ const CLEAR_DEFAULT_VENDOR_VALUE = '';
 
 function DynamicXeroNonReimbursableDefaultContactSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const xeroConfig = policy?.connections?.xero?.config;
     const currentContactID = xeroConfig?.defaultVendor;
 
-    // Match the parent page's gate so direct deep-links (or stale-open tabs after the beta is
-    // revoked) cannot reach the supplier updater. The parent page hides the row when the feature
-    // is off, but the route remains addressable on its own. Gated on Xero specifically being
-    // configured — not the global hasVendorFeature predicate — so dual-connected workspaces mid
-    // Xero tenant switch (config.isConfigured=false with stale data.contacts) cannot persist a
-    // defaultVendor from the prior tenant.
-    const isFeatureAvailable = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING) && isXeroVendorMatchingActive(policy);
+    // Match the parent page's gate so a direct deep link cannot reach the supplier updater. The
+    // parent page hides the row when the feature is off, but the route remains addressable on its
+    // own. The gate checks that Xero itself is configured instead of using the global
+    // hasVendorFeature predicate, so a workspace in the middle of a Xero tenant switch, where
+    // config.isConfigured is false and data.contacts still holds the previous tenant's contacts,
+    // cannot persist a defaultVendor from that tenant.
+    const isFeatureAvailable = isXeroVendorMatchingActive(policy);
 
-    const suppliers = useMemo(() => getXeroSuppliers(policy), [policy]);
+    const suppliers = getXeroSuppliers(policy);
+    const sortedSuppliers = sortVendors(suppliers, localeCompare);
     const [searchText, setSearchText] = useState('');
 
     // Prepend a "None" row so an admin can persist an empty default — without it the picker has
     // no way to remove a stale or deleted supplier and the optional setting becomes sticky.
-    const clearOption: SelectorType = useMemo(
-        () => ({
-            value: CLEAR_DEFAULT_VENDOR_VALUE,
-            text: translate('common.none'),
-            keyForList: CLEAR_DEFAULT_VENDOR_VALUE,
-            isSelected: !currentContactID,
-        }),
-        [translate, currentContactID],
-    );
+    const clearOption: SelectorType = {
+        value: CLEAR_DEFAULT_VENDOR_VALUE,
+        text: translate('common.none'),
+        keyForList: CLEAR_DEFAULT_VENDOR_VALUE,
+        isSelected: !currentContactID,
+    };
 
-    const supplierOptions: SelectorType[] = useMemo(
-        () =>
-            suppliers.map((supplier) => ({
-                value: supplier.id,
-                text: supplier.name,
-                keyForList: supplier.id,
-                isSelected: supplier.id === currentContactID,
-            })),
-        [suppliers, currentContactID],
-    );
+    const supplierOptions: SelectorType[] = sortedSuppliers.map((supplier) => ({
+        value: supplier.id,
+        text: supplier.name,
+        keyForList: supplier.id,
+        isSelected: supplier.id === currentContactID,
+    }));
 
     // Match the threshold the Company Cards export picker uses for its search input — Xero
     // tenants with hundreds or thousands of contacts need filtering, but a 5-supplier workspace
     // doesn't need the extra search row.
     const shouldShowTextInput = supplierOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
-    const filteredSupplierOptions = useMemo(
-        () => (shouldShowTextInput ? tokenizedSearch(supplierOptions, searchText, (option) => [option.text ?? '']) : supplierOptions),
-        [shouldShowTextInput, supplierOptions, searchText],
-    );
-
-    // Only prepend the clear row when there's a default to clear or there are suppliers to choose
-    // between. Without this guard, an unsynced workspace with no defaultVendor set would render
-    // `[None]` and never show the noSuppliersFound BlockingView (SelectionScreen only renders
-    // listEmptyContent when data is empty). The clear row stays visible regardless of the search
-    // term so it's always reachable for clearing an existing default.
+    // Only include the clear row when there's a default to clear or there are suppliers to choose between. Without this
+    // guard, an unsynced workspace with no defaultVendor set would render `[None]` and never show the noVendorsFound
+    // BlockingView (SelectionScreen only renders listEmptyContent when data is empty).
     const shouldShowClearOption = !!currentContactID || supplierOptions.length > 0;
-    const data: SelectorType[] = useMemo(
-        () => (shouldShowClearOption ? [clearOption, ...filteredSupplierOptions] : filteredSupplierOptions),
-        [shouldShowClearOption, clearOption, filteredSupplierOptions],
-    );
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+    // Keep the clear row inside the ordered list so a pinned selection sits above it (matching the other account
+    // pickers, where "Default"/"None" shows below the selected item). Freeze the pinned value at mount so the optimistic
+    // update on select doesn't reorder the list for a frame before the page navigates back.
+    const initialContactID = useInitialValue(() => currentContactID);
+    const allOptions = shouldShowClearOption ? [clearOption, ...supplierOptions] : supplierOptions;
+    const orderedOptions = shouldShowTextInput ? moveInitialSelectionToTop(allOptions, initialContactID ? [initialContactID] : []) : allOptions;
 
-    const selectSupplier = useCallback(
-        ({value}: SelectorType) => {
-            // If the screen render race-ended with isFeatureAvailable still truthy and the user
-            // managed to tap, refuse to persist the update.
-            if (!isFeatureAvailable) {
-                goBack();
-                return;
-            }
+    // Keep the clear row visible regardless of the search term so it stays reachable while filtering.
+    const data: SelectorType[] = shouldShowTextInput
+        ? orderedOptions.filter((option) => option.value === CLEAR_DEFAULT_VENDOR_VALUE || tokenizedSearch([option], searchText, (item) => [item.text ?? '']).length > 0)
+        : orderedOptions;
 
-            // Treat the clear row and an already-empty default as the same state so picking
-            // "None" on a workspace that never had a default doesn't fire a no-op write.
-            const isAlreadySelected = value === currentContactID || (!value && !currentContactID);
-            if (!isAlreadySelected && policyID) {
-                updateManyPolicyConnectionConfigs(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.XERO,
-                    {[CONST.XERO_CONFIG.DEFAULT_VENDOR]: value},
-                    {[CONST.XERO_CONFIG.DEFAULT_VENDOR]: currentContactID},
-                );
-            }
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path);
+
+    const goBack = () => {
+        Navigation.goBack(backPath);
+    };
+
+    const selectSupplier = ({value}: SelectorType) => {
+        // If the screen render race-ended with isFeatureAvailable still truthy and the user
+        // managed to tap, refuse to persist the update.
+        if (!isFeatureAvailable) {
             goBack();
-        },
-        [currentContactID, policyID, isFeatureAvailable, goBack],
+            return;
+        }
+
+        // Treat the clear row and an already-empty default as the same state so picking
+        // "None" on a workspace that never had a default doesn't fire a no-op write.
+        const isAlreadySelected = value === currentContactID || (!value && !currentContactID);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
+            updateManyPolicyConnectionConfigs(
+                policyID,
+                CONST.POLICY.CONNECTIONS.NAME.XERO,
+                {[CONST.XERO_CONFIG.DEFAULT_VENDOR]: value},
+                {[CONST.XERO_CONFIG.DEFAULT_VENDOR]: currentContactID},
+            );
+        }
+        goBack();
+    };
+
+    const listHeaderContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.defaultVendorSelectHeader')}</Text>
+        </View>
     );
 
-    const listHeaderContent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.defaultVendorSelectHeader')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noSuppliersFound')}
-                subtitle={translate('workspace.xero.noSuppliersFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.xero.noVendorsFound')}
+            subtitle={translate('workspace.xero.noVendorsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

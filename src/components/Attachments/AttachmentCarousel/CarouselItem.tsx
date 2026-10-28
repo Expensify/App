@@ -1,6 +1,6 @@
 import AttachmentView from '@components/Attachments/AttachmentView';
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
@@ -76,7 +76,6 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
                 accessibilityRole={CONST.ROLE.BUTTON}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 accessibilityLabel={item.file?.name || translate('attachmentView.unknownFilename')}
                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
             >

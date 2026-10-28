@@ -1,6 +1,6 @@
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {BlurEvent, View} from 'react-native';
 
 import {useRef, useState} from 'react';
@@ -13,7 +13,7 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 type UseComposerFocusParams = {
     composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
-    actionButtonRef: RefObject<View | HTMLDivElement | null>;
+    actionButtonRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     initialFocused: boolean;
 };
 

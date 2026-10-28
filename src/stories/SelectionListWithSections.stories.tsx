@@ -1,5 +1,5 @@
 import Badge from '@components/Badge';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionList from '@components/SelectionList/SelectionListWithSections';
@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 
 import type {Meta} from 'storybook-react-rsbuild';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 const SelectionListWithNavigation = withNavigationFallback(SelectionList);
 
@@ -294,38 +294,39 @@ function WithConfirmButton(props: SelectionListWithSectionsProps<ListItem>) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
     const styles = useThemeStyles();
 
-    const memo = useMemo(() => {
-        const allIds: string[] = [];
-
-        const sections = props.sections.map((section, sectionIndex) => {
-            const data = section.data.map((item, itemIndex) => {
-                if (item.keyForList) {
-                    allIds.push(item.keyForList);
-                }
-                const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
-                const isAdmin = itemIndex === 0;
-
-                return {
-                    ...item,
-                    isSelected,
-                    alternateText: `${item.keyForList}@email.com`,
-                    accountID: Number(item.keyForList),
-                    login: item.text,
-                    rightElement: isAdmin && (
-                        <Badge
-                            text="Admin"
-                            textStyles={styles.textStrong}
-                            badgeStyles={styles.alignSelfCenter}
-                        />
-                    ),
-                };
-            });
-
-            return {...section, data, title: `Section ${sectionIndex + 1}`};
+    const allIds: string[] = [];
+    const sections = props.sections.map((section, sectionIndex) => {
+        const data = section.data.map((item, itemIndex) => {
+            if (item.keyForList) {
+                allIds.push(item.keyForList);
+            }
+            const isSelected = item.keyForList ? selectedIds.includes(item.keyForList) : false;
+            const isAdmin = itemIndex === 0;
+            return {
+                ...item,
+                isSelected,
+                alternateText: `${item.keyForList}@email.com`,
+                accountID: Number(item.keyForList),
+                login: item.text,
+                rightElement: isAdmin && (
+                    <Badge
+                        text="Admin"
+                        textStyles={styles.textStrong}
+                        badgeStyles={styles.alignSelfCenter}
+                    />
+                ),
+            };
         });
-
-        return {sections, allIds};
-    }, [props.sections, selectedIds, styles.alignSelfCenter, styles.textStrong]);
+        return {
+            ...section,
+            data,
+            title: `Section ${sectionIndex + 1}`,
+        };
+    });
+    const memo = {
+        sections,
+        allIds,
+    };
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {

@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -34,7 +34,7 @@ import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {FlatList, View} from 'react-native';
 
 type TripRoomPreviewProps = {
@@ -67,13 +67,13 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
     const description = translate(`travel.${reservation.type}`);
 
-    const cancelledStyle = isCancelled ? styles.textSupporting : undefined;
+    const titleStyle = [styles.mt1, isCancelled && styles.textSupporting];
 
     let titleComponent = (
         <Text
             numberOfLines={1}
             ellipsizeMode="tail"
-            style={cancelledStyle}
+            style={titleStyle}
         >
             {title}
         </Text>
@@ -87,7 +87,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             <Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
-                style={cancelledStyle}
+                style={titleStyle}
             >
                 {startName} {translate('common.to').toLowerCase()} {endName}
             </Text>
@@ -102,7 +102,6 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
             accessibilityLabel={isCancelled ? displayDescription : undefined}
-            titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}
             wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
@@ -128,30 +127,27 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const originalMessage = getOriginalMessage(action);
     const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID ?? linkedReportID}`);
     const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {selector: selectCurrency});
 
     const chatReportID = chatReport?.reportID ?? linkedReportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
-    const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
+    const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, reportNameValuePairs, tripTransactions);
     const dateInfo =
-        chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+        reportNameValuePairs?.tripData?.startDate && reportNameValuePairs?.tripData?.endDate
+            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(reportNameValuePairs.tripData.startDate), new Date(reportNameValuePairs.tripData.endDate))
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 
-    const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport) : {};
+    const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport, reportNameValuePairs) : {};
 
-    const displayAmount = useMemo(() => {
-        if (totalDisplaySpend) {
-            return convertToDisplayString(totalDisplaySpend, currency);
-        }
-
-        return convertToDisplayString(
-            tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
-            currency,
-        );
-    }, [convertToDisplayString, currency, totalDisplaySpend, tripTransactions]);
+    const displayAmount = totalDisplaySpend
+        ? convertToDisplayString(totalDisplaySpend, currency)
+        : convertToDisplayString(
+              tripTransactions?.reduce((acc, transaction) => acc + Math.abs(transaction.amount), 0),
+              currency,
+          );
 
     const navigateToTrip = () => Navigation.navigate(getReportRouteForCurrentContext({reportID: chatReportID}));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (

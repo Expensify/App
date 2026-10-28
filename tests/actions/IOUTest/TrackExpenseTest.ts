@@ -13,13 +13,15 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isReceiptError} from '@libs/ErrorUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {createDraftTransactionAndNavigateToParticipantSelector} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
+
+import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -75,15 +77,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -96,6 +89,10 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -167,7 +164,7 @@ describe('actions/IOU/TrackExpense', () => {
             const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
                 reports: {[selfDMReportKey]: selfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -211,11 +208,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -227,7 +224,7 @@ describe('actions/IOU/TrackExpense', () => {
             const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: 'different-report-id',
                 reports: {[selfDMReportKey]: optimisticSelfDMReport},
-                betas: [],
+                isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
                 draftComments: {},
                 transactionViolations: {},
@@ -340,11 +337,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -402,7 +399,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 0,
-                firstPolicyID: undefined,
+                firstPolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -451,11 +448,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -547,11 +544,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -608,11 +605,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -695,11 +692,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -756,11 +753,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -846,12 +843,12 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -907,12 +904,12 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -963,10 +960,6 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [existingMemberAID]: {accountID: existingMemberAID, login: existingMemberA},
-                [existingMemberBID]: {accountID: existingMemberBID, login: existingMemberB},
-            });
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -995,12 +988,12 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1056,12 +1049,16 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
+                personalDetailsByLogins: {
+                    [existingMemberA]: {accountID: existingMemberAID, login: existingMemberA},
+                    [existingMemberB]: {accountID: existingMemberBID, login: existingMemberB},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -1163,12 +1160,12 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [transaction.transactionID],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1220,12 +1217,12 @@ describe('actions/IOU/TrackExpense', () => {
                     formatPhoneNumber,
                 },
                 reportActionsList: explicitReportActionsList,
+                rules: undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 draftTransactionIDs: [],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
@@ -1291,11 +1288,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             };
         }
 
@@ -1391,6 +1388,153 @@ describe('actions/IOU/TrackExpense', () => {
 
             const actionableWhisper = Object.values(reportActions ?? {}).find((action) => isActionableTrackExpense(action));
             expect(actionableWhisper).toBeTruthy();
+        });
+
+        it('reuses the failed IOU action and thread on a receipt retry, and clears the thread creation error', async () => {
+            // Given a self-DM and the thread a failed track left behind, still carrying its creation error
+            mockFetch?.pause?.();
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry',
+            };
+            const failedIOUActionID = '1111111111111111';
+            const failedThreadReportID = '2222222222222222';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+                errorFields: {createChat: {error: 'report.genericCreateReportFailureMessage'}},
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '3333333333333333',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM holds one IOU action under the failed ID, linked to the same thread, so no second expense or thread appears
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const iouActions = Object.values(reportActions ?? {}).filter((action) => isMoneyRequestAction(action));
+            expect(iouActions).toHaveLength(1);
+            expect(iouActions.at(0)?.reportActionID).toBe(failedIOUActionID);
+            expect(iouActions.at(0)?.childReportID).toBe(failedThreadReportID);
+
+            // And the thread no longer shows the creation error from the failed attempt
+            const threadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`);
+            expect(threadReport?.errorFields?.createChat).toBeFalsy();
+        });
+
+        it('rebuilds the failed thread CREATED action on a receipt retry, so the success clears its pending state and errors', async () => {
+            // Given a self-DM, and the thread and CREATED action a failed track left behind, still pending and carrying an error
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-created',
+            };
+            const failedIOUActionID = '4444444444444444';
+            const failedThreadReportID = '5555555555555555';
+            const failedThreadCreatedActionID = '6666666666666666';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${failedThreadReportID}`, {
+                reportID: failedThreadReportID,
+                parentReportID: selfDMReport.reportID,
+                parentReportActionID: failedIOUActionID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`, {
+                [failedThreadCreatedActionID]: {
+                    reportActionID: failedThreadCreatedActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2026-10-01 00:00:00.000',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    errors: {genericCreateFailure: 'iou.error.genericCreateFailureMessage'},
+                } as ReportAction,
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 1200}),
+                optimisticTransactionID: '7777777777777777',
+                currentReportActionID: failedIOUActionID,
+                existingTransactionThreadReportID: failedThreadReportID,
+                existingTransactionThreadCreatedReportActionID: failedThreadCreatedActionID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the backend gets the same CREATED action ID, so it doesn't add a second one to the thread
+            const requestBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.TRACK_EXPENSE).at(0)?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+            expect(requestParams).toEqual(expect.objectContaining({createdReportActionIDForThread: failedThreadCreatedActionID}));
+
+            // And the failed CREATED action loses its pending state and error, so the expense no longer looks unsaved
+            const threadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${failedThreadReportID}`);
+            expect(threadReportActions?.[failedThreadCreatedActionID]?.pendingAction).toBeFalsy();
+            expect(threadReportActions?.[failedThreadCreatedActionID]?.errors).toBeFalsy();
+        });
+
+        it('keeps one whisper after a receipt retry, because the retry reuses the whisper ID the failure saved', async () => {
+            // Given a scan tracked in the self-DM whose request fails, which deletes the whisper locally
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-retry-whisper',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            const scanParams = {
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 0, merchant: '', receipt: {source: 'file:///receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY}}),
+                existingTransaction: createMock<Transaction>({iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN}),
+                optimisticTransactionID: '8888888888888888',
+            };
+            mockFetch?.fail?.();
+            trackExpense(scanParams);
+            await waitForBatchedUpdates();
+
+            const failedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}8888888888888888`);
+            const receiptError = Object.values(failedTransaction?.errors ?? {}).find((error) => isReceiptError(error));
+            const storedRetryParams: unknown = isReceiptError(receiptError) && typeof receiptError.retryParams === 'string' ? JSON.parse(receiptError.retryParams) : undefined;
+            const failedWhisperID =
+                !!storedRetryParams &&
+                typeof storedRetryParams === 'object' &&
+                'actionableWhisperReportActionID' in storedRetryParams &&
+                typeof storedRetryParams.actionableWhisperReportActionID === 'string'
+                    ? storedRetryParams.actionableWhisperReportActionID
+                    : undefined;
+            const selfDMActionsAfterFailure = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const failedIOUAction = Object.values(selfDMActionsAfterFailure ?? {}).find((action) => isMoneyRequestAction(action));
+            expect(failedWhisperID).toBeTruthy();
+            if (!failedWhisperID) {
+                throw new Error('The failure did not save the whisper ID with the receipt error');
+            }
+
+            // And the server, which already handled the first request, sends its copy of that whisper back
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+                [failedWhisperID]: createMock<ReportAction>({
+                    reportActionID: failedWhisperID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    created: '2026-10-01 00:00:00.000',
+                    originalMessage: {transactionID: '8888888888888888'},
+                }),
+            });
+
+            // When the receipt retry calls trackExpense with the failed attempt's IDs, and the request succeeds
+            mockFetch?.succeed?.();
+            trackExpense({
+                ...scanParams,
+                currentReportActionID: failedIOUAction?.reportActionID,
+                existingTransactionThreadReportID: failedIOUAction?.childReportID,
+                existingActionableWhisperReportActionID: failedWhisperID,
+                isRetry: true,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the self-DM shows one whisper, under the original ID, instead of a second set next to the server's copy
+            const selfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            const whispers = Object.values(selfDMActions ?? {}).filter((action) => isActionableTrackExpense(action));
+            expect(whispers).toHaveLength(1);
+            expect(whispers.at(0)?.reportActionID).toBe(failedWhisperID);
         });
 
         it('should set correct tax fields when tax parameters are provided', async () => {
@@ -1509,7 +1653,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmail: RORY_EMAIL,
                 currentUserLocalCurrency: '',
                 filteredPoliciesCount: 1,
-                firstPolicyID: policy.id,
+                firstPolicy: policy,
             });
             await waitForBatchedUpdates();
 
@@ -1556,11 +1700,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1649,11 +1793,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1935,6 +2079,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1969,6 +2114,7 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2023,10 +2169,10 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -2073,10 +2219,10 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             // Then the result should contain valid track expense data
@@ -2125,10 +2271,10 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             // Then result should be valid
@@ -2168,10 +2314,10 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
+                rules: undefined,
             });
 
             expect(resultWithoutTourViewed).toBeDefined();
@@ -2237,11 +2383,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
                 isDraftChatReport: true,
+                rules: undefined,
             });
 
             // Then createdWorkspaceParams should be defined because the report is a draft
@@ -2286,11 +2432,11 @@ describe('actions/IOU/TrackExpense', () => {
                 currentUserEmailParam: RORY_EMAIL,
                 introSelected: undefined,
                 quickAction: undefined,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: 'USD',
                 delegateAccountID: undefined,
                 isDraftChatReport: false,
+                rules: undefined,
             });
 
             // Then createdWorkspaceParams should be undefined because the report is not a draft
@@ -2336,7 +2482,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN});
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
@@ -2376,11 +2522,11 @@ describe('actions/IOU/TrackExpense', () => {
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2474,7 +2620,6 @@ describe('actions/IOU/TrackExpense', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -2554,6 +2699,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: passedThreadReportActions,
+                transactionThread: thread,
             });
             await waitForBatchedUpdates();
 
@@ -2592,7 +2738,6 @@ describe('actions/IOU/TrackExpense', () => {
                 hasReportActions: true,
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                betas: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
                 newReportObject: thread,
@@ -2627,6 +2772,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isChatReportArchived: false,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 transactionThreadReportActions: undefined,
+                transactionThread: undefined,
                 isMovingTransactionFromTrackExpense: true,
             });
             await waitForBatchedUpdates();
@@ -2638,6 +2784,74 @@ describe('actions/IOU/TrackExpense', () => {
             );
             expect(optimisticData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, value: null})]));
             expect(successData).not.toEqual(expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`, value: null})]));
+        });
+
+        it("resolves the chat report's last visible action from the acting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '80101';
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const chatReport: Report = {...createRandomReport(80101, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const olderComment: ReportAction = {
+                ...REPORT_ACTION,
+                reportActionID: 'trackOlderComment',
+                reportID: CHAT_REPORT_ID,
+                created: '2026-11-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper: ReportAction = {
+                ...REPORT_ACTION,
+                reportActionID: 'trackWhisper',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-11-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            // The tracked-expense action being deleted. It lives on the chat report too, so it is excluded by its own DELETE pending action.
+            const trackedExpenseAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'trackedExpense',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_USER_ACCOUNT_ID,
+                created: '2026-11-01 09:00:00.000',
+                message: [{type: 'COMMENT', html: 'tracked expense', text: 'tracked expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, IOUTransactionID: '80102', amount, currency: 'USD'},
+            };
+
+            // Given a chat report whose newest action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+                [trackedExpenseAction.reportActionID]: trackedExpenseAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getRestoredCreated = (currentUserAccountID: number) => {
+                const {optimisticData} = getDeleteTrackExpenseInformation({
+                    chatReport,
+                    transactionID: '80102',
+                    reportAction: trackedExpenseAction,
+                    isChatReportArchived: false,
+                    currentUserAccountID,
+                    transactionThreadReportActions: {},
+                    transactionThread: undefined,
+                });
+                const update = optimisticData.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+                const {value} = update ?? {};
+                if (!value || typeof value !== 'object' || !('lastVisibleActionCreated' in value)) {
+                    return undefined;
+                }
+                return value.lastVisibleActionCreated;
+            };
+
+            // When the whispered-to account deletes the expense, the whisper is the newest action they can see
+            expect(getRestoredCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // When somebody the whisper does not target deletes it, the whisper is invisible and the older comment wins
+            expect(getRestoredCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
         });
     });
 
@@ -2655,7 +2869,7 @@ describe('actions/IOU/TrackExpense', () => {
             PusherHelper.setup();
 
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, () => {}, formatPhoneNumber, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
@@ -2692,11 +2906,11 @@ describe('actions/IOU/TrackExpense', () => {
 
                 quickAction: undefined,
                 recentWaypoints,
-                betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                rules: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -2762,6 +2976,7 @@ describe('actions/IOU/TrackExpense', () => {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 reportAction: iouReportAction!,
                 iouReport: undefined,
+                iouReportTransactions: [],
                 chatIOUReport: undefined,
                 transactions: {},
                 violations: {},
@@ -2871,6 +3086,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Call should not throw when personalDetails is provided
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [transaction],
                     iouReport,
@@ -2883,11 +3099,11 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });
@@ -2947,6 +3163,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Even if no transactions are provided, it should not throw
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -2959,11 +3176,11 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: testPersonalDetails,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });
@@ -2993,6 +3210,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with empty personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3005,11 +3223,11 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });
@@ -3039,6 +3257,7 @@ describe('actions/IOU/TrackExpense', () => {
             // Should not throw even with undefined personalDetails
             expect(() => {
                 convertBulkTrackedExpensesToIOU({
+                    isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactions: [],
                     iouReport,
@@ -3051,11 +3270,11 @@ describe('actions/IOU/TrackExpense', () => {
                     quickAction: undefined,
                     personalDetails: undefined,
                     policyTagList: undefined,
-                    betas: [CONST.BETAS.ALL],
                     selfDMReportActions: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
                     formatPhoneNumber,
+                    rules: undefined,
                 });
             }).not.toThrow();
         });

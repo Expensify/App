@@ -39,7 +39,7 @@ function useGroupChatDraftParticipantSync(
     const shouldRestoreSelectedOptionsRef = useRef(true);
     const isScreenFocusedRef = useIsFocusedRef();
 
-    const {dateFnsLocale} = useLocalize();
+    const {dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
@@ -49,6 +49,7 @@ function useGroupChatDraftParticipantSync(
     const [draftParticipants, draftParticipantsMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {
         selector: draftParticipantsSelector,
     });
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const restoreParticipantsFromDraft = useEffectEvent(() => {
         // Flip the ref first so the useOnyx selector disables the subscription
@@ -72,6 +73,9 @@ function useGroupChatDraftParticipantSync(
                       personalDetails: allPersonalDetails,
                       loginList,
                       currentUserEmail,
+                      currentUserAccountID,
+                      rules,
+                      formatPhoneNumber,
                   });
             if (option) {
                 result.push({...option, isSelected: true});

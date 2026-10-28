@@ -9,10 +9,10 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -39,13 +39,25 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
-    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
     const {isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const numberPressedRef = useRef(numberPressed);
 
     useEffect(() => {
         numberPressedRef.current = numberPressed;
     }, [numberPressed]);
+
+    // Releasing the button never fires when the pad unmounts mid long press (e.g. on rotation), so stop the interval here
+    useEffect(
+        () => () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            ControlSelection.unblock();
+        },
+        [],
+    );
 
     /**
      * Handle long press key on number pad.
@@ -58,11 +70,9 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
 
         longPressHandlerStateChanged(true);
 
-        const newTimer = setInterval(() => {
+        timerRef.current = setInterval(() => {
             numberPressedRef.current?.(key);
         }, 100);
-
-        setTimer(newTimer);
     };
 
     let numberPadButtonSize: ValueOf<typeof CONST.BUTTON_SIZE>;
@@ -99,11 +109,14 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}
                                 onPressOut={() => {
-                                    if (timer) {
-                                        clearInterval(timer);
+                                    ControlSelection.unblock();
+
+                                    if (!timerRef.current) {
+                                        return;
                                     }
 
-                                    ControlSelection.unblock();
+                                    clearInterval(timerRef.current);
+                                    timerRef.current = null;
                                     longPressHandlerStateChanged(false);
                                 }}
                                 onMouseDown={(e) => {

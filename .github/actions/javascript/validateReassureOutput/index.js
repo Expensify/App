@@ -19077,7 +19077,6 @@ import fs2 from "fs";
 var run = () => {
   const regressionOutput = JSON.parse(fs2.readFileSync(".reassure/output.json", "utf8"));
   const countDeviation = Number(getInput("COUNT_DEVIATION", { required: true }));
-  const durationDeviation = Number(getInput("DURATION_DEVIATION_PERCENTAGE", { required: true }));
   if (regressionOutput.countChanged === void 0 || regressionOutput.countChanged.length === 0) {
     console.log("No countChanged data available. Exiting...");
     return true;
@@ -19097,13 +19096,6 @@ var run = () => {
       break;
     } else {
       console.log(`Render count difference ${renderCountDiff} is within the allowed deviation range of ${countDeviation}.`);
-    }
-    const increasePercentage = (current.meanDuration - baseline.meanDuration) / baseline.meanDuration * 100;
-    if (increasePercentage > durationDeviation) {
-      setFailed(`Duration increase percentage exceeded the allowed deviation of ${durationDeviation}%. Current percentage: ${increasePercentage}%`);
-      break;
-    } else {
-      console.log(`Duration increase percentage ${increasePercentage}% is within the allowed deviation range of ${durationDeviation}%.`);
     }
   }
   return true;

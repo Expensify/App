@@ -44,16 +44,6 @@ rulesdir.RULES_DIR = [expensifyRulesDir, localRulesDir];
 
 const restrictedImportPaths = [
     {
-        name: '@components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
-        name: '@src/components/Button',
-        importNames: ['default'],
-        message: 'The legacy Button is deprecated. Please use the composed Button from `@components/ButtonComposed` instead. Importing the `ButtonProps` type from here is still allowed.',
-    },
-    {
         name: 'react-native',
         importNames: [
             'useWindowDimensions',
@@ -129,7 +119,7 @@ const restrictedImportPaths = [
     },
     {
         name: 'date-fns/locale',
-        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-US'.",
     },
     {
         name: 'expensify-common',
@@ -213,6 +203,14 @@ const restrictedPaidGroupPolicyImportPatterns = [
         importNames: ['isPaidGroupPolicy', 'isPaidGroupPolicyExpenseReport'],
         message:
             'isPaidGroupPolicy / isPaidGroupPolicyExpenseReport are billing/paid-only. For feature gating use isReportInGroupPolicy / isGroupPolicyExpenseReport so Submit workspaces are not excluded. If this is genuinely billing/paid-only, keep it and disable this line with a reason.',
+    },
+];
+
+// `HeaderWithBackButton` is being migrated to the composed `Header` (`@components/Header`).
+const restrictedHeaderImportPatterns = [
+    {
+        group: ['**/HeaderWithBackButton'],
+        message: 'HeaderWithBackButton is being migrated to the composed Header. Please use `@components/Header` instead for new usages.',
     },
 ];
 
@@ -314,7 +312,12 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-raw-typography': 'error',
+            'rulesdir/no-layout-spacing-conditional': 'error',
+            'rulesdir/no-direct-personal-details-list': 'error',
+            'rulesdir/no-onyx-loading-status': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
+            'rulesdir/no-unsafe-onyx-read': 'error',
+            'rulesdir/no-onyx-get-snapshot-key': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -518,7 +521,7 @@ const config = defineConfig([
 
     // Rspack loaders receive their `this` from the bundler, and it's standard practice to use it
     {
-        files: ['config/rsbuild/loaders/*-loader.mjs'],
+        files: ['config/rsbuild/loaders/*-loader.mjs', 'config/repack/*-loader.mjs'],
         rules: {
             'no-invalid-this': 'off',
         },
@@ -551,6 +554,8 @@ const config = defineConfig([
     {
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
+            // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
+            'rulesdir/no-manual-memoization': 'error',
             'rulesdir/prefer-locale-compare-from-context': 'error',
             'rulesdir/no-object-keys-includes': 'error',
         },
@@ -619,6 +624,15 @@ const config = defineConfig([
         },
         rules: {
             '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
+
+            // `ignorePrimitives: true` narrows this to the cases a type checker can decide: it reports
+            // `||` only when the left operand cannot be `''`, `0` or `false`, so `||` and `??` are
+            // provably equivalent. When the left operand can hold one of those, whether it counts as
+            // "missing" is domain knowledge the rule does not have — many API fields represent "unset"
+            // as an empty string rather than `null`, and several Onyx keys require `|| undefined` so an
+            // empty string never reaches a collection subscription.
+            // See contributingGuides/STYLE.md#accessing-object-properties-and-default-values
+            '@typescript-eslint/prefer-nullish-coalescing': ['error', {ignoreIfStatements: true, ignorePrimitives: true, ignoreTernaryTests: true}],
         },
     },
 
@@ -643,7 +657,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['src/libs/Navigation/types.ts'],
+        files: ['src/libs/Navigation/types.ts', 'src/libs/Navigation/paramLists/**/*.ts'],
         rules: {
             'no-restricted-syntax': [
                 'error',
@@ -660,6 +674,44 @@ const config = defineConfig([
         files: ['src/libs/ReportNameUtils.ts'],
         plugins: {'report-name-utils': reportNameUtilsPlugin},
         rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
+    },
+
+    // Everything else must read personal details through `@hooks/usePersonalDetails`, `@libs/PersonalDetailsStore` or
+    // `buildPersonalDetailsUpdate`, so that changing the shape of the personal details data means changing those
+    // wrappers instead of ~200 call sites. The files below are exempt because they are the wrappers themselves, the
+    // place the key is declared, or test setup that has to seed Onyx by key.
+    {
+        files: [
+            'src/ONYXKEYS.ts',
+            'src/hooks/usePersonalDetails.ts',
+            'src/libs/PersonalDetailsStore.ts',
+            'src/libs/PersonalDetailsUtils.ts',
+            'src/components/OnyxListItemProvider.tsx',
+            'src/libs/ExportOnyxState/masking.ts',
+            'tests/**/*.{ts,tsx}',
+            'jest/**/*.{ts,tsx}',
+            '__mocks__/**/*.{ts,tsx}',
+            'src/**/__mocks__/**/*.{ts,tsx}',
+        ],
+        rules: {
+            'rulesdir/no-direct-personal-details-list': 'off',
+        },
+    },
+
+    // LocaleContextProvider and HybridAppHandler mount before `Onyx.init` finishes, so they keep relying on the startup
+    // loading status. Tests and mocks follow the code they cover and get cleaned up together with it.
+    {
+        files: [
+            'src/components/LocaleContextProvider.tsx',
+            'src/HybridAppHandler.tsx',
+            'tests/**/*.{ts,tsx}',
+            'jest/**/*.{ts,tsx}',
+            '__mocks__/**/*.{ts,tsx}',
+            'src/**/__mocks__/**/*.{ts,tsx}',
+        ],
+        rules: {
+            'rulesdir/no-onyx-loading-status': 'off',
+        },
     },
 
     // The typography token files are where raw font sizes and line heights are defined.
@@ -691,7 +743,29 @@ const config = defineConfig([
                 'error',
                 {
                     paths: restrictedImportPaths,
-                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns],
+                    patterns: [...restrictedImportPatterns, ...restrictedReportNameImportPatterns, ...restrictedPaidGroupPolicyImportPatterns, ...restrictedHeaderImportPatterns],
+                },
+            ],
+        },
+    },
+
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        plugins: {
+            '@typescript-eslint': tseslint.plugin,
+        },
+        rules: {
+            '@typescript-eslint/no-restricted-imports': [
+                'error',
+                {
+                    paths: [
+                        {
+                            name: 'react-native-onyx/dist/OnyxUtils',
+                            message:
+                                'OnyxUtils is not a sanctioned way to read Onyx data. Use useOnyx() from @hooks/useOnyx in render paths, or a short-lived Onyx.connectWithoutView() for non-render logic. Type-only imports are still allowed.',
+                            allowTypeImports: true,
+                        },
+                    ],
                 },
             ],
         },
@@ -803,6 +877,8 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        // Standalone npm package with its own dependencies and typecheck (see web/cloudflare-worker/README.md)
+        'web/cloudflare-worker/**/*',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
         'src/languages/el.ts',

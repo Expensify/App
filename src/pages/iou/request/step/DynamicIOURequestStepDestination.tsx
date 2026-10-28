@@ -1,12 +1,13 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {ListItem, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -102,6 +103,7 @@ function DynamicIOURequestStepDestination({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {top} = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const customUnit = getPerDiemCustomUnit(policy);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -222,7 +224,7 @@ function DynamicIOURequestStepDestination({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 
-    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+    const keyboardVerticalOffset = openedFromStartPage ? contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
 
     return (
         <ScreenWrapper
@@ -251,8 +253,10 @@ function DynamicIOURequestStepDestination({
                             shouldStyleAsCard={false}
                             icon={illustrations.EmptyStateExpenses}
                             title={translate('workspace.perDiem.requestEmptyList.title')}
-                            subtitle={translate(isPolicyAdmin(policy) ? 'workspace.perDiem.requestEmptyList.adminSubtitle' : 'workspace.perDiem.requestEmptyList.subtitle')}
-                            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                            subtitle={
+                                isPolicyAdmin(policy) ? translate('workspace.perDiem.requestEmptyList.adminSubtitle') : translate('workspace.perDiem.requestEmptyList.subtitle', policy?.name)
+                            }
+                            containerStyle={[styles.flex1, styles.justifyContentCenter, styles.alignSelfCenter]}
                         />
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>

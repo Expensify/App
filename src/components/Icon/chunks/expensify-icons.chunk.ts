@@ -1,6 +1,7 @@
 import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
+import ApplePayMark from '@assets/images/apple-pay-mark.svg';
 import Apple from '@assets/images/apple.svg';
 import ArrowCircleClockwise from '@assets/images/arrow-circle-clockwise.svg';
 import ArrowCollapse from '@assets/images/arrow-collapse.svg';
@@ -37,6 +38,7 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
 import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
@@ -68,6 +70,7 @@ import Compass from '@assets/images/compass.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import ConnectionComplete from '@assets/images/connection-complete.svg';
+import Contactless from '@assets/images/contactless.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
@@ -135,15 +138,22 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
+import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
+import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
+import DigitsSquare from '@assets/images/integrationicons/digits-icon-square.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
+import ExactOnlineSquare from '@assets/images/integrationicons/exact-online-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
+import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -158,6 +168,7 @@ import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
+import ZohoBooksSquare from '@assets/images/integrationicons/zoho-books-icon-square.svg';
 import InvoiceBookmark from '@assets/images/invoice-bookmark.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
@@ -203,6 +214,7 @@ import Paycheck from '@assets/images/paycheck.svg';
 import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
+import PieChart from '@assets/images/pie-chart.svg';
 import Pin from '@assets/images/pin.svg';
 import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
@@ -272,6 +284,7 @@ import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
+import UserPencil from '@assets/images/user-pencil.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import UserSearch from '@assets/images/user-search.svg';
 import UserShield from '@assets/images/user-shield.svg';
@@ -287,8 +300,9 @@ import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
-// These icons are React components because they have
+// These icons are React components. BusinessCentralSquare needs gradient ids unique to each rendered copy, and the map icons have
 // drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
+import BusinessCentralSquare from '@components/Icon/BusinessCentralSquare';
 import MapCurrentLocation from '@components/MapView/Icons/MapCurrentLocation';
 import MapCurrentLocationPuck from '@components/MapView/Icons/MapCurrentLocationPuck';
 import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
@@ -329,8 +343,10 @@ const Expensicons = {
     Bug,
     Building,
     Buildings,
+    BusinessCentralSquare,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,
@@ -467,6 +483,7 @@ const Expensicons = {
     Pencil,
     Percent,
     Phone,
+    PieChart,
     Pin,
     Play,
     Plus,
@@ -491,6 +508,7 @@ const Expensicons = {
     ReceiptMultiple,
     RilletSquare,
     DualEntrySquare,
+    ExactOnlineSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -527,6 +545,10 @@ const Expensicons = {
     Wrench,
     XeroSquare,
     GustoSquare,
+    ChatGPTSquare,
+    ClaudeSquare,
+    CursorSquare,
+    MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -561,6 +583,7 @@ const Expensicons = {
     UserEye,
     UserSearch,
     CaretUpDown,
+    UserPencil,
     UserPlus,
     Feed,
     Table,
@@ -591,6 +614,11 @@ const Expensicons = {
     TreasureChestGreenWithSparkle,
     UserShield,
     Compass,
+    ApplePayMark,
+    Contactless,
+    CampfireSquare,
+    ZohoBooksSquare,
+    DigitsSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

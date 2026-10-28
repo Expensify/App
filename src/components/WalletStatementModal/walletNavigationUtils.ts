@@ -7,7 +7,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {Beta} from '@src/types/onyx';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -19,7 +19,8 @@ function handleWalletStatementNavigation(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number | undefined,
     isSelfTourViewed: boolean | undefined,
-    betas: OnyxEntry<Beta[]>,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
+    conciergePersonalDetails: OnyxEntry<PersonalDetailsList>,
     type?: string,
     url?: string,
 ): void {
@@ -28,7 +29,14 @@ function handleWalletStatementNavigation(
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, isSelfTourViewed, betas);
+        navigateToConciergeChat({
+            conciergeReportID,
+            introSelected,
+            currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            conciergePersonalDetails,
+        });
         return;
     }
 

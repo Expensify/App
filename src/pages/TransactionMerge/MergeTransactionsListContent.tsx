@@ -2,7 +2,6 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -12,6 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -22,14 +23,15 @@ import {getAmount, getCreated, getCurrency, getDescription, getMerchant, isExpen
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, Report} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type Transaction from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+
+import type {MergeTransactionListItemType} from './MergeTransactionItem';
 
 import MergeTransactionItem from './MergeTransactionItem';
 
@@ -38,7 +40,22 @@ type MergeTransactionsListContentProps = {
     mergeTransaction: OnyxEntry<MergeTransaction>;
 };
 
-type MergeTransactionListItemType = Transaction & ListItem;
+const reportsSelector = (reports: OnyxCollection<Report>): OnyxCollection<Report> =>
+    Object.fromEntries(
+        Object.entries(reports ?? {}).map(([key, report]) => [
+            key,
+            report && {
+                reportID: report.reportID,
+                type: report.type,
+                policyID: report.policyID,
+                ownerAccountID: report.ownerAccountID,
+                managerID: report.managerID,
+                stateNum: report.stateNum,
+                statusNum: report.statusNum,
+                total: report.total,
+            },
+        ]),
+    ) as OnyxCollection<Report>;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
@@ -47,9 +64,32 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const policiesSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the fields used by the admin check are kept
+        Object.fromEntries(
+            Object.entries(policies ?? {}).map(([key, policy]) => {
+                const login = currentUserLogin ?? '';
+                const employee = policy?.employeeList?.[login] ?? policy?.employeeList?.[login.toLowerCase()];
+                return [
+                    key,
+                    policy && {
+                        id: policy.id,
+                        role: policy.role,
+                        employeeList: employee ? {[login]: employee} : undefined,
+                    },
+                ];
+            }),
+        ) as OnyxCollection<Policy>;
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: policiesSelector,
+    });
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: reportsSelector,
+    });
+    const [personalDetails] = useAllPersonalDetails();
     const {isOffline} = useNetwork();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -57,6 +97,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
+    const targetReportTransactions = useReportTransactions(targetTransactionReport?.reportID);
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -68,11 +109,29 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             isOffline,
             targetTransaction,
             transactions,
+            reportTransactions: targetReportTransactions,
             policy: targetTransactionPolicy,
             report: targetTransactionReport,
             currentUserLogin,
+            rules,
+            personalDetails,
+            allPolicies,
+            allReports,
         });
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, targetTransactionPolicy, targetTransactionReport, currentUserLogin, targetTransaction]);
+    }, [
+        transactions,
+        isOffline,
+        mergeTransaction?.eligibleTransactions,
+        targetTransactionPolicy,
+        targetTransactionReport,
+        currentUserLogin,
+        targetTransaction,
+        targetReportTransactions,
+        rules,
+        personalDetails,
+        allPolicies,
+        allReports,
+    ]);
 
     const data = !eligibleTransactions
         ? []
@@ -165,18 +224,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(
-            transactionID,
-            [targetTransaction, sourceTransaction],
-            localeCompare,
-            getCurrencyDecimals,
-            reports,
-            true,
-            undefined,
-            [targetTransactionPolicy, sourceTransactionPolicy],
-            session?.accountID,
-            personalDetails,
-        );
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        ]);
     };
 
     const confirmButtonOptions = {

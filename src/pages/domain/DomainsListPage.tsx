@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
 import WorkspaceListLayout, {WorkspaceListHeaderContent} from '@components/WorkspaceListLayout';
@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearStaleDomainFromFailedCreation} from '@libs/actions/Domain';
-import {hasDomainErrors} from '@libs/DomainUtils';
+import {getDomainBrickRoadIndicator, hasDomainErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -30,6 +30,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function DomainsListPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -42,6 +43,7 @@ function DomainsListPage() {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [allDomainPendingActions] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS);
     const [createDomainForm] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
 
     const failedDomainAccountID = createDomainForm?.domainAccountID;
@@ -90,7 +92,10 @@ function DomainsListPage() {
                 errors: domainErrors?.errors,
                 pendingAction: domain.pendingAction,
                 disabled: domain.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: getDomainBrickRoadIndicator(
+                    hasDomainErrors(domainErrors, domain),
+                    hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domain.accountID}`]),
+                ),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
             });
         }
@@ -101,7 +106,7 @@ function DomainsListPage() {
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN), session)}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('common.new')}</Button.Text>
