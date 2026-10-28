@@ -7275,16 +7275,10 @@ function downloadReportPDF(fileName: string, reportName: string, translate: Loca
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
-function setDeleteTransactionNavigateBackUrl(url: string) {
-    Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
-}
-
-function clearDeleteTransactionNavigateBackUrl() {
-    Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
-}
-
 // Read when the clear fires, since the unmounting screen may not have the value yet.
 let deleteTransactionNavigateBackUrl: string | undefined;
+// A newer deletion cancels this so a stale clear can't wipe its URL.
+let pendingDeleteTransactionNavigateBackUrlClear: {cancel: () => void} | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
     callback: (value) => {
@@ -7292,9 +7286,21 @@ Onyx.connectWithoutView({
     },
 });
 
+function setDeleteTransactionNavigateBackUrl(url: string) {
+    pendingDeleteTransactionNavigateBackUrlClear?.cancel();
+    pendingDeleteTransactionNavigateBackUrlClear = undefined;
+    Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
+}
+
+function clearDeleteTransactionNavigateBackUrl() {
+    Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+}
+
 function clearDeleteTransactionNavigateBackUrlAfterTransitions() {
-    TransitionTracker.runAfterTransitions({
+    pendingDeleteTransactionNavigateBackUrlClear?.cancel();
+    pendingDeleteTransactionNavigateBackUrlClear = TransitionTracker.runAfterTransitions({
         callback: () => {
+            pendingDeleteTransactionNavigateBackUrlClear = undefined;
             if (!deleteTransactionNavigateBackUrl || doesDeleteNavigateBackUrlIncludeDuplicatesReview(deleteTransactionNavigateBackUrl)) {
                 return;
             }

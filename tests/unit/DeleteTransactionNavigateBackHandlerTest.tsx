@@ -1,6 +1,10 @@
 import {render} from '@testing-library/react-native';
 
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import DeleteTransactionNavigateBackHandler from '@pages/inbox/DeleteTransactionNavigateBackHandler';
+
+import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,6 +27,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 }));
 
 const REPORT_URL = 'r/123';
+const NEXT_REPORT_URL = 'r/456';
 const DUPLICATES_REVIEW_URL = 'r/123/duplicates/review';
 
 async function flushClear() {
@@ -93,5 +98,35 @@ describe('DeleteTransactionNavigateBackHandler', () => {
 
         // Then the URL is left for the duplicates review flow
         expect(await getNavigateBackUrl()).toBe(DUPLICATES_REVIEW_URL);
+    });
+
+    it('does not clear a newer deletion URL from a remount clear that is still waiting', async () => {
+        // Given a screen that remounts without a deletion, so its clear waits for a later transition
+        let pendingCallback: (() => void) | undefined;
+        let isCancelled = false;
+        jest.mocked(TransitionTracker.runAfterTransitions).mockImplementationOnce(({callback}) => {
+            pendingCallback = () => {
+                callback();
+            };
+            return {
+                cancel: () => {
+                    isCancelled = true;
+                },
+            };
+        });
+        const {unmount} = render(<DeleteTransactionNavigateBackHandler />);
+        unmount();
+
+        // When the next expense is deleted before that transition finishes
+        setDeleteTransactionNavigateBackUrl(NEXT_REPORT_URL);
+        await waitForBatchedUpdates();
+        if (!isCancelled) {
+            pendingCallback?.();
+        }
+        await flushClear();
+
+        // Then the stale clear is cancelled and the new URL stays until its own screen leaves
+        expect(isCancelled).toBe(true);
+        expect(await getNavigateBackUrl()).toBe(NEXT_REPORT_URL);
     });
 });
