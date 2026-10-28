@@ -767,6 +767,7 @@ function getOptionData({
     bankAccountList,
     reportMetadata: reportMetadataParam,
     hasPendingJoinRequest,
+    lastActionTransaction,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -806,6 +807,9 @@ function getOptionData({
 
     /** Whether the report has a pending join request. Pass it from a subscription for the same reason as `reportMetadata`. */
     hasPendingJoinRequest?: boolean;
+
+    /** The transaction of `lastAction`. Pass it from a subscription for the same reason as `reportMetadata`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -959,6 +963,7 @@ function getOptionData({
         convertToDisplayStringWithoutCurrency,
         rules,
         bankAccountList,
+        lastActionTransaction,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);

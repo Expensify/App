@@ -116,10 +116,8 @@ function getActionReportIDs(action: OnyxEntry<ReportAction>): Array<string | und
 }
 
 /*
- * This component gets the data from onyx for the actual
- * OptionRowLHN component.
- * OptionRowLHN is auto-memoized by React Compiler, so it will
- * only re-render when the inputs derived from this wrapper change.
+ * This component gets the data from onyx and passes it to OptionRowLHNContent,
+ * which builds the option data and renders OptionRowLHN.
  */
 function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', reportID, ...propsToForward}: OptionRowLHNDataProps) {
     const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
@@ -197,11 +195,13 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
             ? getLastVisibleAction(reportID, canUserPerformWrite, {}, {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: reportActions ?? undefined}, visibleReportActionsData)
             : undefined;
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
+    const lastActionTransactionID = isMoneyRequestAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
     const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
     const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
 
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
+    const [lastActionTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(lastActionTransactionID)}`);
     const [lastActionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lastActionReportID ? String(lastActionReportID) : undefined)}`);
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}`);
@@ -273,6 +273,7 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
                 bankAccountList,
                 reportMetadata,
                 hasPendingJoinRequest,
+                lastActionTransaction,
             }}
         />
     );

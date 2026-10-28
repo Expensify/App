@@ -22161,6 +22161,47 @@ describe('ReportUtils', () => {
             expect(result).toContain('approved');
             expect(result).toContain(groupPolicy.name);
         });
+        it('should use the passed linkedTransaction (not module-level allTransactions) for the merchant', async () => {
+            // Given an IOU report whose latest expense has a stale copy in Onyx
+            const transactionID = 'linkedTransaction1';
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.IOU,
+                currency: CONST.CURRENCY.USD,
+            };
+            const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: 'linkedTransactionAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {IOUTransactionID: transactionID, amount: 1000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            const staleTransaction = {...createRandomTransaction(1), transactionID, merchant: 'Stale merchant', modifiedMerchant: '', amount: 1000, currency: CONST.CURRENCY.USD};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, staleTransaction);
+            await waitForBatchedUpdates();
+            const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined};
+
+            // When we pass a fresher transaction for the action
+            const result = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, merchant: 'Fresh merchant'}},
+                formatPhoneNumber,
+            );
+
+            // Then the preview uses the passed transaction
+            expect(result).toContain('Fresh merchant');
+
+            // When the passed transaction belongs to another action, the module-level copy is still used
+            const mismatchedResult = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, transactionID: 'otherTransaction', merchant: 'Other merchant'}},
+                formatPhoneNumber,
+            );
+            expect(mismatchedResult).toContain('Stale merchant');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+        });
         it('getReportPreviewMessageForCopy should return the expense report name', async () => {
             const report = LHNTestUtils.getFakeReport();
             report.reportName = 'Expense Report 2025-01-15';
