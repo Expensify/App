@@ -60,6 +60,7 @@ function renderWidget() {
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
                 averageTotal={undefined}
+                isDashboardLoaded={undefined}
                 filters={FILTERS}
                 onRetry={jest.fn()}
             />

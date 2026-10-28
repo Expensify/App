@@ -42,7 +42,7 @@ import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import buildInsightsJsonQuery from './insightsQueries';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
@@ -152,6 +152,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                         previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
                         previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
                         averageTotal={headlineChart.averageTotal}
+                        isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
@@ -163,7 +164,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         chart={chart}
@@ -172,6 +173,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                         previousPeriodQueryJSON={previousPeriodQueryJSON}
                                         previousPeriodSnapshot={previousPeriodSnapshot}
                                         averageTotal={averageTotal}
+                                        isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         onRetry={onRetry}
                                     />
@@ -236,6 +238,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
         previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
         averageTotal: dashboard?.graphs?.[chartQuery.chart.graphKey]?.average,
+        isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);

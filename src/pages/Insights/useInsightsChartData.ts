@@ -35,7 +35,7 @@ const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADIN
 
 /** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal} = dashboardChart;
+    const {queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded} = dashboardChart;
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -54,8 +54,11 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
 
     switch (compare) {
         case CONST.SEARCH.COMPARE.AVERAGE: {
-            if (averageTotal === undefined) {
+            if (!isDashboardLoaded) {
                 return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING};
+            }
+            if (averageTotal === undefined) {
+                return current;
             }
             return {...current, comparison: {total: averageTotal}};
         }
