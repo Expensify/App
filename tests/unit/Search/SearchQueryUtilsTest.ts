@@ -4214,7 +4214,7 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
 
-        test('switching to approver from the Display menu derives sort-by:group-expenses and sort-order:desc', () => {
+        test('switching to approver from the Display menu derives sort-by:group-approver and sort-order:asc', () => {
             // Given a category grouping whose sort is the category default
             // When the Display menu switches group by to approver
             const result = buildFilterQueryWithSortDefaults(
@@ -4225,8 +4225,8 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(result ?? '');
 
             // Then the parser re-derives the approver defaults from GROUP_BY_DEFAULT_SORT and GROUP_BY_DEFAULT_SORT_ORDER
-            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
-            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
     });
 

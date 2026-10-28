@@ -5658,7 +5658,7 @@ function peg$parse(input, options) {
     week: "groupweek",
     year: "groupyear",
     quarter: "groupquarter",
-    approver: "groupExpenses",
+    approver: "groupApprover",
   };
 
   const GROUP_BY_DEFAULT_SORT_ORDER = {
@@ -5673,7 +5673,7 @@ function peg$parse(input, options) {
     week: "desc",
     year: "desc",
     quarter: "desc",
-    approver: "desc",
+    approver: "asc",
   };
 
   const TIME_BASED_GROUP_BY = new Set(["day", "week", "month", "year", "quarter"]);

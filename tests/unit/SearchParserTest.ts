@@ -944,8 +944,8 @@ const tests = [
         query: 'type:expense group-by:approver',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
             groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
             filters: null,
@@ -955,8 +955,8 @@ const tests = [
         query: 'type:expense group-by:approver columns:group-approver,group-expenses,group-total',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
-            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+            sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
             groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
             columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL],
