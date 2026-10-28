@@ -2551,7 +2551,7 @@
 "../../tests/unit/Navigation/getIsScreenBlurredWebTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/Navigation/getLastRouteTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/Navigation/hasDifferentSplitScope.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
-"../../tests/unit/Navigation/preMountBufferTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	8
+"../../tests/unit/Navigation/preMountBufferTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/Navigation/wideTabPreMountTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/NextStepUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/unit/NumberFormatUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2

@@ -132,6 +132,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         includeChronos?: boolean;
         isGroupPolicyReport: boolean;
         policyID?: string;
+
+        /** Whether the composer should stay unfocused when the screen opens or a modal closes */
+        shouldSkipAutoFocus?: boolean;
+
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
@@ -174,6 +178,7 @@ function ComposerWithSuggestions({
     includeChronos,
     isGroupPolicyReport,
     policyID,
+    shouldSkipAutoFocus = false,
 
     // Focus
     onFocus,
@@ -367,7 +372,7 @@ function ComposerWithSuggestions({
     }, [text]);
 
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = !shouldSkipAutoFocus && (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(initialText);
@@ -935,6 +940,11 @@ function ComposerWithSuggestions({
             inputFocusChange(false);
             return;
         }
+
+        // Refocusing after a modal closes would take the arrow keys away from expense navigation, just like autofocus.
+        if (shouldSkipAutoFocus) {
+            return;
+        }
         focus(true);
     }, [
         focus,
@@ -945,6 +955,7 @@ function ComposerWithSuggestions({
         modal?.isVisible,
         isNextModalWillOpenRef,
         shouldAutoFocus,
+        shouldSkipAutoFocus,
         isSidePanelHiddenOrLargeScreen,
         shouldHideSidePanel,
         isInSidePanel,
