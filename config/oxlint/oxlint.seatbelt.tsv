@@ -1550,7 +1550,6 @@
 "../../src/pages/settings/Profile/PronounsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/settings/Profile/TimezoneInitialPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/TimezoneInitialPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/settings/Profile/TimezoneSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Profile/TimezoneSelectPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Report/DynamicNotificationPreferencePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Report/DynamicReportSettingsPage.tsx"	"no-restricted-imports"	1
@@ -2195,10 +2194,6 @@
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/pages/workspace/workflows/tabs/WorkflowsPaymentsTab.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsCurrencyConversionFeesPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/workflows/WorkspaceWorkflowsPayerPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceConfirmationOwnerSelectorPage.tsx"	"no-restricted-imports"	1
