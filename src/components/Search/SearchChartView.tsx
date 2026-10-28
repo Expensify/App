@@ -97,6 +97,7 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
+    const emptyGroupKeys = new Set(data.filter((item) => !item.count).map((item) => item.keyForList));
     const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
@@ -114,6 +115,7 @@ function SearchChartView({
             const range = getDateRange?.(item);
             return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
+        isEmptyPeriod: (item) => emptyGroupKeys.has(item.keyForList),
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,

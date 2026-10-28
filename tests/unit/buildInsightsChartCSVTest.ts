@@ -40,14 +40,15 @@ function quarterGroup(year: number, quarter: number, count: number): GroupedItem
         formattedQuarter: `Q${quarter} ${year}`,
         shortFormattedQuarter: `Q${quarter}`,
         sortKey: year * 10 + quarter,
+        keyForList: `quarter_${year}_${quarter}`,
         count,
         total: count ? GROUP_FIELDS.total : 0,
     };
 }
 
 /** Exports quarters as of October 28, 2026 */
-function exportQuarters(data: GroupedItem[]) {
-    return buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.QUARTER, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate, today: '2026-10-28'});
+function exportQuarters(data: GroupedItem[], shouldShowRunningTotal = false) {
+    return buildInsightsChartCSV({data, groupBy: CONST.SEARCH.GROUP_BY.QUARTER, currency: CONST.CURRENCY.USD, getCurrencyDecimals, translate, today: '2026-10-28', shouldShowRunningTotal});
 }
 
 describe('buildInsightsChartCSV', () => {
@@ -87,6 +88,17 @@ describe('buildInsightsChartCSV', () => {
 
         // Then the export ends at Q4, where the chart's line ends
         expect(csv).toBe('\uFEFFDate,Expenses,Total,Currency\r\n2026-10-01,2,123.45,USD');
+    });
+
+    it('leaves out the empty periods after today from a running total', () => {
+        // Given Q3 and Q4 with expenses, followed by a quarter of next year with no expenses yet
+        const data = [quarterGroup(2026, 3, 2), quarterGroup(2026, 4, 2), quarterGroup(2027, 1, 0)];
+
+        // When the quarters are exported as a running total, whose counts carry earlier expenses forward
+        const csv = exportQuarters(data, true);
+
+        // Then the export ends at Q4 with the totals so far, where the chart's line ends
+        expect(csv).toBe('\uFEFFDate,Expenses,Total,Currency\r\n2026-07-01,2,123.45,USD\r\n2026-10-01,4,246.90,USD');
     });
 
     it('keeps an empty period after today that comes before a period with expenses', () => {

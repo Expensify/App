@@ -68,6 +68,9 @@ type BuildChartSeriesParams = {
     /** Returns whether a group's period starts after today, as it does for future-dated expenses */
     isLaterPeriod?: (item: GroupedItem) => boolean;
 
+    /** Returns whether a group's period holds no expenses of its own, which a running total's count no longer shows */
+    isEmptyPeriod?: (item: GroupedItem) => boolean;
+
     /** Formats labels shared by paired time buckets */
     translate: LocaleContextProps['translate'];
 
@@ -113,6 +116,7 @@ function buildChartSeries({
     getCurrencyDecimals,
     getInProgressLabel,
     isLaterPeriod,
+    isEmptyPeriod,
     translate,
     dateFnsLocale,
     colorScheme,
@@ -173,7 +177,7 @@ function buildChartSeries({
             isInProgress: isInProgress || isLater,
         };
 
-        return {row: {point, item}, isEmptyLaterPeriod: isLater && !item.count, counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
+        return {row: {point, item}, isEmptyLaterPeriod: isLater && !!isEmptyPeriod?.(item), counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
     });
 
     /** Builds a point for a compared bucket no current bucket pairs with, like January 31 against February, which only the compared line reaches */

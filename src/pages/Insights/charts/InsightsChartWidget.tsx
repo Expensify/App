@@ -2,7 +2,6 @@ import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
-import applyRunningTotal from '@components/Search/runningTotal';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
@@ -103,16 +102,15 @@ function InsightsChartWidget({
             return;
         }
 
-        // Running total shows cumulative values, so the export accumulates the same way the chart does.
-        const csvData = shouldShowRunningTotal ? applyRunningTotal({data, groupBy}).data : data;
         const content = buildInsightsChartCSV({
-            data: csvData,
+            data,
             groupBy,
             dateFilterStart: getDateFilterRange(queryJSON).start,
             currency: filters.groupCurrency,
             getCurrencyDecimals,
             translate,
             today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            shouldShowRunningTotal,
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };

@@ -3,6 +3,7 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 import {buildChartSeries, CHART_SERIES_KEY, getSliceColorsByDataIndex} from '@components/Search/buildChartSeries';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
 import type {ChartComparisonPeriods} from '@components/Search/comparisonBuckets';
+import applyRunningTotal from '@components/Search/runningTotal';
 import type {
     TransactionDayGroupListItemType,
     TransactionMerchantGroupListItemType,
@@ -482,6 +483,7 @@ describe('buildChartSeries', () => {
             getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
             getCurrencyDecimals,
             isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2,
+            isEmptyPeriod: (item) => !item.count,
         });
 
         // Then the finished and current quarters are real $0s, while the later ones have no data yet, so the line doesn't reach them
@@ -504,10 +506,35 @@ describe('buildChartSeries', () => {
             getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
             getCurrencyDecimals,
             isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2,
+            isEmptyPeriod: (item) => !item.count,
         });
 
         // Then Q3 stays as $0, since the line passes through it on its way to Q4
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([1000, 0, 50]);
+    });
+
+    it('leaves out the empty later periods of a running total, whose counts carry earlier expenses forward', () => {
+        // Given a Q2 with expenses followed by two empty quarters after today, plotted as a running total
+        const data = [quarterGroup(2, 100000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+        const emptyGroupKeys = new Set(data.filter((item) => !item.count).map((item) => item.keyForList));
+        const runningTotalData = applyRunningTotal({data, groupBy: CONST.SEARCH.GROUP_BY.QUARTER}).data;
+
+        // When the series is built from the running total, with emptiness read from the rows before it
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data: runningTotalData,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : ''),
+            getCurrencyDecimals,
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2,
+            isEmptyPeriod: (item) => emptyGroupKeys.has(item.keyForList),
+        });
+
+        // Then the line ends at Q2, rather than staying flat through quarters that haven't started
+        expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026']);
     });
 
     it('leaves out an empty later period along with its compared period', () => {
@@ -527,6 +554,7 @@ describe('buildChartSeries', () => {
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4,
+            isEmptyPeriod: (item) => !item.count,
         });
 
         // Then the chart ends at Q3, leaving out last year's Q4 along with this year's
@@ -550,6 +578,7 @@ describe('buildChartSeries', () => {
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.DAY && item.day > '2026-02-15',
+            isEmptyPeriod: (item) => !item.count,
         });
 
         // Then the chart ends at today, rather than jumping from the 15th to January's last days
