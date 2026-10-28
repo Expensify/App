@@ -15,17 +15,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
+import {createWithdrawalABAAccount} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ABAWithdrawalAccountForm';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 const REQUIRED_FIELDS = [INPUT_IDS.BSB_NUMBER, INPUT_IDS.ACCOUNT_NUMBER, INPUT_IDS.BANK_USER_IDENTIFICATION_NUMBER, INPUT_IDS.COMPANY_NAME];
 
 type ABAWithdrawalDetailsProps = {
-    /** Currency of the workspace the account pays from */
+    policyID: string;
+
     currency?: string;
 
     onBackButtonPress: () => void;
@@ -46,10 +50,15 @@ function TermsOfServiceLabel() {
 /**
  * Collects the details of an AU bank account that a workspace pays from outside of Expensify, with ABA files.
  */
-function ABAWithdrawalDetails({currency, onBackButtonPress}: ABAWithdrawalDetailsProps) {
+function ABAWithdrawalDetails({policyID, currency, onBackButtonPress}: ABAWithdrawalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+
+    // Clear any error left from an earlier attempt
+    useEffect(() => {
+        clearErrors(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM);
+    }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
@@ -73,6 +82,17 @@ function ABAWithdrawalDetails({currency, onBackButtonPress}: ABAWithdrawalDetail
         return errors;
     };
 
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM>) => {
+        createWithdrawalABAAccount({
+            bsbNumber: values[INPUT_IDS.BSB_NUMBER].trim(),
+            accountNumber: values[INPUT_IDS.ACCOUNT_NUMBER].trim(),
+            bankUserIdentificationNumber: values[INPUT_IDS.BANK_USER_IDENTIFICATION_NUMBER].trim(),
+            companyName: values[INPUT_IDS.COMPANY_NAME].trim(),
+            shouldIncludeSelfBalancingTransaction: values[INPUT_IDS.SHOULD_INCLUDE_SELF_BALANCING_TRANSACTION],
+            policyID,
+        });
+    };
+
     return (
         <InteractiveStepWrapper
             wrapperID="ABAWithdrawalDetails"
@@ -82,7 +102,7 @@ function ABAWithdrawalDetails({currency, onBackButtonPress}: ABAWithdrawalDetail
             <FormProvider
                 formID={ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM}
                 validate={validate}
-                onSubmit={() => {}}
+                onSubmit={submit}
                 submitButtonText={translate('common.next')}
                 style={styles.flexGrow1}
                 submitButtonStyles={styles.mh5}
