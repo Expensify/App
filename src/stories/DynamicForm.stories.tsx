@@ -638,7 +638,9 @@ function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: 
         <>
             <Text style={[defaultStyles.textSupporting, defaultStyles.ph5]}>
                 payoutType {bankAccountFields.payoutType}, answered by server: {JSON.stringify(bankAccountFields.answeredByServer)}
-                {refreshKey ? `, refreshed for ${refreshKey}` : ''}
+                {refreshKey
+                    ? `, refreshed for ${refreshKey}`
+                    : `, refresh replies captured for: ${[...WISE_ACCOUNT_REQUIREMENT_REFRESHES.keys()].filter((key) => key.startsWith(`${currency}:`)).join(', ') || 'none'}`}
             </Text>
             <Flow
                 resetKey={`${currency}-${String(isDomestic)}`}
