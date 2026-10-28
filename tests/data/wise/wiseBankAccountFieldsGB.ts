@@ -46,7 +46,7 @@ const wiseBankAccountFieldsGB: WiseBankAccountFieldsFixture = {
                         maxLength: 140,
                         regex: '^[0-9A-Za-zÀ-ÖØ-öø-ÿ-_()\'*,.%#^@{}~<>+$"\\[\\]\\\\ ]+$',
                     },
-                    {key: 'address', type: 'address', label: 'Account holder address', required: true, refreshOnChange: true},
+                    {key: 'address', type: 'address', labelKey: 'common.personalAddress', required: true, refreshOnChange: true},
                 ],
             },
         ],

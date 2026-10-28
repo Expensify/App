@@ -144,7 +144,7 @@ function toWiseBankAccountFields(country: string, currency: string, requirements
         holderFields.push({
             key: ADDRESS_FIELD_KEY,
             type: 'address',
-            label: 'Account holder address',
+            labelKey: 'common.personalAddress',
             required: addressParts.some((part) => part.required),
             refreshOnChange: addressParts.some((part) => part.refreshRequirementsOnChange) || undefined,
         });
