@@ -1276,6 +1276,7 @@ const CONST = {
         REIMBURSEMENT_INTENT_STEP: {
             SUB_PAGE_NAMES: {
                 ABA_WITHDRAWAL_DETAILS: 'aba-withdrawal-details',
+                ABA_WITHDRAWAL_SUCCESS: 'aba-withdrawal-success',
             },
         },
         BANK_INFO_STEP: {

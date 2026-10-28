@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import {clearCreateWithdrawalABAAccount, createWithdrawalABAAccount} from '@userActions/BankAccounts';
@@ -29,8 +28,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-import ABAWithdrawalSuccess from './ABAWithdrawalSuccess';
-
 const isSuccessSelector = (form: OnyxEntry<ABAWithdrawalAccountForm>) => !!form?.isSuccess;
 
 const REQUIRED_FIELDS = [INPUT_IDS.BSB_NUMBER, INPUT_IDS.ACCOUNT_NUMBER, INPUT_IDS.BANK_USER_IDENTIFICATION_NUMBER, INPUT_IDS.COMPANY_NAME];
@@ -41,6 +38,9 @@ type ABAWithdrawalDetailsProps = {
     currency?: string;
 
     onBackButtonPress: () => void;
+
+    /** Called once the account has been created */
+    onSuccess: () => void;
 };
 
 function TermsOfServiceLabel() {
@@ -58,7 +58,7 @@ function TermsOfServiceLabel() {
 /**
  * Collects the details of an AU bank account that a workspace pays from outside of Expensify, with ABA files.
  */
-function ABAWithdrawalDetails({policyID, currency, onBackButtonPress}: ABAWithdrawalDetailsProps) {
+function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}: ABAWithdrawalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -68,6 +68,14 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress}: ABAWithdr
     useEffect(() => {
         clearCreateWithdrawalABAAccount();
     }, []);
+
+    useEffect(() => {
+        if (!isSuccess) {
+            return;
+        }
+        onSuccess();
+        clearCreateWithdrawalABAAccount();
+    }, [isSuccess, onSuccess]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
@@ -101,15 +109,6 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress}: ABAWithdr
             policyID,
         });
     };
-
-    const finish = () => {
-        clearCreateWithdrawalABAAccount();
-        Navigation.dismissModal();
-    };
-
-    if (isSuccess) {
-        return <ABAWithdrawalSuccess onFinish={finish} />;
-    }
 
     return (
         <InteractiveStepWrapper

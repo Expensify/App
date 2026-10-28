@@ -21,6 +21,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ABAWithdrawalDetails from './ABAWithdrawalDetails';
+import ABAWithdrawalSuccess from './ABAWithdrawalSuccess';
 
 const {PAGE_NAME, REIMBURSEMENT_INTENT_STEP} = CONST.NON_USD_BANK_ACCOUNT;
 
@@ -74,12 +75,26 @@ function ReimbursementIntent({onSubmit, onBackButtonPress, policyID, currency, c
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ReportReceipt']);
 
+    if (currentSubPage === REIMBURSEMENT_INTENT_STEP.SUB_PAGE_NAMES.ABA_WITHDRAWAL_SUCCESS) {
+        return <ABAWithdrawalSuccess onFinish={() => Navigation.dismissModal()} />;
+    }
+
     if (currentSubPage === REIMBURSEMENT_INTENT_STEP.SUB_PAGE_NAMES.ABA_WITHDRAWAL_DETAILS && policyID) {
         return (
             <ABAWithdrawalDetails
                 policyID={policyID}
                 currency={currency}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.REIMBURSEMENT_INTENT, backTo}))}
+                onSuccess={() =>
+                    Navigation.navigate(
+                        ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({
+                            policyID,
+                            page: PAGE_NAME.REIMBURSEMENT_INTENT,
+                            subPage: REIMBURSEMENT_INTENT_STEP.SUB_PAGE_NAMES.ABA_WITHDRAWAL_SUCCESS,
+                            backTo,
+                        }),
+                    )
+                }
             />
         );
     }
