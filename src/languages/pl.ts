@@ -7243,8 +7243,10 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             confirmMembers: {
                 title: 'Skopiuj członków',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) => `Czy na pewno chcesz zastąpić członków ${targetWorkspaceName} członkami z tej przestrzeni roboczej?`,
-                promptMultiple: ({count}: {count: number}) => `Czy na pewno chcesz zastąpić członków ${count} przestrzeni roboczych członkami z tej przestrzeni roboczej?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Czy na pewno chcesz zastąpić członków ${targetWorkspaceName} członkami z tej przestrzeni roboczej?`,
+                    other: `Czy na pewno chcesz zastąpić członków ${count} przestrzeni roboczych członkami z tej przestrzeni roboczej?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Trwa kopiowanie...',

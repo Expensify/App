@@ -7215,9 +7215,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             confirmMembers: {
                 title: 'Leden kopiëren',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
-                    `Weet je zeker dat je de leden van ${targetWorkspaceName} wilt vervangen door de leden van deze werkruimte?`,
-                promptMultiple: ({count}: {count: number}) => `Weet je zeker dat je de leden van ${count} werkruimtes wilt vervangen door de leden van deze werkruimte?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Weet je zeker dat je de leden van ${targetWorkspaceName} wilt vervangen door de leden van deze werkruimte?`,
+                    other: `Weet je zeker dat je de leden van ${count} werkruimtes wilt vervangen door de leden van deze werkruimte?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Kopie wordt gemaakt...',

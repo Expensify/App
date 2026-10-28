@@ -7271,10 +7271,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             confirmMembers: {
                 title: 'Mitglieder kopieren',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
-                    `Sind Sie sicher, dass Sie die Mitglieder von ${targetWorkspaceName} durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
-                promptMultiple: ({count}: {count: number}) =>
-                    `Sind Sie sicher, dass Sie die Mitglieder von ${count} Arbeitsbereichen durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Sind Sie sicher, dass Sie die Mitglieder von ${targetWorkspaceName} durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                    other: `Sind Sie sicher, dass Sie die Mitglieder von ${count} Arbeitsbereichen durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Kopieren läuft ...',

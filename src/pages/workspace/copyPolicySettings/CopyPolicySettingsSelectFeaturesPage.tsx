@@ -297,10 +297,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const confirmCopyMembers = () => {
         const targetNames = targetPolicies.map((policy) => policy?.name).filter((name): name is string => !!name);
-        const prompt =
-            targetNames.length === 1
-                ? translate('workspace.copyPolicySettings.confirmMembers.prompt', {targetWorkspaceName: targetNames.at(0) ?? ''})
-                : translate('workspace.copyPolicySettings.confirmMembers.promptMultiple', {count: targetNames.length});
+        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetNames.length, targetWorkspaceName: targetNames.at(0) ?? ''});
 
         return showConfirmModal({
             title: translate('workspace.copyPolicySettings.confirmMembers.title'),

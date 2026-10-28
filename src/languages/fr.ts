@@ -7291,9 +7291,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             confirmMembers: {
                 title: 'Copier les membres',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
-                    `Êtes-vous sûr de vouloir remplacer les membres de ${targetWorkspaceName} par les membres de cet espace de travail ?`,
-                promptMultiple: ({count}: {count: number}) => `Êtes-vous sûr de vouloir remplacer les membres de ${count} espaces de travail par les membres de cet espace de travail ?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Êtes-vous sûr de vouloir remplacer les membres de ${targetWorkspaceName} par les membres de cet espace de travail ?`,
+                    other: `Êtes-vous sûr de vouloir remplacer les membres de ${count} espaces de travail par les membres de cet espace de travail ?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Copie en cours...',

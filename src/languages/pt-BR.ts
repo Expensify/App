@@ -7215,9 +7215,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             confirmMembers: {
                 title: 'Copiar membros',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
-                    `Tem certeza de que deseja substituir os membros de ${targetWorkspaceName} pelos membros deste espaço de trabalho?`,
-                promptMultiple: ({count}: {count: number}) => `Tem certeza de que deseja substituir os membros de ${count} espaços de trabalho pelos membros deste espaço de trabalho?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Tem certeza de que deseja substituir os membros de ${targetWorkspaceName} pelos membros deste espaço de trabalho?`,
+                    other: `Tem certeza de que deseja substituir os membros de ${count} espaços de trabalho pelos membros deste espaço de trabalho?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Cópia em andamento...',

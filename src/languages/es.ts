@@ -7129,9 +7129,10 @@ ${amount} para ${merchant} - ${date}`,
             },
             confirmMembers: {
                 title: 'Copiar miembros',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
-                    `¿Seguro que quieres reemplazar los miembros de ${targetWorkspaceName} por los miembros de este espacio de trabajo?`,
-                promptMultiple: ({count}: {count: number}) => `¿Seguro que quieres reemplazar los miembros de ${count} espacios de trabajo por los miembros de este espacio de trabajo?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `¿Seguro que quieres reemplazar los miembros de ${targetWorkspaceName} por los miembros de este espacio de trabajo?`,
+                    other: `¿Seguro que quieres reemplazar los miembros de ${count} espacios de trabajo por los miembros de este espacio de trabajo?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Copia en curso...',

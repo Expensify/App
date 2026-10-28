@@ -7703,9 +7703,10 @@ const translations = {
             },
             confirmMembers: {
                 title: 'Copy members',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) =>
-                    `Are you sure you want to replace the members of ${targetWorkspaceName} with the members from this workspace?`,
-                promptMultiple: ({count}: {count: number}) => `Are you sure you want to replace the members of ${count} workspaces with the members from this workspace?`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Are you sure you want to replace the members of ${targetWorkspaceName} with the members from this workspace?`,
+                    other: `Are you sure you want to replace the members of ${count} workspaces with the members from this workspace?`,
+                }),
             },
             upgrade: {
                 title: 'Some features require a Control plan',

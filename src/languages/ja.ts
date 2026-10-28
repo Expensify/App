@@ -7137,8 +7137,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             confirmMembers: {
                 title: 'メンバーをコピー',
-                prompt: ({targetWorkspaceName}: {targetWorkspaceName: string}) => `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                promptMultiple: ({count}: {count: number}) => `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    other: `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'コピーを実行中です...',
