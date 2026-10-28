@@ -1,3 +1,4 @@
+import {hasGroupWithExpenses} from '@libs/resolveInsightsChartData';
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -34,7 +35,13 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     const hasDashboardResponse = !!dashboard?.inputQuery;
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
-        return {isLoaded, hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry)};
+        const data = snapshot?.data;
+        const groups = data
+            ? Object.keys(data)
+                  .filter(isGroupEntry)
+                  .map((key) => data[key])
+            : [];
+        return {isLoaded, hasRows: isLoaded && hasGroupWithExpenses(groups)};
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
 

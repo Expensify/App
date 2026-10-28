@@ -27,6 +27,7 @@ import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
+import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
@@ -46,6 +47,9 @@ type SearchChartViewProps = {
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
     shouldShowGroupLabels?: boolean;
 
+    /** Whether labels adapt to a constrained width: bar labels wrap to two centered lines and the donut legend uses the responsive side-by-side/stacked layout. Used by the Home widget. */
+    shouldUseResponsiveLabels?: boolean;
+
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
@@ -54,6 +58,9 @@ type SearchChartViewProps = {
 
     /** Rows the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
+
+    /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
+    shouldShowRunningTotal?: boolean;
 
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (model: SearchChartModel) => React.ReactNode;
@@ -73,9 +80,11 @@ function SearchChartView({
     data,
     isLoading,
     shouldShowGroupLabels = true,
+    shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
     comparison,
+    shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
@@ -85,19 +94,32 @@ function SearchChartView({
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
+
+    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
     const {series, rows} = buildChartSeries({
-        data,
-        comparison,
+        data: chartData,
+        comparison: chartComparison,
         groupBy,
         view,
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+        isLaterPeriod: (item) => {
+            const range = getDateRange?.(item);
+            if (!range) {
+                return false;
+            }
+
+            // A date filter that starts partway through a group starts the group there too, e.g. Oct 10 for a range from Oct 10 to Dec 31
+            const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
+            return start > today;
+        },
+        translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
     });
@@ -141,6 +163,7 @@ function SearchChartView({
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
+                shouldWrapLabels={shouldUseResponsiveLabels}
             />
         ),
         [CONST.SEARCH.VIEW.LINE]:
@@ -173,6 +196,7 @@ function SearchChartView({
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}
+                shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />
         ),
     };

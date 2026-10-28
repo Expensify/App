@@ -23,9 +23,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCategoryGLCode} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {getTagGLCode, getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
+import {getVendorDisplayName, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReimbursableTotal, isExpenseReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
@@ -42,6 +41,7 @@ import {
     getTaxName,
     isDeletedTransaction as isDeletedTransactionUtil,
     isExpenseUnreported,
+    isOnHold,
     isPerDiemRequest,
     isScanning,
     isTimeRequest,
@@ -62,10 +62,12 @@ import {View} from 'react-native';
 import type {TransactionItemRowProps, TransactionItemRowRBRDeferControlProps, TransactionItemRowWideComputedData} from './types';
 
 import CategoryCell from './DataCells/CategoryCell';
+import CategoryGLCodeCell from './DataCells/CategoryGLCodeCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
+import TagGLCodeCell from './DataCells/TagGLCodeCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
@@ -95,6 +97,7 @@ function TransactionItemRowWide({
     isDateColumnCreated = false,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
@@ -164,6 +167,8 @@ function TransactionItemRowWide({
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isApprovedColumnWide = approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isPaidColumnWide = paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const {paid: paidDate = ''} = transactionItem;
     const isPostedColumnWide = postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -177,6 +182,20 @@ function TransactionItemRowWide({
     if (shouldUseFullHeightEditableCellHoverTarget) {
         fullHeightMainRowStyle = hasValidationMessage ? styles.mnh13 : styles.tableRowHeight;
     }
+
+    const renderYesNoCell = (columnName: SearchColumnType, value: boolean) => (
+        <View
+            key={columnName}
+            style={[getSearchColumnStyles(columnName)]}
+        >
+            <Text
+                selectable
+                dataSet={COPYABLE_TEXT_DATA_SET}
+            >
+                {value ? translate('common.yes') : translate('common.no')}
+            </Text>
+        </View>
+    );
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         const shouldHideTaxValueByRequestType = isTimeRequest(transactionItem) || isPerDiemRequest(transactionItem);
@@ -237,9 +256,17 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE), styles.editableCellColumn]}
                     >
-                        <TextCell text={getTagGLCode(policyTagLists, transactionItem.tag)} />
+                        <TagGLCodeCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                            canEdit={canEditTag}
+                            onSave={onEditTag}
+                            policyID={effectivePolicyID}
+                            policy={policy}
+                            policyTagLists={policyTagLists}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
@@ -279,6 +306,20 @@ function TransactionItemRowWide({
                     >
                         <DateCell
                             date={transactionItem.approved ?? report?.approved ?? ''}
+                            showTooltip={shouldShowTooltip}
+                            isLargeScreenWidth
+                            shouldUseLocalTimeZone
+                        />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.PAID:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID, {isPaidColumnWide})]}
+                    >
+                        <DateCell
+                            date={paidDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                             shouldUseLocalTimeZone
@@ -332,39 +373,24 @@ function TransactionItemRowWide({
                 return (
                     <View
                         key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)]}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE), styles.editableCellColumn]}
                     >
-                        <TextCell text={getCategoryGLCode(policyCategories, transactionItem.category)} />
+                        <CategoryGLCodeCell
+                            transactionItem={transactionItem}
+                            shouldShowTooltip={shouldShowTooltip}
+                            canEdit={canEditCategory}
+                            onSave={onEditCategory}
+                            policyID={effectivePolicyID}
+                            policyCategories={policyCategories}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
-                return (
-                    <View
-                        key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE)]}
-                    >
-                        <Text
-                            selectable
-                            dataSet={COPYABLE_TEXT_DATA_SET}
-                        >
-                            {getReimbursable(transactionItem) ? translate('common.yes') : translate('common.no')}
-                        </Text>
-                    </View>
-                );
+                return renderYesNoCell(column, getReimbursable(transactionItem));
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
-                return (
-                    <View
-                        key={column}
-                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BILLABLE)]}
-                    >
-                        <Text
-                            selectable
-                            dataSet={COPYABLE_TEXT_DATA_SET}
-                        >
-                            {transactionItem.billable ? translate('common.yes') : translate('common.no')}
-                        </Text>
-                    </View>
-                );
+                return renderYesNoCell(column, !!transactionItem.billable);
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
+                return renderYesNoCell(column, isOnHold(transactionItem));
             case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 return (
                     <View

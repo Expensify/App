@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceDuplicateForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceDuplicateFormProps = {
@@ -43,35 +43,29 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
     const policy = usePolicy(policyID);
     const defaultWorkspaceName = `${policy?.name} (${translate('workspace.common.duplicateWorkspacePrefix')})`;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM> = {};
-            const name = values.name.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_DUPLICATE_FORM> = {};
+        const name = values.name.trim();
 
-            if (!isRequiredFulfilled(name)) {
-                errors.name = translate('workspace.editor.nameIsRequiredError');
-            } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-                // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
-            }
+        if (!isRequiredFulfilled(name)) {
+            errors.name = translate('workspace.editor.nameIsRequiredError');
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+            // code units.
+            addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const onSubmit = useCallback(
-        ({name, avatarFile}: {name?: string; avatarFile?: File | CustomRNImageManipulatorResult}) => {
-            if (!policyID) {
-                return;
-            }
-            const newPolicyID = generatePolicyID();
-            setDuplicateWorkspaceData({policyID: newPolicyID, name, fileURI: avatarFile?.uri});
-            Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
-        },
-        [policyID],
-    );
+    const onSubmit = ({name, avatarFile}: {name?: string; avatarFile?: File | CustomRNImageManipulatorResult}) => {
+        if (!policyID) {
+            return;
+        }
+        const newPolicyID = generatePolicyID();
+        setDuplicateWorkspaceData({policyID: newPolicyID, name, fileURI: avatarFile?.uri});
+        Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE_SELECT_FEATURES.getRoute(policyID));
+    };
 
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
