@@ -5847,9 +5847,6 @@ ${amount} für ${merchant} – ${date}`,
                     ? `Legen Sie einen Standardlieferanten fest, der auf erstattungsfähige Ausgaben angewendet wird, für die es keinen passenden Lieferanten in Sage Intacct gibt.`
                     : `Ausgaben, die keinen Ihrer Sage Intacct-Lieferanten zugeordnet werden können, werden standardmäßig diesem Lieferanten zugewiesen.`,
             exportDescription: 'Konfigurieren Sie, wie Expensify Daten nach Sage Intacct exportiert.',
-            exportPreferredExporterNote:
-                'Der bevorzugte Exporteur kann jede Workspace-Adminperson sein, muss jedoch auch Domain-Admin sein, wenn du in den Domaineinstellungen unterschiedliche Exportkonten für einzelne Firmenkarten festlegst.',
-            exportPreferredExporterSubNote: 'Sobald festgelegt, sieht die bevorzugte exportierende Person die zu exportierenden Berichte in ihrem Konto.',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: `Bitte fügen Sie das Konto in Sage Intacct hinzu und synchronisieren Sie die Verbindung erneut`,
             autoSync: 'Automatische Synchronisierung',

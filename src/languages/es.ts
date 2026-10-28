@@ -5762,9 +5762,6 @@ ${amount} para ${merchant} - ${date}`,
                     ? `Establece un proveedor predeterminado que se aplicará a los gastos reembolsables que no tengan un proveedor coincidente en Sage Intacct.`
                     : `Los gastos que no se puedan conciliar con tus proveedores de Sage Intacct se asignarán por defecto a este proveedor.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
-            exportPreferredExporterNote:
-                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
-            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Sage Intacct y sincroniza de nuevo la conexión',
             autoSync: 'Sincronización automática',

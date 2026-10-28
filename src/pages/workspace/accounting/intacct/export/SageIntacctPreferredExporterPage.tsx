@@ -86,8 +86,8 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
 
     const headerContent = (
         <View style={[styles.pb2, styles.ph5]}>
-            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterNote')}</Text>
-            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterSubNote')}</Text>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
         </View>
     );
 

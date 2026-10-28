@@ -5840,9 +5840,6 @@ ${amount} dla ${merchant} - ${date}`,
                     ? `Ustaw domyślnego dostawcę, który zostanie zastosowany do wydatków podlegających zwrotowi, niemających pasującego dostawcy w Sage Intacct.`
                     : `Wydatki, których nie da się dopasować do Twoich dostawców Sage Intacct, zostaną domyślnie przypisane do tego dostawcy.`,
             exportDescription: 'Skonfiguruj sposób eksportu danych z Expensify do Sage Intacct.',
-            exportPreferredExporterNote:
-                'Preferowanym eksporterem może być dowolny administrator przestrzeni roboczej, ale musi on również być administratorem domeny, jeśli w Ustawieniach domeny ustawisz różne konta eksportu dla poszczególnych kart firmowych.',
-            exportPreferredExporterSubNote: 'Po ustawieniu preferowany eksporter zobaczy w swoim koncie raporty do eksportu.',
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: `Dodaj proszę konto w Sage Intacct i ponownie zsynchronizuj połączenie`,
             autoSync: 'Automatyczna synchronizacja',
