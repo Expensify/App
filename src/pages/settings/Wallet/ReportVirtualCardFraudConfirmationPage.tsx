@@ -20,7 +20,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -44,6 +44,12 @@ function ReportVirtualCardFraudConfirmationPage({
     const close = () => {
         if (isCardTerminatedWithoutReplacement) {
             Navigation.dismissModal();
+            return;
+        }
+
+        // Domains opens the card and fraud pages as static routes, so there is no dynamic suffix to remove and the replacement card is opened directly.
+        if (cardDetailsPath.replace(/^\/+/, '').startsWith(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(''))) {
+            Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID), {compareParams: false});
             return;
         }
 

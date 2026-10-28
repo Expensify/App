@@ -213,6 +213,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             name: 'StaticScreen',
             path: '/settings/suffix-a',
         };
+        mockGetStateFromPath.mockReturnValue({routes: [{name: 'BaseScreen'}, {name: SCREENS.HOME}], index: 1});
 
         // When the full screen route under it is looked up during in-app navigation
         const result = getMatchingFullScreenRoute(route);

@@ -115,4 +115,16 @@ describe('ReportVirtualCardFraudConfirmationPage', () => {
         // Then it still points the card page at the replacement card and keeps Home under it
         expect(Navigation.goBack).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(NEW_CARD_ID), ROUTES.HOME), {compareParams: false});
     });
+
+    it('opens the replacement card on Domains when the static fraud page is still under the confirmation', () => {
+        // Given a successful report from a Domains card, where the fraud page is a static route with no dynamic suffix
+        jest.mocked(useDynamicBackPath).mockReturnValue(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(OLD_CARD_ID));
+        renderPage();
+
+        // When the user closes the confirmation
+        fireEvent.press(screen.getByText('reportFraudConfirmationPage.buttonText'));
+
+        // Then it goes to the replacement card on Domains instead of back to the old card's fraud page
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(NEW_CARD_ID), {compareParams: false});
+    });
 });
