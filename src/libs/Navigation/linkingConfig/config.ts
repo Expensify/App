@@ -222,7 +222,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_ACTIVATE]: DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.path,
-                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: DYNAMIC_ROUTES.WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN]: DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN_ATM]: DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN_ATM.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path,
@@ -418,10 +417,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {
                             path: ROUTES.SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM.route,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-                            path: ROUTES.SETTINGS_ADDRESS,
-                            exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
                             path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
@@ -1760,9 +1755,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
                             path: ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.route,
-                        },
-                        [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: {
-                            path: ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.route,
                         },
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
                             path: ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.route,

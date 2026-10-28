@@ -1024,13 +1024,10 @@ const DYNAMIC_ROUTES = {
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1042,13 +1039,10 @@ const DYNAMIC_ROUTES = {
     ADDRESS_STATE: {
         path: 'state',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1564,10 +1558,6 @@ const DYNAMIC_ROUTES = {
         path: 'reveal-validate-code/:cardID',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
         getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
-    },
-    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        path: 'digital-details/update-address',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
     },
     WALLET_CARD_CHANGE_PIN: {
         path: 'change-pin/:cardID',
@@ -2620,10 +2610,6 @@ const ROUTES = {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
-    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
-        route: 'settings/card/:cardID/update-address',
-        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
-    },
     SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
         route: 'settings/card/:cardID/confirm-validate-code',
         getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
@@ -2760,7 +2746,6 @@ const ROUTES = {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
-    SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_PRIVATE_PERSONAL_DETAILS: {
         route: 'settings/profile/private-personal-details',
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,

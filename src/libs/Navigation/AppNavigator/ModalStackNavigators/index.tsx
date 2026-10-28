@@ -375,7 +375,6 @@ const ExpensifyCardModalStackNavigator = createModalStackNavigator({
 const DomainCardModalStackNavigator = createModalStackNavigator({
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
-    [SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
 });
@@ -422,7 +421,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/DisplayNamePage').default,
     [SCREENS.SETTINGS.PROFILE.TIMEZONE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneInitialPage').default),
     [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneSelectPage').default),
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsPage').default,
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PrivatePersonalDetailsConfirmValidateCodePage').default,
@@ -449,8 +447,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.DEVICE_MANAGEMENT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/DeviceManagementPage').default,
     [SCREENS.SETTINGS.CLOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccount/CloseAccountPage').default,
     [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccount/CloseAccountValidateCodePage').default,
-    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletExpensifyCardSpendRulesPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: () =>

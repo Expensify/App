@@ -27,6 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useState} from 'react';
@@ -158,7 +159,7 @@ function ReportCardLostPage({
                                 name={translate('reportCardLostOrDamaged.address')}
                                 value={formattedAddress}
                                 numberOfLinesValue={2}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(INPUT_IDS.ADDRESS_LINE_1))}
                             />
                             {isDamaged ? (
                                 <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
