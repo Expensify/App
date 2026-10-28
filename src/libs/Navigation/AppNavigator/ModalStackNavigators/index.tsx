@@ -58,6 +58,7 @@ import type {
 
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {ParamListBase} from '@react-navigation/routers';
@@ -144,6 +145,8 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     },
 };
 
+const optionsPerScreen: Partial<Record<string, PlatformStackNavigationOptions>> = OPTIONS_PER_SCREEN;
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -162,8 +165,9 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         const getScreenOptions: typeof screenOptions = ({route: optionRoute}) => {
             // Extend common options if they are defined for the screen.
-            if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+            const screenOverride = optionsPerScreen[optionRoute.name];
+            if (screenOverride) {
+                return {...screenOptions({route: optionRoute}), ...screenOverride};
             }
             return screenOptions({route: optionRoute});
         };
@@ -177,15 +181,20 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
                 <ModalStackNavigator.Navigator>
-                    {Object.keys(screens as Required<Screens>).map((name) => (
-                        <ModalStackNavigator.Screen
-                            key={name}
-                            name={name}
-                            getComponent={(screens as Required<Screens>)[name as Screen]}
-                            // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
-                            options={getScreenOptions}
-                        />
-                    ))}
+                    {ObjectUtils.typedEntries(screens).map(([name, getComponent]) => {
+                        if (getComponent === undefined) {
+                            throw new Error(`Missing lazy component loader for modal screen ${name}`);
+                        }
+                        return (
+                            <ModalStackNavigator.Screen
+                                key={name}
+                                name={name}
+                                getComponent={getComponent}
+                                // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
+                                options={getScreenOptions}
+                            />
+                        );
+                    })}
                 </ModalStackNavigator.Navigator>
             </View>
         );
@@ -410,7 +419,6 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
     [SCREENS.SAVE_THE_WORLD.ROOT]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/SaveTheWorldPage').default,
-    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
     [SCREENS.I_KNOW_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/KnowATeacherPage').default,
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
 });
@@ -450,25 +458,26 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.DEVICE_MANAGEMENT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/DeviceManagementPage').default,
     [SCREENS.SETTINGS.CLOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccount/CloseAccountPage').default,
     [SCREENS.SETTINGS.CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccount/CloseAccountValidateCodePage').default,
-    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default,
-    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/index').default,
     [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WalletExpensifyCardSpendRulesPage').default,
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: () =>
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardVerifyAccountPage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardDetailsPage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardDetailsPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditNamePage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCardEditTransactionStartDatePage').default,
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: () =>
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudVerifyAccountPage').default,
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportVirtualCardFraudConfirmationPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ActivatePhysicalCardPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddCardToDigitalWalletPage').default,
     [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/CardAddedToWalletPage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINPage').default,
-    [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN_ATM]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage/ChangePINAtATMPage').default,
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TransferBalancePage').default,
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     [SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ImportTransactionsPage').default,
@@ -496,17 +505,20 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EditBankAccountNicknamePage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WiseGlobalReimbursementsIntroPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVVerifyAccountPage').default,
-    [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/AddNewCardPage').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/PersonalCardWarning').default,
     [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/PersonalCards/upgrade/PersonalCardUpgradePage').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
     [SCREENS.SETTINGS.DYNAMIC_COLLECT_DEPOSIT_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/CollectDepositAccount').default,
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
-    [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
+    [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT_ENTRY_POINT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/subPages/AccountFlowEntryPoint').default,
     [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/UpdatePersonalBankAccountPage').default,
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/BankAccountPurposePage').default,
@@ -762,11 +774,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/NonUSD/NonUSDVerifiedBankAccountFlowPage').default,
     [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/ReimbursementAccount/DynamicReimbursementAccountVerifyAccountPage').default,
-    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default,
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default,
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: () =>
+    [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default,
+    [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicKeyboardShortcutsPage').default,
+    [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicAppDownloadLinksPage').default,
     [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: () => require<ReactComponentModule>('../../../../pages/settings/Troubleshoot/DynamicBetaOverridesPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyReasonPage').default,
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: () => require<ReactComponentModule>('../../../../pages/settings/ExitSurvey/DynamicExitSurveyConfirmPage').default,
@@ -1170,7 +1183,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/ChangeBillingCurrency').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_PAYMENT_CARD_CURRENCY_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage').default,
-    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default,
     [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: () => require<ReactComponentModule>('../../../../pages/settings/Subscription/EarlyRenewalOfferPage').default,
     [SCREENS.SETTINGS.EMAIL_ISSUE]: () => require<ReactComponentModule>('../../../../pages/settings/EmailIssue').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/CreateReportFieldsPage').default,
