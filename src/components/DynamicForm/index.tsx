@@ -1,8 +1,10 @@
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
@@ -12,10 +14,12 @@ import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSen
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormListField, DynamicFormListItem, DynamicFormPage} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {DynamicFormFlowProps, DynamicFormSubPageProps, DynamicFormValues} from './types';
 
@@ -26,7 +30,7 @@ import DynamicFormShell from './components/DynamicFormShell';
 import getAnswerKeys from './utils/getAnswerKeys';
 import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
-import {isPageShown} from './utils/getPageTitle';
+import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
@@ -60,6 +64,7 @@ function DynamicFormFlow({
     layout = 'auto',
     hasConfirmation = true,
 }: DynamicFormFlowProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [draft, draftMetadata] = useOnyx(`${formID}Draft`);
     const [sensitiveAnswersByForm] = useOnyx(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS);
@@ -150,6 +155,14 @@ function DynamicFormFlow({
         }
         clearSensitiveAnswers(formID);
     }, [isRedirecting, formID]);
+
+    // A visit that opens without a page waits for the earlier visit's sensitive answers to be gone, so no input starts from them. The flow can be left without
+    // its own Back, such as by a swipe back, which leaves them in memory.
+    const hasSensitiveAnswers = !isEmptyObject(sensitiveAnswersByForm?.[formID]);
+    const [isClearingEarlierVisit, setIsClearingEarlierVisit] = useState(isRedirecting);
+    if (isClearingEarlierVisit && !hasSensitiveAnswers) {
+        setIsClearingEarlierVisit(false);
+    }
 
     // A submission that finishes without an error drops the sensitive answers
     const wasSubmittingRef = useRef(false);
@@ -289,12 +302,19 @@ function DynamicFormFlow({
         prevPage();
     };
 
+    // A flow on replaced routes has no page stack for Android's back to pop, so it takes the header's steps
+    useAndroidBackButtonHandler(() => {
+        goBack();
+        return true;
+    });
+
     // An entry editor highlights its list's step, and the confirmation page the last one
     const stepPage = shownPages.find((page) => page.key === currentPageName) ?? (listItemPage && findListPage(listItemPage.listKey));
     // The indicator draws no names and keys its steps by them, so the unique page keys stand in for titles an untitled page does not have
     const stepNames = [...shownPages.map((page) => page.key), ...(hasConfirmationPage ? [CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY] : [])];
     const stepPageIndex = stepPage ? shownPages.indexOf(stepPage) : -1;
     const stepIndex = stepPageIndex === -1 ? stepNames.length - 1 : stepPageIndex;
+    const stepTitle = stepPage ? getPageTitle(stepPage, values, translate, allFields) : confirmationTitle;
     // The shell swaps its root when the indicator toggles, which remounts the page. So `auto` decides once, from the answers the draft held on arrival, and keeps it while the user types.
     const [isAutoStepIndicatorAsked, setIsAutoStepIndicatorAsked] = useState<boolean>();
     if (!isDraftLoading && isAutoStepIndicatorAsked === undefined) {
@@ -309,10 +329,13 @@ function DynamicFormFlow({
             onBackButtonPress={goBack}
             stepNames={stepNames}
             stepIndex={stepIndex}
+            stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
         >
-            {isDraftLoading || isRedirecting || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
-                <FullscreenLoadingIndicator />
+            {isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

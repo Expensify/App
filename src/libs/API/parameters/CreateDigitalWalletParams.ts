@@ -1,3 +1,5 @@
+import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
+
 type CreateDigitalAppleWalletParams = {
     platform: 'ios';
     appVersion: string;
@@ -16,6 +18,8 @@ type CreateDigitalGoogleWalletParams = {
     cardID: number;
 };
 
-type CreateDigitalWalletParams = CreateDigitalAppleWalletParams | CreateDigitalGoogleWalletParams;
+type WalletAuthenticationParams = {signedChallenge: string; authenticationMethod: AuthTypeInfo['marqetaValue']} | {signedChallenge?: never; authenticationMethod?: never};
+
+type CreateDigitalWalletParams = (CreateDigitalAppleWalletParams | CreateDigitalGoogleWalletParams) & WalletAuthenticationParams;
 
 export default CreateDigitalWalletParams;

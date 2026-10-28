@@ -10,19 +10,28 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
+    canAdminPayReport,
     canCreateCategoryInSitu,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canCreateExpensesOnPolicy,
+    canRoleCreateExpenses,
+    canSendInvoice,
     canSendInvoiceFromWorkspace,
+    canShowReimbursableToggleForPolicy,
+    canSubmitPerDiemExpenseFromWorkspace,
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasCompanyAddress,
+    hasReadOnlyAllReportsAccess,
     hasVendorFeatureOnAnyPolicy,
+    getActiveAdminWorkspaces,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -45,8 +54,10 @@ import {
     getExpensifyTeamExclusions,
     getForwardsToAccount,
     getForwardsToFromRules,
+    getGroupPoliciesWhereReportCanBeCreated,
     getIntegrationLastSuccessfulDate,
     getManagerAccountID,
+    getMemberAccountIDsForWorkspace,
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
@@ -60,6 +71,7 @@ import {
     getPolicyIDFromDomainName,
     getRateDisplayValue,
     getOwnerChangePayerSuccessData,
+    getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
     getReimbursementChoice,
@@ -73,6 +85,8 @@ import {
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
     getTagGLCode,
+    escapeTagName,
+    hasAnyTagGLCode,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
     getTagLists,
@@ -83,6 +97,7 @@ import {
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
+    getTravelStep,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
     getXeroExpenseAccounts,
@@ -103,6 +118,7 @@ import {
     isArchivedPolicy,
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
+    isExpensifyTeam,
     isInvoiceFieldsEnabled,
     isMatchingVendorListLoaded,
     isMaxExpenseAmountSet,
@@ -112,6 +128,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isPerDiemEligiblePolicy,
     isPerDiemEnabled,
+    isPolicyAccessible,
     isPolicyAdmin,
     isPolicyFeatureEnabled,
     isRoomMemberProtectedByPolicyRole,
@@ -119,22 +136,24 @@ import {
     isSubmitterApproveBlockedOnSubmitWorkspace,
     isRilletVendorMatchingActive,
     isTaxCodeCustomized,
-    isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     settingsPendingAction,
     shouldHideDynamicExternalWorkflowPeople,
+    shouldHideExpensifyTeamCardholder,
     shouldShowPolicy,
     sortPoliciesByName,
+    getDefaultVendorID,
     sortVendors,
     sortWorkspacesBySelected,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTags, PolicyTagLists, Report, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
     Connections,
@@ -400,25 +419,967 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('canUnarchivePolicy', () => {
-        it('returns true for the owner of an archived workspace when the beta is enabled', () => {
-            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+    describe('policy', () => {
+        describe('canUnarchivePolicy', () => {
+            it('returns true for the owner of an archived workspace when the beta is enabled', () => {
+                expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, true)).toBe(true);
+            });
+
+            it('returns false when the beta is disabled', () => {
+                expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+            });
+
+            it('returns false when the workspace is not archived', () => {
+                expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+            });
+
+            it('returns false when the current user is not the owner', () => {
+                expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+            });
+
+            it('returns false when the owner is unknown', () => {
+                expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
+            });
         });
 
-        it('returns false when the beta is disabled', () => {
-            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID, false)).toBe(false);
+        describe('getActivePolicies', () => {
+            it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => createMock<Policy>({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: undefined})}),
+                    2,
+                );
+                expect(getActivePolicies(policies, undefined)).toHaveLength(1);
+            });
+
+            it('excludes archived policies while keeping the active sibling', () => {
+                const activePolicy = createMock<Policy>({...createRandomPolicy(1), name: 'active', pendingAction: null});
+                const archivedPolicy = createMock<Policy>({...createRandomPolicy(2), name: 'archived', pendingAction: null, archivedDate: '2024-01-01'});
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? activePolicy : archivedPolicy),
+                    2,
+                );
+
+                const result = getActivePolicies(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(activePolicy.id);
+            });
         });
 
-        it('returns false when the workspace is not archived', () => {
-            expect(canUnarchivePolicy(false, ownerAccountID, ownerAccountID, true)).toBe(false);
+        describe('getActivePoliciesWithExpenseChat', () => {
+            it('excludes archived policies while keeping the active sibling', () => {
+                const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
+                const archivedPolicy = createMock<Policy>({
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    name: 'archived',
+                    pendingAction: null,
+                    archivedDate: '2024-01-01',
+                });
+                const policies = createCollection<Policy>(
+                    (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                    (index) => (index === 0 ? activePolicy : archivedPolicy),
+                    2,
+                );
+
+                const result = getActivePoliciesWithExpenseChat(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.id).toBe(activePolicy.id);
+            });
         });
 
-        it('returns false when the current user is not the owner', () => {
-            expect(canUnarchivePolicy(true, ownerAccountID, ownerAccountID + 1, true)).toBe(false);
+        describe('per diem policy filters', () => {
+            const perDiemCustomUnit = {
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                customUnitID: 'ABCDEF',
+                enabled: true,
+                rates: {
+                    London: {
+                        customUnitRateID: 'London',
+                        name: 'London',
+                    },
+                },
+            };
+
+            it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                    collect: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+            });
+
+            it('includes a control policy whose per diem is enabled but has no rates yet (rates load lazily after cache clear)', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporateWithRates: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                    corporateWithoutRates: {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: {
+                                ...perDiemCustomUnit,
+                                rates: {},
+                            },
+                        },
+                    },
+                    collectWithRates: {
+                        ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        arePerDiemRatesEnabled: true,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+                expect(result.map((currentPolicy) => currentPolicy.id).sort()).toEqual(['1', '2']);
+            });
+
+            it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        // Migrated member: flag never arrived, but the configured custom unit is present
+                        arePerDiemRatesEnabled: undefined,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
+            });
+
+            it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
+                const policies: OnyxCollection<Policy> = {
+                    corporate: {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        // Explicit off must be respected, so the lingering custom unit cannot re-enable it
+                        arePerDiemRatesEnabled: false,
+                        customUnits: {
+                            ABCDEF: perDiemCustomUnit,
+                        },
+                    },
+                };
+
+                expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
+            });
         });
 
-        it('returns false when the owner is unknown', () => {
-            expect(canUnarchivePolicy(true, undefined, ownerAccountID, true)).toBe(false);
+        describe('hasCompanyAddress', () => {
+            it('only counts a company address that has a street, the same way Auth does', () => {
+                // Given workspaces without an address, with a blank street, and with a street
+                const policy = createRandomPolicy(0);
+                const address = {city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US' as const};
+                const withoutAddress: Policy = {...policy, address: undefined};
+                const withBlankStreet: Policy = {...policy, address: {...address, addressStreet: '  '}};
+                const withStreet: Policy = {...policy, address: {...address, addressStreet: '88 Kearny St'}};
+
+                // When checking whether each has a company address
+                // Then only the one with a street has one, since that's when Auth counts the company address as an office
+                expect(hasCompanyAddress(withoutAddress)).toBe(false);
+                expect(hasCompanyAddress(withBlankStreet)).toBe(false);
+                expect(hasCompanyAddress(withStreet)).toBe(true);
+            });
+        });
+
+        describe('shouldShowPolicy', () => {
+            beforeEach(() => {
+                global.fetch = TestHelper.getGlobalFetchMock();
+                return Onyx.clear().then(waitForBatchedUpdates);
+            });
+            it('should return false', () => {
+                // Given an archived paid policy.
+                const policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: '',
+                };
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The empty role deliberately models malformed persisted policy data.
+                const result = shouldShowPolicy(policy as unknown as Parameters<typeof shouldShowPolicy>[0], false, CARLOS_EMAIL);
+                // The result should be false since it is an archived paid policy.
+                expect(result).toBe(false);
+            });
+            it('should return true', () => {
+                // Given a paid policy.
+                const policy = createMock<OnyxEntry<Policy>>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null});
+                const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
+                // The result should be true, since it is an active paid policy.
+                expect(result).toBe(true);
+            });
+            it('should return false', () => {
+                // Given a control workspace which is pending delete.
+                const policy = createMock<OnyxEntry<Policy>>({
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                });
+                const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
+                // The result should be false since it is a policy which is pending deletion.
+                expect(result).toEqual(false);
+            });
+            it('hides an archived policy by default', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
+                const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+                expect(result).toBe(false);
+            });
+            it('shows an archived policy when includeArchivedPolicy is true', () => {
+                const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
+                const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL, true);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('getOwnedPaidPolicies', () => {
+            const ownerID = 100;
+
+            it('returns only the paid workspaces the account owns', () => {
+                // Given owned Collect, Control, Submit and Personal workspaces, plus a Control workspace owned by someone else
+                const ownedTeam: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), ownerAccountID: ownerID};
+                const ownedCorporate: Policy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), ownerAccountID: ownerID};
+                const ownedSubmit: Policy = {...createRandomPolicy(3, CONST.POLICY.TYPE.SUBMIT), ownerAccountID: ownerID};
+                const ownedPersonal: Policy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), ownerAccountID: ownerID};
+                const otherOwnersCorporate: Policy = {...createRandomPolicy(5, CONST.POLICY.TYPE.CORPORATE), ownerAccountID: ownerID + 1};
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: ownedTeam,
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: ownedCorporate,
+                    [`${ONYXKEYS.COLLECTION.POLICY}3`]: ownedSubmit,
+                    [`${ONYXKEYS.COLLECTION.POLICY}4`]: ownedPersonal,
+                    [`${ONYXKEYS.COLLECTION.POLICY}5`]: otherOwnersCorporate,
+                    [`${ONYXKEYS.COLLECTION.POLICY}6`]: undefined,
+                };
+
+                // When we get the owned paid policies
+                const result = getOwnedPaidPolicies(policies, ownerID);
+
+                // Then only the owned Collect and Control workspaces are returned, since Submit and Personal are not paid plans
+                expect(result.map((policy) => policy.id).sort()).toEqual(['1', '2']);
+            });
+
+            it('returns an empty array when the account ID is unknown', () => {
+                // Given a paid workspace whose owner is unknown to the caller
+                const policies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}1`]: {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), ownerAccountID: ownerID}};
+
+                // When we get the owned paid policies without an account ID
+                // Then nothing is returned, because no account can be matched as the owner
+                expect(getOwnedPaidPolicies(policies, undefined)).toEqual([]);
+            });
+
+            it('returns an empty array when there are no policies', () => {
+                // Given no policies collection
+                // When we get the owned paid policies
+                // Then nothing is returned
+                expect(getOwnedPaidPolicies(null, ownerID)).toEqual([]);
+            });
+        });
+
+        describe('canCreateCategoryInSitu', () => {
+            const categoriesPolicy = (role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = true): Policy => ({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                role,
+                areCategoriesEnabled,
+                connections: undefined,
+            });
+
+            it('lets an admin add a category from the picker when the workspace uses categories', () => {
+                // Given an admin of a workspace with categories on and no accounting integration
+                // When we check whether the category picker can offer to add one
+                // Then it can, as the full-page selector's "+" does
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN))).toBe(true);
+            });
+
+            it('does not let a member add a category', () => {
+                // Given a member, who cannot change workspace settings
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, so the pop-over hides its add button
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.USER))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace has categories turned off', () => {
+                // Given an admin of a workspace that has turned categories off
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because a new category would have nowhere to show
+                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
+            });
+
+            it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
+                // Given an admin of a workspace whose categories come from an accounting integration
+                const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
+
+                // When we check whether the category picker can offer to add one
+                // Then it cannot, because new categories have to be created in the integration
+                expect(canCreateCategoryInSitu(policy)).toBe(false);
+            });
+        });
+
+        describe('canShowReimbursableToggleForPolicy', () => {
+            const teamBase = createMock<Policy>({id: 'policy1', type: CONST.POLICY.TYPE.TEAM});
+
+            it('returns true when the reimbursable field is not locked', () => {
+                // Given a workspace that lets members change the reimbursable field
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: false}};
+
+                // When checking an expense that already matches the default
+                // Then the toggle is shown, because nothing stops the member from editing it
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+            });
+
+            it('returns false when the field is locked and the expense matches the policy default', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense that is already non-reimbursable
+                // Then the toggle is hidden, because the lock says members cannot change it
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(false);
+            });
+
+            it('returns true when the field is locked but the expense disagrees with the policy default', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense that drifted to reimbursable
+                // Then the toggle is shown so the expense can be corrected instead of staying stuck
+                expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(true);
+            });
+
+            it('treats an absent defaultReimbursable as reimbursable when the field is locked', () => {
+                // Given a locked workspace with no stored defaultReimbursable
+                const policy = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+                // When checking a reimbursable expense and a non-reimbursable expense
+                // Then only the non-reimbursable one disagrees with the implied "reimbursable" default
+                expect(canShowReimbursableToggleForPolicy(policy, true)).toBe(false);
+                expect(canShowReimbursableToggleForPolicy(policy, false)).toBe(true);
+            });
+
+            it('treats an absent expense reimbursable value as reimbursable when the field is locked', () => {
+                // Given a locked workspace whose default is reimbursable, stored or implied
+                const policyWithDefault = {...teamBase, defaultReimbursable: true, disabledFields: {reimbursable: true}};
+                const policyWithoutDefault = {...teamBase, defaultReimbursable: undefined, disabledFields: {reimbursable: true}};
+
+                // When checking an expense with no stored reimbursable value
+                // Then the toggle is hidden, because the expense defaults to reimbursable and already matches the policy
+                expect(canShowReimbursableToggleForPolicy(policyWithDefault, undefined)).toBe(false);
+                expect(canShowReimbursableToggleForPolicy(policyWithoutDefault, undefined)).toBe(false);
+            });
+
+            it('shows the toggle for an expense with no reimbursable value on a locked non-reimbursable workspace', () => {
+                // Given a workspace locked to "cash expenses are always non-reimbursable"
+                const policy = {...teamBase, defaultReimbursable: false, disabledFields: {reimbursable: true}};
+
+                // When checking an expense with no stored reimbursable value, which defaults to reimbursable
+                // Then the toggle is shown, because the expense disagrees with the policy default
+                expect(canShowReimbursableToggleForPolicy(policy, undefined)).toBe(true);
+            });
+        });
+
+        describe('getActiveAdminWorkspaces', () => {
+            const currentUserLogin = 'admin@test.com';
+            // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is active
+            const buildActivePolicy = (id: number, type: ValueOf<typeof CONST.POLICY.TYPE>, role: ValueOf<typeof CONST.POLICY.ROLE>): Policy => ({
+                ...createRandomPolicy(id, type),
+                name: `Workspace ${id}`,
+                role,
+                pendingAction: null,
+                archivedDate: undefined,
+            });
+
+            it('returns only the active workspaces where the user is an admin', () => {
+                // Given an admin workspace and a workspace where the user is only a member
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.ROLE.ADMIN),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildActivePolicy(2, CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.ROLE.USER),
+                };
+
+                // When we get the active admin workspaces
+                const result = getActiveAdminWorkspaces(policies, currentUserLogin);
+
+                // Then only the admin workspace is returned
+                expect(result.map((policy) => policy.id)).toEqual(['1']);
+            });
+
+            it('excludes admin workspaces that are pending deletion, archived, or personal', () => {
+                // Given admin workspaces that are pending deletion, archived, or personal, next to a regular one
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.ADMIN),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: {...buildActivePolicy(2, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.ADMIN), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [`${ONYXKEYS.COLLECTION.POLICY}3`]: {...buildActivePolicy(3, CONST.POLICY.TYPE.TEAM, CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'},
+                    [`${ONYXKEYS.COLLECTION.POLICY}4`]: buildActivePolicy(4, CONST.POLICY.TYPE.PERSONAL, CONST.POLICY.ROLE.ADMIN),
+                };
+
+                // When we get the active admin workspaces
+                const result = getActiveAdminWorkspaces(policies, currentUserLogin);
+
+                // Then only the regular workspace is returned, since the others can't be shown or used
+                expect(result.map((policy) => policy.id)).toEqual(['1']);
+            });
+
+            it('resolves the admin role from the employee list when the policy has no role', () => {
+                // Given a workspace with no role of its own that lists the user as an admin
+                const policy = createMock<Policy>({
+                    ...buildActivePolicy(1, CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.ROLE.ADMIN),
+                    role: undefined,
+                    employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN}},
+                });
+
+                // When we get the active admin workspaces
+                const result = getActiveAdminWorkspaces({[`${ONYXKEYS.COLLECTION.POLICY}1`]: policy}, currentUserLogin);
+
+                // Then the workspace is returned, because the employee list says the user is an admin
+                expect(result.map((currentPolicy) => currentPolicy.id)).toEqual(['1']);
+            });
+
+            it('returns an empty array when there are no policies', () => {
+                // Given no policies collection
+                // When we get the active admin workspaces
+                // Then nothing is returned
+                expect(getActiveAdminWorkspaces(null, currentUserLogin)).toEqual([]);
+            });
+        });
+
+        describe('canSendInvoiceFromWorkspace', () => {
+            it('returns true when areInvoicesEnabled is true', () => {
+                const policy = createMock<Policy>({areInvoicesEnabled: true});
+                expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
+            });
+
+            it('returns false when areInvoicesEnabled is false', () => {
+                const policy = createMock<Policy>({areInvoicesEnabled: false});
+                expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
+            });
+
+            it('returns false when policy is undefined', () => {
+                expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
+            });
+        });
+
+        describe('canSubmitPerDiemExpenseFromWorkspace', () => {
+            const perDiemCustomUnit = {
+                name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                customUnitID: 'ABCDEF',
+                enabled: true,
+                rates: {},
+            };
+            const buildPolicy = (type: ValueOf<typeof CONST.POLICY.TYPE>, customUnits: Policy['customUnits']): Policy => ({...createRandomPolicy(1, type), customUnits});
+
+            it('returns true for a paid workspace with an enabled per diem custom unit', () => {
+                // Given a Control workspace with an enabled per diem custom unit
+                const policy = buildPolicy(CONST.POLICY.TYPE.CORPORATE, {ABCDEF: perDiemCustomUnit});
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it can
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(true);
+            });
+
+            it('returns false when the per diem custom unit is disabled', () => {
+                // Given a Control workspace whose per diem custom unit is turned off
+                const policy = buildPolicy(CONST.POLICY.TYPE.CORPORATE, {ABCDEF: {...perDiemCustomUnit, enabled: false}});
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(false);
+            });
+
+            it('returns false when the workspace has no per diem custom unit', () => {
+                // Given a Control workspace that only has a distance custom unit
+                const policy = buildPolicy(CONST.POLICY.TYPE.CORPORATE, {
+                    DISTANCE: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'DISTANCE', enabled: true, rates: {}},
+                });
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot, because there is no per diem unit to submit against
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(false);
+            });
+
+            it.each([CONST.POLICY.TYPE.SUBMIT, CONST.POLICY.TYPE.PERSONAL])('returns false for a %s workspace even with an enabled per diem custom unit', (type) => {
+                // Given a workspace on a plan that isn't paid, with an enabled per diem custom unit
+                const policy = buildPolicy(type, {ABCDEF: perDiemCustomUnit});
+
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot, because per diem is only available on paid workspaces
+                expect(canSubmitPerDiemExpenseFromWorkspace(policy)).toBe(false);
+            });
+
+            it('returns false when the policy is undefined', () => {
+                // Given no policy
+                // When we check whether a per diem expense can be submitted from it
+                // Then it cannot
+                expect(canSubmitPerDiemExpenseFromWorkspace(undefined)).toBe(false);
+            });
+        });
+
+        describe('canSendInvoice', () => {
+            const currentUserLogin = 'admin@test.com';
+            // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is active
+            const buildActivePolicy = (id: number, role: ValueOf<typeof CONST.POLICY.ROLE>, areInvoicesEnabled: boolean): Policy => ({
+                ...createRandomPolicy(id, CONST.POLICY.TYPE.CORPORATE),
+                name: `Workspace ${id}`,
+                role,
+                pendingAction: null,
+                archivedDate: undefined,
+                areInvoicesEnabled,
+            });
+
+            it('returns true when an active admin workspace has invoices enabled', () => {
+                // Given an admin workspace with invoices enabled and one with invoices disabled
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.ROLE.ADMIN, false),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildActivePolicy(2, CONST.POLICY.ROLE.ADMIN, true),
+                };
+
+                // When we check whether the user can send an invoice
+                // Then they can, from the workspace with invoices enabled
+                expect(canSendInvoice(policies, currentUserLogin)).toBe(true);
+            });
+
+            it('returns false when invoices are only enabled on a workspace where the user is a member', () => {
+                // Given invoices enabled only on a workspace where the user is not an admin
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildActivePolicy(1, CONST.POLICY.ROLE.ADMIN, false),
+                    [`${ONYXKEYS.COLLECTION.POLICY}2`]: buildActivePolicy(2, CONST.POLICY.ROLE.USER, true),
+                };
+
+                // When we check whether the user can send an invoice
+                // Then they cannot, because only admins can send invoices
+                expect(canSendInvoice(policies, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the only admin workspace with invoices enabled is pending deletion', () => {
+                // Given an admin workspace with invoices enabled that is being deleted
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}1`]: {...buildActivePolicy(1, CONST.POLICY.ROLE.ADMIN, true), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                };
+
+                // When we check whether the user can send an invoice
+                // Then they cannot, because the workspace is no longer active
+                expect(canSendInvoice(policies, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when there are no policies', () => {
+                // Given no policies collection
+                // When we check whether the user can send an invoice
+                // Then they cannot
+                expect(canSendInvoice(null, currentUserLogin)).toBe(false);
+            });
+        });
+
+        describe('sortWorkspacesBySelected', () => {
+            it('should order workspaces with selected workspace first', () => {
+                const workspace1 = {policyID: '1', name: 'Workspace 1'};
+                const workspace2 = {policyID: '2', name: 'Workspace 2'};
+                const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
+                const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
+                expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+                expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
+                expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
+            });
+
+            it('should order workspaces using name if no workspace is selected', () => {
+                const workspace1 = {policyID: '1', name: 'Workspace 1'};
+                const workspace2 = {policyID: '2', name: 'Workspace 2'};
+                const workspace3 = {policyID: '3', name: 'Workspace 3'};
+                const workspace4 = {policyID: '4', name: 'Workspace 4'};
+                expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
+                expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
+                expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
+            });
+
+            it('should sort workspaces when using this method correctly', () => {
+                const unsortedWorkspaces = [
+                    {policyID: '2', name: 'Workspace 2'},
+                    {policyID: '1', name: 'Workspace 1'},
+                    {policyID: '4', name: 'Workspace 4'},
+                    {policyID: '3', name: 'Workspace 3'},
+                ];
+                const selectedWorkspaceIDs = ['3', '4'];
+                const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
+                expect(sortedWorkspaces).toEqual([
+                    {policyID: '3', name: 'Workspace 3'},
+                    {policyID: '4', name: 'Workspace 4'},
+                    {policyID: '1', name: 'Workspace 1'},
+                    {policyID: '2', name: 'Workspace 2'},
+                ]);
+            });
+        });
+
+        describe('hasOnlyPersonalPolicies', () => {
+            it('should return true when policies is empty', () => {
+                const result = hasOnlyPersonalPolicies({});
+                expect(result).toBe(true);
+            });
+
+            it('should return false when there are policies other than personal policies', () => {
+                const policies = {
+                    '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                };
+                const result = hasOnlyPersonalPolicies(policies);
+                expect(result).toBe(false);
+            });
+
+            it('should return true when there are no policies other than personal policies', () => {
+                const policies = {
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                };
+                const result = hasOnlyPersonalPolicies(policies);
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('getDefaultWorkspacePlanType', () => {
+            const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+            const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+            const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+            const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+            it.each([
+                {description: 'the collection is null', policies: null, expected: CONST.POLICY.TYPE.TEAM},
+                {description: 'the collection is undefined', policies: undefined, expected: CONST.POLICY.TYPE.TEAM},
+                {description: 'the collection is empty', policies: {}, expected: CONST.POLICY.TYPE.TEAM},
+                {description: 'the collection only holds empty entries', policies: {policy_1: undefined, policy_2: undefined}, expected: CONST.POLICY.TYPE.TEAM},
+                {
+                    description: 'the collection holds Submit, Collect and Personal workspaces',
+                    policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_personal1: personalPolicy},
+                    expected: CONST.POLICY.TYPE.TEAM,
+                },
+                {description: 'the collection holds a single Control workspace', policies: {policy_corporate1: corporatePolicy}, expected: CONST.POLICY.TYPE.CORPORATE},
+                {
+                    description: 'the collection holds a Control workspace mixed in with other plan types',
+                    policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_corporate1: corporatePolicy, policy_personal1: personalPolicy},
+                    expected: CONST.POLICY.TYPE.CORPORATE,
+                },
+                {
+                    description: 'the collection holds a Control workspace between empty entries',
+                    policies: {policy_1: undefined, policy_corporate1: corporatePolicy, policy_2: undefined},
+                    expected: CONST.POLICY.TYPE.CORPORATE,
+                },
+            ])('returns $expected when $description', ({policies, expected}) => {
+                expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
+            });
+        });
+
+        describe('isPolicyAccessible', () => {
+            const currentUserLogin = 'member@test.com';
+            const accessiblePolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER, pendingAction: null};
+
+            it('returns true for a workspace the user belongs to', () => {
+                // Given a workspace where the user has a role and that isn't being deleted
+                // When we check whether the user can access it
+                // Then they can
+                expect(isPolicyAccessible(accessiblePolicy, currentUserLogin)).toBe(true);
+            });
+
+            it('returns false when the policy is undefined or empty', () => {
+                // Given no policy data
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(undefined, currentUserLogin)).toBe(false);
+                expect(isPolicyAccessible(createMock<Policy>({}), currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the policy only holds errors', () => {
+                // Given a policy entry that only holds the error from a failed request, such as an invalid policy ID
+                const policy = createMock<Policy>({errors: {error: 'Policy not found'}});
+
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the policy has no ID', () => {
+                // Given a workspace whose ID is missing
+                const policy = createMock<Policy>({...accessiblePolicy, id: undefined});
+
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the policy is pending deletion', () => {
+                // Given a workspace that is being deleted
+                const policy: Policy = {...accessiblePolicy, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+                // When we check whether the user can access it
+                // Then they cannot
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns false when the user has no role in the policy', () => {
+                // Given a workspace with no role for the user and no employee list entry for them
+                const policy = createMock<Policy>({...accessiblePolicy, role: undefined, employeeList: {}});
+
+                // When we check whether the user can access it
+                // Then they cannot, because they are not a member
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(false);
+            });
+
+            it('returns true when the user role comes from the employee list', () => {
+                // Given a workspace with no role of its own that lists the user as a member
+                const policy = createMock<Policy>({...accessiblePolicy, role: undefined, employeeList: {[currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER}}});
+
+                // When we check whether the user can access it
+                // Then they can
+                expect(isPolicyAccessible(policy, currentUserLogin)).toBe(true);
+            });
+        });
+
+        describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+            const currentUserLogin = 'member@test.com';
+            // createRandomPolicy randomizes these, so set the fields that decide whether a workspace is shown
+            const buildPolicy = (id: string, type: ValueOf<typeof CONST.POLICY.TYPE>): Policy => ({
+                ...createRandomPolicy(0, type),
+                id,
+                role: CONST.POLICY.ROLE.USER,
+                isJoinRequestPending: false,
+                pendingAction: null,
+                archivedDate: undefined,
+            });
+
+            it('returns Collect, Control and Submit workspaces but not Personal ones', () => {
+                // Given workspaces on every plan type
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}team`]: buildPolicy('team', CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.POLICY}corporate`]: buildPolicy('corporate', CONST.POLICY.TYPE.CORPORATE),
+                    [`${ONYXKEYS.COLLECTION.POLICY}submit`]: buildPolicy('submit', CONST.POLICY.TYPE.SUBMIT),
+                    [`${ONYXKEYS.COLLECTION.POLICY}personal`]: buildPolicy('personal', CONST.POLICY.TYPE.PERSONAL),
+                };
+
+                // When we get the workspaces where a report can be created
+                const result = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+
+                // Then the paid and Submit workspaces are returned, since Submit workspaces support reports even though they're free
+                expect(result.map((policy) => policy.id).sort()).toEqual(['corporate', 'submit', 'team']);
+            });
+
+            it('excludes workspaces with a pending join request, pending deletion, or an archive date', () => {
+                // Given a regular workspace next to ones the user can't create reports in yet or anymore
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}active`]: buildPolicy('active', CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.POLICY}joinPending`]: {...buildPolicy('joinPending', CONST.POLICY.TYPE.TEAM), isJoinRequestPending: true},
+                    [`${ONYXKEYS.COLLECTION.POLICY}deleting`]: {...buildPolicy('deleting', CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    [`${ONYXKEYS.COLLECTION.POLICY}archived`]: {...buildPolicy('archived', CONST.POLICY.TYPE.TEAM), archivedDate: '2024-01-01'},
+                };
+
+                // When we get the workspaces where a report can be created
+                const result = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+
+                // Then only the regular workspace is returned
+                expect(result.map((policy) => policy.id)).toEqual(['active']);
+            });
+
+            it('excludes the TeachersUnite workspace', () => {
+                // Given the TeachersUnite workspace next to a regular one
+                const teachersUnitePolicyID = CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+                const policies: OnyxCollection<Policy> = {
+                    [`${ONYXKEYS.COLLECTION.POLICY}active`]: buildPolicy('active', CONST.POLICY.TYPE.TEAM),
+                    [`${ONYXKEYS.COLLECTION.POLICY}${teachersUnitePolicyID}`]: buildPolicy(teachersUnitePolicyID, CONST.POLICY.TYPE.TEAM),
+                };
+
+                // When we get the workspaces where a report can be created
+                const result = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin);
+
+                // Then the TeachersUnite workspace is left out
+                expect(result.map((policy) => policy.id)).toEqual(['active']);
+            });
+
+            it('returns an empty array when there are no policies', () => {
+                // Given an empty or missing policies collection
+                // When we get the workspaces where a report can be created
+                // Then nothing is returned
+                expect(getGroupPoliciesWhereReportCanBeCreated({}, currentUserLogin)).toEqual([]);
+                expect(getGroupPoliciesWhereReportCanBeCreated(null, currentUserLogin)).toEqual([]);
+            });
+        });
+
+        describe('getDefaultChatEnabledPolicy', () => {
+            const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
+            const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
+            const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
+            const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+
+            it('returns the active policy when it is a Submit workspace, even with multiple eligible workspaces', () => {
+                // Regression: a Submit active policy must be recognized as the report-creation default. Previously
+                // isPaidGroupPolicy excluded it, returning undefined here and wrongly forcing the workspace selector.
+                expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], submitPolicy)).toBe(submitPolicy);
+            });
+
+            it('returns the active policy when it is a paid (Collect/Control) workspace', () => {
+                expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], teamPolicy)).toBe(teamPolicy);
+            });
+
+            it('returns the only eligible workspace when the active policy is personal', () => {
+                expect(getDefaultChatEnabledPolicy([submitPolicy], personalPolicy)).toBe(submitPolicy);
+            });
+
+            it('returns undefined when the active policy is not a group policy and there are multiple eligible workspaces', () => {
+                expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], personalPolicy)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no eligible workspaces', () => {
+                expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
+            });
+
+            it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
+                expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
+            });
+
+            it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
+                expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
+            });
+        });
+
+        describe('getDefaultChatEnabledPolicySelection', () => {
+            // createRandomPolicy randomizes these, so eligibility comes out flaky
+            const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
+            const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), ...eligibleFields, id: 'team1'};
+            const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields, id: 'corporate1'};
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
+            };
+
+            it.each([
+                [
+                    'resolves the active policy from the collection by ID',
+                    collection,
+                    corporatePolicy.id,
+                    {defaultChatEnabledPolicyID: corporatePolicy.id, hasChatEnabledPolicies: true, hasMultipleChatEnabledPolicies: true},
+                ],
+                [
+                    'returns no default when the active policy is unknown and multiple workspaces are eligible',
+                    collection,
+                    undefined,
+                    {defaultChatEnabledPolicyID: undefined, hasChatEnabledPolicies: true, hasMultipleChatEnabledPolicies: true},
+                ],
+                [
+                    'returns the only eligible workspace and reports a single workspace',
+                    {[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy},
+                    undefined,
+                    {defaultChatEnabledPolicyID: teamPolicy.id, hasChatEnabledPolicies: true, hasMultipleChatEnabledPolicies: false},
+                ],
+                [
+                    'reports no eligible workspace for an empty collection',
+                    {},
+                    undefined,
+                    {defaultChatEnabledPolicyID: undefined, hasChatEnabledPolicies: false, hasMultipleChatEnabledPolicies: false},
+                ],
+            ])('%s', (_description, policies, activePolicyID, expected) => {
+                // Given the user's policy collection and active policy ID
+                // When the scalar selection used by the create-report entry points is computed
+                const selection = getDefaultChatEnabledPolicySelection(policies, undefined, activePolicyID);
+
+                // Then it carries the default workspace and the eligibility flags the hook branches on
+                expect(selection).toEqual(expected);
+            });
+        });
+
+        describe('hasOtherControlWorkspaces', () => {
+            it('should return false when policies is empty', () => {
+                const result = hasOtherControlWorkspaces([], '1');
+                expect(result).toBe(false);
+            });
+
+            it('should return false when there are no control workspaces other than the current one', () => {
+                const policies = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                ];
+                const result = hasOtherControlWorkspaces(policies, '1');
+                expect(result).toBe(false);
+            });
+
+            it('should return true when there are other control workspaces', () => {
+                const policies = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                ];
+                const result = hasOtherControlWorkspaces(policies, '1');
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('sortPoliciesByName', () => {
+            const localeCompare = (a: string, b: string) => a.localeCompare(b);
+
+            it('sorts policies alphabetically by name', () => {
+                const policies: Policy[] = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                ];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+                expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
+            });
+
+            it('returns empty array for empty input', () => {
+                expect(sortPoliciesByName([], localeCompare)).toEqual([]);
+            });
+
+            it('treats undefined or empty names as empty string', () => {
+                const policies: Policy[] = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
+                    {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                ];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+                expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
+            });
+
+            it('returns single-element array as-is', () => {
+                const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+                expect(result).toHaveLength(1);
+                expect(result.at(0)?.name).toBe('Only');
+            });
+
+            it('does not sort the input array in place', () => {
+                const policies: Policy[] = [
+                    {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
+                    {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
+                ];
+
+                const result = sortPoliciesByName(policies, localeCompare);
+
+                expect(result).not.toBe(policies);
+            });
         });
     });
 
@@ -472,21 +1433,64 @@ describe('PolicyUtils', () => {
                 expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)).toBe(false);
             });
 
-            it('allows auditors to read every policy feature but write only rooms', () => {
+            it.each([
+                [CONST.POLICY.ROLE.ADMIN, true, true],
+                [CONST.POLICY.ROLE.AUDITOR, true, false],
+                [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true, false],
+                [CONST.POLICY.ROLE.EDITOR, false, false],
+                [CONST.POLICY.ROLE.CARD_ADMIN, false, false],
+                [CONST.POLICY.ROLE.PEOPLE_ADMIN, false, false],
+                [CONST.POLICY.ROLE.USER, false, false],
+                [CONST.POLICY.ROLE.GUEST, false, false],
+            ])('gives %s read=%s and write=%s on the all reports feature', (role, canRead, canWrite) => {
+                // Given a member with the role
+                const policy = buildPolicy(role);
+
+                // When we check their all reports access
+                // Then it matches the role bundle in Auth, so the client and server can't diverge
+                expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ALL_REPORTS)).toBe(canRead);
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.ALL_REPORTS)).toBe(canWrite);
+            });
+
+            it.each([
+                [CONST.POLICY.ROLE.AUDITOR, true],
+                [CONST.POLICY.ROLE.PAYMENTS_ADMIN, true],
+                [CONST.POLICY.ROLE.ADMIN, false],
+                [CONST.POLICY.ROLE.EDITOR, false],
+                [CONST.POLICY.ROLE.USER, false],
+            ])('hasReadOnlyAllReportsAccess for %s is %s', (role, expected) => {
+                // Given a member with the role
+                const policy = buildPolicy(role);
+
+                // When we check whether they can only read all reports
+                // Then only roles that can see every report without administering them match
+                expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(expected);
+            });
+
+            it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('hasReadOnlyAllReportsAccess is false for a %s after the workspace is downgraded to Team', (role) => {
+                // Given a member whose control-only role is still stored after the policy type changed to Team
+                const policy = {...buildPolicy(role), type: CONST.POLICY.TYPE.TEAM};
+
+                // When we check whether they can only read all reports
+                // Then the role no longer applies, matching the other permission helpers
+                expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
+            });
+
+            it('allows auditors to read every policy feature but write only rooms and expense creation', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                     expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
-            it('allows guests to read only the workspace overview', () => {
+            it('allows guests to read only the workspace overview but create expenses', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
-                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
@@ -501,7 +1505,7 @@ describe('PolicyUtils', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
 
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.USER)).toBe(true);
-                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
+                expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.AUDITOR)).toBe(true);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.ADMIN)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
@@ -509,10 +1513,61 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
             });
 
-            it('blocks Guest assignment even on Control workspaces', () => {
-                const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+            it('blocks assigning the approve-only role', () => {
+                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
 
-                expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
+                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+            });
+
+            it('gives approve-only members read-only access like members', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+                expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+            });
+
+            it('allows creating expenses only for roles with create-expenses write access', () => {
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.USER)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+            });
+
+            it('blocks expense creation when the policy role cannot be resolved', () => {
+                expect(canCreateExpensesOnPolicy(createMock<Policy>({role: undefined}))).toBe(false);
+                expect(canCreateExpensesOnPolicy(undefined)).toBe(false);
+            });
+
+            it('resolves the member role from employeeList when the policy role is missing', () => {
+                const legacyPolicy = createMock<Policy>({
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(legacyPolicy)).toBe(false);
+                expect(canCreateExpensesOnPolicy(legacyPolicy, memberLogin)).toBe(true);
+            });
+
+            it('resolves the target member role from employeeList even when policy.role belongs to another user', () => {
+                const policyWithDifferentViewerRole = createMock<Policy>({
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
+            });
+
+            it('allows Guest assignment only on Control workspaces', () => {
+                const controlPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+                const collectPolicy = {...controlPolicy, type: CONST.POLICY.TYPE.TEAM};
+
+                expect(canMemberAssignRole(controlPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(true);
+                expect(canMemberAssignRole(collectPolicy, memberLogin, CONST.POLICY.ROLE.GUEST)).toBe(false);
             });
 
             it('allows Submit workspace editors to manage editor memberships without assigning roles', () => {
@@ -535,45 +1590,6 @@ describe('PolicyUtils', () => {
                 const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
 
                 expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
-            });
-        });
-
-        describe('canCreateCategoryInSitu', () => {
-            const categoriesPolicy = (role: ValueOf<typeof CONST.POLICY.ROLE>, areCategoriesEnabled = true): Policy => ({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role,
-                areCategoriesEnabled,
-                connections: undefined,
-            });
-
-            it('lets an admin add a category from the picker when the workspace uses categories', () => {
-                // Given an admin of a workspace with categories on and no accounting integration
-                // When we check whether the category picker can offer to add one
-                // Then it can, as the full-page selector's "+" does
-                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN))).toBe(true);
-            });
-
-            it('does not let a member add a category', () => {
-                // Given a member, who cannot change workspace settings
-                // When we check whether the category picker can offer to add one
-                // Then it cannot, so the pop-over hides its add button
-                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.USER))).toBe(false);
-            });
-
-            it('does not offer to add a category when the workspace has categories turned off', () => {
-                // Given an admin of a workspace that has turned categories off
-                // When we check whether the category picker can offer to add one
-                // Then it cannot, because a new category would have nowhere to show
-                expect(canCreateCategoryInSitu(categoriesPolicy(CONST.POLICY.ROLE.ADMIN, false))).toBe(false);
-            });
-
-            it('does not offer to add a category when the workspace syncs with an accounting integration', () => {
-                // Given an admin of a workspace whose categories come from an accounting integration
-                const policy = {...categoriesPolicy(CONST.POLICY.ROLE.ADMIN), connections: createMock<Connections>({[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {}})};
-
-                // When we check whether the category picker can offer to add one
-                // Then it cannot, because new categories have to be created in the integration
-                expect(canCreateCategoryInSitu(policy)).toBe(false);
             });
         });
 
@@ -732,6 +1748,17 @@ describe('PolicyUtils', () => {
                 // them back after removal. The viewer's global `role` must not hide the auditor's own role
                 expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, auditorLogin, undefined)).toBe(true);
                 expect(isRoomMemberProtectedByPolicyRole(policyWithAuditor, 'Auditor@Test.com', undefined)).toBe(true);
+            });
+
+            it('protects a member who is a payments admin of the policy', () => {
+                // Given a policy viewed by an admin, holding a payments admin in its employee list
+                const paymentsAdminLogin = 'paymentsadmin@test.com';
+                const policy = buildPolicy();
+                const policyWithPaymentsAdmin = {...policy, employeeList: {...policy.employeeList, [paymentsAdminLogin]: {role: CONST.POLICY.ROLE.PAYMENTS_ADMIN}}};
+
+                // When that member's protection is resolved
+                // Then they are protected, because Auth rejects removing any member who can read every workspace report
+                expect(isRoomMemberProtectedByPolicyRole(policyWithPaymentsAdmin, paymentsAdminLogin, undefined)).toBe(true);
             });
 
             it('protects the policy owner by accountID even when the employee list does not list them', () => {
@@ -953,48 +1980,19 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getActivePolicies', () => {
-        it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
+    describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+        it('excludes workspaces where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null});
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
             const policies = createCollection<Policy>(
                 (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => createMock<Policy>({...createRandomPolicy(index + 1), name: 'workspace', pendingAction: null, ...(!index && {role: undefined})}),
-                2,
-            );
-            expect(getActivePolicies(policies, undefined)).toHaveLength(1);
-        });
-
-        it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1), name: 'active', pendingAction: null});
-            const archivedPolicy = createMock<Policy>({...createRandomPolicy(2), name: 'archived', pendingAction: null, archivedDate: '2024-01-01'});
-            const policies = createCollection<Policy>(
-                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => (index === 0 ? activePolicy : archivedPolicy),
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
                 2,
             );
 
-            const result = getActivePolicies(policies, undefined);
+            const result = getGroupPoliciesWhereReportCanBeCreated(policies, employeeEmail);
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.id).toBe(activePolicy.id);
-        });
-    });
-    describe('getActivePoliciesWithExpenseChat', () => {
-        it('excludes archived policies while keeping the active sibling', () => {
-            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
-            const archivedPolicy = createMock<Policy>({
-                ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-                name: 'archived',
-                pendingAction: null,
-                archivedDate: '2024-01-01',
-            });
-            const policies = createCollection<Policy>(
-                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
-                (index) => (index === 0 ? activePolicy : archivedPolicy),
-                2,
-            );
-
-            const result = getActivePoliciesWithExpenseChat(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.id).toBe(activePolicy.id);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
         });
     });
 
@@ -1349,51 +2347,6 @@ describe('PolicyUtils', () => {
                 };
                 expect(getPolicyByCustomUnitID(transactionWithPerDiemUnit, policies)).toBeUndefined();
             });
-        });
-    });
-
-    describe('shouldShowPolicy', () => {
-        beforeEach(() => {
-            global.fetch = TestHelper.getGlobalFetchMock();
-            return Onyx.clear().then(waitForBatchedUpdates);
-        });
-        it('should return false', () => {
-            // Given an archived paid policy.
-            const policy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                role: '',
-            };
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The empty role deliberately models malformed persisted policy data.
-            const result = shouldShowPolicy(policy as unknown as Parameters<typeof shouldShowPolicy>[0], false, CARLOS_EMAIL);
-            // The result should be false since it is an archived paid policy.
-            expect(result).toBe(false);
-        });
-        it('should return true', () => {
-            // Given a paid policy.
-            const policy = createMock<OnyxEntry<Policy>>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null});
-            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
-            // The result should be true, since it is an active paid policy.
-            expect(result).toBe(true);
-        });
-        it('should return false', () => {
-            // Given a control workspace which is pending delete.
-            const policy = createMock<OnyxEntry<Policy>>({
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            });
-            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
-            // The result should be false since it is a policy which is pending deletion.
-            expect(result).toEqual(false);
-        });
-        it('hides an archived policy by default', () => {
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
-            expect(result).toBe(false);
-        });
-        it('shows an archived policy when includeArchivedPolicy is true', () => {
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL, true);
-            expect(result).toBe(true);
         });
     });
 
@@ -2271,6 +3224,32 @@ describe('PolicyUtils', () => {
                 expect(getSubmitReportManagerAccountID(policy, expenseReport, employeeEmail, undefined, personalDetailsByLogins)).toBe(adminAccountID);
             });
         });
+
+        describe('isNonMemberApprover', () => {
+            const ownerEmail = 'owner@example.com';
+            const policy = createMock<Policy>({
+                id: '1',
+                owner: ownerEmail,
+                employeeList: {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            it('flags an approver who is no longer on the workspace, but not a member', () => {
+                // Given a workspace with one member
+                // When checking a removed approver and that member
+                // Then only the removed approver is flagged
+                expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
+                expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
+            });
+
+            it('does not flag the owner when their employee entry is missing', () => {
+                // Given a workspace whose employeeList has no entry for the owner
+                // When checking the owner as an approver
+                // Then they still count as a member, since the owner always belongs to the workspace
+                expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
+            });
+        });
     });
 
     describe('isWorkspaceEligibleForReportChange', () => {
@@ -2359,6 +3338,24 @@ describe('PolicyUtils', () => {
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
+
+        it('returns false if the submitter is approve-only on the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                },
+                pendingAction: null,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
     });
 
     describe('tag', () => {
@@ -2380,6 +3377,71 @@ describe('PolicyUtils', () => {
             ])('%s', (_description, orderWeight, expected) => {
                 const tagList = getTagListByOrderWeight(policyTags, orderWeight);
                 expect(tagList.name).toEqual(expected);
+            });
+        });
+        describe('hasAnyTagGLCode', () => {
+            it('returns false when the workspace has no tags', () => {
+                // Given no tag lists, there is no GL code to pick, so the Tag GL code cell must stay read-only
+                // When / Then
+                expect(hasAnyTagGLCode(undefined)).toBe(false);
+                expect(hasAnyTagGLCode({})).toBe(false);
+            });
+
+            it('returns false when every GL code is missing or blank', () => {
+                // Given tags whose GL codes are missing, empty, whitespace or only quotes
+                const policyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true},
+                            Marketing: {name: 'Marketing', enabled: true, 'GL Code': ''},
+                            Sales: {name: 'Sales', enabled: true, 'GL Code': '   '},
+                            Support: {name: 'Support', enabled: true, 'GL Code': '""'},
+                        },
+                    },
+                };
+
+                // When / Then a blank code does not count as a GL code
+                expect(hasAnyTagGLCode(policyTagLists)).toBe(false);
+            });
+
+            it('returns true when at least one tag has a GL code', () => {
+                // Given a mix of tags with and without a GL code
+                const policyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: true, 'GL Code': '1234'},
+                            Marketing: {name: 'Marketing', enabled: true},
+                        },
+                    },
+                };
+
+                // When / Then one code is enough to keep the cell editable
+                expect(hasAnyTagGLCode(policyTagLists)).toBe(true);
+            });
+
+            it('returns false when the only GL codes are on disabled or pending-deletion tags', () => {
+                // Given GL codes only on tags the tag picker won't let the user select
+                const policyTagLists: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        orderWeight: 0,
+                        required: false,
+                        tags: {
+                            Engineering: {name: 'Engineering', enabled: false, 'GL Code': '1234'},
+                            Marketing: {name: 'Marketing', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '5678'},
+                            Sales: {name: 'Sales', enabled: true},
+                        },
+                    },
+                };
+
+                // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+                expect(hasAnyTagGLCode(policyTagLists)).toBe(false);
             });
         });
         describe('getTagGLCode', () => {
@@ -2947,6 +4009,60 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('escapeTagName', () => {
+            it.each([
+                ['escapes a plain colon', 'Plain:Colon', 'Plain\\:Colon'],
+                ['keeps an already escaped colon unchanged', 'Parent\\: Child', 'Parent\\: Child'],
+                ['escapes consecutive colons', 'a::b', 'a\\:\\:b'],
+                ['escapes a colon preceded by an escaped backslash', 'parent\\\\:child', 'parent\\\\\\:child'],
+                ['keeps a colon preceded by an escaped backslash and an escaped colon unchanged', 'a\\\\\\:b', 'a\\\\\\:b'],
+                ['returns a tag without colons unchanged', 'Engineering', 'Engineering'],
+            ])('%s', (_description, tag, expected) => {
+                // Given a tag name typed by the user
+                // When it is escaped before being saved
+                const result = escapeTagName(tag);
+
+                // Then only colons that are not already escaped get a backslash, matching the backend
+                expect(result).toBe(expected);
+            });
+
+            it('returns the same result when run twice', () => {
+                // Given a tag name that has already been escaped once, as happens when an existing tag is re-saved
+                const escapedOnce = escapeTagName('Parent: Child\\: Grandchild');
+
+                // When it is escaped again
+                const escapedTwice = escapeTagName(escapedOnce);
+
+                // Then no extra backslashes are added, so re-saving a tag cannot change it
+                expect(escapedTwice).toBe(escapedOnce);
+            });
+
+            it('keeps a tag with an already escaped colon as a single tag level', () => {
+                // Given a tag created with an already escaped colon
+                const escapedTag = escapeTagName('Parent\\: Child');
+
+                // When the saved tag is split into tag levels
+                const result = getTagArrayFromName(escapedTag);
+
+                // Then it stays one tag level instead of being split into `Parent\\` and ` Child`
+                expect(result).toEqual(['Parent\\: Child']);
+            });
+
+            it.each([
+                ['an escaped backslash before a colon', 'parent\\\\:child', 'parent\\\\\\:child'],
+                ['an escaped backslash and an escaped colon', 'a\\\\\\:b', 'a\\\\\\:b'],
+            ])('keeps a tag with %s as a single tag level', (_description, tag, expected) => {
+                // Given a tag whose colon is preceded by backslashes
+                const escapedTag = escapeTagName(tag);
+
+                // When the saved tag is split into tag levels
+                const result = getTagArrayFromName(escapedTag);
+
+                // Then it stays one tag level, because every saved colon has an odd number of backslashes before it
+                expect(result).toEqual([expected]);
+            });
+        });
+
         describe('getTagLists', () => {
             it('returns an empty array when the policy tag lists are undefined', () => {
                 // Given a policy whose tag lists have not loaded
@@ -3054,106 +4170,6 @@ describe('PolicyUtils', () => {
                 // Then more than one list means the policy uses multi-level tags
                 expect(isMultiLevelTags(policyTagLists)).toBe(true);
             });
-        });
-    });
-
-    describe('sortWorkspacesBySelected', () => {
-        it('should order workspaces with selected workspace first', () => {
-            const workspace1 = {policyID: '1', name: 'Workspace 1'};
-            const workspace2 = {policyID: '2', name: 'Workspace 2'};
-            const selectedWorkspace1 = {policyID: '3', name: 'Workspace 3'};
-            const selectedWorkspace2 = {policyID: '4', name: 'Workspace 4'};
-            expect(sortWorkspacesBySelected(workspace1, workspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
-            expect(sortWorkspacesBySelected(workspace1, selectedWorkspace1, ['3', '4'], TestHelper.localeCompare)).toBe(1);
-            expect(sortWorkspacesBySelected(selectedWorkspace1, selectedWorkspace2, ['3', '4'], TestHelper.localeCompare)).toBe(-1);
-        });
-
-        it('should order workspaces using name if no workspace is selected', () => {
-            const workspace1 = {policyID: '1', name: 'Workspace 1'};
-            const workspace2 = {policyID: '2', name: 'Workspace 2'};
-            const workspace3 = {policyID: '3', name: 'Workspace 3'};
-            const workspace4 = {policyID: '4', name: 'Workspace 4'};
-            expect(sortWorkspacesBySelected(workspace1, workspace2, undefined, TestHelper.localeCompare)).toBe(-1);
-            expect(sortWorkspacesBySelected(workspace1, workspace3, undefined, TestHelper.localeCompare)).toBe(-1);
-            expect(sortWorkspacesBySelected(workspace3, workspace4, undefined, TestHelper.localeCompare)).toBe(-1);
-        });
-
-        it('should sort workspaces when using this method correctly', () => {
-            const unsortedWorkspaces = [
-                {policyID: '2', name: 'Workspace 2'},
-                {policyID: '1', name: 'Workspace 1'},
-                {policyID: '4', name: 'Workspace 4'},
-                {policyID: '3', name: 'Workspace 3'},
-            ];
-            const selectedWorkspaceIDs = ['3', '4'];
-            const sortedWorkspaces = unsortedWorkspaces.sort((a, b) => sortWorkspacesBySelected(a, b, selectedWorkspaceIDs, TestHelper.localeCompare));
-            expect(sortedWorkspaces).toEqual([
-                {policyID: '3', name: 'Workspace 3'},
-                {policyID: '4', name: 'Workspace 4'},
-                {policyID: '1', name: 'Workspace 1'},
-                {policyID: '2', name: 'Workspace 2'},
-            ]);
-        });
-    });
-
-    describe('isNonMemberApprover', () => {
-        const ownerEmail = 'owner@example.com';
-        const policy = createMock<Policy>({
-            id: '1',
-            owner: ownerEmail,
-            employeeList: {
-                [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
-            },
-        });
-
-        it('flags an approver who is no longer on the workspace, but not a member', () => {
-            // Given a workspace with one member
-            // When checking a removed approver and that member
-            // Then only the removed approver is flagged
-            expect(isNonMemberApprover(policy, 'removed@example.com')).toBe(true);
-            expect(isNonMemberApprover(policy, employeeEmail)).toBe(false);
-        });
-
-        it('does not flag the owner when their employee entry is missing', () => {
-            // Given a workspace whose employeeList has no entry for the owner
-            // When checking the owner as an approver
-            // Then they still count as a member, since the owner always belongs to the workspace
-            expect(isNonMemberApprover(policy, ownerEmail)).toBe(false);
-        });
-    });
-
-    describe('isPolicyMemberWithoutPendingDelete', () => {
-        it('should return true if the policy member is not pending delete', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                employeeList: {
-                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
-                },
-            });
-            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
-            expect(result).toBe(true);
-        });
-
-        it('should return false if the policy member is pending delete', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                employeeList: {
-                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-                },
-            });
-            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
-            expect(result).toBe(false);
-        });
-
-        it('should return false if the policy member is not found', () => {
-            const policy = createMock<Policy>({
-                id: '1',
-                employeeList: {
-                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
-                },
-            });
-            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy);
-            expect(result).toBe(false);
         });
     });
 
@@ -3320,6 +4336,51 @@ describe('PolicyUtils', () => {
                 // Then only a disabled workspace turns payments off, whichever of the two values it reports
                 expect(paymentsEnabled).toBe(expected);
             });
+        });
+
+        describe('canAdminPayReport', () => {
+            describe.each([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('for a non-payer %s', (role) => {
+                it.each([
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES, true],
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                    [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                    [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, true],
+                    [CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, false],
+                ])('should allow payment for %s: %s', (reimbursementChoice, expected) => {
+                    // Given a non-payer admin on a workspace using a current or deprecated reimbursement choice
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role,
+                        reimbursementChoice,
+                        reimburser: 'payer@example.com',
+                        owner: 'payer@example.com',
+                    });
+
+                    // When the admin's permission to pay a report is checked
+                    const canPay = canAdminPayReport(policy, 'admin@example.com');
+
+                    // Then deprecated choices preserve the same payment access as their current equivalents
+                    expect(canPay).toBe(expected);
+                });
+            });
+
+            it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL])(
+                'should not allow a regular member to pay for %s',
+                (reimbursementChoice) => {
+                    // Given a regular member on a workspace with manual reimbursement enabled
+                    const policy = createMock<Policy>({
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        role: CONST.POLICY.ROLE.USER,
+                        reimbursementChoice,
+                    });
+
+                    // When payment access is checked with either representation of manual reimbursement
+                    const canPay = canAdminPayReport(policy, 'member@example.com');
+
+                    // Then normalizing the reimbursement choice does not grant payment permissions to regular members
+                    expect(canPay).toBe(false);
+                },
+            );
         });
 
         describe('isPolicyPayer', () => {
@@ -3981,404 +5042,710 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('hasOnlyPersonalPolicies', () => {
-        it('should return true when policies is empty', () => {
-            const result = hasOnlyPersonalPolicies({});
-            expect(result).toBe(true);
-        });
-
-        it('should return false when there are policies other than personal policies', () => {
-            const policies = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-            };
-            const result = hasOnlyPersonalPolicies(policies);
-            expect(result).toBe(false);
-        });
-
-        it('should return true when there are no policies other than personal policies', () => {
-            const policies = {
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-            };
-            const result = hasOnlyPersonalPolicies(policies);
-            expect(result).toBe(true);
-        });
-    });
-
-    describe('getEligibleBankAccountShareRecipientEmails', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-        it('should return empty array if no admins in policies', async () => {
-            const bankAccountID = '1';
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
+    describe('members', () => {
+        describe('isPolicyMemberWithoutPendingDelete', () => {
+            it('should return true if the policy member is not pending delete', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    employeeList: {
+                        [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                     },
-                },
-            });
-            const policies = {
-                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
-            expect(result).toHaveLength(0);
-        });
-        it('should return array with admins from the bank account workspace', async () => {
-            const bankAccountID = '1';
-            const currentUserLogin = adminEmail;
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
-                    },
-                },
+                });
+                const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
+                expect(result).toBe(true);
             });
 
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
+            it('should return false if the policy member is pending delete', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
                     employeeList: {
-                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                        [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                     },
-                },
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
-            expect(result).toHaveLength(1);
-        });
-        it('should not return user with already shared bank account', async () => {
-            const bankAccountID = '1';
-            const currentUserLogin = adminEmail;
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
-                        sharees: [adminEmail],
-                    },
-                },
+                });
+                const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
+                expect(result).toBe(false);
             });
 
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
+            it('should return false if the policy member is not found', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
                     employeeList: {
-                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                        [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                     },
-                },
-                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
-            expect(result).toHaveLength(0);
+                });
+                const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy);
+                expect(result).toBe(false);
+            });
         });
-        it('should not return current user for sharing account', async () => {
-            const bankAccountID = '1';
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
+
+        describe('getEligibleBankAccountShareRecipientEmails', () => {
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+            it('should return empty array if no admins in policies', async () => {
+                const bankAccountID = '1';
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    1: {
+                        methodID: 12345,
+                        accountData: {
+                            additionalData: {policyID: '1'},
+                        },
                     },
-                },
+                });
+                const policies = {
+                    '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
+                expect(result).toHaveLength(0);
+            });
+            it('should return array with admins from the bank account workspace', async () => {
+                const bankAccountID = '1';
+                const currentUserLogin = adminEmail;
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    1: {
+                        methodID: 12345,
+                        accountData: {
+                            additionalData: {policyID: '1'},
+                        },
+                    },
+                });
+
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        employeeList: {
+                            [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
+                expect(result).toHaveLength(1);
+            });
+            it('should not return user with already shared bank account', async () => {
+                const bankAccountID = '1';
+                const currentUserLogin = adminEmail;
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    1: {
+                        methodID: 12345,
+                        accountData: {
+                            additionalData: {policyID: '1'},
+                            sharees: [adminEmail],
+                        },
+                    },
+                });
+
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        employeeList: {
+                            [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                    '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, approverEmail, bankAccountID);
+                expect(result).toHaveLength(0);
+            });
+            it('should not return current user for sharing account', async () => {
+                const bankAccountID = '1';
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    1: {
+                        methodID: 12345,
+                        accountData: {
+                            additionalData: {policyID: '1'},
+                        },
+                    },
+                });
+
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, bankAccountID);
+                expect(result).toHaveLength(1);
+            });
+            it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                        },
+                    },
+                };
+
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+
+                expect(result).toHaveLength(1);
+                expect(result.at(0)).toBe(approverEmail);
+            });
+            it('should not return members who cannot manage payments', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                        },
+                    },
+                };
+
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+
+                expect(result).toHaveLength(0);
+            });
+            it('should not fall back to the current user role when a recipient role is missing', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                            [approverEmail]: {email: approverEmail},
+                        },
+                    },
+                };
+
+                const recipients = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
+                expect(recipients).toHaveLength(0);
+                expect(hasEligibleRecipient).toBe(false);
+            });
+            it('should not return Expensify guide when policy owner is not Expensify team', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        owner: 'normalowner@test.com',
+                        employeeList: {
+                            [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                expect(result).toHaveLength(0);
+            });
+            it('should return Expensify guide when policy owner is Expensify team', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        owner: 'owner@expensify.com',
+                        employeeList: {
+                            [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
+                expect(result).toHaveLength(1);
+            });
+            it('should return Expensify guide when current user is Expensify team', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        owner: 'normalowner@test.com',
+                        employeeList: {
+                            [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = getEligibleBankAccountShareRecipientEmails(policies, 'someone@expensify.com', '1');
+                expect(result).toHaveLength(1);
+            });
+        });
+
+        describe('hasEligibleBankAccountShareRecipient', () => {
+            beforeEach(() => {
+                wrapOnyxWithWaitForBatchedUpdates(Onyx);
+                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            });
+            afterEach(async () => {
+                await Onyx.clear();
+                await waitForBatchedUpdatesWithAct();
+            });
+            it('should return false when the only admin is an Expensify guide on a non-Expensify policy', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        owner: 'normalowner@test.com',
+                        employeeList: {
+                            [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                expect(result).toBe(false);
+            });
+            it('should return true when there is a non-guide admin', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        owner: 'normalowner@test.com',
+                        employeeList: {
+                            [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                expect(result).toBe(true);
+            });
+            it('should return true when the guide is on an Expensify-owned policy', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        owner: 'owner@expensify.com',
+                        employeeList: {
+                            [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+                expect(result).toBe(true);
+            });
+            it('should return true when another admin is available in the bank account workspace', async () => {
+                const bankAccountID = '1';
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    1: {
+                        methodID: 12345,
+                        accountData: {
+                            additionalData: {policyID: '1'},
+                        },
+                    },
+                });
+
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
+                expect(result).toBe(true);
+            });
+            it('should return true when a Payments Admin can share with another payment-capable member', () => {
+                const policies = {
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                };
+
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
+
+                expect(result).toBe(true);
+            });
+            it('should return false when the user only joined another workspace as a member', async () => {
+                const bankAccountID = '1';
+                await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                    1: {
+                        methodID: 12345,
+                        accountData: {
+                            additionalData: {policyID: '1'},
+                        },
+                    },
+                });
+
+                const policies = {
+                    // The bank account's own workspace - current user is the only admin, no one to share with
+                    '1': {
+                        ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        employeeList: {
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        },
+                    },
+                    // Another user's workspace the current user only joined as a member - has its own admin
+                    '2': {
+                        ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                        pendingAction: undefined,
+                        role: CONST.POLICY.ROLE.USER,
+                        employeeList: {
+                            [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                            [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.USER},
+                        },
+                    },
+                };
+                const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('getExpensifyTeamExclusions', () => {
+            const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
+                const result: PersonalDetailsList = {};
+                for (const [index, login] of logins.entries()) {
+                    const accountID = index + 1;
+                    result[accountID] = {accountID, login};
+                }
+                return result;
+            };
+            const buildPolicies = (
+                specs: Array<{
+                    owner: string;
+                    employeeLogins: string[];
+                }>,
+            ): OnyxCollection<Policy> => {
+                const result: OnyxCollection<Policy> = {};
+                for (const [index, {owner, employeeLogins}] of specs.entries()) {
+                    const memberList: PolicyEmployeeList = {};
+                    for (const login of employeeLogins) {
+                        memberList[login] = {email: login};
+                    }
+                    result[`policy_${index + 1}`] = createMock<Policy>({id: `${index + 1}`, owner, employeeList: memberList});
+                }
+                return result;
+            };
+
+            it('returns empty when currentUserLogin is undefined', () => {
+                const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+                const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
+                expect(getExpensifyTeamExclusions(details, policies, undefined)).toEqual({});
             });
 
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, bankAccountID);
-            expect(result).toHaveLength(1);
-        });
-        it('should allow Payments Admins to share with and receive from members who can manage payments', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
-                    },
-                },
-            };
-
-            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
-
-            expect(result).toHaveLength(1);
-            expect(result.at(0)).toBe(approverEmail);
-        });
-        it('should not return members who cannot manage payments', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
-                    },
-                },
-            };
-
-            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
-
-            expect(result).toHaveLength(0);
-        });
-        it('should not fall back to the current user role when a recipient role is missing', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
-                        [approverEmail]: {email: approverEmail},
-                    },
-                },
-            };
-
-            const recipients = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
-            const hasEligibleRecipient = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
-
-            expect(recipients).toHaveLength(0);
-            expect(hasEligibleRecipient).toBe(false);
-        });
-        it('should not return Expensify guide when policy owner is not Expensify team', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'normalowner@test.com',
-                    employeeList: {
-                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
-            expect(result).toHaveLength(0);
-        });
-        it('should return Expensify guide when policy owner is Expensify team', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'owner@expensify.com',
-                    employeeList: {
-                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, adminEmail, '1');
-            expect(result).toHaveLength(1);
-        });
-        it('should return Expensify guide when current user is Expensify team', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'normalowner@test.com',
-                    employeeList: {
-                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = getEligibleBankAccountShareRecipientEmails(policies, 'someone@expensify.com', '1');
-            expect(result).toHaveLength(1);
-        });
-    });
-
-    describe('hasEligibleBankAccountShareRecipient', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-        it('should return false when the only admin is an Expensify guide on a non-Expensify policy', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'normalowner@test.com',
-                    employeeList: {
-                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
-            expect(result).toBe(false);
-        });
-        it('should return true when there is a non-guide admin', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'normalowner@test.com',
-                    employeeList: {
-                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
-            expect(result).toBe(true);
-        });
-        it('should return true when the guide is on an Expensify-owned policy', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    owner: 'owner@expensify.com',
-                    employeeList: {
-                        [guideEmail]: {email: guideEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
-            expect(result).toBe(true);
-        });
-    });
-
-    describe('hasEligibleBankAccountShareRecipient', () => {
-        beforeEach(() => {
-            wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-        });
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdatesWithAct();
-        });
-        it('should return true when another admin is available in the bank account workspace', async () => {
-            const bankAccountID = '1';
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
-                    },
-                },
+            it('returns empty when currentUserLogin is on the Expensify team (exception)', () => {
+                const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+                const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
+                expect(getExpensifyTeamExclusions(details, policies, 'staff@expensify.com')).toEqual({});
             });
 
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
-            expect(result).toBe(true);
-        });
-        it('should return true when a Payments Admin can share with another payment-capable member', () => {
-            const policies = {
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.PAYMENTS_ADMIN,
-                    employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
-                    },
-                },
-            };
-
-            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, '1');
-
-            expect(result).toBe(true);
-        });
-        it('should return false when the user only joined another workspace as a member', async () => {
-            const bankAccountID = '1';
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                1: {
-                    methodID: 12345,
-                    accountData: {
-                        additionalData: {policyID: '1'},
-                    },
-                },
+            it('excludes all Expensify-team logins from personalDetails when current user is non-Expensify and has no Expensify-owned policies', () => {
+                const details = buildPersonalDetails(['am@expensify.com', 'guide@team.expensify.com', 'bob@acme.com']);
+                const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
+                const result = getExpensifyTeamExclusions(details, policies, 'customer@acme.com');
+                expect(result['am@expensify.com']).toBe(true);
+                expect(result['guide@team.expensify.com']).toBe(true);
+                expect(result['bob@acme.com']).toBeUndefined();
             });
 
-            const policies = {
-                // The bank account's own workspace - current user is the only admin, no one to share with
-                '1': {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.ADMIN,
+            it('preserves Expensify-team members of an Expensify-owned policy the current user belongs to', () => {
+                const details = buildPersonalDetails(['lead@expensify.com', 'unrelated_am@expensify.com', 'contractor@acme.com']);
+                const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['contractor@acme.com', 'lead@expensify.com']}]);
+                const result = getExpensifyTeamExclusions(details, policies, 'contractor@acme.com');
+                expect(result['lead@expensify.com']).toBeUndefined();
+                expect(result['unrelated_am@expensify.com']).toBe(true);
+                expect(result['contractor@acme.com']).toBeUndefined();
+            });
+
+            it('does not preserve Expensify-team members of policies the current user is not in', () => {
+                const details = buildPersonalDetails(['lead@expensify.com', 'bob@acme.com']);
+                const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['lead@expensify.com', 'someone_else@acme.com']}]);
+                const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
+                expect(result['lead@expensify.com']).toBe(true);
+            });
+
+            it('does not preserve when policy owner is non-Expensify', () => {
+                const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
+                const policies = buildPolicies([{owner: 'bob@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
+                const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
+                expect(result['am@expensify.com']).toBe(true);
+            });
+
+            it('handles undefined and empty inputs gracefully', () => {
+                expect(getExpensifyTeamExclusions(undefined, undefined, 'customer@acme.com')).toEqual({});
+                // The null values deliberately exercise the runtime guard for malformed Onyx data.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
+                const nullPersonalDetails = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[0];
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
+                const nullPolicies = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[1];
+                expect(getExpensifyTeamExclusions(nullPersonalDetails, nullPolicies, 'customer@acme.com')).toEqual({});
+                expect(getExpensifyTeamExclusions({}, {}, 'customer@acme.com')).toEqual({});
+            });
+
+            it('lowercases comparison keys for current user and employeeList matching', () => {
+                const details = buildPersonalDetails(['AM@expensify.com', 'Bob@Acme.com']);
+                const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['AM@expensify.com', 'Contractor@Acme.com']}]);
+                const result = getExpensifyTeamExclusions(details, policies, 'Contractor@Acme.com');
+                expect(result['am@expensify.com']).toBeUndefined();
+                expect(result['bob@acme.com']).toBeUndefined();
+            });
+        });
+
+        describe('getExcludedUsers', () => {
+            it('marks every active policy member as excluded', () => {
+                const result = getExcludedUsers(employeeList);
+                expect(result['owner@test.com']).toBe(true);
+                expect(result['admin@test.com']).toBe(true);
+                expect(result['employee@test.com']).toBe(true);
+            });
+
+            it('always excludes Expensify emails', () => {
+                const result = getExcludedUsers(employeeList);
+                for (const email of CONST.EXPENSIFY_EMAILS) {
+                    expect(result[email]).toBe(true);
+                }
+            });
+
+            it('does not exclude a member that is pending delete', () => {
+                const list: PolicyEmployeeList = {
+                    'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                };
+                const result = getExcludedUsers(list);
+                expect(result['employee@test.com']).toBeUndefined();
+            });
+
+            it('does not exclude a member that has errors', () => {
+                const list: PolicyEmployeeList = {
+                    'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', errors: {error1: 'Something went wrong'}},
+                };
+                const result = getExcludedUsers(list);
+                expect(result['employee@test.com']).toBeUndefined();
+            });
+
+            it('returns only Expensify emails when the employee list is undefined', () => {
+                const result = getExcludedUsers(undefined);
+                expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
+            });
+        });
+
+        describe('hasActiveExpensifyCard', () => {
+            it('returns false when policy is undefined', () => {
+                expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
+            });
+
+            it('returns true when the backend flags the member as holding an active Expensify Card', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
                     employeeList: {
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                        'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
                     },
-                },
-                // Another user's workspace the current user only joined as a member - has its own admin
-                '2': {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    pendingAction: undefined,
-                    role: CONST.POLICY.ROLE.USER,
+                };
+                expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
+            });
+
+            it('returns false when the flag is false or missing', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
                     employeeList: {
-                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
-                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.USER},
+                        'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
+                        'employee@test.com': {email: 'employee@test.com'},
                     },
-                },
-            };
-            const result = hasEligibleBankAccountShareRecipient(policies, adminEmail, bankAccountID);
-            expect(result).toBe(false);
-        });
-    });
+                };
+                expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
+                expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
+            });
 
-    describe('hasOtherControlWorkspaces', () => {
-        it('should return false when policies is empty', () => {
-            const result = hasOtherControlWorkspaces([], '1');
-            expect(result).toBe(false);
+            it('returns false when the member is not in the employeeList', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    employeeList: {
+                        'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
+                    },
+                };
+                expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
+            });
+
+            it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
+                const policy: Policy = {
+                    ...createRandomPolicy(0),
+                    primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
+                    employeeList: {
+                        'secondary@test.com': {email: 'secondary@test.com'},
+                        'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
+                    },
+                };
+                expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
+            });
         });
 
-        it('should return false when there are no control workspaces other than the current one', () => {
-            const policies = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
-            ];
-            const result = hasOtherControlWorkspaces(policies, '1');
-            expect(result).toBe(false);
+        describe('isMemberInHomeAndOfficeWorkspace', () => {
+            it('only allows members of home and office workspaces', () => {
+                // Given a workspace whose employee list contains one member
+                const memberLogin = 'member@example.com';
+                const policy = createMock<Policy>({
+                    commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    employeeList: {[memberLogin]: {email: memberLogin}},
+                });
+                const otherWorkspace = {...policy, commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}};
+
+                // When workspace mode and membership are checked
+                const isEligibleMember = isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
+                const isEligibleForOtherWorkspaceMode = isMemberInHomeAndOfficeWorkspace(otherWorkspace, memberLogin);
+                const isEligibleForUnknownMember = isMemberInHomeAndOfficeWorkspace(policy, 'unknown@example.com');
+
+                // Then only the known member in a home and office workspace is eligible
+                expect(isEligibleMember).toBe(true);
+                expect(isEligibleForOtherWorkspaceMode).toBe(false);
+                expect(isEligibleForUnknownMember).toBe(false);
+            });
         });
 
-        it('should return true when there are other control workspaces', () => {
-            const policies = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
-            ];
-            const result = hasOtherControlWorkspaces(policies, '1');
-            expect(result).toBe(true);
+        describe('isExpensifyTeam', () => {
+            it('returns true for emails on the Expensify and guides domains', () => {
+                // Given emails on the Expensify partner domain and the guides domain
+                // When checking whether they belong to the Expensify team
+                // Then both count as Expensify team members
+                expect(isExpensifyTeam(guideEmail)).toBe(true);
+                expect(isExpensifyTeam('guide@team.expensify.com')).toBe(true);
+            });
+
+            it('returns false for emails on other domains', () => {
+                // Given an email on a customer domain and one on another subdomain of expensify.com
+                // When checking whether they belong to the Expensify team
+                // Then neither counts, because only an exact domain match is treated as Expensify
+                expect(isExpensifyTeam(employeeEmail)).toBe(false);
+                expect(isExpensifyTeam('someone@sub.expensify.com')).toBe(false);
+            });
+
+            it('returns false for a missing or empty email', () => {
+                // Given no email at all
+                // When checking whether it belongs to the Expensify team
+                // Then it does not, so callers can pass optional logins safely
+                expect(isExpensifyTeam(undefined)).toBe(false);
+                expect(isExpensifyTeam('')).toBe(false);
+            });
+        });
+
+        describe('shouldHideExpensifyTeamCardholder', () => {
+            const customerOwner = 'owner@test.com';
+
+            it('hides Expensify team logins on a customer workspace', () => {
+                // Given a customer-owned workspace viewed by a customer admin
+                // When checking an Expensify team login that is not the current cardholder
+                // Then it is hidden, matching the Workspace Members page
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, customerOwner, employeeEmail)).toBe(true);
+            });
+
+            it('keeps non-Expensify logins and missing logins visible', () => {
+                // Given a customer-owned workspace viewed by a customer admin
+                // When checking a customer login or no login at all
+                // Then neither is hidden, because only Expensify team logins are filtered
+                expect(shouldHideExpensifyTeamCardholder(employeeEmail, undefined, customerOwner, employeeEmail)).toBe(false);
+                expect(shouldHideExpensifyTeamCardholder(undefined, undefined, customerOwner, employeeEmail)).toBe(false);
+            });
+
+            it('keeps the current cardholder visible even if they are on the Expensify team', () => {
+                // Given an Expensify team login that is already the cardholder being edited
+                // When checking whether to hide it
+                // Then it stays visible so editing the assignment doesn't blank out the selection
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, guideEmail, customerOwner, employeeEmail)).toBe(false);
+            });
+
+            it('shows Expensify team logins on Expensify-owned workspaces or to Expensify staff', () => {
+                // Given a workspace owned by Expensify, or a viewer on the Expensify team
+                // When checking an Expensify team login
+                // Then it is not hidden, matching the Workspace Members page behavior
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, 'owner@expensify.com', employeeEmail)).toBe(false);
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, customerOwner, 'support@team.expensify.com')).toBe(false);
+            });
+        });
+
+        describe('getMemberAccountIDsForWorkspace', () => {
+            it('maps every member email to its accountID from personal details', () => {
+                // Given a workspace whose members all have personal details
+                // When building the email-to-accountID map
+                const result = getMemberAccountIDsForWorkspace(employeeList, personalDetailsByLogins);
+
+                // Then every member resolves to its accountID
+                expect(result).toEqual({
+                    'owner@test.com': ownerAccountID,
+                    [adminEmail]: adminAccountID,
+                    [employeeEmail]: employeeAccountID,
+                    [categoryApprover1Email]: categoryApprover1AccountID,
+                    'categoryapprover2@test.com': categoryApprover2AccountID,
+                    'tagapprover1@test.com': tagApprover1AccountID,
+                    'tagapprover2@test.com': tagApprover2AccountID,
+                });
+            });
+
+            it('skips members without personal details', () => {
+                // Given a member whose login is not in personal details yet
+                const list: PolicyEmployeeList = {
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
+                    'unknown@test.com': {email: 'unknown@test.com', role: CONST.POLICY.ROLE.USER},
+                };
+
+                // When building the email-to-accountID map
+                const result = getMemberAccountIDsForWorkspace(list, personalDetailsByLogins);
+
+                // Then that member is left out, since there is no accountID to map to
+                expect(result).toEqual({[employeeEmail]: employeeAccountID});
+            });
+
+            it('excludes members with errors unless includeMemberWithErrors is true', () => {
+                // Given a member with an error, such as a failed invite
+                const list: PolicyEmployeeList = {
+                    [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, errors: {error1: 'Something went wrong'}},
+                };
+
+                // When building the map with and without includeMemberWithErrors
+                const withoutErrors = getMemberAccountIDsForWorkspace(list, personalDetailsByLogins);
+                const withErrors = getMemberAccountIDsForWorkspace(list, personalDetailsByLogins, true);
+
+                // Then the member is only kept when asked for, so the error stays visible until the user reads it
+                expect(withoutErrors).toEqual({[adminEmail]: adminAccountID});
+                expect(withErrors).toEqual({[adminEmail]: adminAccountID, [employeeEmail]: employeeAccountID});
+            });
+
+            it('excludes members pending delete only when includeMemberWithPendingDelete is false', () => {
+                // Given a member who is pending removal
+                const list: PolicyEmployeeList = {
+                    [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                };
+
+                // When building the map with the default and with includeMemberWithPendingDelete set to false
+                const withPendingDelete = getMemberAccountIDsForWorkspace(list, personalDetailsByLogins);
+                const withoutPendingDelete = getMemberAccountIDsForWorkspace(list, personalDetailsByLogins, false, false);
+
+                // Then the member is kept by default and dropped when pending deletes are excluded
+                expect(withPendingDelete).toEqual({[adminEmail]: adminAccountID, [employeeEmail]: employeeAccountID});
+                expect(withoutPendingDelete).toEqual({[adminEmail]: adminAccountID});
+            });
+
+            it('returns an empty object when the employee list is undefined', () => {
+                // Given a workspace with no employee list loaded
+                // When building the email-to-accountID map
+                // Then there are no members to map
+                expect(getMemberAccountIDsForWorkspace(undefined, personalDetailsByLogins)).toEqual({});
+            });
         });
     });
 
@@ -4680,22 +6047,6 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('canSendInvoiceFromWorkspace', () => {
-        it('returns true when areInvoicesEnabled is true', () => {
-            const policy = createMock<Policy>({areInvoicesEnabled: true});
-            expect(canSendInvoiceFromWorkspace(policy)).toBe(true);
-        });
-
-        it('returns false when areInvoicesEnabled is false', () => {
-            const policy = createMock<Policy>({areInvoicesEnabled: false});
-            expect(canSendInvoiceFromWorkspace(policy)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(canSendInvoiceFromWorkspace(undefined)).toBe(false);
-        });
-    });
-
     describe('features', () => {
         describe('getDefaultTimeTrackingRate', () => {
             it('should return rate in subunits', () => {
@@ -4820,168 +6171,6 @@ describe('PolicyUtils', () => {
             it('returns false for a team policy with areRulesEnabled explicitly false', () => {
                 expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: false})).toBe(false);
             });
-        });
-    });
-
-    describe('per diem policy filters', () => {
-        const perDiemCustomUnit = {
-            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-            customUnitID: 'ABCDEF',
-            enabled: true,
-            rates: {
-                London: {
-                    customUnitRateID: 'London',
-                    name: 'London',
-                },
-            },
-        };
-
-        it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporate: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-                collect: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
-        });
-
-        it('includes a control policy whose per diem is enabled but has no rates yet (rates load lazily after cache clear)', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporateWithRates: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-                corporateWithoutRates: {
-                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: {
-                            ...perDiemCustomUnit,
-                            rates: {},
-                        },
-                    },
-                },
-                collectWithRates: {
-                    ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    arePerDiemRatesEnabled: true,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
-            expect(result.map((currentPolicy) => currentPolicy.id).sort()).toEqual(['1', '2']);
-        });
-
-        it('includes a control policy whose arePerDiemRatesEnabled flag is missing but has an enabled per diem custom unit', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporate: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    // Migrated member: flag never arrived, but the configured custom unit is present
-                    arePerDiemRatesEnabled: undefined,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(1);
-        });
-
-        it('excludes a control policy where per diem was explicitly disabled even if a custom unit lingers', () => {
-            const policies: OnyxCollection<Policy> = {
-                corporate: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                    role: CONST.POLICY.ROLE.USER,
-                    pendingAction: null,
-                    // Explicit off must be respected, so the lingering custom unit cannot re-enable it
-                    arePerDiemRatesEnabled: false,
-                    customUnits: {
-                        ABCDEF: perDiemCustomUnit,
-                    },
-                },
-            };
-
-            expect(getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined)).toHaveLength(0);
-        });
-    });
-
-    describe('sortPoliciesByName', () => {
-        const localeCompare = (a: string, b: string) => a.localeCompare(b);
-
-        it('sorts policies alphabetically by name', () => {
-            const policies: Policy[] = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
-            ];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-            expect(result.map((p) => p.name)).toEqual(['Alpha', 'Bravo', 'Charlie']);
-        });
-
-        it('returns empty array for empty input', () => {
-            expect(sortPoliciesByName([], localeCompare)).toEqual([]);
-        });
-
-        it('treats undefined or empty names as empty string', () => {
-            const policies: Policy[] = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Bravo'},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: ''},
-                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
-            ];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-            expect(result.map((p) => p.name)).toEqual(['', 'Alpha', 'Bravo']);
-        });
-
-        it('returns single-element array as-is', () => {
-            const policies: Policy[] = [{...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Only'}];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-            expect(result).toHaveLength(1);
-            expect(result.at(0)?.name).toBe('Only');
-        });
-
-        it('does not sort the input array in place', () => {
-            const policies: Policy[] = [
-                {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), name: 'Charlie'},
-                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'Alpha'},
-            ];
-
-            const result = sortPoliciesByName(policies, localeCompare);
-
-            expect(result).not.toBe(policies);
         });
     });
 
@@ -5270,123 +6459,35 @@ describe('PolicyUtils', () => {
         });
     });
 
-    describe('getExpensifyTeamExclusions', () => {
-        const buildPersonalDetails = (logins: string[]): PersonalDetailsList => {
-            const result: PersonalDetailsList = {};
-            for (const [index, login] of logins.entries()) {
-                const accountID = index + 1;
-                result[accountID] = {accountID, login};
-            }
-            return result;
-        };
-        const buildPolicies = (
-            specs: Array<{
-                owner: string;
-                employeeLogins: string[];
-            }>,
-        ): OnyxCollection<Policy> => {
-            const result: OnyxCollection<Policy> = {};
-            for (const [index, {owner, employeeLogins}] of specs.entries()) {
-                const memberList: PolicyEmployeeList = {};
-                for (const login of employeeLogins) {
-                    memberList[login] = {email: login};
-                }
-                result[`policy_${index + 1}`] = createMock<Policy>({id: `${index + 1}`, owner, employeeList: memberList});
-            }
-            return result;
-        };
+    describe('navigation', () => {
+        describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
+            const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
+            const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
+            const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
 
-        it('returns empty when currentUserLogin is undefined', () => {
-            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
-            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
-            expect(getExpensifyTeamExclusions(details, policies, undefined)).toEqual({});
-        });
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
 
-        it('returns empty when currentUserLogin is on the Expensify team (exception)', () => {
-            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
-            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
-            expect(getExpensifyTeamExclusions(details, policies, 'staff@expensify.com')).toEqual({});
-        });
+            it('returns false and does not navigate when isEnabling is false', () => {
+                expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
 
-        it('excludes all Expensify-team logins from personalDetails when current user is non-Expensify and has no Expensify-owned policies', () => {
-            const details = buildPersonalDetails(['am@expensify.com', 'guide@team.expensify.com', 'bob@acme.com']);
-            const policies = buildPolicies([{owner: 'customer@acme.com', employeeLogins: ['bob@acme.com']}]);
-            const result = getExpensifyTeamExclusions(details, policies, 'customer@acme.com');
-            expect(result['am@expensify.com']).toBe(true);
-            expect(result['guide@team.expensify.com']).toBe(true);
-            expect(result['bob@acme.com']).toBeUndefined();
-        });
+            it('returns false when policy is not Submit', () => {
+                expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
 
-        it('preserves Expensify-team members of an Expensify-owned policy the current user belongs to', () => {
-            const details = buildPersonalDetails(['lead@expensify.com', 'unrelated_am@expensify.com', 'contractor@acme.com']);
-            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['contractor@acme.com', 'lead@expensify.com']}]);
-            const result = getExpensifyTeamExclusions(details, policies, 'contractor@acme.com');
-            expect(result['lead@expensify.com']).toBeUndefined();
-            expect(result['unrelated_am@expensify.com']).toBe(true);
-            expect(result['contractor@acme.com']).toBeUndefined();
-        });
+            it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
+                const policyID = submitPolicyForNavTest.id;
+                const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
 
-        it('does not preserve Expensify-team members of policies the current user is not in', () => {
-            const details = buildPersonalDetails(['lead@expensify.com', 'bob@acme.com']);
-            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['lead@expensify.com', 'someone_else@acme.com']}]);
-            const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
-            expect(result['lead@expensify.com']).toBe(true);
-        });
+                expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
 
-        it('does not preserve when policy owner is non-Expensify', () => {
-            const details = buildPersonalDetails(['am@expensify.com', 'bob@acme.com']);
-            const policies = buildPolicies([{owner: 'bob@acme.com', employeeLogins: ['am@expensify.com', 'bob@acme.com']}]);
-            const result = getExpensifyTeamExclusions(details, policies, 'bob@acme.com');
-            expect(result['am@expensify.com']).toBe(true);
-        });
-
-        it('handles undefined and empty inputs gracefully', () => {
-            expect(getExpensifyTeamExclusions(undefined, undefined, 'customer@acme.com')).toEqual({});
-            // The null values deliberately exercise the runtime guard for malformed Onyx data.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
-            const nullPersonalDetails = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[0];
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
-            const nullPolicies = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[1];
-            expect(getExpensifyTeamExclusions(nullPersonalDetails, nullPolicies, 'customer@acme.com')).toEqual({});
-            expect(getExpensifyTeamExclusions({}, {}, 'customer@acme.com')).toEqual({});
-        });
-
-        it('lowercases comparison keys for current user and employeeList matching', () => {
-            const details = buildPersonalDetails(['AM@expensify.com', 'Bob@Acme.com']);
-            const policies = buildPolicies([{owner: 'lead@expensify.com', employeeLogins: ['AM@expensify.com', 'Contractor@Acme.com']}]);
-            const result = getExpensifyTeamExclusions(details, policies, 'Contractor@Acme.com');
-            expect(result['am@expensify.com']).toBeUndefined();
-            expect(result['bob@acme.com']).toBeUndefined();
-        });
-    });
-
-    describe('tryNavigateToSubmitWorkspaceUpgrade', () => {
-        const submitPolicyForNavTest: Policy = {...createRandomPolicy(99003, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-nav-test'};
-        const teamPolicyForNavTest: Policy = {...createRandomPolicy(99004, CONST.POLICY.TYPE.TEAM), id: 'policy-team-nav-test'};
-        const featureAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias;
-
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        it('returns false and does not navigate when isEnabling is false', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, false, featureAlias)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('returns false when policy is not Submit', () => {
-            expect(tryNavigateToSubmitWorkspaceUpgrade(teamPolicyForNavTest, true, featureAlias)).toBe(false);
-            expect(Navigation.navigate).not.toHaveBeenCalled();
-        });
-
-        it('navigates to workspace upgrade and returns true for Submit policy regardless of beta', () => {
-            const policyID = submitPolicyForNavTest.id;
-            const expectedRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, featureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-
-            expect(tryNavigateToSubmitWorkspaceUpgrade(submitPolicyForNavTest, true, featureAlias)).toBe(true);
-
-            expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-            expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+                expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+                expect(Navigation.navigate).toHaveBeenCalledWith(expectedRoute);
+            });
         });
     });
 
@@ -6067,7 +7168,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy', () => {
+        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
@@ -6129,6 +7230,19 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
+            });
+
+            it('lists the workspaces that have the vendor feature', () => {
+                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
+                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the workspace IDs are listed with and without the vendorMatching beta
+                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
+                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
+
+                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
+                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
+                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
@@ -6360,73 +7474,6 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('isXeroActiveMatchingSource (R4)', () => {
-            it('returns true when only Xero is connected', () => {
-                expect(isXeroActiveMatchingSource(buildXeroPolicy())).toBe(true);
-            });
-
-            it('returns false when QBO is the active matching source even if Xero is also connected', () => {
-                // The exact dual-connection state the helper was introduced for: QBO is in
-                // vendor-matching export mode (CC), and Xero is connected with contacts. The
-                // label flip / picker copy must stay on "Vendor" because the user is actually
-                // seeing QBO vendors via getMatchingVendors' precedence rule.
-                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = createMock<Policy>({
-                    ...xeroPolicy,
-                    connections: {
-                        ...xeroPolicy.connections,
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
-                        },
-                    },
-                });
-                expect(isXeroActiveMatchingSource(policy)).toBe(false);
-            });
-
-            it('returns false when Intacct is the active matching source even if Xero is also connected', () => {
-                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = createMock<Policy>({
-                    ...xeroPolicy,
-                    connections: {
-                        ...xeroPolicy.connections,
-                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
-                            config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
-                            data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
-                        },
-                    },
-                });
-                expect(isXeroActiveMatchingSource(policy)).toBe(false);
-            });
-
-            it('returns true when QBO is connected but in a non-matching export mode (Vendor Bill) + Xero is connected', () => {
-                // QBO is connected but not in CC/DC mode, so isQBOVendorMatchingActive is false.
-                // Xero is connected, so it takes over as the active source via getMatchingVendors'
-                // fall-through.
-                const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
-                const policy = createMock<Policy>({
-                    ...xeroPolicy,
-                    connections: {
-                        ...xeroPolicy.connections,
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
-                            data: {vendors: [{id: 'v-1', name: 'Acme QBO', currency: 'USD'}]},
-                        },
-                    },
-                });
-                expect(isXeroActiveMatchingSource(policy)).toBe(true);
-            });
-
-            it('returns false when Xero is not connected', () => {
-                const policy = {...createRandomPolicy(0), connections: {}};
-                expect(isXeroActiveMatchingSource(policy)).toBe(false);
-            });
-
-            it('returns false when policy is undefined', () => {
-                expect(isXeroActiveMatchingSource(undefined)).toBe(false);
-            });
-        });
-
         describe('isXeroVendorMatchingActive (R4)', () => {
             it('returns true when Xero is connected with isConfigured=true', () => {
                 expect(isXeroVendorMatchingActive(buildXeroPolicy())).toBe(true);
@@ -6441,7 +7488,7 @@ describe('PolicyUtils', () => {
             });
 
             it('returns true on a dual-connected workspace where Xero is configured and QBO is the active matching source', () => {
-                // Distinct from isXeroActiveMatchingSource: the supplier-picker page should still be
+                // The default supplier picker page should still be
                 // reachable when Xero is connected & configured, even if QBO is currently driving
                 // vendor matching for the workspace's transactions. The admin needs to manage the
                 // Xero default supplier independently of which integration is "active" right now.
@@ -6604,8 +7651,8 @@ describe('PolicyUtils', () => {
             it('returns Xero empty state copy when Xero is the active integration', () => {
                 const policy = buildXeroPolicy();
                 expect(getVendorEmptyState(policy, translate)).toEqual({
-                    title: translate('workspace.xero.noSuppliersFound'),
-                    subtitle: translate('workspace.xero.noSuppliersFoundDescription'),
+                    title: translate('workspace.xero.noVendorsFound'),
+                    subtitle: translate('workspace.xero.noVendorsFoundDescription'),
                 });
             });
 
@@ -6663,43 +7710,171 @@ describe('PolicyUtils', () => {
                 expect(result).toHaveLength(1);
                 expect(result.at(0)?.name).toBe('Only');
             });
-        });
-    });
 
-    describe('getExcludedUsers', () => {
-        it('marks every active policy member as excluded', () => {
-            const result = getExcludedUsers(employeeList);
-            expect(result['owner@test.com']).toBe(true);
-            expect(result['admin@test.com']).toBe(true);
-            expect(result['employee@test.com']).toBe(true);
-        });
+            it('breaks name ties using externalID when id is absent', () => {
+                const vendors = [
+                    {externalID: 'vendor_b', name: 'Acme'},
+                    {externalID: 'vendor_a', name: 'Acme'},
+                ];
 
-        it('always excludes Expensify emails', () => {
-            const result = getExcludedUsers(employeeList);
-            for (const email of CONST.EXPENSIFY_EMAILS) {
-                expect(result[email]).toBe(true);
-            }
+                const result = sortVendors(vendors, localeCompare);
+                expect(result.map((v) => v.externalID)).toEqual(['vendor_a', 'vendor_b']);
+            });
         });
 
-        it('does not exclude a member that is pending delete', () => {
-            const list: PolicyEmployeeList = {
-                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            };
-            const result = getExcludedUsers(list);
-            expect(result['employee@test.com']).toBeUndefined();
-        });
+        describe('getDefaultVendorID', () => {
+            it('resolves QBO credit card default vendor when destination is credit_card', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                                nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                            },
+                        },
+                    }),
+                });
 
-        it('does not exclude a member that has errors', () => {
-            const list: PolicyEmployeeList = {
-                'employee@test.com': {email: 'employee@test.com', role: 'user', submitsTo: '', errors: {error1: 'Something went wrong'}},
-            };
-            const result = getExcludedUsers(list);
-            expect(result['employee@test.com']).toBeUndefined();
-        });
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBe('qbo_vendor_1');
+            });
 
-        it('returns only Expensify emails when the employee list is undefined', () => {
-            const result = getExcludedUsers(undefined);
-            expect(Object.keys(result)).toEqual([...CONST.EXPENSIFY_EMAILS]);
+            it('returns undefined for QBO when destination is not credit_card', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                                nonReimbursableCreditCardDefaultVendor: 'qbo_vendor_1',
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+            });
+
+            it('resolves Sage Intacct credit card charge default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                            config: {
+                                export: {
+                                    nonReimbursableCreditCardChargeDefaultVendor: 'intacct_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toBe('intacct_vendor_1');
+            });
+
+            it('resolves Xero default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            config: {
+                                defaultVendor: 'xero_contact_1',
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.XERO)).toBe('xero_contact_1');
+            });
+
+            it('resolves Rillet default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.RILLET]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'rillet_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET)).toBe('rillet_vendor_1');
+            });
+
+            it('resolves DualEntry default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'dualentry_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY)).toBe('dualentry_vendor_1');
+            });
+
+            it('resolves Campfire default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'campfire_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBe('campfire_vendor_1');
+            });
+
+            it('resolves Business Central default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                            config: {
+                                export: {
+                                    defaultVendorID: 'bc_vendor_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBe('bc_vendor_1');
+            });
+
+            it('resolves Certinia default vendor', () => {
+                const policy = createMock<Policy>({
+                    id: '1',
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
+                            config: {
+                                export: {
+                                    vendorAccount: 'certinia_acc_1',
+                                },
+                            },
+                        },
+                    }),
+                });
+
+                expect(getDefaultVendorID(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA)).toBe('certinia_acc_1');
+            });
+
+            it('returns undefined when policy has no connections', () => {
+                expect(getDefaultVendorID(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();
+            });
         });
     });
 
@@ -7082,250 +8257,142 @@ describe('PolicyUtils', () => {
             });
         });
     });
-});
 
-describe('getDefaultChatEnabledPolicy', () => {
-    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
-    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
-    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
-    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
+    describe('domains', () => {
+        describe('getPolicyIDFromDomainName', () => {
+            it('extracts the policy ID from an Expensify workspace-feed domain name', () => {
+                expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
+            });
 
-    it('returns the active policy when it is a Submit workspace, even with multiple eligible workspaces', () => {
-        // Regression: a Submit active policy must be recognized as the report-creation default. Previously
-        // isPaidGroupPolicy excluded it, returning undefined here and wrongly forcing the workspace selector.
-        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], submitPolicy)).toBe(submitPolicy);
-    });
+            it('converts the extracted policy ID to uppercase', () => {
+                expect(getPolicyIDFromDomainName(`expensify-policy${'a1b2c3'}.exfy`)).toBe('A1B2C3');
+            });
 
-    it('returns the active policy when it is a paid (Collect/Control) workspace', () => {
-        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], teamPolicy)).toBe(teamPolicy);
-    });
+            it('returns undefined for a domain name that is not a workspace feed', () => {
+                expect(getPolicyIDFromDomainName('example.com')).toBeUndefined();
+            });
 
-    it('returns the only eligible workspace when the active policy is personal', () => {
-        expect(getDefaultChatEnabledPolicy([submitPolicy], personalPolicy)).toBe(submitPolicy);
-    });
+            it('returns undefined for an empty string', () => {
+                expect(getPolicyIDFromDomainName('')).toBeUndefined();
+            });
 
-    it('returns undefined when the active policy is not a group policy and there are multiple eligible workspaces', () => {
-        expect(getDefaultChatEnabledPolicy([submitPolicy, teamPolicy], personalPolicy)).toBeUndefined();
-    });
+            it('returns undefined when the extension is missing', () => {
+                expect(getPolicyIDFromDomainName('expensify-policyA1B2C3')).toBeUndefined();
+            });
+        });
 
-    it('returns undefined when there are no eligible workspaces', () => {
-        expect(getDefaultChatEnabledPolicy([], undefined)).toBeUndefined();
-    });
+        describe('getPolicyForAssignedCard', () => {
+            const policy: Policy = {...createRandomPolicy(0), id: 'A1B2C3', policyAccountID: 88801};
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}A1B2C3`]: policy};
 
-    it('does not return the active policy when it is not in the eligible list (e.g. Submit beta off), falling back to the eligible workspace', () => {
-        expect(getDefaultChatEnabledPolicy([teamPolicy], submitPolicy)).toBe(teamPolicy);
-    });
+            // The workspace is what decides whether the cardholder is shown the fix link or told to ask an admin, so a card
+            // has to find it whatever the company named their domain.
+            it('finds the workspace for a card on a domain that is not a workspace feed', () => {
+                const card = {domainName: 'acme-corp.com', fundID: '88801'};
 
-    it('returns undefined when the active policy is ineligible and there are multiple eligible workspaces', () => {
-        expect(getDefaultChatEnabledPolicy([teamPolicy, corporatePolicy], submitPolicy)).toBeUndefined();
-    });
-});
+                expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+            });
 
-describe('getDefaultChatEnabledPolicySelection', () => {
-    // createRandomPolicy randomizes these, so eligibility comes out flaky
-    const eligibleFields = {role: CONST.POLICY.ROLE.ADMIN, isJoinRequestPending: false, pendingAction: undefined, archivedDate: undefined};
-    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), ...eligibleFields, id: 'team1'};
-    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), ...eligibleFields, id: 'corporate1'};
-    const collection = {
-        [`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy,
-        [`${ONYXKEYS.COLLECTION.POLICY}${corporatePolicy.id}`]: corporatePolicy,
-    };
+            it('finds the workspace for a card on a workspace-feed domain', () => {
+                const card = {domainName: 'expensify-policyA1B2C3.exfy', fundID: '88801'};
 
-    it('resolves the active policy from the collection by ID', () => {
-        expect(getDefaultChatEnabledPolicySelection(collection, undefined, corporatePolicy.id)).toEqual({
-            defaultChatEnabledPolicyID: corporatePolicy.id,
-            hasMultipleChatEnabledPolicies: true,
+                expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+            });
+
+            it('falls back to the domain name for a card that has no fundID', () => {
+                const card = {domainName: 'expensify-policyA1B2C3.exfy'};
+
+                expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
+            });
+
+            it('returns undefined when no workspace matches the card', () => {
+                const card = {domainName: 'acme-corp.com', fundID: '99999'};
+
+                expect(getPolicyForAssignedCard(card, policies)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no policies', () => {
+                const card = {domainName: 'acme-corp.com', fundID: '88801'};
+
+                expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
+            });
         });
     });
 
-    it('returns no default when the active policy is unknown and multiple workspaces are eligible', () => {
-        expect(getDefaultChatEnabledPolicySelection(collection, undefined, undefined)).toEqual({defaultChatEnabledPolicyID: undefined, hasMultipleChatEnabledPolicies: true});
-    });
+    describe('travel', () => {
+        describe('getTravelStep', () => {
+            const currentUserLogin = 'admin@acme.com';
+            const travelPolicy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Travel workspace'),
+                owner: 'owner@acme.com',
+                role: CONST.POLICY.ROLE.ADMIN,
+                pendingAction: undefined,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const travelPolicies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}${travelPolicy.id}`]: travelPolicy};
+            const travelSettings: TravelSettings = {accountIDs: {}, hasAcceptedTerms: false};
+            const pendingTravelSettings: TravelSettings = {...travelSettings, lastTravelSignupRequestTime: testDate};
 
-    it('returns the only eligible workspace and reports a single workspace', () => {
-        expect(getDefaultChatEnabledPolicySelection({[`${ONYXKEYS.COLLECTION.POLICY}${teamPolicy.id}`]: teamPolicy}, undefined, undefined)).toEqual({
-            defaultChatEnabledPolicyID: teamPolicy.id,
-            hasMultipleChatEnabledPolicies: false,
+            it('returns the get started step when the workspace admins only use public email domains', () => {
+                // Given a paid workspace whose owner and admins are on a public email domain, and a pending signup request
+                const policy: Policy = {
+                    ...travelPolicy,
+                    owner: 'owner@gmail.com',
+                    employeeList: {'admin@gmail.com': {email: 'admin@gmail.com', role: CONST.POLICY.ROLE.ADMIN}},
+                };
+
+                // When getting the travel step
+                // Then the user starts from the beginning, since there is no private domain to provision travel for
+                expect(getTravelStep(policy, pendingTravelSettings, false, travelPolicies, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL);
+            });
+
+            it('returns the get started step when the user has no active paid workspaces', () => {
+                // Given a paid workspace with a private admin domain and a pending signup request, but no active workspaces for the user
+                // When getting the travel step
+                // Then the user starts from the beginning, since travel needs an active paid workspace
+                expect(getTravelStep(travelPolicy, pendingTravelSettings, false, {}, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL);
+            });
+
+            it('returns the get started step when the workspace is not a paid group workspace', () => {
+                // Given a personal workspace and a pending signup request, even though the user has another active paid workspace
+                const policy: Policy = {...travelPolicy, type: CONST.POLICY.TYPE.PERSONAL};
+
+                // When getting the travel step
+                // Then the user starts from the beginning, since travel needs a paid group workspace
+                expect(getTravelStep(policy, pendingTravelSettings, false, travelPolicies, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL);
+            });
+
+            it('returns the book or manage step when the workspace has accepted the travel terms', () => {
+                // Given a paid workspace whose admin accepted the travel terms, and a pending signup request
+                const policy: Policy = {...travelPolicy, travelSettings: {hasAcceptedTerms: true}};
+
+                // When getting the travel step
+                // Then the user can book or manage trips right away, since accepted terms take priority over the request
+                expect(getTravelStep(policy, pendingTravelSettings, false, travelPolicies, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP);
+            });
+
+            it('returns the reviewing request step when a signup request is pending and the verified beta is off', () => {
+                // Given a paid workspace without accepted terms and a pending travel signup request
+                // When getting the travel step with the travel verified beta disabled
+                // Then the user sees that their request is being reviewed
+                expect(getTravelStep(travelPolicy, pendingTravelSettings, false, travelPolicies, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.REVIEWING_REQUEST);
+            });
+
+            it('returns the get started step for a pending signup request when the verified beta is on', () => {
+                // Given a paid workspace without accepted terms and a pending travel signup request
+                // When getting the travel step with the travel verified beta enabled
+                // Then the user starts from the beginning, since the beta skips the manual review step
+                expect(getTravelStep(travelPolicy, pendingTravelSettings, true, travelPolicies, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL);
+            });
+
+            it('returns the get started step when there is no pending signup request', () => {
+                // Given a paid workspace without accepted terms and no signup request
+                // When getting the travel step
+                // Then the user starts from the beginning
+                expect(getTravelStep(travelPolicy, travelSettings, false, travelPolicies, currentUserLogin)).toBe(CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL);
+            });
         });
-    });
-});
-
-describe('getPolicyIDFromDomainName', () => {
-    it('extracts the policy ID from an Expensify workspace-feed domain name', () => {
-        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3.exfy')).toBe('A1B2C3');
-    });
-
-    it('converts the extracted policy ID to uppercase', () => {
-        expect(getPolicyIDFromDomainName(`expensify-policy${'a1b2c3'}.exfy`)).toBe('A1B2C3');
-    });
-
-    it('returns undefined for a domain name that is not a workspace feed', () => {
-        expect(getPolicyIDFromDomainName('example.com')).toBeUndefined();
-    });
-
-    it('returns undefined for an empty string', () => {
-        expect(getPolicyIDFromDomainName('')).toBeUndefined();
-    });
-
-    it('returns undefined when the extension is missing', () => {
-        expect(getPolicyIDFromDomainName('expensify-policyA1B2C3')).toBeUndefined();
-    });
-});
-
-describe('getPolicyForAssignedCard', () => {
-    const policy: Policy = {...createRandomPolicy(0), id: 'A1B2C3', policyAccountID: 88801};
-    const policies = {[`${ONYXKEYS.COLLECTION.POLICY}A1B2C3`]: policy};
-
-    // The workspace is what decides whether the cardholder is shown the fix link or told to ask an admin, so a card
-    // has to find it whatever the company named their domain.
-    it('finds the workspace for a card on a domain that is not a workspace feed', () => {
-        const card = {domainName: 'acme-corp.com', fundID: '88801'};
-
-        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
-    });
-
-    it('finds the workspace for a card on a workspace-feed domain', () => {
-        const card = {domainName: 'expensify-policyA1B2C3.exfy', fundID: '88801'};
-
-        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
-    });
-
-    it('falls back to the domain name for a card that has no fundID', () => {
-        const card = {domainName: 'expensify-policyA1B2C3.exfy'};
-
-        expect(getPolicyForAssignedCard(card, policies)).toEqual(policy);
-    });
-
-    it('returns undefined when no workspace matches the card', () => {
-        const card = {domainName: 'acme-corp.com', fundID: '99999'};
-
-        expect(getPolicyForAssignedCard(card, policies)).toBeUndefined();
-    });
-
-    it('returns undefined when there are no policies', () => {
-        const card = {domainName: 'acme-corp.com', fundID: '88801'};
-
-        expect(getPolicyForAssignedCard(card, {})).toBeUndefined();
-    });
-});
-
-describe('getDefaultWorkspacePlanType', () => {
-    const submitPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), id: 'submit1'};
-    const teamPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), id: 'team1'};
-    const corporatePolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), id: 'corporate1'};
-    const personalPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.PERSONAL), id: 'personal1'};
-
-    it.each([
-        {description: 'the collection is null', policies: null, expected: CONST.POLICY.TYPE.TEAM},
-        {description: 'the collection is undefined', policies: undefined, expected: CONST.POLICY.TYPE.TEAM},
-        {description: 'the collection is empty', policies: {}, expected: CONST.POLICY.TYPE.TEAM},
-        {description: 'the collection only holds empty entries', policies: {policy_1: undefined, policy_2: undefined}, expected: CONST.POLICY.TYPE.TEAM},
-        {
-            description: 'the collection holds Submit, Collect and Personal workspaces',
-            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_personal1: personalPolicy},
-            expected: CONST.POLICY.TYPE.TEAM,
-        },
-        {description: 'the collection holds a single Control workspace', policies: {policy_corporate1: corporatePolicy}, expected: CONST.POLICY.TYPE.CORPORATE},
-        {
-            description: 'the collection holds a Control workspace mixed in with other plan types',
-            policies: {policy_submit1: submitPolicy, policy_team1: teamPolicy, policy_corporate1: corporatePolicy, policy_personal1: personalPolicy},
-            expected: CONST.POLICY.TYPE.CORPORATE,
-        },
-        {
-            description: 'the collection holds a Control workspace between empty entries',
-            policies: {policy_1: undefined, policy_corporate1: corporatePolicy, policy_2: undefined},
-            expected: CONST.POLICY.TYPE.CORPORATE,
-        },
-    ])('returns $expected when $description', ({policies, expected}) => {
-        expect(getDefaultWorkspacePlanType(policies)).toBe(expected);
-    });
-});
-
-describe('hasActiveExpensifyCard', () => {
-    it('returns false when policy is undefined', () => {
-        expect(hasActiveExpensifyCard(undefined, 'cardholder@test.com')).toBe(false);
-    });
-
-    it('returns true when the backend flags the member as holding an active Expensify Card', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            employeeList: {
-                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
-            },
-        };
-        expect(hasActiveExpensifyCard(policy, 'cardholder@test.com')).toBe(true);
-    });
-
-    it('returns false when the flag is false or missing', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            employeeList: {
-                'former-cardholder@test.com': {email: 'former-cardholder@test.com', hasActiveExpensifyCard: false},
-                'employee@test.com': {email: 'employee@test.com'},
-            },
-        };
-        expect(hasActiveExpensifyCard(policy, 'former-cardholder@test.com')).toBe(false);
-        expect(hasActiveExpensifyCard(policy, 'employee@test.com')).toBe(false);
-    });
-
-    it('returns false when the member is not in the employeeList', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            employeeList: {
-                'cardholder@test.com': {email: 'cardholder@test.com', hasActiveExpensifyCard: true},
-            },
-        };
-        expect(hasActiveExpensifyCard(policy, 'someone-else@test.com')).toBe(false);
-    });
-
-    it('returns true when the secondary login is checked and the backend flags its paired primary login', () => {
-        const policy: Policy = {
-            ...createRandomPolicy(0),
-            primaryLoginsInvited: {'secondary@test.com': 'primary@test.com'},
-            employeeList: {
-                'secondary@test.com': {email: 'secondary@test.com'},
-                'primary@test.com': {email: 'primary@test.com', hasActiveExpensifyCard: true},
-            },
-        };
-        expect(hasActiveExpensifyCard(policy, 'secondary@test.com')).toBe(true);
-    });
-});
-
-describe('isMemberInHomeAndOfficeWorkspace', () => {
-    it('only allows members of home and office workspaces', () => {
-        // Given a workspace whose employee list contains one member
-        const memberLogin = 'member@example.com';
-        const policy = createMock<Policy>({
-            commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
-            employeeList: {[memberLogin]: {email: memberLogin}},
-        });
-        const otherWorkspace = {...policy, commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE}};
-
-        // When workspace mode and membership are checked
-        const isEligibleMember = isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
-        const isEligibleForOtherWorkspaceMode = isMemberInHomeAndOfficeWorkspace(otherWorkspace, memberLogin);
-        const isEligibleForUnknownMember = isMemberInHomeAndOfficeWorkspace(policy, 'unknown@example.com');
-
-        // Then only the known member in a home and office workspace is eligible
-        expect(isEligibleMember).toBe(true);
-        expect(isEligibleForOtherWorkspaceMode).toBe(false);
-        expect(isEligibleForUnknownMember).toBe(false);
-    });
-});
-
-describe('hasCompanyAddress', () => {
-    it('only counts a company address that has a street, the same way Auth does', () => {
-        // Given workspaces without an address, with a blank street, and with a street
-        const policy = createRandomPolicy(0);
-        const address = {city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US' as const};
-        const withoutAddress: Policy = {...policy, address: undefined};
-        const withBlankStreet: Policy = {...policy, address: {...address, addressStreet: '  '}};
-        const withStreet: Policy = {...policy, address: {...address, addressStreet: '88 Kearny St'}};
-
-        // When checking whether each has a company address
-        // Then only the one with a street has one, since that's when Auth counts the company address as an office
-        expect(hasCompanyAddress(withoutAddress)).toBe(false);
-        expect(hasCompanyAddress(withBlankStreet)).toBe(false);
-        expect(hasCompanyAddress(withStreet)).toBe(true);
     });
 });

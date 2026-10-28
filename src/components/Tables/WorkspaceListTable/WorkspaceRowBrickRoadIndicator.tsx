@@ -13,6 +13,7 @@ import type {RetryWindow} from '@libs/FailedExportRetryUtils';
 import {
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
+    isArchivedPolicy,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
     shouldShowEmployeeListError,
@@ -38,9 +39,10 @@ const createCardFeedErrorsSelector = (workspaceAccountID: number) => (cardFeedEr
     !!cardFeedErrors?.shouldShowRbrForWorkspaceAccountID?.[workspaceAccountID];
 
 const createPolicyErrorsSelector = (connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>) => (policy: OnyxEntry<Policy>) =>
-    getUberConnectionErrorDirectlyFromPolicy(policy) ||
-    shouldShowEmployeeListError(policy) ||
-    getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    !isArchivedPolicy(policy) &&
+    (getUberConnectionErrorDirectlyFromPolicy(policy) ||
+        shouldShowEmployeeListError(policy) ||
+        getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
 const getRetryWindowSelector = (policy: OnyxEntry<Policy>) => getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS);
 

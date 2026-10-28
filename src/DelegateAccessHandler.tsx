@@ -3,6 +3,7 @@ import {useEffect, useRef} from 'react';
 import CONST from './CONST';
 import useIsLoadingAppRecovery from './hooks/useIsLoadingAppRecovery';
 import useOnyx from './hooks/useOnyx';
+import usePrevious from './hooks/usePrevious';
 import {disconnect, resumeSelfRemovalAsDelegate} from './libs/actions/Delegate';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
@@ -30,15 +31,23 @@ function DelegateAccessHandler() {
     useIsLoadingAppRecovery();
 
     // Disconnect delegate when the delegate is no longer in the delegates list
+    const delegate = account?.delegatedAccess?.delegate;
+    const isDelegateInDelegatesList = account?.delegatedAccess?.delegates?.some((d) => d.email === delegate);
+    const wasDelegateInDelegatesList = usePrevious(isDelegateInDelegatesList);
     useEffect(() => {
-        if (!account?.delegatedAccess?.delegate) {
+        if (!delegate) {
             return;
         }
-        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
+        if (isDelegateInDelegatesList) {
+            return;
+        }
+        // If the delegate was never on the list then do nothing.
+        // This is the case for company-owned agents where managers have implicit delegate access without being in the delegates list.
+        if (!wasDelegateInDelegatesList) {
             return;
         }
         disconnect({stashedCredentials, stashedSession});
-    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
+    }, [delegate, isDelegateInDelegatesList, wasDelegateInDelegatesList, stashedCredentials, stashedSession]);
 
     // Finish a self-removal from a delegator's copilots that a kill interrupted
     useEffect(() => {
@@ -55,7 +64,7 @@ function DelegateAccessHandler() {
         }
         const delegators = account?.delegatedAccess?.delegators ?? [];
         const hasDelegatorMatch = !!sessionEmail && delegators.some((delegator) => delegator.email === sessionEmail);
-        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !account?.delegatedAccess?.delegate;
+        const shouldLogMismatch = hasDelegatorMatch && !!account?.primaryLogin && !delegate;
         if (!shouldLogMismatch) {
             return;
         }
@@ -65,7 +74,7 @@ function DelegateAccessHandler() {
             delegatorsCount: delegators.length,
             hasPrimaryLogin: !!account?.primaryLogin,
         });
-    }, [account?.delegatedAccess?.delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, sessionAccountID, sessionEmail]);
+    }, [delegate, account?.delegatedAccess?.delegators, account?.primaryLogin, hasLoadedApp, isLoadingApp, sessionAccountID, sessionEmail]);
 
     return null;
 }

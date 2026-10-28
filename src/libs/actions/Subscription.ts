@@ -84,6 +84,22 @@ function openPaymentHistoryPage() {
     API.read(READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE, null);
 }
 
+function openPaymentDetailsPage(purchaseID: number) {
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PURCHASES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PURCHASES,
+            value: {
+                [purchaseID]: {
+                    isLoaded: true,
+                },
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PAYMENT_DETAILS_PAGE, {purchaseID}, {finallyData});
+}
+
 /**
  * Fetches data when the user opens the Save The World page
  */
@@ -500,6 +516,7 @@ function applyExpensifyCode(promoCode: string) {
 
 export {
     openSubscriptionPage,
+    openPaymentDetailsPage,
     openPaymentHistoryPage,
     openSaveTheWorldPage,
     updateSubscriptionAutoRenew,

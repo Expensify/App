@@ -56,6 +56,7 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
+    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -86,7 +87,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
-import type {GestureResponderEvent, TextInput} from 'react-native';
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
@@ -97,8 +99,6 @@ import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
-
-import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -111,6 +111,7 @@ import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
+import useExpandedSystemMessageFocus from './useExpandedSystemMessageFocus';
 import useShouldEditInComposer from './useShouldEditInComposer';
 import WhisperBanner from './WhisperBanner';
 
@@ -153,7 +154,7 @@ type ReportActionItemProps = {
     shouldUseThreadDividerLine?: boolean;
     shouldDisplayContextMenu?: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction?: boolean;
 
     linkedTransactionRouteError?: Errors;
@@ -169,6 +170,9 @@ type ReportActionItemProps = {
 
     /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
     reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
+
+    /** Consumes an explicit expansion's focus request after this message has laid out. */
+    onExpandedSystemMessageReady?: (target: ComponentRef<typeof View> | null) => void;
 };
 
 function ReportActionItem({
@@ -193,6 +197,7 @@ function ReportActionItem({
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
     reportsParentHierarchy,
+    onExpandedSystemMessageReady,
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -249,7 +254,9 @@ function ReportActionItem({
     const [isHidden, setIsHidden] = useState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
-    const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
+    const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
+
+    useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
     const downloadedPreviews = useRef<string[]>([]);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
@@ -520,7 +527,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
         return null;
     }
 
@@ -536,7 +543,7 @@ function ReportActionItem({
     const iouReportID = isMoneyRequestAction(action) ? action?.reportID : undefined;
     const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
 
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, transactionsOnIOUReport);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesUtils(iouReport, !isEmptyObject(transactionsOnIOUReport));
     const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction, isAgentProcessingInThread) && !isOnSearch;
 
@@ -634,7 +641,7 @@ function ReportActionItem({
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
                                                 errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
-                                                errorRowStyles={[styles.ml10, styles.mr2]}
+                                                errorRowStyles={styles.ml10}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough
                                             >
