@@ -3261,7 +3261,7 @@ ${amount} für ${merchant} – ${date}`,
         overLimitApproverNotWorkspaceMember:
             'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
         overLimitApproverInWorkflow:
-            'Die zusätzliche genehmigende Person für Berichte über dem Limit ist bereits eine genehmigende Person in diesem Workflow. Wählen Sie eine andere zusätzliche genehmigende Person.',
+            'Die zusätzliche Genehmigungsperson für Berichte über dem Limit ist bereits eine Genehmigungsperson in diesem Workflow. Wählen Sie eine andere zusätzliche Genehmigungsperson.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
