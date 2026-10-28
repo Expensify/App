@@ -2550,6 +2550,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Non puoi unire un conto con se stesso.',
         },
+        mergeAdminApprovalRequested: {
+            heading: "In attesa dell'approvazione dell'amministratore",
+            description:
+                "Abbiamo inviato un'email all'amministratore del tuo dominio per confermare l'unione di questi due account. I tuoi account verranno uniti non appena darà il via libera.",
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>Gli account sono stati uniti in <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                "Questo link di unione non è valido o è scaduto. Assicurati di aver effettuato l'accesso come contatto tecnico del dominio, oppure chiedi all'utente di richiedere nuovamente l'unione.",
+        },
         mergeFailureGenericHeading: 'Impossibile unire gli account',
     },
     lockAccountPage: {

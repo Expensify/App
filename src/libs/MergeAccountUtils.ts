@@ -38,4 +38,4 @@ function getMergeErrorPage(err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESU
     return null;
 }
 
-export {getMergeErrorPage};
+export default getMergeErrorPage;

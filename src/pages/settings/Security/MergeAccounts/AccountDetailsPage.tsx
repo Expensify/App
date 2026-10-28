@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
-import {getMergeErrorPage} from '@libs/MergeAccountUtils';
+import getMergeErrorPage from '@libs/MergeAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';

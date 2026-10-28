@@ -2544,6 +2544,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Você não pode mesclar uma conta com ela mesma.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Aguardando aprovação do administrador',
+            description:
+                'Enviamos um e-mail para o administrador do seu domínio para confirmar que é seguro mesclar essas duas contas. Suas contas serão mescladas assim que ele der o sinal verde.',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>As contas foram mescladas em <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                'Este link de mesclagem é inválido ou expirou. Verifique se você está conectado como o contato técnico do domínio, ou peça ao usuário para solicitar a mesclagem novamente.',
+        },
         mergeFailureGenericHeading: 'Não é possível mesclar contas',
     },
     lockAccountPage: {
