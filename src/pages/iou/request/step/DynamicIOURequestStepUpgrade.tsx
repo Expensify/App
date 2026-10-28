@@ -53,7 +53,7 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 type DynamicIOURequestStepUpgradeProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE>;
 
@@ -101,7 +101,7 @@ function DynamicIOURequestStepUpgrade({
     const {selectedTransactions, areAllMatchingItemsSelected, excludedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -126,7 +126,7 @@ function DynamicIOURequestStepUpgrade({
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const ownerAccountID = selectedReport?.ownerAccountID ?? currentUserPersonalDetails.accountID;
 
-    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails, [personalDetails, ownerAccountID]);
+    const ownerPersonalDetails = getPersonalDetailsForAccountID(ownerAccountID, personalDetails) as PersonalDetails;
 
     const feature = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
@@ -140,7 +140,7 @@ function DynamicIOURequestStepUpgrade({
         }
     };
 
-    const afterUpgradeAcknowledged = useCallback(() => {
+    const afterUpgradeAcknowledged = () => {
         const expenseReportID = policyDataRef.current?.expenseChatReportID ?? reportID;
         const policyID = policyDataRef.current?.policyID;
 
@@ -268,44 +268,7 @@ function DynamicIOURequestStepUpgrade({
             default:
                 Navigation.goBack();
         }
-    }, [
-        isVendorMatchingBetaEnabled,
-        action,
-        upgradeBackTo,
-        shouldReturnToConfirmation,
-        navigateWithMicrotask,
-        reportID,
-        shouldSubmitExpense,
-        transactionID,
-        upgradePath,
-        selectedTransactionsKeys,
-        clearSelectedTransactions,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        allPolicies,
-        allPolicyCategories,
-        session?.accountID,
-        session?.email,
-        ownerPersonalDetails,
-        transactions,
-        iouType,
-        isTrack,
-        allPolicyTags,
-        createReportForCurrentUser,
-        transactionViolations,
-        reports,
-        selfDMReportActions,
-        isTrackIntentUser,
-        delegateAccountID,
-        getCurrencyDecimals,
-        getCurrencySymbol,
-        rules,
-        cardList,
-        areAllMatchingItemsSelected,
-        currentSearchQueryJSON,
-        excludedTransactions,
-        isOffline,
-    ]);
+    };
 
     const participant = transaction?.participants?.[0];
     const adminParticipant =

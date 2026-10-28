@@ -13,7 +13,7 @@ import {setLocale} from '@userActions/App';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {PickerSize} from './Picker/types';
@@ -34,15 +34,13 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
 
-    const locales = useMemo(() => {
-        const sortedLocales = SORTED_LOCALES;
-        return sortedLocales.map((locale) => ({
-            value: locale,
-            label: LOCALE_TO_LANGUAGE_STRING[locale],
-            keyForList: locale,
-            isSelected: preferredLocale === locale,
-        }));
-    }, [preferredLocale]);
+    const sortedLocales = SORTED_LOCALES;
+    const locales = sortedLocales.map((locale) => ({
+        value: locale,
+        label: LOCALE_TO_LANGUAGE_STRING[locale],
+        keyForList: locale,
+        isSelected: preferredLocale === locale,
+    }));
 
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 

@@ -6,6 +6,7 @@ import type {SpendRuleForm} from '@src/types/form';
 import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -119,6 +120,21 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleValues, existingCreated?: s
         action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
         filters,
     };
+}
+
+/**
+ * Returns the spend rule draft for generated values, without the categories that a spend rule cannot hold. A rule for all
+ * cards covers the eligible cards, and any other rule keeps the cards of the current draft.
+ */
+function getSpendRuleDraftFromGeneratedValues({isAllCards, ...values}: GeneratedRuleValues, eligibleCardIDs: string[] | undefined, currentCardIDs?: string[]): Partial<SpendRuleForm> {
+    const categories = values.categories?.filter(isSpendRuleCategory);
+    const cardIDs = isAllCards && eligibleCardIDs ? eligibleCardIDs : currentCardIDs;
+    return {...values, cardIDs, categories};
+}
+
+/** Returns whether the spend rule restricts merchants or categories */
+function hasSpendRuleMerchantRestrictions(values: Partial<SpendRuleForm> | undefined): boolean {
+    return !!values?.merchantNames?.length || !!values?.categories?.length;
 }
 
 function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): SpendRuleForm | undefined {
@@ -389,8 +405,10 @@ export {
     buildSpendRuleAST,
     getEligibleSpendRuleCards,
     getSpendRuleByCardID,
+    getSpendRuleDraftFromGeneratedValues,
     getSpendRuleFormValuesFromCardRule,
     getSpendRuleSummaryParts,
     getSpendRuleSummaryText,
     getTruncatedSpendRuleSummary,
+    hasSpendRuleMerchantRestrictions,
 };

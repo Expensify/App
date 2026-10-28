@@ -34,6 +34,10 @@ type BaseImageProps = {
      *  the load with the higher priority will be started first.
      *  Maps to SDWebImageHighPriority (iOS) and Glide.Priority.IMMEDIATE (Android). */
     priority?: ValueOf<typeof CONST.IMAGE_LOADING_PRIORITY> | null;
+
+    /** Identity of the picture for the native view. Defaults to a key derived from the source, which clears the view every
+     *  time the same picture changes URI (a fresh attachment goes picker path, cache copy, remote URL). Ignored on web. */
+    recyclingKey?: string;
 };
 
 type ImageOwnProps = BaseImageProps & {

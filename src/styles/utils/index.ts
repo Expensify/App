@@ -68,6 +68,7 @@ type GetReportTableColumnStylesParams = {
     isApprovedColumnWide?: boolean;
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
+    isPaidColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
     isWithdrawnColumnWide?: boolean;
     isActionColumnWide?: boolean;
@@ -380,7 +381,6 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
     if (!transactionID) {
         return CONST.ERECEIPT_COLORS.YELLOW;
@@ -1996,6 +1996,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isApprovedColumnWide,
             isPostedColumnWide,
             isExportedColumnWide,
+            isPaidColumnWide,
             isDateColumnWide,
             isDateColumnCreated,
             isTaxAmountColumnWide,
@@ -2046,6 +2047,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
                 columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID:
+                columnWidth = {...getWidthStyle(isPaidColumnWide ? variables.w102 : variables.w62)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
                 // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
                 columnWidth = {...getWidthStyle(variables.w102)};
@@ -2063,6 +2067,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 };
                 break;
             }
+            case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+                columnWidth = {...getWidthStyle(variables.w102)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -2122,6 +2130,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
+            case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
                 columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MCC:

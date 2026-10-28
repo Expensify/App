@@ -74,7 +74,7 @@ type ExpenseFieldRowProps = {
     isInteractive?: boolean;
 
     /**
-     * Styles for the `Animated.View` wrapping the row, e.g. the highlight animation `HighlightableExpenseFieldRow`
+     * Styles for the `Animated.View` wrapping the row, e.g. the highlight animation `useFieldRowHighlightStyle`
      * runs. It is a layer of its own because the row paints its own background over anything drawn behind it, and
      * being the row's parent it fades the row's content along with the fill.
      */

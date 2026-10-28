@@ -32,7 +32,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {startTransition, useCallback, useEffect, useMemo, useRef} from 'react';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
+import React, {startTransition, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 const CAROUSEL_PRESERVING_SCREENS = [
@@ -103,25 +104,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     // A press made before the sibling's parent action has loaded is parked here and replayed once it arrives.
     const pendingSiblingRef = useRef<{transactionID: string; originRoute: string} | null>(null);
 
-    const {prevTransactionID, nextTransactionID} = useMemo(() => {
-        if (transactionIDsList.length < 2 || currentTransactionIndex === -1) {
-            return {prevTransactionID: undefined, nextTransactionID: undefined};
-        }
+    const hasAdjacentTransactions = transactionIDsList.length >= 2 && currentTransactionIndex !== -1;
+    const prevTransactionID = hasAdjacentTransactions && currentTransactionIndex > 0 ? transactionIDsList.at(currentTransactionIndex - 1) : undefined;
+    const nextTransactionID = hasAdjacentTransactions ? transactionIDsList.at(currentTransactionIndex + 1) : undefined;
 
-        return {
-            prevTransactionID: currentTransactionIndex > 0 ? transactionIDsList.at(currentTransactionIndex - 1) : undefined,
-            nextTransactionID: transactionIDsList.at(currentTransactionIndex + 1),
-        };
-    }, [currentTransactionIndex, transactionIDsList]);
-
-    const prevNextTransactionsSelector = useCallback(
-        (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            [currentTransactionID, prevTransactionID, nextTransactionID].map((transactionID) => {
-                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
-                return allTransactions?.[key] ?? snapshot?.data?.[key];
-            }),
-        [currentTransactionID, nextTransactionID, prevTransactionID, snapshot],
-    );
+    const prevNextTransactionsSelector = (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
+        [currentTransactionID, prevTransactionID, nextTransactionID].map((transactionID) => {
+            const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            return allTransactions?.[key] ?? snapshot?.data?.[key];
+        });
 
     const [[currentTransaction, prevTransaction, nextTransaction] = getEmptyArray<OnyxTypes.Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: prevNextTransactionsSelector,
@@ -132,32 +123,29 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
 
     // Only the prev/next parent actions are ever read, so resolve them inside the selector instead of returning
     // a Map of every money request action on the three parent reports (fast-equals compares Maps in O(n^2)).
-    const parentReportActionsSelector = useCallback(
-        (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
-            // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
-            const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
-            const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
-            const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
-            // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
-            // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
-            const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
-            const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
-            const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
-            if (!prevTransactionID && !nextTransactionID) {
-                return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
-            }
-            const parentReportIDs = new Set([currentTransaction?.reportID, prevActionsReportID, nextActionsReportID]);
-            for (const parentReportID of parentReportIDs) {
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
-                collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
-            }
+    const parentReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
+        // An unreported (self-DM) sibling's IOU action lives in the self-DM, since report "0" holds no actions
+        // of its own. Looking it up there is the only way such a sibling resolves from live data at all.
+        const isPrevUnreported = prevTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isNextUnreported = nextTransactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const selfDMReportID = isPrevUnreported || isNextUnreported ? findSelfDMReportID() : undefined;
+        const prevActionsReportID = isPrevUnreported ? selfDMReportID : prevTransactionReportID;
+        const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
+        // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
+        // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
+        const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
+        const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
+        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
+        if (!prevTransactionID && !nextTransactionID) {
             return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
-        },
-        [currentTransaction?.reportID, nextTransactionReportID, nextTransactionID, prevTransactionReportID, prevTransactionID],
-    );
+        }
+        const parentReportIDs = new Set([currentTransaction?.reportID, prevActionsReportID, nextActionsReportID]);
+        for (const parentReportID of parentReportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
+            collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
+        }
+        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+    };
 
     const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: parentReportActionsSelector,
@@ -167,17 +155,18 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     // one), so it only finds what has already been fetched into Onyx. Scanning the snapshot's report actions is
     // what resolves a sibling whose parent actions were never loaded in this session.
     const snapshotData = snapshot?.data;
-    const snapshotParentReportActions = useMemo(() => {
-        const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
-        if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
-            for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
-                if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
-                    collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, parentActions);
-                }
+    const parentActions: PrevNextParentReportActions = {
+        prevParentReportAction: undefined,
+        nextParentReportAction: undefined,
+    };
+    if (snapshotData && (prevTransactionID ?? nextTransactionID)) {
+        for (const [key, reportActionsForReport] of Object.entries(snapshotData)) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+                collectParentReportActions(reportActionsForReport as OnyxTypes.ReportActions, prevTransactionID, nextTransactionID, parentActions);
             }
         }
-        return parentActions;
-    }, [nextTransactionID, prevTransactionID, snapshotData]);
+    }
+    const snapshotParentReportActions = parentActions;
 
     // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
     // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
@@ -200,6 +189,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     const nextThreadReport = liveNextThreadReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`];
     const prevTransactionParentReport = livePrevTransactionParentReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportID}`];
     const nextTransactionParentReport = liveNextTransactionParentReport ?? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportID}`];
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -215,15 +205,23 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         };
     }, []);
 
-    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined) => {
+    const stageSiblingPress = (transactionID: string | undefined, parentReportID: string | undefined, parentPolicyID: string | undefined) => {
         // Offline there is no fetch to wait for, so the caller resolves the sibling with what it already has.
         // Report "0" isn't a report that can be fetched either, so an unreported sibling never waits.
         if (!transactionID || !parentReportID || parentReportID === CONST.REPORT.UNREPORTED_REPORT_ID || isOffline) {
             return false;
         }
         pendingSiblingRef.current = {transactionID, originRoute: Navigation.getActiveRoute()};
+        const parentFullPolicySnapshotLastModified = parentPolicyID ? fullPolicySnapshotLastModifiedByPolicyID?.[parentPolicyID] : undefined;
         // Always true here: we are fetching this report's actions, so it must not overwrite its cached name.
-        openReport({reportID: parentReportID, introSelected, conciergeChat, currentUserAccountID: accountID, hasReportActions: true});
+        openReport({
+            reportID: parentReportID,
+            introSelected,
+            conciergeChat,
+            currentUserAccountID: accountID,
+            hasReportActions: true,
+            fullPolicySnapshot: parentPolicyID && parentFullPolicySnapshotLastModified ? {policyID: parentPolicyID, lastModified: parentFullPolicySnapshotLastModified} : undefined,
+        });
         return true;
     };
 
@@ -243,6 +241,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         personalDetails,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
         hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        fullPolicySnapshotLastModifiedByPolicyID,
     };
 
     /**
@@ -363,7 +362,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
             !hasSiblingParentReportActions &&
             !hasDescriptor &&
             !isSingleExpenseReport &&
-            stageSiblingPress(siblingTransactionID, siblingTransaction?.reportID)
+            stageSiblingPress(siblingTransactionID, siblingTransaction?.reportID, siblingParentReport?.policyID)
         ) {
             return;
         }
