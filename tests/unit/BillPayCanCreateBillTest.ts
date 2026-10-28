@@ -11,7 +11,7 @@ import createMock from '../utils/createMock';
 const email = 'admin@receiver.com';
 const adminPolicy = createMock<Policy>({id: 'A1', name: 'Receiver', type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN});
 const policies: OnyxCollection<Policy> = {[`${ONYXKEYS.COLLECTION.POLICY}A1`]: adminPolicy};
-const receiverDomain = createMock<Domain>({accountID: 99, email: '+@receiver.com', validated: true, hasTechnicalContact: true});
+const receiverDomain = createMock<Domain>({accountID: 99, email: '+@receiver.com', validated: true, technicalContactEmail: 'receiver@receiver.com'});
 const domains: OnyxCollection<Domain> = {[`${ONYXKEYS.COLLECTION.DOMAIN}99`]: receiverDomain};
 
 describe('canCreateBill', () => {
@@ -21,7 +21,7 @@ describe('canCreateBill', () => {
 
     it('hides Create bill when the domain has no technical contact, as Classic does', () => {
         // Given the user's domain without a technical contact to receive the bill
-        const domainsWithoutContact = {[`${ONYXKEYS.COLLECTION.DOMAIN}99`]: {...receiverDomain, hasTechnicalContact: false}};
+        const domainsWithoutContact = {[`${ONYXKEYS.COLLECTION.DOMAIN}99`]: {...receiverDomain, technicalContactEmail: ''}};
 
         // Then the user can't create a bill
         expect(canCreateBill(policies, domainsWithoutContact, email, false)).toBe(false);

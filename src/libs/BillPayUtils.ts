@@ -17,8 +17,17 @@ function canCreateBill(policies: OnyxCollection<Policy>, domains: OnyxCollection
     if (!email || isFromPublicDomain || !getActiveAdminWorkspaces(policies, email).some(isPaidGroupPolicy)) {
         return false;
     }
+    return !!getBillReceiverEmail(domains, email);
+}
+
+/** Returns the technical contact of the user's email domain, who receives the bills the user creates. */
+function getBillReceiverEmail(domains: OnyxCollection<Domain>, email: string | undefined): string | undefined {
+    if (!email) {
+        return undefined;
+    }
     const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    return Object.values(domains ?? {}).some((domain) => !!domain?.hasTechnicalContact && !!domain.email && Str.extractEmailDomain(domain.email).toLowerCase() === emailDomain);
+    const domain = Object.values(domains ?? {}).find((item) => !!item?.email && Str.extractEmailDomain(item.email).toLowerCase() === emailDomain);
+    return domain?.technicalContactEmail ? domain.technicalContactEmail : undefined;
 }
 
 function isBillReport(report: OnyxEntry<Report>): boolean {
@@ -66,4 +75,4 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     return reimburser ? reimburser === email : policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
-export {isBillReport, isBillPayReport, canApproveBill, canPayBill, canCreateBill};
+export {isBillReport, isBillPayReport, canApproveBill, canPayBill, canCreateBill, getBillReceiverEmail};
