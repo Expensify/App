@@ -3,7 +3,6 @@ import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@comp
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
@@ -261,7 +260,6 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
-    onHoldMenuOpen?: HoldMenuCallback;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
@@ -309,7 +307,6 @@ function handleActionButtonPress({
     lastPaymentMethod,
     userBillingGracePeriodEnds,
     currentSearchKey,
-    onHoldMenuOpen,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
@@ -348,12 +345,7 @@ function handleActionButtonPress({
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses(allReportTransactions);
 
-    if (
-        hasHeldExpense &&
-        item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT &&
-        item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE &&
-        (item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE || !onHoldMenuOpen)
-    ) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
         goToItem();
         return;
     }
@@ -408,10 +400,6 @@ function handleActionButtonPress({
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
-                return;
-            }
-            if (hasHeldExpense) {
-                onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
             getApproveActionCallback({
@@ -1241,6 +1229,8 @@ type InFlightSearchRequest = {
     shouldSaveRecentSearch: boolean;
     /** The footer breakdown it asks the total for. Not part of the hash, so it is told apart here. */
     footerTotal?: SearchFooterTotal;
+    /** Whether it asks for trip rooms. Not part of the hash either, and it changes the shape of the results. */
+    shouldReturnTripRooms: boolean;
     /** The request, including any re-fire chained onto it. */
     promise?: Promise<string | number | undefined>;
     pendingShouldCalculateTotals?: boolean;
@@ -1331,6 +1321,7 @@ function search({
     skipWaitForWrites = false,
     shouldSaveRecentSearch = false,
     shouldShowLoading = true,
+    shouldReturnTripRooms = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1356,12 +1347,15 @@ function search({
     skipWaitForWrites?: boolean;
     /** When false, the request leaves `search.isLoading` unset, so the current results stay on screen without a loading state. */
     shouldShowLoading?: boolean;
+    /** Makes a trip search return one row per trip room instead of travel expenses. Only sent with the TravelApproval beta. */
+    shouldReturnTripRooms?: boolean;
 }): Promise<string | number | undefined> | undefined {
     if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
@@ -1375,7 +1369,9 @@ function search({
         // Another footer breakdown shares the hash but not the total, so it re-fires after the in-flight one, and the
         // latest breakdown wins without racing it. Its caller gets the chain, so it waits until that total lands.
         const needsBreakdownRefire = footerTotal !== inFlightRequest.footerTotal;
-        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade || needsBreakdownRefire) {
+        // Trip rooms and travel expenses share the hash, so a request for the other one re-fires after the in-flight one
+        const needsTripRoomsRefire = isTripRoomsSearch !== inFlightRequest.shouldReturnTripRooms;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade || needsBreakdownRefire || needsTripRoomsRefire) {
             // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
@@ -1394,11 +1390,12 @@ function search({
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
+                    shouldReturnTripRooms,
                 });
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
@@ -1412,6 +1409,7 @@ function search({
         shouldSaveRecentSearch,
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
+        ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
     };
     const jsonQuery = serializeQueryJSONForBackend(query);
 

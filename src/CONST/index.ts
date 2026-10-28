@@ -1035,6 +1035,10 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -1460,14 +1464,15 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
     },
@@ -2349,6 +2354,7 @@ const CONST = {
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
+            MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -5318,6 +5324,7 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
+            IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
@@ -5604,6 +5611,7 @@ const CONST = {
                 DIGITS_SYNC_PAYMENTS: 'digitsSyncPayments',
                 DIGITS_SYNC_CARD_SETTLEMENTS: 'digitsSyncCardSettlements',
                 DIGITS_SYNC_TRAVEL_SETTLEMENTS: 'digitsSyncTravelSettlements',
+                ZOHO_BOOKS_SYNC_TITLE: 'zohoBooksSyncTitle',
                 ZOHO_BOOKS_SYNC_CONNECTION: 'zohoBooksSyncConnection',
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
@@ -8147,7 +8155,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8338,6 +8346,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                DECLINED: {
+                    column: this.TABLE_COLUMNS.DECLINED,
+                    search: true,
+                    reportView: false,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8421,6 +8434,7 @@ const CONST = {
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
+                    DECLINED: this.TABLE_COLUMNS.DECLINED,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -8441,7 +8455,15 @@ const CONST = {
                 },
                 INVOICE: {},
                 TASK: {},
-                TRIP: {},
+                TRIP: {
+                    START_DATE: this.TABLE_COLUMNS.START_DATE,
+                    END_DATE: this.TABLE_COLUMNS.END_DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TRIP_NAME: this.TABLE_COLUMNS.TRIP_NAME,
+                    TRAVELER: this.TABLE_COLUMNS.TRAVELER,
+                    TOTAL: this.TABLE_COLUMNS.TOTAL,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
                 CHAT: {},
             };
         },
@@ -8545,7 +8567,15 @@ const CONST = {
                 ],
                 INVOICE: [],
                 TASK: [],
-                TRIP: [],
+                TRIP: [
+                    this.TABLE_COLUMNS.START_DATE,
+                    this.TABLE_COLUMNS.END_DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TRIP_NAME,
+                    this.TABLE_COLUMNS.TRAVELER,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 CHAT: [],
             };
         },
@@ -8614,6 +8644,12 @@ const CONST = {
             },
         },
         GROUP_COLUMN_PREFIX: 'group',
+        // Status the backend works out for each trip row, from the trip's dates and Spotnana status
+        TRIP_STATUS: {
+            UPCOMING: 'upcoming',
+            DONE: 'done',
+            CANCELED: 'canceled',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -8637,6 +8673,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
+            DECLINED: 'declined',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8693,6 +8730,10 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            START_DATE: 'startDate',
+            END_DATE: 'endDate',
+            TRIP_NAME: 'tripName',
+            TRAVELER: 'traveler',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -8924,6 +8965,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
+                [this.TABLE_COLUMNS.DECLINED]: 'declined',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
@@ -9636,6 +9678,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
@@ -10024,7 +10067,10 @@ const CONST = {
             /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
-            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
+            SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
 
@@ -10271,6 +10317,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10304,6 +10351,7 @@ const CONST = {
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
             REPORT_ACTION_ITEM: 'Report-ReportActionItem',
+            COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
@@ -10498,6 +10546,9 @@ const CONST = {
         },
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
+        },
+        TAX_PICKER_MODAL: {
+            BACK_BUTTON: 'TaxPickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
@@ -10987,6 +11038,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            PAYMENT_ACTIVITY_ROW: 'SettingsSubscription-PaymentActivityRow',
             VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
@@ -11131,12 +11183,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',

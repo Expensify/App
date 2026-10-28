@@ -4535,7 +4535,7 @@ export type {
  *
  * @public
  */
-export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksOrganization, ZohoBooksSync};
 
 /**
  * The Digits action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.

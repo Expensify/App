@@ -41,6 +41,7 @@ import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
+import getSearchNarrowHeaderHeight from './utils/getSearchNarrowHeaderHeight';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -7669,7 +7670,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({

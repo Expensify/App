@@ -1,12 +1,17 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+
+import type {ReactNode} from 'react';
 
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+
+import type * as TestHelper from '../../utils/TestHelper';
 
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const MockView = View;
@@ -32,11 +37,15 @@ let mockOnFocus: ((filterKey: string) => void) | undefined;
 let mockOnPointerMove: ((event: {clientX: number; clientY: number}) => void) | undefined;
 let mockOnPointerLeave: ((event: {clientX: number}) => void) | undefined;
 let mockSelectedFilter: string | undefined;
+let mockOnSearchValueChange: ((searchValue: string) => void) | undefined;
+
+/** Whether the popup last told the Describe your search content to take the focus. */
+let mockIsDescribeSearchAutoFocused = false;
 
 /** The form served by the useOnyx mock. Reassigned by tests to change filter values. */
 let mockFiltersForm: Partial<SearchAdvancedFiltersForm> | undefined;
 
-// Stand-in for the filter list: it renders no rows and only hands the tests what the popup gave it.
+// Stand-in for the filter list: it renders no rows, only the content the popup puts above them, and hands the tests what the popup gave it.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () => ({
     __esModule: true,
     default: (props: {
@@ -45,15 +54,32 @@ jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () =
         onPointerMove: (event: {clientX: number; clientY: number}) => void;
         onPointerLeave: (event: {clientX: number}) => void;
         selectedFilter: string;
+        onSearchValueChange: (searchValue: string) => void;
+        headerContent: ReactNode;
     }) => {
         mockOnHoverIn = props.onHoverIn;
         mockOnFocus = props.onFocus;
         mockOnPointerMove = props.onPointerMove;
         mockOnPointerLeave = props.onPointerLeave;
         mockSelectedFilter = props.selectedFilter;
+        mockOnSearchValueChange = props.onSearchValueChange;
 
-        return null;
+        return props.headerContent;
     },
+}));
+
+jest.mock('@components/Search/FilterComponents/AdvancedFilters/SearchNLFilterContent', () => ({
+    __esModule: true,
+    default: ({autoFocus}: {autoFocus?: boolean}) => {
+        mockIsDescribeSearchAutoFocused = !!autoFocus;
+
+        return <MockView testID="describe-search-content" />;
+    },
+}));
+
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: () => true}),
 }));
 
 // Stand-in for the filter content, the expensive part being mounted or kept alive.
@@ -79,6 +105,12 @@ jest.mock('@components/Search/hooks/useUpdateFilterQuery', () => ({
     __esModule: true,
     default: () => ({updateFilterQueryParams: mockUpdateFilterQueryParams}),
 }));
+
+// The default locale context translates every label to an empty string, and the filter search matches labels.
+jest.mock('@hooks/useLocalize', () => {
+    const {translateLocal, localeCompare} = jest.requireActual<typeof TestHelper>('../../utils/TestHelper');
+    return () => ({translate: translateLocal, localeCompare});
+});
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -125,12 +157,31 @@ function leaveList(clientX = Number.MAX_SAFE_INTEGER) {
     });
 }
 
+/** Types into the filter search input and pauses long enough for the list to follow. */
+function search(searchValue: string) {
+    act(() => {
+        mockOnSearchValueChange?.(searchValue);
+    });
+    act(() => {
+        jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    });
+}
+
+/** Picks the Describe your search row. */
+function pressDescribeSearch() {
+    fireEvent.press(screen.getByLabelText('Describe your search'));
+}
+
 /** Moves the keyboard focus onto a filter row. */
 function focus(filterKey: string) {
     act(() => {
         mockOnFocus?.(filterKey);
     });
 }
+
+beforeAll(async () => {
+    await IntlStore.load('en');
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -273,5 +324,140 @@ describe('SearchAdvancedFiltersPopup', () => {
 
         // No timer is advanced: moving focus is deliberate and never passes over rows on the way.
         expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
+    });
+
+    it('shows the first match once the typing pauses', () => {
+        // Given the popover open on Describe your search
+        // When a search that Describe your search does not match is typed, before the typing pauses
+        act(() => {
+            mockOnSearchValueChange?.('status');
+        });
+
+        // Then the content stays put while the typing may go on
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
+
+        // When the typing pauses
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        });
+
+        // Then Status, the first match, takes over the content
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+    });
+
+    it('shows the first match even when the shown filter still matches', () => {
+        // Given Withdrawal status shown, which sits below Status in the list
+        hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
+
+        // When a search that both filters match is typed
+        search('status');
+
+        // Then Status takes over, as a selection list moves to its first match on every search
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+    });
+
+    it('goes back to the first filter as soon as the search is cleared', () => {
+        // Given a search, then another of its matches picked
+        search('status');
+        hoverAndRest(FILTER_KEYS.WITHDRAWAL_STATUS);
+
+        // When the search is cleared, before any debounce elapses
+        act(() => {
+            mockOnSearchValueChange?.('');
+        });
+
+        // Then Describe your search, the first row of the full list, takes over at once, the same moment the full list comes back
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
+    });
+
+    it('keeps a filter hovered right after the search is cleared', () => {
+        // Given a cleared search, then a filter hovered before the debounce elapses
+        search('status');
+        act(() => {
+            mockOnSearchValueChange?.('');
+        });
+        hoverAndRest(FILTER_KEYS.AMOUNT);
+
+        // When the debounce of the cleared value elapses
+        act(() => {
+            jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+        });
+
+        // Then the hovered filter stays, because the clear already showed the first filter
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.AMOUNT);
+    });
+
+    it('lets a contact list filter the search lands on derive at once', () => {
+        // Given the popover open on Type
+        // When a search whose first match is From is typed and the typing pauses
+        search('from');
+
+        // Then From derives its contact list straight away, because the typing has already settled
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.FROM);
+        expect(mockReadyByFilter[FILTER_KEYS.FROM]).toBe(true);
+    });
+
+    it('shows the empty state when the search lists no filter', () => {
+        // Given the popover open on Type
+        // When a search that no filter matches is typed
+        search('unicorn');
+
+        // Then the content gives way to the empty state, so it does not show a filter missing from the list
+        expect(screen.getByText('No filters selected')).toBeOnTheScreen();
+    });
+
+    it('shows the empty state when Describe your search is shown and the search matches nothing', () => {
+        // Given Describe your search shown
+        pressDescribeSearch();
+
+        // When a search that neither it nor any filter matches is typed
+        search('unicorn');
+
+        // Then its row and content go and the empty state shows, as for any filter the search hides
+        expect(screen.queryByLabelText('Describe your search')).toBeNull();
+        expect(screen.queryByTestId('describe-search-content')).toBeNull();
+        expect(screen.getByText('No filters selected')).toBeOnTheScreen();
+    });
+
+    it('moves from Describe your search to the first match when the search hides it', () => {
+        // Given Describe your search shown
+        pressDescribeSearch();
+
+        // When a search that only filters match is typed
+        search('status');
+
+        // Then Status, the first match, takes over the content
+        expect(mockSelectedFilter).toBe(FILTER_KEYS.STATUS);
+        expect(screen.queryByTestId('describe-search-content')).toBeNull();
+    });
+
+    it('keeps Describe your search shown while the search still matches it', () => {
+        // Given Describe your search shown
+        pressDescribeSearch();
+
+        // When a search that matches it is typed
+        search('describe');
+
+        // Then it stays, because the search has not hidden it
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
+    });
+
+    it('opens on Describe your search without taking the focus from the filter search', () => {
+        // Given the popover just opened
+        // Then Describe your search, the first row, is shown, and its input leaves the focus where the popover put it
+        expect(mockSelectedFilter).toBeUndefined();
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
+        expect(mockIsDescribeSearchAutoFocused).toBe(false);
+    });
+
+    it('opens Describe your search as the first match', () => {
+        // Given Type shown
+        hoverAndRest(FILTER_KEYS.TYPE);
+
+        // When a search that Describe your search matches is typed
+        search('describe');
+
+        // Then its content takes over, like any other first match
+        expect(screen.getByTestId('describe-search-content')).toBeOnTheScreen();
     });
 });

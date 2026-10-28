@@ -1,6 +1,13 @@
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import isTextInputRef from '@components/TextInput/BaseTextInput/isTextInputRef';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
@@ -17,9 +24,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
-
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
-import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -42,6 +46,9 @@ type TaxPickerProps = {
      * When disabled (default), tapping the selected tax rate will dismiss the picker without calling onSubmit.
      */
     allowDeselect?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the anchored pop-over. */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 function TaxPicker({
@@ -54,21 +61,16 @@ function TaxPicker({
     onDismiss = Navigation.goBack,
     addBottomSafeAreaPadding,
     allowDeselect = false,
+    shouldAutoFocusSearchInput = false,
 }: TaxPickerProps) {
     const {translate, localeCompare} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const [searchValue, setSearchValue] = useState('');
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [transaction] = useOnyx(
-        (() => {
-            if (shouldUseTransactionDraft(action)) {
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
-            }
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        })(),
-        {},
-    );
+    const transactionCollection = shouldUseTransactionDraft(action) ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
+    const [transaction] = useOnyx(`${transactionCollection}${transactionID}`);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -146,6 +148,9 @@ function TaxPicker({
         value: searchValue,
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(translate, (sections.at(0)?.data?.length ?? 0) > 0, searchValue),
+        // Auto-focus is opt-in (anchored pop-over only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
+        ref: (ref: BaseTextInputRef | null) => inputCallbackRef(isTextInputRef(ref) ? ref : null),
     };
 
     const updatedSections = deletedTaxOption
@@ -169,3 +174,4 @@ function TaxPicker({
 }
 
 export default TaxPicker;
+export type {TaxPickerProps};
