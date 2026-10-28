@@ -773,6 +773,11 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
             errors[`approver-${approverIndex}`] = nonMemberApproverError;
         }
 
+        // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
+        if (approver?.overLimitForwardsTo && approvalWorkflow.approvers.some((workflowApprover) => workflowApprover?.email === approver.overLimitForwardsTo)) {
+            errors[`approver-${approverIndex}`] = 'workflowsPage.overLimitApproverInWorkflow';
+        }
+
         // Validate that if overLimitForwardsTo is set, approvalLimit must also be set
         if (approver?.overLimitForwardsTo && (!approver?.approvalLimit || approver.approvalLimit <= 0)) {
             errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterAmountError';

@@ -51,8 +51,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const employeeList = policy?.employeeList;
     const isDefault = approvalWorkflow?.isDefault;
     const membersEmail = approvalWorkflow?.members.map((member) => member.email);
-
-    const currentApproverEmail = currentApprover?.email;
+    const workflowApproverEmails = new Set(approvalWorkflow?.approvers?.map((approver) => approver?.email));
 
     const shouldShowNotFoundView = isApprovalWorkflowLockedByIntegration(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
@@ -84,7 +83,8 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     return null;
                 }
 
-                if (email === currentApproverEmail) {
+                // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
+                if (workflowApproverEmails.has(email)) {
                     return null;
                 }
 

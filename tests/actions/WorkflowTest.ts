@@ -250,6 +250,65 @@ describe('actions/Workflow', () => {
             const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
             expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.overLimitApproverNotWorkspaceMember');
         });
+
+        it.each([
+            [
+                'earlier in the workflow',
+                [
+                    {email: employee1Email, displayName: employee1Email},
+                    {email: employee2Email, displayName: employee2Email, approvalLimit: 5000, overLimitForwardsTo: employee1Email},
+                    {email: employee3Email, displayName: employee3Email},
+                ],
+                1,
+            ],
+            [
+                'later in the workflow',
+                [
+                    {email: employee1Email, displayName: employee1Email, approvalLimit: 5000, overLimitForwardsTo: employee3Email},
+                    {email: employee2Email, displayName: employee2Email},
+                    {email: employee3Email, displayName: employee3Email},
+                ],
+                0,
+            ],
+        ])('should block saving a workflow whose additional approver for reports over the limit is already an approver %s', async (_description, approvers, limitedApproverIndex) => {
+            // Given a workflow whose reports over an approver's limit would go to someone who already approves in it, so
+            // the limit adds no one
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee4Email, displayName: employee4Email}],
+                approvers,
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the save is blocked and the limited approver shows the error asking for a different additional approver
+            expect(isValid).toBe(false);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.[`approver-${limitedApproverIndex}`]).toBe('workflowsPage.overLimitApproverInWorkflow');
+        });
+
+        it('should allow saving a workflow whose additional approver for reports over the limit is not one of its approvers', async () => {
+            // Given a workflow whose reports over the first approver's limit also go to someone outside it
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee4Email, displayName: employee4Email}],
+                approvers: [
+                    {email: employee1Email, displayName: employee1Email, approvalLimit: 5000, overLimitForwardsTo: ownerEmail},
+                    {email: employee2Email, displayName: employee2Email},
+                ],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then it saves, since the limit adds someone who wouldn't otherwise approve the report
+            expect(isValid).toBe(true);
+        });
     });
 
     describe('setApprovalWorkflowApprover', () => {
