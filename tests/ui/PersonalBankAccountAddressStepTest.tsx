@@ -98,4 +98,42 @@ describe('Personal bank account address step', () => {
         // Then the controlled field retains the entered value after the step re-renders
         expect(screen.getByLabelText('State / Province')).toHaveDisplayValue('Ontario');
     });
+
+    it('shows the saved country and state that load after the step mounts', async () => {
+        // Given the step is displayed before the saved address arrives
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the address loads from Onyx
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: [{street: '', country: 'US', state: 'CA', city: 'Mountain View', zip: '94043'}]});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then untouched fields derive their values from the newly available address
+        expect(screen.getByText('United States')).toBeOnTheScreen();
+        expect(screen.getByText('California')).toBeOnTheScreen();
+    });
+
+    it('does not overwrite local edits when the saved address refreshes', async () => {
+        // Given the user has entered a province while the saved address is still loading
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        act(() => Navigation.setParams({country: 'CA'}));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.changeText(screen.getByLabelText('State / Province'), 'Ontario');
+        await waitForBatchedUpdatesWithAct();
+
+        // When a saved address arrives from the server
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: [{street: '', country: 'US', state: 'CA', city: 'Mountain View', zip: '94043'}]});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the explicit country/province edits and cascading clears take precedence over saved values
+        expect(screen.getByText('Canada')).toBeOnTheScreen();
+        expect(screen.getByLabelText('State / Province')).toHaveDisplayValue('Ontario');
+        expect(screen.getByLabelText('City')).toHaveDisplayValue('');
+        expect(screen.getByLabelText('Zip / Postcode')).toHaveDisplayValue('');
+    });
 });

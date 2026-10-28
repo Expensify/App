@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type AddressStepProps = SubPageProps & {
@@ -56,17 +56,12 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>(draftCountry ?? address?.country ?? defaultCountry ?? CONST.COUNTRY.US);
-    const [state, setState] = useState<string | undefined>(draftState ?? address?.state);
-    const [city, setCity] = useState<string | undefined>(address?.city);
-    const [zipcode, setZipcode] = useState<string | undefined>(address?.zip);
-
-    useEffect(() => {
-        setState(draftState ?? address?.state);
-        setCurrentCountry(draftCountry ?? address?.country);
-        setCity(address?.city);
-        setZipcode(address?.zip);
-    }, [address?.state, address?.country, address?.city, address?.zip, draftCountry, draftState]);
+    // Store only user edits; untouched fields are derived from the latest saved address and draft.
+    const [addressEdits, setAddressEdits] = useState<Partial<Pick<Address, 'country' | 'state' | 'city' | 'zip'>>>({});
+    const currentCountry = addressEdits.country ?? draftCountry ?? address.country ?? defaultCountry ?? CONST.COUNTRY.US;
+    const state = addressEdits.state ?? draftState ?? address.state;
+    const city = addressEdits.city ?? address.city;
+    const zipcode = addressEdits.zip ?? address.zip;
 
     const handleAddressChange = (value: unknown, key: unknown) => {
         const addressPart = value as string;
@@ -76,24 +71,18 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
             return;
         }
         if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-            setCurrentCountry(addressPart as Country | '');
-            setState('');
-            setCity('');
-            setZipcode('');
+            setAddressEdits((previousEdits) => ({...previousEdits, country: addressPart as Country | '', state: '', city: '', zip: ''}));
             return;
         }
         if (addressPartKey === INPUT_IDS.STATE) {
-            setState(addressPart);
-            setCity('');
-            setZipcode('');
+            setAddressEdits((previousEdits) => ({...previousEdits, state: addressPart, city: '', zip: ''}));
             return;
         }
         if (addressPartKey === INPUT_IDS.CITY) {
-            setCity(addressPart);
-            setZipcode('');
+            setAddressEdits((previousEdits) => ({...previousEdits, city: addressPart, zip: ''}));
             return;
         }
-        setZipcode(addressPart);
+        setAddressEdits((previousEdits) => ({...previousEdits, zip: addressPart}));
     };
 
     const updateAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
