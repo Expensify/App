@@ -22,22 +22,46 @@ jobs:
               - '!docs/**/*.md'
               - '!docs/**/*.csv'
 
-      # A local action is resolved from the workspace, so the previous-run check cannot run before this checkout.
-      - name: Checkout
-        if: steps.filter.outputs.should_run == 'true'
-        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
-
-      # A pass on an older SHA of this pull request still counts. A lookup failure falls through and re-runs the checklist.
-      - name: Check previous run
+      # Runs before checkout. A pass on an older SHA still counts. A lookup failure falls through.
+      - name: Check if this check already passed
         id: previous
         if: steps.filter.outputs.should_run == 'true'
-        uses: ./.github/actions/javascript/didCheckAlreadyPassForPR
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
         with:
-          GITHUB_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          WORKFLOW_FILE: reviewerChecklist.yml
-          EVENT: pull_request_review
+          github-token: ${{ github.token }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const {owner, repo} = context.repo;
+            core.setOutput('PASSED', 'false');
+            try {
+              const {data} = await github.rest.actions.listWorkflowRuns({
+                owner,
+                repo,
+                workflow_id: 'reviewerChecklist.yml',
+                branch: context.payload.pull_request.head.ref,
+                event: 'pull_request_review',
+                status: 'completed',
+                per_page: 20,
+              });
+              const runs = data.workflow_runs.filter((run) => run.id !== context.runId);
+              let previous = runs.find((run) => run.pull_requests?.some((pullRequest) => pullRequest.number === prNumber));
+              // Fork runs leave pull_requests empty, so match a head SHA from this pull request.
+              if (!previous) {
+                const commits = await github.paginate(github.rest.pulls.listCommits, {owner, repo, pull_number: prNumber, per_page: 100});
+                const shas = new Set(commits.map((commit) => commit.sha));
+                previous = runs.find((run) => shas.has(run.head_sha));
+              }
+              if (previous?.conclusion === 'success') {
+                core.info(`Previous run ${previous.html_url} passed. Skipping checkout.`);
+                core.setOutput('PASSED', 'true');
+              }
+            } catch (error) {
+              core.warning(`Could not check the previous run, so the check will run. ${error}`);
+            }
+
+      - name: Checkout
+        if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.PASSED != 'true'
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: reviewerChecklist.js
         if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.PASSED != 'true'
