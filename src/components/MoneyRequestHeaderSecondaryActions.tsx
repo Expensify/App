@@ -95,7 +95,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useRef} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 
@@ -205,10 +205,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserEmail), [currentUserEmail]);
+    const filteredPoliciesInfoSelector = createFilteredPoliciesInfoSelector(currentUserEmail);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
-    const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
+    const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     // Custom hooks
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -222,7 +222,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserLogin), [currentUserLogin]);
+    const hasWorkspaceToSubmitToSelector = createHasWorkspaceToSubmitToSelector(currentUserLogin);
     const [hasWorkspaceToSubmitTo = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
