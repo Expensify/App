@@ -36,7 +36,7 @@ describe('DatePicker', () => {
         openCalendar();
 
         // Then today is shown but not selected, because the field has no date yet
-        expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(new Date(), undefined))).not.toBeSelected();
+        expect(screen.getByLabelText(`${DateUtils.formatToLongDateWithWeekday(new Date(), undefined)}, common.today`)).not.toBeSelected();
     });
 
     it('opens an empty field on the month of its defaultValue without selecting it', () => {

@@ -176,6 +176,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: '出生日期',
         currentYear: '本年度',
         currentMonth: '本月',
+        today: '今天',
         ssnLast4: '社保号后四位',
         ssnFull9: '社会安全号码的完整 9 位数字',
         addressLine: (lineNumber: number) => `地址第 ${lineNumber} 行`,

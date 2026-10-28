@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type * as ReactNavigationNative from '@react-navigation/native';
 import type {ComponentType, ReactNode} from 'react';
 
-import {addDays, addMonths, addYears, eachDayOfInterval, endOfMonth, format, isSameDay, startOfMonth, subDays, subMonths, subYears} from 'date-fns';
+import {addDays, addMonths, addYears, eachDayOfInterval, endOfMonth, format, isSameDay, isToday, startOfMonth, subDays, subMonths, subYears} from 'date-fns';
 
 type MockPressableProps = {testID?: string; accessibilityLabel?: string; role?: string; disabled?: boolean; onPress?: () => void; children?: ReactNode};
 type MockTextProps = {children?: ReactNode};
@@ -33,7 +33,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: jest.fn(),
+        translate: jest.fn((key: string) => key),
     })),
 );
 
@@ -222,7 +222,7 @@ describe('CalendarPicker', () => {
         render(<CalendarPicker />);
 
         // Then today is shown but not selected, because nothing has been picked yet
-        expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(new Date(), undefined))).not.toBeSelected();
+        expect(screen.getByLabelText(`${DateUtils.formatToLongDateWithWeekday(new Date(), undefined)}, common.today`)).not.toBeSelected();
     });
 
     test('clicking next month arrow and selecting day updates the selected date', () => {
@@ -1107,9 +1107,15 @@ describe('CalendarPicker today highlight', () => {
     const midMonthToday = new Date(2026, 9, 28, 12);
     const todays = [midMonthToday, new Date(2026, 2, 1, 12), new Date(2026, 9, 31, 12), new Date(2026, 11, 31, 12), new Date(2028, 1, 29, 12)];
 
+    /** Returns the label screen readers announce for a day, which names today as today */
+    function getDayLabel(date: Date) {
+        const longDateLabel = DateUtils.formatToLongDateWithWeekday(date, undefined);
+        return isToday(date) ? `${longDateLabel}, common.today` : longDateLabel;
+    }
+
     /** Returns the circle the real Day draws inside the day's cell, which carries the background color */
     function getDayCircle(date: Date) {
-        const cell = screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(date, undefined));
+        const cell = screen.getByLabelText(getDayLabel(date));
         // The cell is a host View too, so the first host View of the same type inside it is the circle
         return cell.findAll((node) => node !== cell && node.type === cell.type).at(0);
     }
@@ -1162,6 +1168,21 @@ describe('CalendarPicker today highlight', () => {
 
         // Then today is green, because the selected fill wins over the today fill
         expect(getDayCircle(today)).toHaveStyle({backgroundColor: defaultTheme.success});
+    });
+
+    test('tells screen readers which day is today', () => {
+        // Given today's date
+        const today = midMonthToday;
+        jest.useFakeTimers({now: today});
+
+        // When the calendar opens on today's month
+        render(<CalendarPicker />);
+
+        // Then only today's label says it is today, because screen reader users can't see today's fill
+        expect(screen.getByLabelText(`${DateUtils.formatToLongDateWithWeekday(today, undefined)}, common.today`)).toBeTruthy();
+        for (const day of getOtherDaysOfMonth(today)) {
+            expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(day, undefined))).toBeTruthy();
+        }
     });
 
     test('keeps the today background when today can not be selected', () => {
