@@ -3,7 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
 
-import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestAmount, setMoneyRequestCurrency, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 
@@ -59,6 +59,7 @@ jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     getMoneyRequestParticipantsFromReport: () => [],
     setMoneyRequestAmount: jest.fn(),
     setMoneyRequestCurrency: jest.fn(),
+    setMoneyRequestDraftHasUserEdits: jest.fn(),
     clearMoneyRequestAmount: jest.fn(),
 }));
 jest.mock('@userActions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
@@ -215,6 +216,8 @@ describe('AmountField currency change', () => {
         // entered manual expense that blocks creation until amount, merchant and date are all filled in
         expect(setMoneyRequestCurrency).toHaveBeenCalledWith('1', 'EUR');
         expect(setMoneyRequestAmount).not.toHaveBeenCalled();
+        // And the draft is marked as edited by the user, since no amount flag records the currency change
+        expect(setMoneyRequestDraftHasUserEdits).toHaveBeenCalledWith('1');
     });
 
     it('keeps the entered amount when the currency changes after the user set one', () => {

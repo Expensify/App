@@ -2,7 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
-import {setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
+import {setMoneyRequestCategory, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 
@@ -15,7 +15,7 @@ import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // The three writes are the assertions: each branch must reach exactly one of them.
-jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestCategory: jest.fn()}));
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestCategory: jest.fn(), setMoneyRequestDraftHasUserEdits: jest.fn()}));
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
 jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestCategory: jest.fn()}));
 
@@ -103,6 +103,8 @@ describe('useUpdateTransactionCategory', () => {
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(true);
+        // And the draft is marked as edited by the user, so leaving the create flow asks before discarding the pick
+        expect(setMoneyRequestDraftHasUserEdits).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
     it('falls back to the draft when an edit has no report to write through', () => {

@@ -12,6 +12,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import {suppressFlowDiscardPrompt} from './discardPromptState';
 import dismissModalAndOpenReportInInboxTab from './dismissModalAndOpenReportInInboxTab';
 import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
@@ -80,6 +81,11 @@ function navigateAfterExpenseCreate({
     isLookingAroundUser = false,
     isSelfDMDestination = false,
 }: NavigateAfterExpenseCreateParams) {
+    if (shouldNavigate) {
+        // Leaving the flow after creating the expense must not ask the user to discard it
+        suppressFlowDiscardPrompt();
+    }
+
     // Treat a LOOKING_AROUND user's self-DM create as "not on inbox" so it falls through to the Search navigation below
     // (route to Spend > Expenses instead of Personal Space). Scoped to isSelfDMDestination so other destinations are unaffected.
     const isUserOnInbox = isReportTopmostSplitNavigator() && !(isLookingAroundUser && isSelfDMDestination);

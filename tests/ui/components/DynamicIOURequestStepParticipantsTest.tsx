@@ -37,6 +37,8 @@ let latestSelectorProps: CapturedSelectorProps = {};
 
 // The bug (#99710) lives in how DynamicIOURequestStepParticipants wires shouldBlockParticipantSelection,
 // not in the picker's own rendering/search behavior, so the picker itself is stubbed to capture the prop.
+// The screen is rendered outside a navigator, which the flow's discard guard needs
+jest.mock('@pages/iou/request/step/CreateFlowRootDiscardGuard', () => () => null);
 jest.mock('@pages/iou/request/MoneyRequestParticipantsSelector', () => ({
     __esModule: true,
     default: (props: CapturedSelectorProps) => {

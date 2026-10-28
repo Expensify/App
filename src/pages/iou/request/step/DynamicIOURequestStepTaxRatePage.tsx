@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
 
-import {getIOURequestPolicyID, setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
+import {getIOURequestPolicyID, setMoneyRequestDraftHasUserEdits, setMoneyRequestTaxRateValues} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
 
@@ -189,6 +189,7 @@ function DynamicIOURequestStepTaxRatePage({
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
 
         setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
+        setMoneyRequestDraftHasUserEdits(currentTransaction.transactionID);
 
         saveAndNavigateBack();
     };

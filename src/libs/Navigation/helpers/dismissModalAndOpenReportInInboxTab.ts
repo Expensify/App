@@ -6,6 +6,7 @@ import {endSubmitFollowUpActionSpan, isTracking as isSubmitTracking, setPendingS
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import {suppressFlowDiscardPrompt} from './discardPromptState';
 import isReportOpenInRHP from './isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from './isReportOpenInSuperWideRHP';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
@@ -16,6 +17,8 @@ import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotas
  * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
  */
 function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInvoice: boolean | undefined, hasMultipleTransactions: boolean, transactionID?: string) {
+    // Leaving the flow after finishing its action must not ask the user to discard it
+    suppressFlowDiscardPrompt();
     const rootState = navigationRef.getRootState();
     const hasActiveTracking = isSubmitTracking();
 

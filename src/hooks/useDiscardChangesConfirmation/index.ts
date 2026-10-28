@@ -4,13 +4,22 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import {
+    isFlowDiscardPromptSuppressed,
+    isReplayingDiscardedNavigation,
+    releaseFlowDiscardPromptSuppression,
+    runWhileReplayingDiscardedNavigation,
+} from '@libs/Navigation/helpers/discardPromptState';
+import getIsFlowRootGuardActive, {getFlowRootStackKey} from '@libs/Navigation/helpers/getIsFlowRootGuardActive';
+import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
+import isInFlowNavigationForRoot from '@libs/Navigation/helpers/isInFlowNavigationForRoot';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
 import type {NavigationAction} from '@react-navigation/native';
 
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
 import type {DiscardChangesConfirmation} from './types';
@@ -32,18 +41,46 @@ function useDiscardChangesConfirmation({
     onVisibilityChange,
     onConfirm,
     onTabSwitchDiscard,
+    shouldPromptWhenUnfocused = false,
+    shouldPromptForNavigationAction,
+    onDiscarded,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
+    const navigation = useNavigation();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
     // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
+    // A flow root instead prompts while later steps cover it, and its gate rejects hidden sibling tabs.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
+        return () => {
+            // A flow root stays mounted under the step a "Next" moved forward to, so that suppression must not outlive the focus.
+            if (!shouldPromptWhenUnfocused) {
+                return;
+            }
+            isSavingRef.current = false;
+        };
     });
-    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
+    useEffect(() => {
+        if (!shouldPromptWhenUnfocused) {
+            return undefined;
+        }
+        // A suppression only serves the exit of the flow that armed it: a new flow root starts unmuted, and one that unmounts has left its flow.
+        releaseFlowDiscardPromptSuppression();
+        return () => releaseFlowDiscardPromptSuppression();
+    }, [shouldPromptWhenUnfocused]);
+    const isGuardActive = () => (shouldPromptWhenUnfocused ? getIsFlowRootGuardActive(navigation, route.key) : isFocused);
+    const isMuted = () => isSavingRef.current || (shouldPromptWhenUnfocused && isFlowDiscardPromptSuppressed());
+    const hasUnsavedChanges = () => isGuardActive() && !isMuted() && getHasUnsavedChanges();
+    const shouldPromptFor = (action: NavigationAction) => {
+        if (shouldPromptWhenUnfocused && isInFlowNavigationForRoot(action, route, getFlowRootStackKey(navigation))) {
+            return false;
+        }
+        return shouldPromptForNavigationAction?.(action) ?? true;
+    };
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
@@ -53,11 +90,13 @@ function useDiscardChangesConfirmation({
     const restoreState = useRef<RestoreState>({phase: 'idle'});
 
     const navigateBack = () => {
-        if (!blockedNavigationAction.current) {
+        const blockedAction = blockedNavigationAction.current;
+        if (!blockedAction) {
             return;
         }
+        onDiscarded?.();
         shouldNavigateBack.current = true;
-        navigationRef.current?.dispatch(blockedNavigationAction.current);
+        runWhileReplayingDiscardedNavigation(() => navigationRef.current?.dispatch(getNavigationActionForReplay(blockedAction)));
         shouldNavigateBack.current = false;
     };
 
@@ -97,13 +136,21 @@ function useDiscardChangesConfirmation({
             return;
         }
 
+        if (isReplayingDiscardedNavigation()) {
+            // Another guard already got the user's Discard for this navigation, so only discard here too
+            if (hasUnsavedChanges()) {
+                onDiscarded?.();
+            }
+            return;
+        }
+
         if (restoreState.current.phase === 'restoring') {
             // The `history.go(1)` restoring the browser entry can re-deliver a reset for the current state; swallow it without re-blocking
             e.preventDefault();
             return;
         }
 
-        if (!hasUnsavedChanges()) {
+        if (!hasUnsavedChanges() || !shouldPromptFor(e.data.action)) {
             return;
         }
 
