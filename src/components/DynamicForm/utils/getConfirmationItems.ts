@@ -42,6 +42,11 @@ function getListItemRows(
     });
 }
 
+/** A link the user never tapped, such as "I don't have a social security number" for an admin who has one, is not an answer worth a row */
+function isUntappedLink(field: DynamicFormField, values: DynamicFormValues): boolean {
+    return field.type === 'boolean' && field.presentation === 'link' && values[field.key] !== true;
+}
+
 /** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
 function getConfirmationItems(
     pages: DynamicFormPage[],
@@ -56,7 +61,7 @@ function getConfirmationItems(
             return [];
         }
 
-        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields);
+        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter((field) => !isUntappedLink(field, values));
 
         if (fields.length === 0) {
             return [];

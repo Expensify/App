@@ -210,4 +210,39 @@ describe('getConfirmationItems', () => {
         expect(group.name).toBe('');
         expect(group.rows.at(0)).toMatchObject({kind: 'label', title: 'Owners'});
     });
+
+    describe('a link that opts out of a question', () => {
+        const ssnPages: DynamicFormPage[] = [
+            {
+                key: 'representative',
+                title: 'Representative',
+                content: [
+                    {key: 'ssn', type: 'text', required: true, label: 'SSN', showWhen: {key: 'hasNoSSN', equals: ['false']}},
+                    {key: 'hasNoSSN', type: 'boolean', presentation: 'link', required: false, label: "I don't have an SSN"},
+                ],
+            },
+        ];
+
+        it('has no row while it is off', () => {
+            // Given an admin who typed an SSN and never tapped the no-SSN link
+            const values = {ssn: '123451234', hasNoSSN: false};
+
+            // When the confirmation sections are built
+            const [group] = getConfirmationItems(ssnPages, getAllFields(ssnPages), values, translateLocal, jest.fn(), jest.fn());
+
+            // Then only the SSN is listed, since a "No" under the link would answer nothing the SSN does not
+            expect(group.rows.map((row) => row.id)).toEqual(['ssn']);
+        });
+
+        it('has a row once it is tapped', () => {
+            // Given an admin who tapped the no-SSN link, which hides the SSN
+            const values = {ssn: '', hasNoSSN: true};
+
+            // When the confirmation sections are built
+            const [group] = getConfirmationItems(ssnPages, getAllFields(ssnPages), values, translateLocal, jest.fn(), jest.fn());
+
+            // Then the link is listed, since it is the only answer telling Wise there is no SSN
+            expect(group.rows.map((row) => row.id)).toEqual(['hasNoSSN']);
+        });
+    });
 });
