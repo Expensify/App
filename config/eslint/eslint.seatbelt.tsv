@@ -322,7 +322,6 @@
 "../../src/components/Search/FilterDropdowns/DateSelectPopup/SelectedDateModifierHeader.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterDropdowns/SearchFooterPopup.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
 "../../src/components/Search/FilterDropdowns/SortByPopup.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Search/hooks/useOptimisticSearchTracking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/hooks/useStableOptimisticSortedData.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/index.tsx"	"react-hooks/preserve-manual-memoization"	2
@@ -734,7 +733,6 @@
 "../../src/libs/Environment/getEnvironment/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/ExpenseRuleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/fileDownload/getImageManipulator/index.native.ts"	"@typescript-eslint/no-deprecated/manipulateAsync"	1
@@ -773,7 +771,6 @@
 "../../src/libs/Middleware/Pagination.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Middleware/SaveResponseInOnyx.ts"	"no-restricted-syntax"	1
 "../../src/libs/models/BankAccount.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ModifiedExpenseMessage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/MoneyRequestReportUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/Navigation/AppNavigator/AuthScreens.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/AuthScreensInitHandler.tsx"	"no-restricted-syntax"	6
@@ -787,7 +784,6 @@
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/NewChatHandler.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/SearchHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/ShortcutsOverviewHandler.tsx"	"no-restricted-syntax"	1
-"../../src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/TabPressListeners.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/Overlay/BaseOverlay.tsx"	"no-restricted-syntax"	2
@@ -1969,7 +1965,6 @@
 "../../src/styles/index.ts"	"rulesdir/no-raw-typography"	27
 "../../src/styles/theme/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/utils/autoCompleteSuggestion/index.web.ts"	"no-restricted-syntax"	1
-"../../src/styles/utils/cursor/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/styles/utils/FontUtils/fontFamily/multiFontFamily/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/styles/utils/generators/TooltipStyleUtils/isOverlappingAtTop/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/utils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -2073,7 +2068,6 @@
 "../../tests/unit/FormulaTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/IOUUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/ModifiedExpenseMessageTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/navigateToWorkspacesPageTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/OnyxDerivedSelfHealTest.ts"	"@typescript-eslint/no-restricted-imports"	1
