@@ -25,7 +25,10 @@ import {ActionListContext} from '@pages/inbox/ActionListContext';
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,6 +45,7 @@ import {Platform, StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {buildSystemAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
@@ -66,6 +70,7 @@ jest.mock('@hooks/useInFlightRequests', () => ({
     useIsReportLoadPending: jest.fn(),
 }));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@pages/inbox/report/useScrollToEditingReportAction', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => jest.fn());
 jest.mock('@hooks/usePaginatedReportActions', () => jest.fn());
@@ -150,6 +155,7 @@ const mockUseCurrentUserPersonalDetails = useCurrentUserPersonalDetails as jest.
 const mockLegendListMount = jest.fn();
 const mockLegendListUnmount = jest.fn();
 const mockLegendScrollToEnd = jest.fn();
+const mockLegendScrollToIndex = jest.fn();
 const mockLegendPositionByKey = jest.fn(() => 1500);
 const mockLegendGetState = jest.fn(() => ({
     positionByKey: mockLegendPositionByKey,
@@ -165,7 +171,11 @@ let mockShouldCallLegendListOnLoad = true;
 jest.mock('@legendapp/list/react-native', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void; onReady?: () => void}>(({onLoad, onReady}, ref) => {
-        reactModule.useImperativeHandle(ref, () => ({scrollToEnd: mockLegendScrollToEnd, getState: mockLegendGetState, getScrollableNode: mockLegendGetScrollableNode}), []);
+        reactModule.useImperativeHandle(
+            ref,
+            () => ({scrollToEnd: mockLegendScrollToEnd, scrollToIndex: mockLegendScrollToIndex, getState: mockLegendGetState, getScrollableNode: mockLegendGetScrollableNode}),
+            [],
+        );
         reactModule.useEffect(() => {
             mockLegendListMount();
             if (mockShouldCallLegendListOnLoad) {
@@ -256,7 +266,7 @@ const getCapturedListProps = (): MockLegendListProps | undefined => mockLegendLi
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
     index = 0,
-): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; shouldDisplayNewMarker?: boolean} => {
+): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; shouldDisplayNewMarker?: boolean; displayAsGroup?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -286,9 +296,25 @@ const getShowHistoryPress = (action: OnyxTypes.ReportAction, index: number): (()
     return historyButton?.props.onPress;
 };
 
+const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): React.ReactElement<Props> | undefined => {
+    if (React.isValidElement<Props>(node) && node.type === type) {
+        return node;
+    }
+    if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
+        return undefined;
+    }
+    for (const child of React.Children.toArray(node.props.children)) {
+        const match = findRenderedElement<Props>(child, type);
+        if (match) {
+            return match;
+        }
+    }
+    return undefined;
+};
+
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
-const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
 const mockUseUnreadMarker: jest.Mock = jest.requireMock('@hooks/useUnreadMarker');
+const mockUseReportActionsScroll: jest.MockedFunction<typeof useReportActionsScroll> = jest.requireMock('@hooks/useReportActionsScroll');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 let mockHasOnceLoadedReportActions = true;
 let mockIsLoadingInitialReportActions = false;
@@ -688,7 +714,7 @@ describe('ReportActionsList (body)', () => {
         // Given the chat opens at a linked action, which must keep its initial position.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
-        const defaultScrollState = mockUseReportActionsScroll() as ReturnType<typeof useReportActionsScroll>;
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
         mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 0});
         try {
             renderReportActionsList();
@@ -721,7 +747,7 @@ describe('ReportActionsList (body)', () => {
         // Given the chat opens at an unread marker, which LegendList clamps to the end when the marker is near the newest action.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
-        const defaultScrollState = mockUseReportActionsScroll() as ReturnType<typeof useReportActionsScroll>;
+        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
         mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 1});
         mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd});
         try {
@@ -1333,6 +1359,239 @@ describe('ReportActionsList (body)', () => {
             getCapturedListProps()?.onScroll?.(createScrollEvent(0));
         });
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(2);
+    });
+
+    describe('System message presentation', () => {
+        const systemActions = (
+            [
+                ['system-newer', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '03', 'changed the category'],
+                ['system-older', CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, '02', 'changed the merchant'],
+                ['chat-boundary', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '01', 'A chat message'],
+            ] as const
+        ).map(([reportActionID, actionName, minute, message]) =>
+            buildSystemAction(reportActionID, {
+                reportID: mockReport.reportID,
+                actionName,
+                created: `2023-01-01 00:${minute}:00.000`,
+                actorAccountID: 123,
+                message: [{type: actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ? 'COMMENT' : 'TEXT', html: message, text: message}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            }),
+        );
+
+        const renderSystemActions = (reportType?: OnyxTypes.Report['type']) => {
+            mockReport.type = reportType;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: systemActions});
+            return renderReportActionsList();
+        };
+        const getCapturedSystemActionIDs = () =>
+            getCapturedVisibleActions()
+                ?.filter((action) => systemActions.some((systemAction) => systemAction.reportActionID === action.reportActionID))
+                .map((action) => action.reportActionID);
+        const getSystemAction = (index: number) => {
+            const action = systemActions.at(index);
+            if (!action) {
+                throw new Error(`Expected a system action at index ${index}`);
+            }
+            return action;
+        };
+
+        afterEach(() => {
+            mockReport.type = undefined;
+            mockReport.isWaitingOnBankAccount = undefined;
+        });
+
+        it.each([false, true])('counts only visible payment updates when waiting for a bank account is %s', (isWaitingOnBankAccount) => {
+            // Given an expense payment between two visible system updates by the same user
+            const payment: OnyxTypes.ReportAction = {
+                ...getSystemAction(0),
+                reportActionID: 'expense-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-01 00:02:30.000',
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            const created: OnyxTypes.ReportAction = {
+                ...getSystemAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                reportActionID: 'created',
+                created: '2023-01-01 00:00:00.000',
+            };
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockReport.isWaitingOnBankAccount = isWaitingOnBankAccount;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [getSystemAction(0), payment, getSystemAction(1), getSystemAction(2), created],
+            });
+
+            // When the standard report list constructs its summary
+            renderReportActionsList();
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 2});
+            const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+            expect(getCapturedSystemActionIDs()).toEqual(['chat-boundary', 'system-older']);
+            expect(getRenderedReportActionsListItemProps(getSystemAction(2), 1)).toMatchObject({displayAsGroup: false});
+            // Editing uses the displayed row order after the hidden update, not canonical indices.
+            expect(jest.mocked(useScrollToEditingReportAction).mock.calls.at(-1)?.at(0)?.visibleReportActions).toBe(getCapturedVisibleActions());
+
+            // Then the count matches the rows the renderer can show, and expansion preserves normal headers
+            expect(summary?.props).toMatchObject({count: isWaitingOnBankAccount ? 2 : 3, earliestReportAction: getSystemAction(1)});
+            act(() => summary?.props.onPress());
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(
+                isWaitingOnBankAccount ? ['created', 'chat-boundary', 'system-older', 'system-newer'] : ['created', 'chat-boundary', 'system-older', 'expense-payment', 'system-newer'],
+            );
+            expect(getRenderedReportActionsListItemProps(getSystemAction(0), isWaitingOnBankAccount ? 3 : 4)).toMatchObject({displayAsGroup: true});
+            expect(findRenderedElement(getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 2}), CollapsedSystemMessages)).toBeUndefined();
+        });
+
+        it('does not create a summary from one visible update and a hidden payment', () => {
+            // Given a hidden payment that would otherwise be the oldest member and header of a two-update group
+            const payment: OnyxTypes.ReportAction = {
+                ...getSystemAction(1),
+                reportActionID: 'hidden-payment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY},
+            };
+            const created: OnyxTypes.ReportAction = {...getSystemAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, reportActionID: 'created'};
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockReport.isWaitingOnBankAccount = true;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [getSystemAction(0), payment, created]});
+
+            // When the visible list is built, only the real update remains, with its normal header
+            renderReportActionsList();
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['created', 'system-newer']);
+            const item = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 1});
+            expect(findRenderedElement(item, CollapsedSystemMessages)).toBeUndefined();
+            expect(getRenderedReportActionsListItemProps(getSystemAction(0), 1)).toMatchObject({displayAsGroup: false});
+            expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(item, ReportActionsListItemRenderer)?.props.isFirstVisibleReportAction).toBe(true);
+        });
+
+        it('keeps the sender header after a collapsed system-message run', () => {
+            // Given the same sender posts a chat message after a run of system updates.
+            const newerMessage = {...getSystemAction(2), reportActionID: 'chat-after-summary', created: '2023-01-01 00:04:00.000'};
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: [newerMessage, ...systemActions]});
+
+            // When the run is displayed as one chronological summary row.
+            renderReportActionsList();
+            const summary = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 2});
+
+            // Then the following chat message keeps its own sender header.
+            expect(findRenderedElement(summary, CollapsedSystemMessages)).toBeDefined();
+            expect(getRenderedReportActionsListItemProps(newerMessage, 3)).toMatchObject({displayAsGroup: false});
+        });
+
+        it('maps an unread run member to the collapsed summary row', () => {
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-newer', unreadMarkerReportActionIndex: 0});
+            renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 2});
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.reportActionIDToDisplayIndex?.get('system-newer')).toBe(2);
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 2});
+            const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+            expect(summary?.props.unreadMarkerReportActionID).toBe('system-newer');
+        });
+
+        it.each([true, false])('keeps the first unread marker with its persisted or synthesized CREATED header (persisted: %s)', (hasPersistedCreatedAction) => {
+            // Given two unread updates whose CREATED header is either persisted or synthesized by expense pagination
+            const created = buildSystemAction('created', {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: '2023-01-01 00:00:00.000',
+                actorAccountID: 100,
+            });
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [getSystemAction(0), getSystemAction(1), ...(hasPersistedCreatedAction ? [created] : [])],
+            });
+
+            // When the unread pair is collapsed, scrolling still targets the summary
+            renderReportActionsList();
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 1});
+            const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+
+            // Then the visible CREATED header owns NEW in both cases, without changing the collapsed scroll target
+            expect(summary).toBeDefined();
+            expect(summary?.props.unreadMarkerReportActionID).toBeUndefined();
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 1});
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)?.reportActionIDToDisplayIndex?.get('system-older')).toBe(1);
+            const headerAction = getCapturedVisibleActions()?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+            expect(headerAction).toBeDefined();
+            if (!headerAction) {
+                throw new Error('Expected expense pagination to preserve or synthesize a CREATED header');
+            }
+            const header = getCapturedListProps()?.renderItem?.({item: headerAction, index: 0});
+            expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(header, ReportActionsListItemRenderer)?.props).toMatchObject({
+                shouldHideThreadDividerLine: true,
+                shouldUseThreadDividerLine: true,
+            });
+        });
+
+        it('does not collapse passive actions in ordinary chat reports', () => {
+            renderSystemActions(CONST.REPORT.TYPE.CHAT);
+
+            expect(getCapturedSystemActionIDs()).toEqual(['chat-boundary', 'system-older', 'system-newer']);
+        });
+
+        it('mounts the off-screen oldest update and gives only that row a manual focus request in the chronological list', () => {
+            // Given a chronological group whose collapsed anchor is its oldest member
+            const scrollToIndex = mockLegendScrollToIndex;
+            const frames: FrameRequestCallback[] = [];
+            const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
+            try {
+                renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+                const anchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 2});
+                const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(anchor, CollapsedSystemMessages);
+                expect(summary).toBeDefined();
+
+                // When the user presses the summary
+                act(() => summary?.props.onPress());
+
+                // Then the oldest revealed message owns focus at its chronological data index
+                const oldest = getCapturedListProps()?.renderItem?.({item: getSystemAction(1), index: 2});
+                const newest = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 3});
+                expect(findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(oldest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady).toEqual(
+                    expect.any(Function),
+                );
+                expect(
+                    findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(newest, ReportActionsListItemRenderer)?.props.onExpandedSystemMessageReady,
+                ).toBeUndefined();
+                act(() => {
+                    for (const callback of frames) {
+                        callback(0);
+                    }
+                });
+                expect(scrollToIndex).toHaveBeenCalledWith({index: 2, animated: false, viewPosition: 0.5});
+            } finally {
+                frameSpy.mockRestore();
+            }
+        });
+
+        it('keeps the unread target aligned with a synthetic draft in ordinary chats', () => {
+            // Given an unread action followed by a newer synthetic draft.
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: {...getSystemAction(2), reportActionID: 'draft-before-unread', created: '2023-01-01 00:04:00.000'},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+
+            // When an ordinary chat uses the same list without system-message collapsing.
+            renderSystemActions(CONST.REPORT.TYPE.CHAT);
+
+            // Then the newer draft leaves the chronological unread index unchanged.
+            expect(getCapturedVisibleActions()?.at(1)?.reportActionID).toBe('system-older');
+            expect(getCapturedVisibleActions()?.at(-1)?.reportActionID).toBe('draft-before-unread');
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 1});
+        });
     });
 
     describe('Concierge Feedback Prompt', () => {

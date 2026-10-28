@@ -35,6 +35,7 @@ import {
     isNewerReportAction,
     isReversedTransaction,
     isTransactionThread,
+    shouldHidePayAction,
 } from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -77,6 +78,7 @@ import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 
+import CollapsedSystemMessages from './CollapsedSystemMessages';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -86,6 +88,7 @@ import ReportActionsListPaddingView from './ReportActionsListPaddingView';
 import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
 import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
+import useReportActionsPresentation from './useReportActionsPresentation';
 import useScrollToEditingReportAction from './useScrollToEditingReportAction';
 
 type ReportActionsListContentProps = {
@@ -186,13 +189,19 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         parentReportActionForTransactionThread,
         treatAsNoPaginationAnchor,
         parentReportAction,
-        sortedReportActions,
-        sortedVisibleReportActions,
+        sortedReportActions: unfilteredReportActions,
+        sortedVisibleReportActions: unfilteredVisibleReportActions,
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
         allReportActionIDs,
     } = useReportActionsListState();
+
+    // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
+    const sortedReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
+    const sortedVisibleReportActions = report?.isWaitingOnBankAccount
+        ? unfilteredVisibleReportActions.filter((action) => !shouldHidePayAction(action, true))
+        : unfilteredVisibleReportActions;
 
     const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats, handleShowPreviousMessages} = useReportActionsListActions();
 
@@ -400,9 +409,25 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const shouldKeepInitialSnapshot = !hasReleasedInitialSnapshot;
     const reportActionsToRender = shouldKeepInitialSnapshot ? (initialReportActionsSnapshot ?? renderedVisibleReportActions) : renderedVisibleReportActions;
 
-    // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
-    // give it chronological data and use its normal start/end and scrolling semantics.
-    const listData = reportActionsToRender.toReversed();
+    // Report actions are stored newest-first. LegendList renders them chronologically.
+    const chronologicalReportActions = reportActionsToRender.toReversed();
+    const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
+    const {
+        displayReportActions,
+        runsByAnchorReportActionID,
+        reportActionIDToDisplayIndex,
+        expandedSystemMessageReportActionIDs,
+        unreadMarkerReportActionIndex,
+        expandSystemMessageRun,
+        focusRequestedReportActionID,
+        onExpandedSystemMessageReady,
+    } = useReportActionsPresentation({
+        visibleReportActions: shouldCollapseSystemMessages ? chronologicalReportActions : [],
+        linkedReportActionID,
+        unreadMarkerReportActionID,
+    });
+    const listData = shouldCollapseSystemMessages ? displayReportActions : chronologicalReportActions;
+    const canonicalIndexByReportActionID = new Map(reportActionsToRender.map((action, index) => [action.reportActionID, index]));
 
     useEffect(() => {
         if (!showFullHistory) {
@@ -452,6 +477,19 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // Which rows are on screen, tracked so an edit started on a message the user can already see doesn't move the list.
     const viewableRowIndexesRef = useRef<Set<number>>(new Set());
 
+    const expandedFocusIndex = focusRequestedReportActionID ? (reportActionIDToDisplayIndex.get(focusRequestedReportActionID) ?? -1) : -1;
+    useEffect(() => {
+        if (expandedFocusIndex < 0 || viewableRowIndexesRef.current.has(expandedFocusIndex)) {
+            return;
+        }
+
+        // An off-window revealed message must mount before it can hand off focus.
+        const frame = requestAnimationFrame(() => {
+            listRef.current?.scrollToIndex({index: expandedFocusIndex, animated: false, viewPosition: 0.5});
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [expandedFocusIndex, focusRequestedReportActionID, listRef]);
+
     // The rendered indexes are known here, so scrolling the row into view mounts it and keeps the message visible while it's edited.
     useScrollToEditingReportAction({
         visibleReportActions: listData,
@@ -467,8 +505,10 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     // Find the index of the action badge target in the chronological data rendered by LegendList.
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
-    const actionBadgeTargetIndex = actionBadgeTargetID ? listData.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
-    const unreadMarkerListIndex = unreadMarkerReportActionID ? listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
+    const actionBadgeTargetIndex = actionBadgeTargetID
+        ? (reportActionIDToDisplayIndex.get(actionBadgeTargetID) ?? listData.findIndex((action) => action.reportActionID === actionBadgeTargetID))
+        : -1;
+    const unreadMarkerListIndex = shouldCollapseSystemMessages ? unreadMarkerReportActionIndex : listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
 
     const {
         trackVerticalScrolling,
@@ -493,6 +533,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         parentReportAction,
         sortedVisibleReportActions,
         renderedVisibleReportActions: listData,
+        reportActionIDToDisplayIndex,
         keyExtractor,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
@@ -671,6 +712,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
         renderedVisibleReportActions: listData,
+        reportActionIDToDisplayIndex,
         scrollToActionBadgeTarget,
     });
 
@@ -703,8 +745,12 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     })();
 
     const renderItem = ({item: reportAction, index}: LegendListRenderItemProps<OnyxTypes.ReportAction>) => {
+        const canonicalIndex = canonicalIndexByReportActionID.get(reportAction.reportActionID) ?? index;
+        const systemMessageRun = runsByAnchorReportActionID.get(reportAction.reportActionID);
+        const previousReportAction = index > 0 ? listData.at(index - 1) : undefined;
+        const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
+        const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
-        const reportActionIndex = reportActionsToRender.length - index - 1;
 
         return (
             <ReportActionPositionContextProvider
@@ -712,28 +758,48 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                 isNewest={index === listData.length - 1}
                 isRecycling
             >
-                <ReportActionsListItemRenderer
-                    reportAction={reportAction}
-                    parentReportAction={parentReportAction}
-                    parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                    report={reportStable}
-                    transactionThreadReport={transactionThreadReport}
-                    chatReport={chatReportStable}
-                    linkedReportActionID={linkedReportActionID}
-                    displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, reportActionIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                        isConsecutiveActionMadeByPreviousActor(reportActionsToRender, reportActionIndex, isOffline)
-                    }
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                    shouldDisplayReplyDivider={reportActionsToRender.length > 1}
-                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                    isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
-                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                    isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
-                    shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                    reportsParentHierarchy={reportsParentHierarchy}
-                />
+                {systemMessageRun && !systemMessageRun.isExpanded ? (
+                    <CollapsedSystemMessages
+                        count={systemMessageRun.reportActionIDs.length}
+                        earliestReportAction={systemMessageRun.earliestReportAction}
+                        report={reportStable}
+                        onPress={() => expandSystemMessageRun(systemMessageRun.reportActionIDs)}
+                        unreadMarkerReportActionID={
+                            unreadMarkerReportActionID &&
+                            systemMessageRun.reportActionIDs.includes(unreadMarkerReportActionID) &&
+                            (!shouldUseThreadDividerLine || !shouldHideThreadDividerLine)
+                                ? unreadMarkerReportActionID
+                                : undefined
+                        }
+                    />
+                ) : (
+                    <ReportActionsListItemRenderer
+                        reportAction={reportAction}
+                        parentReportAction={parentReportAction}
+                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
+                        report={reportStable}
+                        transactionThreadReport={transactionThreadReport}
+                        chatReport={chatReportStable}
+                        linkedReportActionID={linkedReportActionID}
+                        displayAsGroup={
+                            !isAfterCollapsedRun &&
+                            !isConsecutiveChronosAutomaticTimerAction(reportActionsToRender, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                            isConsecutiveActionMadeByPreviousActor(reportActionsToRender, canonicalIndex, isOffline)
+                        }
+                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                        shouldDisplayReplyDivider={reportActionsToRender.length > 1}
+                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                        isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
+                        reportsParentHierarchy={reportsParentHierarchy}
+                        onExpandedSystemMessageReady={
+                            reportAction.reportActionID === focusRequestedReportActionID ? (target) => onExpandedSystemMessageReady(reportAction.reportActionID, target) : undefined
+                        }
+                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                        isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
+                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                    />
+                )}
                 {!!reportStable?.reportID && (
                     <ShowPreviousMessagesButton
                         reportID={reportStable.reportID}
@@ -755,6 +821,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         draftMessageHTML,
         isDraftPendingCompletion,
         latestConciergeFeedbackActionIDs,
+        expandedSystemMessageReportActionIDs,
+        focusRequestedReportActionID,
     ];
 
     const latestActionsFooter = (

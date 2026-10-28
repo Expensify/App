@@ -2,6 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -3802,11 +3803,21 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     if (!originalReport) {
         return false;
     }
-    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache} = deferredEdit;
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
-        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, getAllPersonalDetails(), currentUserAccountID, videoAttributeCache),
+        editReportComment(
+            originalReport,
+            syncedAction,
+            textForNewComment,
+            isOriginalReportArchived,
+            currentUserLogin,
+            getAllPersonalDetails(),
+            currentUserAccountID,
+            videoAttributeCache,
+            reportIDToName,
+        ),
     );
     return true;
 });
@@ -3990,6 +4001,7 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;

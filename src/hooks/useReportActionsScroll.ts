@@ -63,6 +63,9 @@ type UseReportActionsScrollParams = {
     /** Actions actually rendered by the list in chronological order (may include a synthetic draft), used for scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
+    /** Maps hidden canonical actions to the summary row used by the list. */
+    reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
+
     /** Extracts the list key for an action; used to locate the initial scroll target */
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
 
@@ -140,6 +143,7 @@ function useReportActionsScroll({
     parentReportAction,
     sortedVisibleReportActions,
     renderedVisibleReportActions,
+    reportActionIDToDisplayIndex,
     keyExtractor,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
@@ -343,7 +347,9 @@ function useReportActionsScroll({
     // Decide where the list should be positioned on mount.
     // 1. If we're opening a linked or unread message, find that action in the chronological list.
     // 2. Otherwise, aligned-to-top reports start at the first action.
-    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
+    const targetIndex = initialScrollKey
+        ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
+        : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex >= 0) {
