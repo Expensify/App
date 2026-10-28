@@ -816,7 +816,7 @@
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-misused-promises"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
+"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../src/libs/actions/Search.ts"	"import/no-cycle"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
