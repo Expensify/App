@@ -36,6 +36,7 @@ type SearchTableHeaderProps = {
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
+    paidColumnSize?: TableColumnSize;
     withdrawnColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
@@ -58,6 +59,7 @@ function SortableTableHeader({
     approvedColumnSize,
     postedColumnSize,
     exportedColumnSize,
+    paidColumnSize,
     withdrawnColumnSize,
     containerStyles,
     shouldShowSorting,
@@ -113,6 +115,7 @@ function SortableTableHeader({
                                     isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isPaidColumnWide: paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,

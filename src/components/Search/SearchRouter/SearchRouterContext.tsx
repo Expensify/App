@@ -1,6 +1,7 @@
 import useSyncModalWithHistory from '@components/Modal/useSyncModalWithHistory';
 
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSearchRouterQuerySpan} from '@libs/telemetry/searchRouterQuerySpans';
 
 import {close} from '@userActions/Modal';
 
@@ -86,6 +87,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         shouldHandleNavigationBack: true,
         onClose: () => {
             isSearchRouterOpenOrOpening = false;
+            cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
             closeSearch(setIsSearchRouterDisplayed);
             searchRouterDisplayedRef.current = false;
         },
@@ -131,6 +133,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_MODAL_CLOSE_WAIT);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_PAGE_VISIBLE);
         cancelSpan(CONST.TELEMETRY.SPAN_SEARCH_ROUTER_LIST_RENDER);
+        cancelSearchRouterQuerySpan(CONST.TELEMETRY.SEARCH_ROUTER_QUERY_CANCEL_REASON.CLOSED);
         closeSearch(setIsSearchRouterDisplayed, afterTransition);
         searchRouterDisplayedRef.current = false;
     };

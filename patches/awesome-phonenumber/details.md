@@ -1,6 +1,6 @@
 # `awesome-phonenumber` patches
 
-### [awesome-phonenumber+5.4.0+001+support-worklet.patch](awesome-phonenumber+5.4.0+001+support-worklet.patch)
+### [awesome-phonenumber+6.11.0+001+support-worklet.patch](awesome-phonenumber+6.11.0+001+support-worklet.patch)
 
 - Reason:
   

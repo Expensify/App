@@ -7,6 +7,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -148,7 +149,9 @@ describe('ReportActionItem', () => {
 
     function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
         return render(
-            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+            <ComposeProviders
+                components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
+            >
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <ReportActionItem
@@ -168,6 +171,124 @@ describe('ReportActionItem', () => {
             </ComposeProviders>,
         );
     }
+
+    describe('Edited file attachments', () => {
+        const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';
+
+        const renderComment = (html: string, text: string, isEdited = true) =>
+            renderItemWithAction(
+                createMock<ReportAction>({
+                    ...createReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {}),
+                    message: [{type: 'COMMENT', html, text, isEdited}],
+                }),
+            );
+
+        it('renders a renamed attachment as a named card with the edited label once the server dropped its source attribute', async () => {
+            // Given an attachment-only comment renamed through an edit, as the server returns it
+            // When the comment is rendered
+            renderComment(`<a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">renamed_file.csv</a>`, '[Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the card carries the new name and the edited label is shown
+            expect(screen.getByText('renamed_file.csv')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it('shows the edited label for an attachment-only comment that still carries its source attribute', async () => {
+            // Given an attachment-only comment edited while offline, whose optimistic html keeps the attachment attributes
+            // When the comment is rendered
+            renderComment(`<a href="${attachmentURL}" data-expensify-source="${attachmentURL}" data-attachment-id="1">offline_rename.csv</a>`, '[Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the attachment path renders the card with the edited label
+            expect(screen.getByText('offline_rename.csv')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it('names the card from every text node when the label came back wrapped in emphasis', async () => {
+            // Given a stored anchor whose underscored label was parsed into emphasis tags
+            // When the comment is rendered
+            renderComment(`<a href="${attachmentURL}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`, 'n_d_m_tch__ng.csv', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the card still shows a name instead of an empty label
+            expect(screen.getByText('n_d_m_tch__ng.csv')).toBeOnTheScreen();
+        });
+
+        it('keeps the text on both sides of a file when the comment was edited around it', async () => {
+            // Given an edited comment with text before and after the file
+            // When the comment is rendered
+            renderComment(`Help<br /><br /><a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">file.csv</a><br />Text`, 'Help\n\n[Attachment]\nText');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both text lines, the card and the edited label are all on screen
+            expect(screen.getByText('Help')).toBeOnTheScreen();
+            expect(screen.getByText('file.csv')).toBeOnTheScreen();
+            expect(screen.getByText(/Text/)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('reportActionCompose.edited'))).toBeOnTheScreen();
+        });
+
+        it("shows a link the author pasted to an earlier message's attachment as a link", async () => {
+            // Given a comment that is only a chat attachment URL the author pasted, which names the action that holds that file
+            const pastedURL = 'https://www.expensify.com/chat-attachments/99999/w_other.jpg';
+
+            // When the comment is rendered
+            renderComment(`<a href="${pastedURL}" target="_blank" rel="noreferrer noopener">${pastedURL}</a>`, '[Attachment]', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the URL stays readable as a link instead of being drawn as this message's own file
+            expect(screen.getByText(pastedURL)).toBeOnTheScreen();
+        });
+
+        it('shows an image the author linked from an attachment URL', async () => {
+            // Given a comment written as a linked image, whose anchor holds no text to name a card with
+            const pastedURL = 'https://www.expensify.com/chat-attachments/99999/w_other.jpg';
+
+            // When the comment is rendered
+            renderComment(`<a href="${pastedURL}"><img src="${pastedURL}" alt="photo" /></a>`, '[Attachment]', false);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the image is on screen rather than an empty card
+            expect(screen.getByLabelText('photo')).toBeOnTheScreen();
+        });
+
+        it('shows a link to another host as a link even when it carries an attachment ID', async () => {
+            // Given a stored comment whose link points off our attachment host but kept an attachment ID
+            const foreignURL = 'https://example.com/chat-attachments/1/invoice.csv';
+
+            // When the comment is rendered
+            renderComment(`See <a href="${foreignURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`, 'See invoice.csv');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is a plain link rather than a file card, which would download it with the viewer's auth token
+            expect(screen.getByLabelText(foreignURL)).toBeOnTheScreen();
+            expect(screen.queryByLabelText('invoice.csv')).toBeNull();
+        });
+
+        it('shows a link on our attachment host with an attachment ID as a file card', async () => {
+            // Given the same shape on our own attachment host
+            // When the comment is rendered
+            renderComment(`See <a href="${attachmentURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`, 'See invoice.csv');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it is drawn as the file card it is
+            expect(screen.getByLabelText('invoice.csv')).toBeOnTheScreen();
+        });
+
+        it('shows a linked image whose anchor kept the attachment ID of the file it used to name', async () => {
+            // Given a comment edited into an image linked to another message's file, which the server returns with the
+            // attachment ID of the original file still on the anchor
+            const otherFileURL = 'https://www.expensify.com/chat-attachments/99999/w_other.csv';
+            const imageURL = 'https://www.expensify.com/chat-attachments/12345/w_photo.jpg';
+
+            // When the comment is rendered
+            renderComment(`Test <a href="${otherFileURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener"><img src="${imageURL}" alt="preview" /></a>`, 'Test [Attachment]');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the image is on screen rather than an empty card
+            expect(screen.getByLabelText('preview')).toBeOnTheScreen();
+        });
+    });
 
     describe('Automatic actions', () => {
         const testCases = [
@@ -3228,7 +3349,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything());
         });
 
         it('isCardBrokenConnectionAction renders tappable bank login link for personal broken connection 30 days', async () => {
@@ -3252,7 +3373,7 @@ describe('ReportActionItem', () => {
             fireEvent.press(bankLoginLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('settings/wallet/personal-card/100'), expect.anything(), expect.anything());
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining('/personal-card/100'), expect.anything(), expect.anything());
         });
 
         it('isCardBrokenConnectionAction renders no tappable link when card connection is not broken', async () => {
