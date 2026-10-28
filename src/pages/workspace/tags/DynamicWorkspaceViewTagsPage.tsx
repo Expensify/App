@@ -35,7 +35,7 @@ import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    getTagListKeyByOrderWeight,
+    getTagListEntryByOrderWeight,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
@@ -81,8 +81,7 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const currentTagListKey = getTagListKeyByOrderWeight(policyTags, orderWeight);
-    const currentPolicyTag = currentTagListKey ? policyTags?.[currentTagListKey] : undefined;
+    const currentPolicyTag = getTagListEntryByOrderWeight(policyTags, orderWeight)?.[1];
     const currentTagListName = currentPolicyTag?.name ?? '';
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);

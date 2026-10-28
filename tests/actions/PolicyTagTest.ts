@@ -21,6 +21,7 @@ import {
     setPolicyShowTagGLCodes,
     setPolicyTagApprover,
     setPolicyTagGLCode,
+    setPolicyTagLevelsRequired,
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
@@ -2483,6 +2484,42 @@ describe('actions/Policy', () => {
             expect(policyTags?.Projects?.orderWeight).toBe(2);
             expect(Object.keys(policyTags?.Projects?.tags ?? {})).toEqual(['Project Apollo']);
             expect(policyTags?.['Sub-projects']?.orderWeight).toBe(1);
+            expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['North America']);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('setPolicyTagLevelsRequired updates each list by its own key, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy} = await setUpPolicy();
+            mockFetch.pause();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When the list at orderWeight 2 is made required and the list at orderWeight 1 stays optional in one save
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            setPolicyTagLevelsRequired(policyData.current, {1: false, 2: true}, false);
+            await waitForBatchedUpdates();
+
+            // Then each change is written to its own list, so the two same-named lists don't overwrite each other
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']?.required).toBe(true);
+            expect(policyTags?.['Sub-projects']?.required).toBe(false);
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('setPolicyTagGLCode updates the tag in the list at the given orderWeight, not the first list with the same name', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy, fakePolicyTags} = await setUpPolicy();
+            mockFetch.pause();
+
+            // When the GL code of a tag in the list at orderWeight 2 is set
+            setPolicyTagGLCode({policyID: fakePolicy.id, tagName: 'Project Apollo', tagListIndex: 2, glCode: '500', policyTags: fakePolicyTags});
+            await waitForBatchedUpdates();
+
+            // Then the GL code is set in "Sub-projects_2", and nothing is written to the first "Sub-projects" list
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.['Sub-projects_2']?.tags['Project Apollo']?.['GL Code']).toBe('500');
             expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['North America']);
             mockFetch.resume();
             await waitForBatchedUpdates();
