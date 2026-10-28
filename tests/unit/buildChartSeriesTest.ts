@@ -51,6 +51,13 @@ function quarterGroup(quarter: number, total: number, year = 2026): TransactionQ
     };
 }
 
+/** Fields every grouped bucket carries besides its own date */
+const BUCKET_BASE = {count: 1, total: 100000, currency: CONST.CURRENCY.USD, transactions: []};
+
+function dayGroup(day: string): TransactionDayGroupListItemType {
+    return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, lineChartFormattedDay: day, keyForList: `day_${day}`};
+}
+
 const getLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.MERCHANT ? (item.formattedMerchant ?? '') : '');
 const getCurrencyDecimals = () => 2;
 
@@ -522,8 +529,31 @@ describe('buildChartSeries', () => {
             isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4,
         });
 
-        // Then the chart ends at Q3, since this year's Q4 has no data yet to compare last year's against
+        // Then the chart ends at Q3, leaving out last year's Q4 along with this year's
         expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300}]);
+    });
+
+    it('leaves out the compared days the current period has no day for when the chart ends before them', () => {
+        // Given February so far plotted by day against January, with February's later days empty and January's 29th to 31st unpaired
+        const {rows} = buildChartSeries({
+            data: [dayGroup('2026-02-15'), {...dayGroup('2026-02-16'), total: 0, count: 0}, {...dayGroup('2026-02-28'), total: 0, count: 0}],
+            comparison: {
+                data: ['2026-01-15', '2026-01-16', '2026-01-28', '2026-01-29', '2026-01-30', '2026-01-31'].map(dayGroup),
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-02-01', end: '2026-02-28'}, comparison: {start: '2026-01-01', end: '2026-01-31'}, monthsApart: 1},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.DAY && item.day > '2026-02-15',
+        });
+
+        // Then the chart ends at today, rather than jumping from the 15th to January's last days
+        expect(rows.map((row) => row.point.label)).toEqual(['15th']);
     });
 });
 
@@ -606,9 +636,6 @@ describe('buildChartSeries labels for compared time buckets', () => {
         IntlStore.load(CONST.LOCALES.EN);
     });
 
-    /** Fields every grouped bucket carries besides its own date */
-    const BUCKET_BASE = {count: 1, total: 100000, currency: CONST.CURRENCY.USD, transactions: []};
-
     function monthGroup(year: number, month: number): TransactionMonthGroupListItemType {
         return {
             ...BUCKET_BASE,
@@ -624,10 +651,6 @@ describe('buildChartSeries labels for compared time buckets', () => {
 
     function weekGroup(week: string): TransactionWeekGroupListItemType {
         return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.WEEK, week, formattedWeek: week, shortFormattedWeek: week, lineChartFormattedWeek: week, keyForList: `week_${week}`};
-    }
-
-    function dayGroup(day: string): TransactionDayGroupListItemType {
-        return {...BUCKET_BASE, groupedBy: CONST.SEARCH.GROUP_BY.DAY, day, formattedDay: day, shortFormattedDay: day, lineChartFormattedDay: day, keyForList: `day_${day}`};
     }
 
     /** Builds the labels of a chart plotting the window on screen against the one before it. */
@@ -763,29 +786,6 @@ describe('buildChartSeries labels for compared time buckets', () => {
         expect(rows.slice(2).map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.COMPARISON]: 1000}, {[CHART_SERIES_KEY.COMPARISON]: 1000}, {[CHART_SERIES_KEY.COMPARISON]: 1000}]);
         expect(rows.at(2)?.point.seriesLabels).toEqual({[CHART_SERIES_KEY.COMPARISON]: 'January 2026'});
         expect(rows.at(2)?.item).toBeUndefined();
-    });
-
-    it('leaves out the compared days the current period has no day for when the chart ends before them', () => {
-        // Given February so far plotted by day against January, with February's later days empty and January's 29th to 31st unpaired
-        const {rows} = buildChartSeries({
-            data: [dayGroup('2026-02-15'), {...dayGroup('2026-02-16'), total: 0, count: 0}, {...dayGroup('2026-02-28'), total: 0, count: 0}],
-            comparison: {
-                data: ['2026-01-15', '2026-01-16', '2026-01-28', '2026-01-29', '2026-01-30', '2026-01-31'].map(dayGroup),
-                color: themeColors.green200,
-                periods: {primary: {start: '2026-02-01', end: '2026-02-28'}, comparison: {start: '2026-01-01', end: '2026-01-31'}, monthsApart: 1},
-            },
-            view: CONST.SEARCH.VIEW.LINE,
-            groupBy: CONST.SEARCH.GROUP_BY.DAY,
-            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
-            getCurrencyDecimals,
-            translate: translateLocal,
-            dateFnsLocale: undefined,
-            colorScheme: CONST.COLOR_SCHEME.LIGHT,
-            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.DAY && item.day > '2026-02-15',
-        });
-
-        // Then the chart ends at today, rather than jumping from the 15th to January's last days
-        expect(rows.map((row) => row.point.label)).toEqual(['15th']);
     });
 
     it('places a compared day the current period has no day for between the days around it', () => {
