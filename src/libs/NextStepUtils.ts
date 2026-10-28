@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
+import type {ReportUpcomingStepAction} from '@src/types/onyx/ReportUpcomingSteps';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -393,6 +394,37 @@ function getReportNextStep({
  * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
  * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
  */
+/** The workflow step each next step waits on. Typed as a full record so a new message key has to pick one. */
+const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>, ReportUpcomingStepAction | undefined> = {
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: CONST.REPORT.UPCOMING_STEP_ACTION.APPROVE,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: CONST.REPORT.UPCOMING_STEP_ACTION.PAY,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_CANCELLED_REIMBURSEMENT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: undefined,
+    [CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE]: undefined,
+};
+
+function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined, isOpenReport: boolean): ReportUpcomingStepAction | undefined {
+    if (!nextStep) {
+        return undefined;
+    }
+
+    // A failed DEW approval also asks the submitter to fix issues, but the report is still waiting on its approver
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES && !isOpenReport) {
+        return undefined;
+    }
+    return UPCOMING_STEP_ACTION_BY_MESSAGE_KEY[nextStep.messageKey];
+}
+
 function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean): boolean {
     if (!hasDEWApproveFailed || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
         return false;
@@ -410,4 +442,5 @@ export {
     buildOptimisticFixIssueNextStep,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     shouldShowDynamicExternalWorkflowApproveErrorNextStep,
+    getUpcomingStepActionForNextStep,
 };

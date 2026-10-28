@@ -3,12 +3,14 @@
  */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import {getNextStepETA} from '@libs/NextStepUtils';
+import {getNextStepETA, getUpcomingStepActionForNextStep} from '@libs/NextStepUtils';
 import Parser from '@libs/Parser';
 import {
     getChangedApproverActionMessage,
     getDelegateSubmitMessage,
     getSortedReportActions,
+    hasPendingDEWApprove,
+    hasPendingDEWSubmit,
     isActionOfType,
     isApprovedAction,
     isForwardedAction,
@@ -22,17 +24,14 @@ import {
 } from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction, ReportActions, ReportMetadata} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
-import type {ReportUpcomingStep} from '@src/types/onyx/ReportUpcomingSteps';
+import type {ReportUpcomingStep, ReportUpcomingStepAction} from '@src/types/onyx/ReportUpcomingSteps';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import type {ReportHistoryStep} from './types';
-
-type ReportUpcomingStepAction = ValueOf<typeof CONST.REPORT.UPCOMING_STEP_ACTION>;
 
 type GetReportHistoryStepsParams = {
     translate: LocalizedTranslate;
@@ -46,6 +45,9 @@ type GetReportHistoryStepsParams = {
     reportActions: OnyxEntry<ReportActions>;
     upcomingSteps: ReportUpcomingStep[];
     nextStep: ReportNextStep | undefined;
+    isOpenReport: boolean;
+    isDEWPolicy: boolean;
+    reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
 function getCompletedStep(
@@ -123,21 +125,6 @@ function getUpcomingStep(
     return undefined;
 }
 
-function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined): ReportUpcomingStepAction | undefined {
-    switch (nextStep?.messageKey) {
-        case CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT:
-        case CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT:
-            return CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT;
-        case CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE:
-            return CONST.REPORT.UPCOMING_STEP_ACTION.APPROVE;
-        case CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY:
-        case CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT:
-            return CONST.REPORT.UPCOMING_STEP_ACTION.PAY;
-        default:
-            return undefined;
-    }
-}
-
 function getUpcomingStepActionForReportAction(reportAction: ReportAction): ReportUpcomingStepAction | undefined {
     if (isSubmittedAction(reportAction) || isSubmittedAndClosedAction(reportAction)) {
         return CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT;
@@ -155,13 +142,18 @@ function getUpcomingStepActionForReportAction(reportAction: ReportAction): Repor
  * The upcoming steps are a backend snapshot that no action updates, so they go stale once the report moves on, including offline.
  * The next step is updated optimistically, so it decides which upcoming step is the current one.
  */
-function getCurrentUpcomingSteps(upcomingSteps: ReportUpcomingStep[], nextStep: ReportNextStep | undefined, pendingCompletedActions: ReportAction[]): ReportUpcomingStep[] {
+function getCurrentUpcomingSteps(
+    upcomingSteps: ReportUpcomingStep[],
+    nextStep: ReportNextStep | undefined,
+    isOpenReport: boolean,
+    queuedDEWAction: ReportAction | undefined,
+): ReportUpcomingStep[] {
     if (nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION) {
         return [];
     }
 
     let steps = upcomingSteps;
-    const currentAction = getUpcomingStepActionForNextStep(nextStep);
+    const currentAction = getUpcomingStepActionForNextStep(nextStep, isOpenReport);
     const currentActorAccountID = nextStep?.actorAccountID !== undefined && nextStep.actorAccountID > 0 ? nextStep.actorAccountID : undefined;
     if (currentAction) {
         const currentIndex = steps.findIndex((step) => step.action === currentAction && (currentActorAccountID === undefined || step.actorAccountID === currentActorAccountID));
@@ -173,15 +165,9 @@ function getCurrentUpcomingSteps(upcomingSteps: ReportUpcomingStep[], nextStep: 
         }
     }
 
-    // Dynamic External Workflow approvals don't update the next step optimistically, so the pending action marks the step as done
-    while (steps.length > 0) {
-        const [firstStep] = steps;
-        const isDone = pendingCompletedActions.some(
-            (reportAction) => reportAction.actorAccountID === firstStep.actorAccountID && getUpcomingStepActionForReportAction(reportAction) === firstStep.action,
-        );
-        if (!isDone) {
-            break;
-        }
+    // Dynamic External Workflow actions don't update the next step optimistically, so the queued action marks its step as done
+    const [firstStep] = steps;
+    if (queuedDEWAction && firstStep?.actorAccountID === queuedDEWAction.actorAccountID && firstStep.action === getUpcomingStepActionForReportAction(queuedDEWAction)) {
         steps = steps.slice(1);
     }
 
@@ -198,9 +184,12 @@ function getReportHistorySteps({
     reportActions,
     upcomingSteps,
     nextStep,
+    isOpenReport,
+    isDEWPolicy,
+    reportMetadata,
 }: GetReportHistoryStepsParams): ReportHistoryStep[] {
     const completedSteps: ReportHistoryStep[] = [];
-    const pendingCompletedActions: ReportAction[] = [];
+    let lastStepAction: ReportAction | undefined;
     for (const reportAction of getSortedReportActions(Object.values(reportActions ?? {}))) {
         // The backend writes companion actions next to some steps, like a MARKED_REIMBURSED beside the PAY, and the report hides them
         if (
@@ -212,13 +201,17 @@ function getReportHistorySteps({
         const step = getCompletedStep(translate, reportAction, currentUserEmail, reportOwnerAccountID);
         if (step) {
             completedSteps.push(step);
-        }
-        if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            pendingCompletedActions.push(reportAction);
+            lastStepAction = reportAction;
         }
     }
 
-    const currentUpcomingSteps = getCurrentUpcomingSteps(upcomingSteps, nextStep, pendingCompletedActions)
+    // Only the latest step can still be queued, because a later step like an unapprove or a retract undoes it
+    const isLastStepQueuedForDEW =
+        lastStepAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        ((hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isSubmittedAction(lastStepAction)) ||
+            (hasPendingDEWApprove(reportMetadata, isDEWPolicy) && (isApprovedAction(lastStepAction) || isForwardedAction(lastStepAction))));
+
+    const currentUpcomingSteps = getCurrentUpcomingSteps(upcomingSteps, nextStep, isOpenReport, isLastStepQueuedForDEW ? lastStepAction : undefined)
         .map((upcomingStep, index) => getUpcomingStep(translate, dateFnsLocale, upcomingStep, index, nextStep))
         .filter((step): step is ReportHistoryStep => !!step);
 

@@ -16,7 +16,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportHistoryNavigatorParamList} from '@libs/Navigation/types';
-import {isGroupPolicyExpenseReport} from '@libs/ReportUtils';
+import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {isGroupPolicyExpenseReport, isOpenExpenseReport} from '@libs/ReportUtils';
 
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
@@ -44,6 +45,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const [reportUpcomingSteps] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS}${report.reportID}`);
     const [isLoadingReportStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {selector: isLoadingReportStatusSelector});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report.policyID)}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const nextStep = useOptimisticNextStep(report.reportID);
     const {isOffline} = useNetwork({onReconnect: () => openReportStatusPage(report.reportID)});
 
@@ -61,6 +63,9 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
         reportActions,
         upcomingSteps: reportUpcomingSteps?.steps ?? [],
         nextStep,
+        isOpenReport: isOpenExpenseReport(report),
+        isDEWPolicy: hasDynamicExternalWorkflow(policy),
+        reportMetadata,
     });
 
     const shouldShowSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;

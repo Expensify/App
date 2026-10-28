@@ -2,10 +2,13 @@ import type CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
+/** What is expected to happen at an upcoming step */
+type ReportUpcomingStepAction = ValueOf<typeof CONST.REPORT.UPCOMING_STEP_ACTION>;
+
 /** A step of the report's workflow that hasn't happened yet */
 type ReportUpcomingStep = {
     /** What is expected to happen at this step */
-    action: ValueOf<typeof CONST.REPORT.UPCOMING_STEP_ACTION>;
+    action: ReportUpcomingStepAction;
 
     /** The member expected to take the action */
     actorAccountID: number;
@@ -17,4 +20,4 @@ type ReportUpcomingSteps = {
 };
 
 export default ReportUpcomingSteps;
-export type {ReportUpcomingStep};
+export type {ReportUpcomingStep, ReportUpcomingStepAction};

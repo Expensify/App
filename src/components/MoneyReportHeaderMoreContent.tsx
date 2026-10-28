@@ -1,12 +1,10 @@
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {isGroupPolicyExpenseReport} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -22,7 +20,6 @@ import {View} from 'react-native';
 import type {MoneyReportHeaderActionsProps} from './MoneyReportHeaderActions/types';
 
 import MoneyReportHeaderActions from './MoneyReportHeaderActions';
-import MoneyReportHeaderHistoryButton from './MoneyReportHeaderHistoryButton';
 import MoneyReportHeaderNextStep from './MoneyReportHeaderNextStep';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
 import {useMoneyReportTransactionThread} from './MoneyReportTransactionThreadContext';
@@ -104,28 +101,16 @@ function MoneyReportHeaderMoreContentBody({
 
     const reportID = moneyRequestReport?.reportID;
     const {iouTransactionID} = useMoneyReportTransactionThread();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-
-    // The broken connection bar has its own link, so it can't be pressable as a whole
-    const canStatusBarOpenReportHistory = !!statusBarType && isGroupPolicyExpenseReport(moneyRequestReport, policy?.type) && statusBarType !== CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION;
-    const statusBarSection = (
-        <MoneyReportHeaderStatusBarSection
-            reportID={reportID}
-            statusBarType={statusBarType}
-            iouTransactionID={iouTransactionID}
-            shouldShowCaret={canStatusBarOpenReportHistory}
-        />
-    );
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
             <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                 {shouldShowNextStep && <MoneyReportHeaderNextStep reportID={reportID} />}
-                {canStatusBarOpenReportHistory ? (
-                    <MoneyReportHeaderHistoryButton sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_STATUS_BAR}>{statusBarSection}</MoneyReportHeaderHistoryButton>
-                ) : (
-                    statusBarSection
-                )}
+                <MoneyReportHeaderStatusBarSection
+                    reportID={reportID}
+                    statusBarType={statusBarType}
+                    iouTransactionID={iouTransactionID}
+                />
             </View>
             {shouldRenderActionsInRow && (
                 <MoneyReportHeaderActions
