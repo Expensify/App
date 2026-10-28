@@ -1,7 +1,9 @@
+import {hasUserMessageSinceQuestion} from '@libs/ReportActionFollowupUtils';
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 
 import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
@@ -16,8 +18,9 @@ import useSidePanelState from './useSidePanelState';
  * Returns true when thinking/typing indicators should be hidden. Two cases:
  *   1. The Concierge welcome state — before any real message activity occurs
  *      in either the side panel or the main DM session.
- *   2. The followup-list pending window — between trickle completion and the
- *      server reply with `<followup-list>`.
+ *   2. The followup-list pending window, between trickle completion and the
+ *      server reply with `<followup-list>`. It does not apply once the user has
+ *      sent another message since that turn's question, which is a turn of its own.
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();
@@ -43,7 +46,13 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
         selector: hasSessionActivitySelector,
     });
 
-    if (pendingFollowupList) {
+    const questionReportActionID = pendingFollowupList?.questionReportActionID;
+    const hasNewerUserTurnSelector = (actions: OnyxEntry<ReportActions>) => hasUserMessageSinceQuestion(actions, questionReportActionID, CONST.ACCOUNT_ID.CONCIERGE);
+    const [hasNewerUserTurn] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasNewerUserTurnSelector,
+    });
+
+    if (pendingFollowupList && !hasNewerUserTurn) {
         return true;
     }
 
