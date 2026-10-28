@@ -315,8 +315,9 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 }
 
 /**
- * Whether the export timing the server last sent still applies once the report moves to the predicted status. It only survives
- * the report moving on to its next approver, or a final approval that leaves reimbursable spend waiting for payment.
+ * Whether the export timing the server last sent still applies once the report moves to the predicted status. It survives anything
+ * that leaves the report waiting for approval, like moving it to the next approver, unapproving it, holds and expense edits, and a
+ * final approval that leaves reimbursable spend waiting for payment.
  */
 function shouldKeepAutoExportTiming(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, reimbursableSpend: number): boolean {
     if (predictedNextStatus === CONST.REPORT.STATUS_NUM.SUBMITTED) {
