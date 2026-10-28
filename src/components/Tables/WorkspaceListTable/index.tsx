@@ -130,8 +130,13 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
-    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
+    // Submit workspaces lock every member, including the owner, to the Editor role, so Editors there get the same archived access as Admins.
+    const canAccessArchived = ({role, type}: Pick<WorkspaceRowData, 'role' | 'type'>) =>
+        role === CONST.POLICY.ROLE.ADMIN ||
+        role === CONST.POLICY.ROLE.OWNER ||
+        role === CONST.POLICY.ROLE.AUDITOR ||
+        (type === CONST.POLICY.TYPE.SUBMIT && role === CONST.POLICY.ROLE.EDITOR);
+    const canSeeFilter = canUseArchivePolicies && workspaces.some(canAccessArchived);
     const searchBarComponent = (
         <Table.FilterBar
             label={translate('workspace.common.findWorkspace')}
@@ -154,7 +159,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
-        if (item.isArchived && !canAccessArchived(item.role)) {
+        if (item.isArchived && !canAccessArchived(item)) {
             return false;
         }
 
