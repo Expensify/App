@@ -105,7 +105,7 @@ const config = {
                           // `unescapeText` (from `expensify-common/utils`) and `decode` (from `html-entities`) into its
                           // worklets, so those imports must be forwarded to avoid the "Tried to synchronously call a
                           // Remote Function" crash. Their transitive dependencies (expensify-common's `Str`, `punycode`,
-                          // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: metro bundles
+                          // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: the bundler puts
                           // the whole `require()` graph onto the Worklet Runtime, so they resolve locally there.
                           // `relativePaths` only needs to cover live-markdown's own `./rangeUtils` (expensify-common and
                           // html-entities resolve to CommonJS, where `relativePaths` forwarding never fires).
