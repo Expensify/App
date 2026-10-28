@@ -7595,6 +7595,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             allCategories: 'Wszystkie kategorie',
             categoriesCount: ({count}: {count: number}) => ({
                 one: '1 kategoria',
+                few: `${count} kategorie`,
+                many: `${count} kategorii`,
                 other: `${count} kategorii`,
             }),
             categoryVisibilityRequiredModal: {

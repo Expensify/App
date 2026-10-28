@@ -77,6 +77,7 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 
 import variables from '@styles/variables';
 
+import {clearPolicyMemberCategoryVisibilityError} from '@userActions/Policy/Category';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
@@ -170,7 +171,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         visibleCategoriesCount === getEnabledCategoriesCount(policyCategories)
             ? translate('workspace.people.allCategories')
             : translate('workspace.people.categoriesCount', {count: visibleCategoriesCount});
-    const isCategoryVisibilityPending = Object.values(policyCategories ?? {}).some((category) => !!category.pendingFields?.visibleTo);
+    // Category visibility edits category data, so changing it needs write access to both members and categories.
+    const canEditCategoryVisibility = canWriteMembers && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -490,10 +492,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 }}
                             />
                             {shouldShowCategoryVisibility && (
-                                <OfflineWithFeedback pendingAction={isCategoryVisibilityPending ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
+                                <OfflineWithFeedback
+                                    pendingAction={member?.pendingFields?.categoryVisibility}
+                                    errors={member?.errorFields?.categoryVisibility}
+                                    errorRowStyles={styles.ph5}
+                                    onClose={() => clearPolicyMemberCategoryVisibilityError(policyID, memberLogin)}
+                                >
                                     <MenuItemField
                                         name={translate('workspace.people.categoryVisibility')}
-                                        onPress={canWriteMembers ? navigateToCategoryVisibility : undefined}
+                                        onPress={canEditCategoryVisibility ? navigateToCategoryVisibility : undefined}
                                         testID="member-category-visibility-menu-item"
                                         value={categoryVisibilityTitle}
                                     />

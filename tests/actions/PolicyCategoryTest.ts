@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import usePolicyData from '@hooks/usePolicyData';
 
 import {
+    clearPolicyMemberCategoryVisibilityError,
     createPolicyCategory,
     deleteWorkspaceCategories,
     enablePolicyCategories,
@@ -111,7 +112,7 @@ describe('actions/PolicyCategory', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin limits them to Travel and Software
-            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel', 'Software'], policyCategories, policyMemberAccountIDs);
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel', 'Software'], policyCategories, policyMemberAccountIDs, ['alice@example.com']);
             await waitForBatchedUpdates();
 
             // Then Meals, open to everyone, is restricted to every other member, Software gains the member, and the
@@ -125,6 +126,10 @@ describe('actions/PolicyCategory', () => {
             expect(updatedCategories?.Travel?.pendingFields?.visibleTo).toBeUndefined();
             expect(updatedCategories?.Office?.visibleTo).toBeUndefined();
 
+            // And the change shows as pending on the member who was changed, not on the categories it touched
+            let updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['alice@example.com']?.pendingFields?.categoryVisibility).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
             // When the request succeeds
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -133,23 +138,37 @@ describe('actions/PolicyCategory', () => {
             updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
             expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBeFalsy();
             expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+            updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['alice@example.com']?.pendingFields?.categoryVisibility).toBeFalsy();
         });
 
-        it('restores the previous visibility and sets errors on failure', async () => {
+        it('restores the previous visibility and sets the error on the member on failure', async () => {
             // Given a request that will fail
             mockFetch?.fail?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
 
             // When the admin removes Software from the only member who can use it
-            setPolicyMemberCategoryVisibility(policyID, [2], ['Travel', 'Meals'], policyCategories, policyMemberAccountIDs);
+            setPolicyMemberCategoryVisibility(policyID, [2], ['Travel', 'Meals'], policyCategories, policyMemberAccountIDs, ['bob@example.com']);
             await waitForBatchedUpdates();
 
-            // Then Software goes back to its previous members and shows an error, while untouched categories don't
+            // Then Software goes back to its previous members without an error of its own, so the Categories page stays clean
             const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
             expect(updatedCategories?.Software?.visibleTo).toEqual([2]);
             expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
-            expect(updatedCategories?.Software?.errors).toBeTruthy();
-            expect(updatedCategories?.Travel?.errors).toBeFalsy();
+            expect(updatedCategories?.Software?.errors).toBeFalsy();
+
+            // And the error shows on the member instead, where the admin made the change
+            let updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeTruthy();
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.pendingFields?.categoryVisibility).toBeFalsy();
+
+            // When the admin dismisses it
+            clearPolicyMemberCategoryVisibilityError(policyID, 'bob@example.com');
+            await waitForBatchedUpdates();
+
+            // Then the error is gone
+            updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeFalsy();
         });
     });
     describe('createWorkspaceCategories', () => {

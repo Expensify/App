@@ -9,6 +9,7 @@ import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectL
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,10 +25,11 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace, isControlPolicy} from '@libs/PolicyUtils';
+import {canMemberWrite, getMemberAccountIDsForWorkspace, isControlPolicy} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -56,6 +58,8 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {isBetaEnabled} = usePermissions();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canWriteCategories = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
@@ -128,8 +132,10 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
 
         const hasChanges = categoriesToSave.length !== memberVisibleCategories.length || categoriesToSave.some((categoryName) => !memberVisibleCategories.includes(categoryName));
         if (hasChanges) {
-            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true));
-            setPolicyMemberCategoryVisibility(policyID, [accountID], categoriesToSave, policyCategories ?? {}, policyMemberAccountIDs);
+            const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false));
+            const memberLogin =
+                Object.keys(policy?.employeeList ?? {}).find((login) => employeePersonalDetails[login]?.accountID === accountID) ?? getMemberLoginByAccountID(policy, accountID);
+            setPolicyMemberCategoryVisibility(policyID, [accountID], categoriesToSave, policyCategories ?? {}, policyMemberAccountIDs, [memberLogin]);
         }
         Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
     };
@@ -139,7 +145,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) || !isControlPolicy(policy) || !areCategoriesEnabled}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) || !isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCategoryVisibilityPage"

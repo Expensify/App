@@ -48,7 +48,7 @@ import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} fr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, PolicyEmployee, PolicyEmployeeList, Report, ReportAction} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
@@ -1879,8 +1879,18 @@ function setPolicyCategoryApprover(policyID: string, categoryName: string, appro
 /**
  * Sets which enabled categories the given members can use. A category open to everyone (`visibleTo` is null) is
  * restricted to every other workspace member when the given members lose access to it.
+ *
+ * The pending state and any error live on the members themselves (`memberLogins` are their employeeList keys), so they
+ * show on the member that was changed rather than on every category the change touched.
  */
-function setPolicyMemberCategoryVisibility(policyID: string, accountIDs: number[], categories: string[], policyCategories: PolicyCategories, policyMemberAccountIDs: number[]) {
+function setPolicyMemberCategoryVisibility(
+    policyID: string,
+    accountIDs: number[],
+    categories: string[],
+    policyCategories: PolicyCategories,
+    policyMemberAccountIDs: number[],
+    memberLogins: string[],
+) {
     const selectedCategories = new Set(categories);
     const optimisticCategories: Record<string, Partial<PolicyCategory>> = {};
     const successCategories: Record<string, Partial<PolicyCategory>> = {};
@@ -1918,16 +1928,27 @@ function setPolicyMemberCategoryVisibility(policyID: string, accountIDs: number[
         failureCategories[category.name] = {
             visibleTo: previousVisibleTo,
             pendingFields: {visibleTo: null},
-            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         };
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+    const buildEmployeeList = (employee: PolicyEmployee): PolicyEmployeeList => Object.fromEntries(memberLogins.map((login) => [login, employee]));
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: optimisticCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({
+                        pendingFields: {categoryVisibility: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: {categoryVisibility: null},
+                    }),
+                },
             },
         ],
         successData: [
@@ -1936,12 +1957,29 @@ function setPolicyMemberCategoryVisibility(policyID: string, accountIDs: number[
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: successCategories,
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({pendingFields: {categoryVisibility: null}}),
+                },
+            },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: failureCategories,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    employeeList: buildEmployeeList({
+                        pendingFields: {categoryVisibility: null},
+                        errorFields: {categoryVisibility: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    }),
+                },
             },
         ],
     };
@@ -1953,6 +1991,15 @@ function setPolicyMemberCategoryVisibility(policyID: string, accountIDs: number[
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY, parameters, onyxData);
+}
+
+/** Dismisses the error left on a member by a failed category visibility change. */
+function clearPolicyMemberCategoryVisibilityError(policyID: string, memberLogin: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [memberLogin]: {errorFields: {categoryVisibility: null}},
+        },
+    });
 }
 
 /**
@@ -2274,6 +2321,7 @@ function setPolicyCategoryAttendeesRequired(
 
 export {
     clearCategoryErrors,
+    clearPolicyMemberCategoryVisibilityError,
     deletePolicyCategoryTax,
     deletePolicyCategoryTaxes,
     createPolicyCategory,
