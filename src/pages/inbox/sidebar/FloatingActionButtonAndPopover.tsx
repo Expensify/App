@@ -76,9 +76,9 @@ function FloatingActionButtonAndPopover() {
                 <ExpenseMenuItem reportID={reportID} />
                 <CreateReportMenuItem />
                 <TrackDistanceMenuItem reportID={reportID} />
+                <CreateBillMenuItem />
                 <NewChatMenuItem />
                 <InvoiceMenuItem reportID={reportID} />
-                <CreateBillMenuItem />
                 <TravelMenuItem />
                 <NewWorkspaceMenuItem />
                 <QuickActionMenuItem reportID={reportID} />
