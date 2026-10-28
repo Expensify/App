@@ -10633,7 +10633,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             exportedWarning:
                 'Une ou plusieurs notes de frais sélectionnées ont déjà été exportées vers une intégration comptable. Les fusionner peut entraîner des doublons si elles sont exportées de nouveau.',
             reportFieldsMismatch:
-                'Ces notes de frais ont des valeurs de champ de note de frais différentes. Pour les fusionner, faites d’abord correspondre les champs de note de frais sur chaque note de frais.',
+                '<strong>Ces notes de frais ont des valeurs de champ de note de frais différentes.</strong> Pour les fusionner, faites d’abord correspondre les champs de note de frais sur chaque note de frais.',
             listPage: {noEligibleReportsFound: 'Aucune note de frais éligible trouvée', noEligibleReportsFoundSubtitle: 'Vous n’avez aucune note de frais pouvant être fusionnée.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,

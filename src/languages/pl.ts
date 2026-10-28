@@ -10551,7 +10551,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             description: 'Wybierz raport, który chcesz zachować. Wszystkie wydatki zostaną do niego przeniesione, a pozostałe raporty zostaną usunięte.',
             exportedWarning:
                 'Co najmniej jeden z wybranych raportów został już wyeksportowany do integracji księgowej. Połączenie ich może spowodować zduplikowanie danych, jeśli zostaną wyeksportowane ponownie.',
-            reportFieldsMismatch: 'Te raporty mają różne wartości pól raportu. Żeby je scalić, najpierw ustaw identyczne pola raportu w każdym raporcie.',
+            reportFieldsMismatch: '<strong>Te raporty mają różne wartości pól raportu.</strong> Żeby je scalić, najpierw ustaw identyczne pola raportu w każdym raporcie.',
             listPage: {noEligibleReportsFound: 'Nie znaleziono kwalifikujących się raportów', noEligibleReportsFoundSubtitle: 'Nie masz żadnych raportów, które można połączyć.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} do tej pory`,
