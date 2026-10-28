@@ -2296,6 +2296,24 @@ function queueBulkPayReports(jsonQuery: string) {
 }
 
 /**
+ * Queues a bulk approval for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkApproveReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.APPROVE);
+    write(WRITE_COMMANDS.QUEUE_BULK_APPROVE_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
+ * Queues a bulk submit for every report matching the given search query. The backend pages through all matches itself,
+ * so this covers reports beyond the currently loaded page(s) when "Select all" is checked in Search.
+ */
+function queueBulkSubmitReports(jsonQuery: string) {
+    const {bulkActionID, onyxData} = buildBulkActionOnyxData(CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT);
+    write(WRITE_COMMANDS.QUEUE_BULK_SUBMIT_REPORTS, {jsonQuery, bulkActionID}, onyxData);
+}
+
+/**
  * Queues a manual bulk "Mark as exported" for every report matching the given search query on the given connection.
  * The backend pages through all matches itself, so this covers reports beyond the currently loaded page(s) when
  * "Select all" is checked in Search. connectionName scopes the resolved reports to a single accounting connection,
@@ -2746,6 +2764,8 @@ export {
     queueExportSearchItemsToCSV,
     queueExportSearchWithTemplate,
     queueBulkPayReports,
+    queueBulkApproveReports,
+    queueBulkSubmitReports,
     queueBulkMarkAsExported,
     updateAdvancedFilters,
     setSearchContext,
