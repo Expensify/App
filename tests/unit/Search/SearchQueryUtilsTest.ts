@@ -2084,6 +2084,21 @@ describe('SearchQueryUtils', () => {
                 expect(result.dateRange).toBeUndefined();
             });
 
+            test('reads the deprecated year-to-date preset as this-year', () => {
+                // Given a saved search from before Year to date was replaced by This year
+                const queryJSON = buildSearchQueryJSON('type:expense date:year-to-date approved!=year-to-date');
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When the form values are built from the query
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+                // Then both read as this-year, so the date picker checks the This year row it lists
+                expect(result.dateOn).toBe(CONST.SEARCH.DATE_PRESETS.THIS_YEAR);
+                expect(result.approvedNot).toBe(CONST.SEARCH.DATE_PRESETS.THIS_YEAR);
+            });
+
             test('merges multiple ranges into one', () => {
                 const queryString = 'type:expense date>=2026-04-01 date<=2026-04-30 date>=2026-03-01 date<=2026-04-15';
                 const queryJSON = buildSearchQueryJSON(queryString);

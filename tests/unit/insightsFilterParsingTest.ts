@@ -54,6 +54,14 @@ describe('insightsFilterParsing', () => {
             expect(day.date).toEqual({on: '2026-03-04'});
         });
 
+        it('reads the deprecated year-to-date preset as this year', () => {
+            // Given a dashboard saved before Year to date was replaced by This year
+            const parsed = parseInsightsFilters('groupBy:month groupCurrency:USD date:year-to-date');
+
+            // Then it reads back as This year, so the date picker checks the row it lists
+            expect(parsed.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR});
+        });
+
         it('reads both ends of a range, which the query carries as two separate filters', () => {
             // Given a query bounded at both ends
             const query = 'groupBy:month groupCurrency:USD date>=2026-01-01 date<=2026-03-31';

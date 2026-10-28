@@ -1082,6 +1082,13 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
 }
 
 /**
+ * Maps the deprecated Year to date preset to This year, which the date picker lists in its place
+ */
+function normalizeDatePreset(date: string): string {
+    return date === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE ? CONST.SEARCH.DATE_PRESETS.THIS_YEAR : date;
+}
+
+/**
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
@@ -2061,8 +2068,8 @@ function buildFilterFormValuesFromQuery(
 
             filtersForm[beforeKey] = getEarlierDate(beforeFilter?.value.toString(), filtersForm[beforeKey]);
             filtersForm[afterKey] = getLaterDate(afterFilter?.value.toString(), filtersForm[afterKey]);
-            filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
-            filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
+            filtersForm[onKey] = onFilter ? normalizeDatePreset(onFilter.value.toString()) : filtersForm[onKey];
+            filtersForm[negatedKey] = negatedFilter ? normalizeDatePreset(negatedFilter.value.toString()) : filtersForm[negatedKey];
 
             if (rangeValue) {
                 filtersForm[rangeKey] = rangeValue;
@@ -2150,7 +2157,7 @@ function buildFilterFormValuesFromQuery(
 
             filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
-            filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
+            filtersForm[dateOnKey] = dateOnFilter ? normalizeDatePreset(dateOnFilter.value.toString()) : filtersForm[dateOnKey];
             filtersForm[dateBeforeKey] = getEarlierDate(dateBeforeFilter?.value.toString(), filtersForm[dateBeforeKey]);
             filtersForm[dateAfterKey] = getLaterDate(dateAfterFilter?.value.toString(), filtersForm[dateAfterKey]);
 
@@ -3235,6 +3242,7 @@ export {
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isSearchDatePreset,
+    normalizeDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,
     isSearchBeforeViolationsSnapshotStarted,
