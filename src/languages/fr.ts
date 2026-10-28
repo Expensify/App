@@ -36,6 +36,7 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     billPay: {
+        bill: 'Facture à payer',
         bills: 'Factures à payer',
         createBill: 'Créer une facture à payer',
         vendorEmail: 'E-mail du fournisseur',

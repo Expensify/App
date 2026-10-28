@@ -2,14 +2,15 @@ import {canApproveBill, canPayBill, isBillPayReport} from '@libs/BillPayUtils';
 import {translate} from '@libs/Localize';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {canRejectReportAction, getReimbursementQueuedActionMessage} from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, isFilterSupported} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
-import {createTypeMenuSections, getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, getDisplayValue, getSections, getTypeOptions, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
@@ -242,6 +243,38 @@ describe('Bill Pay', () => {
         const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 456, managerID: 789, isBillPayReport: true};
         expect(isBillPayReport(invoice, accountID)).toBe(true);
         expect(canPayBill(invoice, undefined, accountID, email)).toBe(true);
+    });
+
+    it('offers Bill in the Type filter only to users who see Spend > Bills', () => {
+        const translateEN = <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters);
+
+        // Given the same workspaces, the Type options differ only by whether the user has bills.
+        const withBills = getTypeOptions(translateEN, {}, email, true);
+        const withoutBills = getTypeOptions(translateEN, {}, email, false);
+
+        // Then only the user with bills sees the Bill option, and the applied filter reads Bill.
+        expect(withBills).toContainEqual({text: 'Bill', value: CONST.SEARCH.DATA_TYPES.BILL});
+        expect(withoutBills.map((option) => option.value)).not.toContain(CONST.SEARCH.DATA_TYPES.BILL);
+        expect(getDisplayValue(FILTER_KEYS.TYPE, {type: CONST.SEARCH.DATA_TYPES.BILL}, CONST.SEARCH.DATA_TYPES.BILL, translateEN, (a, b) => a.localeCompare(b))).toBe('Bill');
+    });
+
+    it.each([
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.AMOUNT_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO,
+        FILTER_KEYS.PAID_STATUS,
+        FILTER_KEYS.ACTION,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.TO,
+    ])('supports the %s filter for bills exactly when invoices support it', (filter) => {
+        expect(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.BILL)).toBe(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.INVOICE));
+    });
+
+    it.each([FILTER_KEYS.FOOTER_COUNT, FILTER_KEYS.FOOTER_TOTAL, FILTER_KEYS.FOOTER_CURRENCY])('keeps the %s footer setting for bills, unlike invoices', (filter) => {
+        // Spend > Bills shows totals in its footer, so a bill query must keep the footer settings
+        expect(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.BILL)).toBe(true);
+        expect(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.INVOICE)).toBe(false);
     });
 
     it('builds distinct Bills searches with the approver filter on Approve and the payer filter on Ready to pay', () => {

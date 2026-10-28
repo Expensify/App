@@ -44,6 +44,7 @@ type AllCountries = Record<Country, string>;
 
 const translations = {
     billPay: {
+        bill: 'Bill',
         bills: 'Bills',
         createBill: 'Create bill',
         vendorEmail: 'Vendor email',
