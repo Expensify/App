@@ -1388,6 +1388,7 @@
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsAgreementsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsSignPage.tsx"	"rulesdir/no-onyx-loading-status"	1
+"../../src/pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/ChangePINPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	2
 "../../src/pages/settings/Wallet/ExpensifyCardPage/index.tsx"	"no-restricted-imports"	1

@@ -44,7 +44,7 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
-import type {SearchTask} from '@src/types/onyx/SearchResults';
+import type {SearchTask, SearchTrip} from '@src/types/onyx/SearchResults';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -16536,6 +16536,166 @@ describe('getDatePresets', () => {
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
         ]);
         expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
+    });
+});
+
+describe('Trip search', () => {
+    const buildTrip = (tripReportID: string, overrides: Partial<SearchTrip> = {}): SearchTrip => ({
+        reportID: tripReportID,
+        reportName: `Trip ${tripReportID}`,
+        chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+        type: CONST.REPORT.TYPE.CHAT,
+        policyID: 'DD949BDE0E77A392',
+        ownerAccountID: 0,
+        startDate: '2026-10-28T00:00:00',
+        endDate: '2026-11-01T00:00:00',
+        status: CONST.SEARCH.TRIP_STATUS.UPCOMING,
+        total: 159732,
+        currency: 'USD',
+        travelerAccountID: 629,
+        ...overrides,
+    });
+
+    // Shaped like the trip search response: trip rooms only, with the traveler in personalDetailsList
+    const tripData: OnyxTypes.SearchResults['data'] = {
+        personalDetailsList: {
+            628: {accountID: 628, displayName: 'Travel Admin', login: 'travel-admin@cplustest.com'},
+            629: {accountID: 629, displayName: 'Travel Employee', login: 'travel-employee@cplustest.com'},
+        },
+        report_1: buildTrip('1', {reportName: 'Tokyo Sales Conference', startDate: '2026-10-28T00:00:00'}),
+        report_2: buildTrip('2', {reportName: 'Sales Conf Vegas', startDate: '2026-08-12T00:00:00', status: CONST.SEARCH.TRIP_STATUS.DONE, travelerAccountID: 628}),
+        report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
+    };
+
+    const getTripSections = (shouldReturnTripRooms: boolean) =>
+        SearchUIUtils.getSections({
+            dateFnsLocale: undefined,
+            type: CONST.SEARCH.DATA_TYPES.TRIP,
+            data: tripData,
+            currentAccountID: 628,
+            currentUserEmail: 'travel-admin@cplustest.com',
+            translate: translateLocal,
+            formatPhoneNumber,
+            bankAccountList: {},
+            rules: undefined,
+            conciergeReportID: undefined,
+            convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
+            shouldReturnTripRooms,
+        });
+
+    it('builds one row per trip room with its traveler', () => {
+        // Given a trip search with the TravelApproval beta, which returns trip rooms
+        // When the search results are turned into rows
+        const [rows, count] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+
+        // Then each trip room is a row keyed by its room, named after it, with the traveler from travelerAccountID since trip rooms have no owner
+        expect(count).toBe(3);
+        const tokyo = rows.find((row) => row.reportID === '1');
+        expect(tokyo).toEqual(
+            expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
+        );
+        expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('keeps the expense rows for a trip search without the beta', () => {
+        // Given the same results read without the TravelApproval beta, where type:trip is still an expense search
+        // When the search results are turned into rows
+        const [rows] = getTripSections(false);
+
+        // Then no trip rows are built, since the expense search reads transactions and these results have none
+        expect(rows.some((row) => SearchUIUtils.isTripListItemType(row))).toBe(false);
+    });
+
+    it('sorts trips by start date for the default date sort', () => {
+        // Given trip rows and the canned trip search's date sort, newest first
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+
+        // When the rows are sorted
+        const sorted = SearchUIUtils.getSortedSections(
+            CONST.SEARCH.DATA_TYPES.TRIP,
+            rows,
+            localeCompare,
+            translateLocal,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.SORT_ORDER.DESC,
+            undefined,
+            {shouldReturnTripRooms: true},
+        );
+
+        // Then they follow the trip's start date, since trips have no created date to sort by
+        expect(getSortedSectionsByType(sorted, SearchUIUtils.isTripListItemType).map((row) => row.reportID)).toEqual(['3', '1', '2']);
+    });
+
+    it('sorts trips by trip name and traveler through the title and from sort keys', () => {
+        // Given trip rows, since the trip search sorts trip names by title and travelers by from
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+        const sortBy = (column: typeof CONST.SEARCH.TABLE_COLUMNS.TITLE | typeof CONST.SEARCH.TABLE_COLUMNS.FROM) =>
+            getSortedSectionsByType(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, [...rows], localeCompare, translateLocal, column, CONST.SEARCH.SORT_ORDER.ASC, undefined, {
+                    shouldReturnTripRooms: true,
+                }),
+                SearchUIUtils.isTripListItemType,
+            ).map((row) => row.reportID);
+
+        // When the rows are sorted by those keys
+        // Then title follows the trip name and from follows the traveler's name
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.TITLE)).toEqual(['3', '2', '1']);
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.FROM).at(0)).toBe('2');
+    });
+
+    it('offers the trip columns in Sort by with the trip search sort keys', () => {
+        // Given the trip columns, which the backend sorts by date, title and from
+        // When the Sort by options are built for a trip search
+        const options = SearchUIUtils.getSortByOptions([...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP], translateLocal, CONST.SEARCH.DATA_TYPES.TRIP);
+
+        // Then start date, trip name and traveler sort by those keys, so the default date sort shows as Start date, and end date isn't offered
+        expect(options).toEqual(
+            expect.arrayContaining([
+                {text: translateLocal('iou.startDate'), value: CONST.SEARCH.TABLE_COLUMNS.DATE},
+                {text: translateLocal('search.trip.tripName'), value: CONST.SEARCH.TABLE_COLUMNS.TITLE},
+                {text: translateLocal('search.trip.traveler'), value: CONST.SEARCH.TABLE_COLUMNS.FROM},
+            ]),
+        );
+        expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
+    });
+
+    it('labels the date sort as Start date only for trip rooms', () => {
+        // Given the canned trip search's date sort
+        // When its label is read with and without the TravelApproval beta
+        // Then trip rooms show Start date, matching the Sort by option, and the expense search keeps Date
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe('iou.startDate');
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe('common.date');
+    });
+
+    it('shows the trip columns only for trip rooms', () => {
+        // Given a trip search
+        const getColumns = (shouldReturnTripRooms: boolean) =>
+            SearchUIUtils.getColumnsToShow({currentAccountID: 628, data: tripData, type: CONST.SEARCH.DATA_TYPES.TRIP, shouldReturnTripRooms});
+
+        // When the columns are worked out with and without the beta
+        // Then trip rooms get the trip columns, with no Approver column until approval data exists, and the expense search keeps its own columns
+        expect(getColumns(true)).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+            CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
+            CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ]);
+        expect(getColumns(false)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME);
+    });
+
+    it('shows the trip columns the user picked and always keeps the total', () => {
+        // Given a user who picked only the trip name and traveler columns, plus an expense column left from another search
+        const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME, CONST.SEARCH.TABLE_COLUMNS.TRAVELER, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+
+        // When the trip columns are worked out
+        const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 628, data: tripData, type: CONST.SEARCH.DATA_TYPES.TRIP, visibleColumns, shouldReturnTripRooms: true});
+
+        // Then only the picked trip columns show, with the total added like on expense reports, and the expense column is ignored
+        expect(columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME, CONST.SEARCH.TABLE_COLUMNS.TRAVELER]);
     });
 });
 

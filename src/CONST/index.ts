@@ -8459,7 +8459,15 @@ const CONST = {
                 },
                 INVOICE: {},
                 TASK: {},
-                TRIP: {},
+                TRIP: {
+                    START_DATE: this.TABLE_COLUMNS.START_DATE,
+                    END_DATE: this.TABLE_COLUMNS.END_DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TRIP_NAME: this.TABLE_COLUMNS.TRIP_NAME,
+                    TRAVELER: this.TABLE_COLUMNS.TRAVELER,
+                    TOTAL: this.TABLE_COLUMNS.TOTAL,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
                 CHAT: {},
             };
         },
@@ -8563,7 +8571,15 @@ const CONST = {
                 ],
                 INVOICE: [],
                 TASK: [],
-                TRIP: [],
+                TRIP: [
+                    this.TABLE_COLUMNS.START_DATE,
+                    this.TABLE_COLUMNS.END_DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TRIP_NAME,
+                    this.TABLE_COLUMNS.TRAVELER,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 CHAT: [],
             };
         },
@@ -8632,6 +8648,12 @@ const CONST = {
             },
         },
         GROUP_COLUMN_PREFIX: 'group',
+        // Status the backend works out for each trip row, from the trip's dates and Spotnana status
+        TRIP_STATUS: {
+            UPCOMING: 'upcoming',
+            DONE: 'done',
+            CANCELED: 'canceled',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -8712,6 +8734,10 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            START_DATE: 'startDate',
+            END_DATE: 'endDate',
+            TRIP_NAME: 'tripName',
+            TRAVELER: 'traveler',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

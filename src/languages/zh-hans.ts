@@ -10314,6 +10314,15 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
+        trip: {
+            tripName: '行程名称',
+            traveler: '出行人',
+            status: {
+                upcoming: '即将开始',
+                done: '已完成',
+                canceled: '已取消',
+            },
+        },
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
