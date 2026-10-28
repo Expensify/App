@@ -57,7 +57,7 @@ Expensify will notify you when the feed is connected.
 
 Visa commercial feeds are configured through your bank using Visa’s **Subscription Management portal**.
 
-1. Ask your bank’s relationship manager to enable your **VCF (Visa Commercial Format)** feed and send it to **Expensify**.
+1. Provide your bank’s relationship manager with the earliest transaction start date that you would like to feed to start pulling in, then ask them to enable your **VCF (Visa Commercial Format)** feed and send it to **Expensify**.
    - Mention: “You can check a box in Visa’s Subscription Management portal to enable feed delivery—no test file needed.”
 2. Request the feed details:
    - **Processor ID**
