@@ -314,4 +314,38 @@ describe('ImportedMembersPage', () => {
         expect(importPolicyMembersSpy).not.toHaveBeenCalled();
         expect(setImportedSpreadsheetMemberDataSpy).not.toHaveBeenCalled();
     });
+
+    it('leaves the approver columns unmapped while approvals are off', async () => {
+        // Given multiple approvers on a workspace with approvals off, and a spreadsheet whose approver column isn't mapped yet
+        await seedOnyx(
+            buildSpreadsheet(
+                [CONST.CSV_IMPORT_COLUMNS.EMAIL],
+                [
+                    ['Email', 'member@example.com'],
+                    ['Approver 1', 'cfo@example.com'],
+                ],
+            ),
+            {...buildControlPolicy(), approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL},
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
+            titleKey: 'spreadsheet.importSuccessfulTitle',
+            promptKey: 'spreadsheet.importMembersAdded',
+            promptKeyParams: {count: 1},
+        });
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the spreadsheet is imported
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the approver header isn't mapped, because the workflow it would set up couldn't route anything yet, so the
+        // member is imported right away without approvers
+        expect(importPolicyMembersSpy).toHaveBeenCalledWith(expect.objectContaining({id: POLICY_ID}), [{email: 'member@example.com', role: ''}], false, {});
+    });
 });

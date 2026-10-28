@@ -28,7 +28,14 @@ import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {
+    canMemberAssignElevatedRole,
+    canMemberAssignRole,
+    canMemberManageMemberWithRole,
+    getApprovalWorkflow,
+    isControlPolicy as isControlPolicyUtil,
+    isPolicyMemberWithoutPendingDelete,
+} from '@libs/PolicyUtils';
 import {isControlPolicyOnlyRole} from '@libs/PolicyUtils/permissions';
 import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
@@ -74,6 +81,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     // the member's own submitsTo, forwardsTo and limit
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
 
+    // Approval workflows don't route any report while approvals are off, so their approvers are only imported while approvals are on
+    const canImportApprovers = isMultipleApproversBetaEnabled && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
@@ -87,17 +97,19 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
         );
 
-        // Offer the approvers that the headers or the mapping already use, plus the next one so its columns can be mapped too
-        const usedApproverPositions = [...(spreadsheet?.data ?? []).map((column) => findColumnName(column.at(0) ?? '')), ...Object.values(spreadsheet?.columns ?? {})].map(
-            (columnRole) => parseApproverColumnRole(columnRole)?.position ?? 0,
-        );
-        const approverCount = Math.min(Math.max(0, ...usedApproverPositions) + 1, CONST.IMPORT_SPREADSHEET.MAX_APPROVERS);
-        for (let position = 1; position <= approverCount; position++) {
-            columnRoles.push(
-                {text: translate('spreadsheet.approverColumn', position), value: getApproverColumnRole(position, 'approver')},
-                {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'approvalLimit')},
-                {text: translate('spreadsheet.approverOverLimitApproverColumn', position), value: getApproverColumnRole(position, 'overLimitApprover')},
+        if (canImportApprovers) {
+            // Offer the approvers that the headers or the mapping already use, plus the next one so its columns can be mapped too
+            const usedApproverPositions = [...(spreadsheet?.data ?? []).map((column) => findColumnName(column.at(0) ?? '')), ...Object.values(spreadsheet?.columns ?? {})].map(
+                (columnRole) => parseApproverColumnRole(columnRole)?.position ?? 0,
             );
+            const approverCount = Math.min(Math.max(0, ...usedApproverPositions) + 1, CONST.IMPORT_SPREADSHEET.MAX_APPROVERS);
+            for (let position = 1; position <= approverCount; position++) {
+                columnRoles.push(
+                    {text: translate('spreadsheet.approverColumn', position), value: getApproverColumnRole(position, 'approver')},
+                    {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'approvalLimit')},
+                    {text: translate('spreadsheet.approverOverLimitApproverColumn', position), value: getApproverColumnRole(position, 'overLimitApprover')},
+                );
+            }
         }
     } else {
         columnRoles.push(
@@ -153,7 +165,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             return {approvalLimit: translate('spreadsheet.invalidApprovalLimit')};
         }
 
-        const approversError = isMultipleApproversBetaEnabled ? getApprovers().error : undefined;
+        const approversError = canImportApprovers ? getApprovers().error : undefined;
         return approversError ? {approvers: translate(approversError.translationKey, approversError.rowNumber)} : {};
     };
 
@@ -222,7 +234,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         // Approvers are matched against members by email, so both are read the way the backend stores logins
         const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => (isMultipleApproversBetaEnabled ? email.trim().toLowerCase() : email));
-        const {approversByRow} = isMultipleApproversBetaEnabled ? getApprovers() : {approversByRow: []};
+        const {approversByRow} = canImportApprovers ? getApprovers() : {approversByRow: []};
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
         const membersForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);

@@ -42,6 +42,7 @@ describe('getImportedApprovers', () => {
         ['a later approver without an earlier one', ['submitter@example.com', '', '', '', 'cfo@example.com'], 'spreadsheet.approversOutOfOrder'],
         ['a limit without its approver', ['submitter@example.com', '', '100', 'director@example.com', ''], 'spreadsheet.approversOutOfOrder'],
         ['the same approver twice', ['submitter@example.com', 'manager@example.com', '', '', 'Manager@example.com'], 'spreadsheet.approverRepeated'],
+        ['an approver as their own over limit approver', ['submitter@example.com', 'manager@example.com', '100', 'Manager@example.com', ''], 'spreadsheet.approverRepeated'],
         ['a limit without an over limit approver', ['submitter@example.com', 'manager@example.com', '100', '', ''], 'spreadsheet.approvalLimitIncomplete'],
         ['an over limit approver without a limit', ['submitter@example.com', 'manager@example.com', '0', 'director@example.com', ''], 'spreadsheet.approvalLimitIncomplete'],
     ])('flags the row number of a row with %s', (_, invalidRow, translationKey) => {

@@ -478,7 +478,9 @@ function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, c
             if (hasSkippedApprover) {
                 error ??= {translationKey: 'spreadsheet.approversOutOfOrder', rowNumber};
             }
-            if (approvers.some((approver) => approver.email === email)) {
+            // Like in the workflow editor, an approver can't be their own over limit approver either: the reports over their limit
+            // would go back to them, which ends the workflow before the approvers after them
+            if (approvers.some((approver) => approver.email === email) || overLimitForwardsTo === email) {
                 error ??= {translationKey: 'spreadsheet.approverRepeated', rowNumber};
             }
 
