@@ -15,7 +15,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
-import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {hasHeldExpensesFromTransactions, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
@@ -102,7 +102,7 @@ function useSelectionModePayment({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const payReportsViaABA = usePayViaABA();
-    const isAUDPolicy = policy?.outputCurrency === CONST.CURRENCY.AUD;
+    const shouldLoadABAData = shouldLoadPayViaABAData(policy);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -268,14 +268,13 @@ function useSelectionModePayment({
         confirmPaymentRef.current = confirmPayment;
     });
 
-    // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data. The selection
-    // menus have no hook for when their pay options open, so it's loaded when selection mode can pay instead.
+    // The selection menus have no hook for when their pay options open, so the Pay via ABA data is loaded when selection mode can pay instead
     useEffect(() => {
-        if (!hasPayAction || !isAUDPolicy) {
+        if (!hasPayAction || !shouldLoadABAData) {
             return;
         }
         openPaymentMethods();
-    }, [hasPayAction, isAUDPolicy]);
+    }, [hasPayAction, shouldLoadABAData]);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,

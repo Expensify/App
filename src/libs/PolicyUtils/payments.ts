@@ -122,6 +122,14 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
 }
 
 /**
+ * Whether to load the workspace's AU withdrawal account, which canPayViaABA needs.
+ * Only admins of AUD workspaces can pay via ABA, so nobody else needs it.
+ */
+function shouldLoadPayViaABAData(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD;
+}
+
+/**
  * Whether the current user can pay the workspace's reports via ABA
  */
 function canPayViaABA(policy: OnyxInputOrEntry<Policy>): boolean {
@@ -130,7 +138,7 @@ function canPayViaABA(policy: OnyxInputOrEntry<Policy>): boolean {
     // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
     const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
 
-    return isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
+    return shouldLoadPayViaABAData(policy) && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
 }
 
 export {
@@ -142,5 +150,6 @@ export {
     arePaymentsEnabled,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
+    shouldLoadPayViaABAData,
     canPayViaABA,
 };

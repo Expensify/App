@@ -31,7 +31,7 @@ import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@lib
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -558,8 +558,7 @@ function SettlementButton({
     }
 
     const handlePaymentOptionsShow = () => {
-        // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data
-        if (policy?.outputCurrency === CONST.CURRENCY.AUD) {
+        if (shouldLoadPayViaABAData(policy)) {
             openPaymentMethods();
         }
         onPaymentOptionsShow?.();

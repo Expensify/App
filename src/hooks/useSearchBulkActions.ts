@@ -57,7 +57,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canPayViaABA, getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy, shouldLoadPayViaABAData} from '@libs/PolicyUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -949,17 +949,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // Selecting all items is not supported for now, it will be added in the second release.
     const bulkPayPolicy = payScopedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${payScopedPolicyIDs.at(0)}`] : undefined;
     const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy);
-    const isAUDBulkPayPolicy = bulkPayPolicy?.outputCurrency === CONST.CURRENCY.AUD;
+    const shouldLoadBulkPayViaABAData = shouldLoadPayViaABAData(bulkPayPolicy);
     const payReportsViaABA = usePayViaABA();
 
-    // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data. The bulk pay
-    // menus have no hook for when they open, so it's loaded when the selection is from an AUD workspace instead.
+    // The bulk pay menus have no hook for when they open, so the Pay via ABA data is loaded when the selection is made instead
     useEffect(() => {
-        if (!isAUDBulkPayPolicy) {
+        if (!shouldLoadBulkPayViaABAData) {
             return;
         }
         openPaymentMethods();
-    }, [isAUDBulkPayPolicy]);
+    }, [shouldLoadBulkPayViaABAData]);
 
     const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: payScopedPolicyIDs.at(0),

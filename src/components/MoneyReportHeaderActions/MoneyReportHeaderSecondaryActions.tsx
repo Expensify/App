@@ -51,7 +51,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import type {KYCFlowEvent, TriggerKYCFlow, WorkspacePolicyPaymentOption} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
-import {sortPoliciesByName} from '@libs/PolicyUtils';
+import {shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
 import {REPORT_MORE_MENU_SECTIONS, sortAndSectionPopoverMenuItems} from '@libs/PopoverMenuSections';
 import {getFilteredReportActionsForReportView, hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
@@ -466,8 +466,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const handleOptionsMenuShow = () => {
-        // Only AUD policies support the pay via ABA option, for which we need additional reimbursement data
-        if (policy?.outputCurrency !== CONST.CURRENCY.AUD) {
+        if (!secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) || !shouldLoadPayViaABAData(policy)) {
             return;
         }
         openPaymentMethods();
