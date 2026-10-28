@@ -58,6 +58,7 @@ import type {
 
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {ParamListBase} from '@react-navigation/routers';
@@ -144,6 +145,8 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     },
 };
 
+const optionsPerScreen: Partial<Record<string, PlatformStackNavigationOptions>> = OPTIONS_PER_SCREEN;
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -162,8 +165,9 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 
         const getScreenOptions: typeof screenOptions = ({route: optionRoute}) => {
             // Extend common options if they are defined for the screen.
-            if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+            const screenOverride = optionsPerScreen[optionRoute.name];
+            if (screenOverride) {
+                return {...screenOptions({route: optionRoute}), ...screenOverride};
             }
             return screenOptions({route: optionRoute});
         };
@@ -177,15 +181,20 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 role={isSmallScreenWidth ? 'dialog' : undefined}
             >
                 <ModalStackNavigator.Navigator>
-                    {Object.keys(screens as Required<Screens>).map((name) => (
-                        <ModalStackNavigator.Screen
-                            key={name}
-                            name={name}
-                            getComponent={(screens as Required<Screens>)[name as Screen]}
-                            // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
-                            options={getScreenOptions}
-                        />
-                    ))}
+                    {ObjectUtils.typedEntries(screens).map(([name, getComponent]) => {
+                        if (getComponent === undefined) {
+                            throw new Error(`Missing lazy component loader for modal screen ${name}`);
+                        }
+                        return (
+                            <ModalStackNavigator.Screen
+                                key={name}
+                                name={name}
+                                getComponent={getComponent}
+                                // For some reason, screenOptions is not working with function as options so we have to pass it to every screen.
+                                options={getScreenOptions}
+                            />
+                        );
+                    })}
                 </ModalStackNavigator.Navigator>
             </View>
         );
@@ -496,6 +505,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EditBankAccountNicknamePage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/WiseGlobalReimbursementsIntroPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage').default,
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVPage').default,
     [SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/TravelCVVPage/TravelCVVVerifyAccountPage').default,
     [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: () => require<ReactComponentModule>('@pages/settings/Wallet/PersonalCards/FixPersonalCardConnectionPage').default,
@@ -800,6 +812,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOAuthPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOrganizationSelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/ClaimOfferPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default,

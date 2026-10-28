@@ -26,6 +26,11 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.COMMENTS,
         // Task search view.
         TABLE_COLUMNS.ASSIGNEE,
+        // Trip search view.
+        TABLE_COLUMNS.START_DATE,
+        TABLE_COLUMNS.END_DATE,
+        TABLE_COLUMNS.TRIP_NAME,
+        TABLE_COLUMNS.TRAVELER,
         TABLE_COLUMNS.IN,
         // Expense-report (report list) view.
         TABLE_COLUMNS.REIMBURSABLE_TOTAL,
