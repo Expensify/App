@@ -50,6 +50,32 @@ describe('getFocusedWorkspacePolicyID', () => {
         expect(policyID).toBe(POLICY_ID);
     });
 
+    it('returns the workspace policyID when a tab inside the workspace page is focused', () => {
+        // Given a tab with no params focused inside a workspace page that hosts tabs
+        const state: State = {
+            routes: [
+                {
+                    name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+                    state: {
+                        routes: [
+                            {
+                                name: SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT,
+                                params: {policyID: POLICY_ID},
+                                state: {index: 1, routes: [{name: 'all'}, {name: 'linked'}]},
+                            },
+                        ],
+                    },
+                },
+            ],
+        };
+
+        // When the focused workspace is read
+        const policyID = getFocusedWorkspacePolicyID(state);
+
+        // Then the tab inherits the workspace of the page hosting it
+        expect(policyID).toBe(POLICY_ID);
+    });
+
     it('returns undefined when the focused screen shows a report', () => {
         // Given a report focused in the RHP on top of a workspace page
         const state: State = {
