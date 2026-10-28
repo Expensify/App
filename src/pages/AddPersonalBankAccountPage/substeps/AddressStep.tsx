@@ -62,14 +62,11 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
     const [zipcode, setZipcode] = useState<string | undefined>(address?.zip);
 
     useEffect(() => {
-        if (!address) {
-            return;
-        }
         setState(draftState ?? address?.state);
         setCurrentCountry(draftCountry ?? address?.country);
         setCity(address?.city);
         setZipcode(address?.zip);
-    }, [address?.state, address?.country, address?.city, address?.zip, address, draftCountry, draftState]);
+    }, [address?.state, address?.country, address?.city, address?.zip, draftCountry, draftState]);
 
     const handleAddressChange = (value: unknown, key: unknown) => {
         const addressPart = value as string;
