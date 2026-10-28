@@ -294,6 +294,9 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     translate,
                     formatPhoneNumber,
                 });
+
+                // Clear the selection now that the export has started, matching what Search and the report view do.
+                clearTableSelection();
             },
         },
     ];

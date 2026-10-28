@@ -95,6 +95,9 @@ function useWorkspaceCompanyCardsBulkActions({
         const csvContent = [header, ...rows].join('\r\n');
         const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
         localFileDownload(`CompanyCards_${safePolicySegment}.csv`, csvContent, translate);
+
+        // Clear the selection now that the export has started, matching what Search and the report view do.
+        clearCardSelection();
     };
 
     const confirmBulkUnassign = async () => {

@@ -164,4 +164,16 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
         // Then the existing export still uses one safe text cell for the card name
         expect(localFileDownload).toHaveBeenCalledWith('CompanyCards_policy123.csv', expect.stringContaining('\r\nalex@example.com,"\'=SUM(1,2)",1234,'), expect.any(Function));
     });
+
+    it('clears the selection once the export has started', () => {
+        // Given a selected company card
+        mockSelectedCards = [buildCard({isAssigned: true, cardName: 'card123', cardholder: {accountID: 1, login: 'alex@example.com'}})];
+        const {clearCardSelection} = renderControls(true);
+
+        // When the CSV export action is selected
+        mockButtonProps.current?.options?.find((option) => option.value === 'exportCSV')?.onSelected?.();
+
+        // Then the selection goes with it, the same as it does in Search and the report view
+        expect(clearCardSelection).toHaveBeenCalled();
+    });
 });
