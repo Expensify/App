@@ -52,7 +52,7 @@ Learn how to [connect Ashby to Expensify](/articles/new-expensify/connections/Co
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Recruiting**.
 2. Next to your ATS, select **Connect**.
-3. In the connection window that opens, sign in with your ATS administrator account and authorize Expensify to access your account.
+3. In the connection window that opens, follow the prompts to connect your ATS. For Ashby, you enter an Ashby API key instead of signing in. Learn [how to create an API key in Ashby](/articles/new-expensify/connections/Connect-Ashby-to-Expensify#how-to-create-an-api-key-in-ashby).
 4. When the connection completes, select **Complete setup** in the **Connected. Complete setup to import candidates.** message under your ATS. You can also select **More (⋮)** next to your ATS, then select **Complete setup**.
 5. On the **Import settings** page, enable **Job stages**, **Tags**, or both, and optionally enable **Offices**. Then select **Save**.
 6. On the **Recruiting** page, select **Default approver** and choose who approves candidate expenses.
@@ -83,4 +83,4 @@ It depends on your ATS. With Ashby, choose **Recruiter**, **Hiring manager**, or
 
 ## What if I don't see my ATS on the Recruiting page?
 
-To request another ATS integration, select **Ask Concierge** on the **Recruiting** page.
+To request another ATS integration, select **Ask Concierge** on the **Recruiting** page, or message Concierge from anywhere in Expensify.

@@ -1,8 +1,8 @@
 ---
 title: Connect Ashby to Expensify
 description: Learn how to connect Ashby to your Expensify workspace, choose which candidates to import, and set their expense approver.
-keywords: [New Expensify, Ashby, Ashby integration, connect Ashby, recruiting integration, ATS, applicant tracking system, import candidates, candidate reimbursement, Ashby candidates not importing, sync Ashby, disconnect Ashby, hiring manager approver, Recruiting, Import settings, Default approver]
-internalScope: Audience is workspace admins on Control plans. Covers connecting Ashby through the Recruiting page, completing the initial setup, choosing which candidates to import, setting the candidate approval mode, managing Ashby syncs, and disconnecting Ashby. Does not cover other ATS integrations such as Greenhouse, HR integrations, or accounting integrations.
+keywords: [New Expensify, Ashby, Ashby integration, connect Ashby, Ashby API key, Ashby sync error, recruiting integration, ATS, applicant tracking system, import candidates, candidate reimbursement, Ashby candidates not importing, sync Ashby, disconnect Ashby, hiring manager approver, Recruiting, Import settings, Default approver]
+internalScope: Audience is workspace admins on Control plans. Covers creating an Ashby API key, connecting Ashby through the Recruiting page, completing the initial setup, choosing which candidates to import, setting the candidate approval mode, managing Ashby syncs, troubleshooting Ashby sync errors, and disconnecting Ashby. Does not cover other ATS integrations such as Greenhouse, HR integrations, or accounting integrations.
 contentType: task
 platform: new
 ---
@@ -25,6 +25,7 @@ To connect Ashby, you must:
 
 - Be a workspace admin on a Control plan workspace in Expensify.
 - Be an administrator in Ashby.
+- Have an Ashby API key with read access to the data Expensify syncs. Learn [how to create an API key in Ashby](#how-to-create-an-api-key-in-ashby).
 - Have **Recruiting** enabled under **More features** in the workspace.
 
 To enable **Recruiting**, select **Workspaces > [workspace name] > More features**, and under **Integrate**, enable **Recruiting**. If your workspace is on the Collect plan, you'll be asked to upgrade to the Control plan. After you upgrade, **Recruiting** is enabled automatically.
@@ -35,15 +36,29 @@ You can connect and manage Ashby on web and mobile.
 
 ---
 
+## How to create an API key in Ashby
+
+Expensify connects to Ashby with an API key instead of your Ashby sign-in. Create the key before you connect, or while the connection window is open.
+
+1. In Ashby, select **Admin > Integrations > API Credentials**.
+2. Select **New**.
+3. Enter a name for the API key, then create it.
+4. Enable read access for **Candidates**, **Jobs**, **Interviews**, **Hiring Process Metadata**, **Organization**, and **Offers**.
+5. Select **Save and Continue**.
+6. Copy the API key and store it somewhere safe. You'll enter it when you connect Ashby to Expensify.
+
+---
+
 ## How to connect Ashby to Expensify
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Recruiting**.
 2. Next to **Ashby**, select **Connect**.
-3. In the connection window that opens, sign in with your Ashby administrator account and authorize Expensify to access your Ashby account.
-4. When the connection completes, select **Complete setup** in the **Connected. Complete setup to import candidates.** message under **Ashby**. You can also select **More (⋮)** next to **Ashby**, then select **Complete setup**.
-5. On the **Import settings** page, choose which candidates to import, then select **Save**.
+3. In the connection window that opens, enter your Ashby API key. You don't sign in to your Ashby account.
+4. After you connect, you'll see **Your connection is syncing**. The first sync can take some time. Concierge messages you when the first sync is complete and you're ready to finish setup.
+5. Select **Complete setup** in the **Connected. Complete setup to import candidates.** message under **Ashby**. You can also select **More (⋮)** next to **Ashby**, then select **Complete setup**.
+6. On the **Import settings** page, choose which candidates to import, then select **Save**.
 
-After you connect, you'll see **Your connection is syncing**. The first connection can take some time. Nothing is imported until you choose which candidates to import and select **Save**.
+Nothing is imported until you choose which candidates to import and select **Save**.
 
 ---
 
@@ -123,7 +138,42 @@ Manual syncs are limited to two in 24 hours. If you've reached the limit, you'll
 2. Next to **Ashby**, select **More (⋮)**, then select **Disconnect**.
 3. Select **Disconnect** again to confirm.
 
-Disconnecting Ashby stops future candidate syncs.
+Disconnecting Ashby stops future candidate syncs. Candidates who were already imported stay in the workspace. To remove them, remove them manually from the **Members** page.
+
+---
+
+## How to troubleshoot Ashby sync errors
+
+If an Ashby sync fails, find the error below to see what it means and what to do.
+
+**Tip:** If every data type fails at once, the cause is almost always the API key. If only one data type fails, such as **Application** on a large account, the cause is usually volume or a temporary Ashby outage.
+
+**Error: Merge won't deliver the ATS [data type] model (FAILED)**
+
+The last attempt to get that data from Ashby failed. The exact reason isn't available, so check these likely causes:
+
+| Likely cause | What to do |
+|---|---|
+| The API key is disabled, revoked, or expired | Re-enable or regenerate the API key in Ashby, then reconnect Ashby in Expensify. |
+| The API key is missing a permission, such as read access to candidates or applications | Update the API key's permissions in Ashby. |
+| Ashby was slow or temporarily down, such as timeouts on large accounts | No action is needed. Expensify tries again on the next daily sync. If the error lasts more than a day, contact Concierge. |
+| A very large account times out on applications | Contact Concierge to narrow what gets synced. |
+
+**Error: Merge won't deliver the ATS [data type] model (DISABLED)**
+
+That data type is turned off for your connection. You can't fix this yourself. Contact Concierge to turn it on.
+
+**Error: Merge won't deliver the ATS [data type] model (PAUSED)**
+
+Syncing is paused for the whole connection. This usually happens at the account level, for example after repeated failures or an account change. Contact Concierge.
+
+**Error: Timed out waiting for Merge ATS model syncs to complete**
+
+Ashby was still sending data after 15 minutes. This is common on the first sync or on large accounts. Wait for the next sync. If the error keeps happening, contact Concierge.
+
+**Error: Merge linked account requires reconnect**
+
+The connection between Expensify and Ashby is no longer valid, for example because the connection was removed. Disconnect Ashby, then connect it again.
 
 ---
 
@@ -155,4 +205,4 @@ You must disconnect Ashby before you can disable **Recruiting** under **More fea
 
 ## What if I don't see my ATS on the Recruiting page?
 
-To request another ATS integration, select **Ask Concierge** on the **Recruiting** page.
+To request another ATS integration, select **Ask Concierge** on the **Recruiting** page, or message Concierge from anywhere in Expensify.
