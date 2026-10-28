@@ -1291,10 +1291,10 @@ function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
 
-function getWiseBankAccountFields(country: string, currency?: string, partialAccount?: Record<string, unknown>) {
+function getWiseBankAccountFields(country: string, currency?: string, inputs?: Record<string, unknown>) {
     const parameters: GetWiseBankAccountFieldsParams = {country, currency};
-    if (partialAccount) {
-        parameters.partialAccount = JSON.stringify(partialAccount);
+    if (inputs) {
+        parameters.inputs = JSON.stringify(inputs);
     }
     const onyxData: OnyxData<typeof ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS> = {
         optimisticData: [

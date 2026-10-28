@@ -1,7 +1,7 @@
 type GetWiseBankAccountFieldsParams = {
     country: string;
     currency?: string;
-    partialAccount?: string;
+    inputs?: string;
 };
 
 export default GetWiseBankAccountFieldsParams;
