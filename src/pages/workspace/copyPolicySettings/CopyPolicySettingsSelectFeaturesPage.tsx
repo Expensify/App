@@ -300,6 +300,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
         const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetNames.length, targetWorkspaceName: targetNames.at(0) ?? ''});
 
         return showConfirmModal({
+            id: 'copyPolicySettingsConfirmMembers',
             title: translate('workspace.copyPolicySettings.confirmMembers.title'),
             prompt,
             confirmText: translate('common.confirm'),
