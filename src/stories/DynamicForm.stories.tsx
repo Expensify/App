@@ -599,7 +599,7 @@ function WiseBankAccountGBFlow({layout, confirmation}: WiseBankAccountStoryProps
     return (
         <Flow
             resetKey="wiseBankAccountGB"
-            schema={wiseBankAccountFieldsGB.fields}
+            schema={wiseBankAccountFieldsGB.schema}
             draftValues={WISE_GB_DRAFT}
             confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
             layout={layout}
@@ -644,7 +644,7 @@ function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: 
             </Text>
             <Flow
                 resetKey={`${currency}-${String(isDomestic)}`}
-                schema={bankAccountFields.fields}
+                schema={bankAccountFields.schema}
                 draftValues={{currency, accountHolderName: WISE_GB_DRAFT.accountHolderName}}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
                 layout={layout}

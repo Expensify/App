@@ -34,7 +34,7 @@ type WiseBankAccountFields = {
     country: string;
     currency: string;
     payoutType: string;
-    fields: DynamicFormSchema;
+    schema: DynamicFormSchema;
 
     /** Single-option selects Wise asks for, answered by the server on create instead of shown */
     answeredByServer: Record<string, string>;
@@ -156,7 +156,7 @@ function toWiseBankAccountFields(country: string, currency: string, requirements
     ];
     const pages = allPages.filter((page) => page.content.length > 0);
 
-    return {country, currency, payoutType: requirement.type, fields: {pages}, answeredByServer};
+    return {country, currency, payoutType: requirement.type, schema: {pages}, answeredByServer};
 }
 
 export default toWiseBankAccountFields;

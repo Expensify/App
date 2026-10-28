@@ -63,10 +63,10 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         return <FullScreenLoadingIndicator onGoBack={leaveFlow} />;
     }
 
-    if (wiseBankAccountFields?.fields) {
+    if (wiseBankAccountFields?.schema) {
         return (
             <DynamicFormFlow
-                schema={wiseBankAccountFields.fields}
+                schema={wiseBankAccountFields.schema}
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 headerTitle={translate('bankAccount.addBankAccount')}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}

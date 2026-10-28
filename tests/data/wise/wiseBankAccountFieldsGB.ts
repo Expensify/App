@@ -4,7 +4,7 @@ type WiseBankAccountFieldsFixture = {
     country: string;
     currency: string;
     payoutType: string;
-    fields: DynamicFormSchema;
+    schema: DynamicFormSchema;
 };
 
 /** What GetWiseBankAccountFields writes to Onyx for a GBP account held in the UK */
@@ -12,7 +12,7 @@ const wiseBankAccountFieldsGB: WiseBankAccountFieldsFixture = {
     country: 'GB',
     currency: 'GBP',
     payoutType: 'sort_code',
-    fields: {
+    schema: {
         pages: [
             {
                 key: 'accountDetails',

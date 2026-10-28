@@ -16,7 +16,7 @@ type WiseBankAccountFields = {
     payoutType?: string;
 
     /** The form's pages as the server groups them */
-    fields?: DynamicFormSchema;
+    schema?: DynamicFormSchema;
 
     /** Whether the form is being fetched */
     isLoading?: boolean;
