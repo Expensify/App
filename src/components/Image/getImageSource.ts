@@ -1,47 +1,28 @@
-import {isDelegateSession, isExpiredSession} from '@libs/actions/Session';
 import canSendAuthTokenToURL from '@libs/canSendAuthTokenToURL';
 
 import CONST from '@src/CONST';
-import type Session from '@src/types/onyx/Session';
 
 import type {ImageProps} from './types';
 
 type GetImageSourceParams = {
     propsSource: ImageProps['source'];
-    session: Session | undefined;
+    encryptedAuthToken: string | undefined;
     isAuthTokenRequired: boolean;
-    isOffline: boolean;
 };
 
-type GetImageSourceReturn = {
-    source: ImageProps['source'];
-    shouldReauthenticate: boolean;
-};
-
-export default function getImageSource({propsSource, session, isAuthTokenRequired, isOffline}: GetImageSourceParams): GetImageSourceReturn {
-    if (typeof propsSource === 'object' && propsSource !== null && 'uri' in propsSource) {
-        if (typeof propsSource.uri === 'number') {
-            return {source: propsSource.uri, shouldReauthenticate: false};
-        }
-
-        const authToken = session?.encryptedAuthToken ?? null;
-        if (isAuthTokenRequired && authToken && canSendAuthTokenToURL(propsSource.uri ?? '')) {
-            if (isOffline || isDelegateSession(session) || (!!session?.creationDate && !isExpiredSession(session.creationDate))) {
-                return {
-                    source: {
-                        ...propsSource,
-                        cacheKey: propsSource.uri,
-                        headers: {
-                            [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
-                        },
-                    },
-                    shouldReauthenticate: false,
-                };
-            }
-
-            return {source: undefined, shouldReauthenticate: !!session};
-        }
+export default function getImageSource({propsSource, encryptedAuthToken, isAuthTokenRequired}: GetImageSourceParams): ImageProps['source'] {
+    if (typeof propsSource !== 'object' || propsSource === null || !('uri' in propsSource)) {
+        return propsSource;
     }
-
-    return {source: propsSource, shouldReauthenticate: false};
+    if (typeof propsSource.uri === 'number') {
+        return propsSource.uri;
+    }
+    if (!isAuthTokenRequired || !encryptedAuthToken || !canSendAuthTokenToURL(propsSource.uri ?? '')) {
+        return propsSource;
+    }
+    return {
+        ...propsSource,
+        cacheKey: propsSource.uri,
+        headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: encryptedAuthToken},
+    };
 }

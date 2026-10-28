@@ -1,65 +1,43 @@
-import Log from '@libs/Log';
+import canSendAuthTokenToURL from '@libs/canSendAuthTokenToURL';
 import {getIsOffline} from '@libs/NetworkState';
 import reauthenticate from '@libs/Reauthentication';
+import type {ReauthenticationResult} from '@libs/Reauthentication';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-import type Session from '@src/types/onyx/Session';
+import CONST from '@src/CONST';
 
-import Onyx from 'react-native-onyx';
+let pendingReauthentication: Promise<ReauthenticationResult> | undefined;
 
-let active = false;
-let currentActiveSession: Session = {};
-let timer: NodeJS.Timeout;
-// The delay before requesting a reauthentication once activated
-// When the session is expired we will give it this time to reauthenticate via normal flows, like the Reauthentication middleware, in an attempt to not duplicate authentication requests
-// also, this is an arbitrary number so we may tweak as needed
-const TIMING_BEFORE_REAUTHENTICATION_MS = 3500; // 3.5s
-
-// We subscribe to sessions changes
-// We do not depend on updates on the UI to call the `deactivate` function
-// So we can use `connectWithoutView` here.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        if (!value || isSameSession(value) || !active) {
-            return;
-        }
-        deactivate();
-    },
-});
-
-function isSameSession(session: Session): boolean {
-    return currentActiveSession.authToken === session.authToken && currentActiveSession.encryptedAuthToken === session.encryptedAuthToken;
-}
-
-function deactivate() {
-    active = false;
-    currentActiveSession = {};
-    clearInterval(timer);
-}
-
-/**
- * The reauthenticator is currently only used by attachment images and only when the current session is expired.
- * It will only request reauthentication only once between two receptions of different sessions from Onyx
- * @param session the current session
- * @returns
- */
-function activate(session: Session) {
-    if (!session || isSameSession(session) || getIsOffline()) {
-        return;
+/** Share image-triggered authentication so simultaneous failures do not start competing sign-in flows. */
+function reauthenticateAttachmentImages(): Promise<ReauthenticationResult> {
+    if (getIsOffline()) {
+        return Promise.resolve({wasSuccessful: false});
     }
-    currentActiveSession = session;
-    active = true;
-    timer = setTimeout(tryReauthenticate, TIMING_BEFORE_REAUTHENTICATION_MS);
-}
-
-function tryReauthenticate() {
-    if (getIsOffline() || !active) {
-        return;
+    if (!pendingReauthentication) {
+        pendingReauthentication = reauthenticate().finally(() => {
+            pendingReauthentication = undefined;
+        });
     }
-    reauthenticate().catch((error) => {
-        Log.hmmm('Could not reauthenticate attachment image or receipt', {error});
-    });
+    return pendingReauthentication;
 }
 
-export default activate;
+/** Check the image endpoint directly because the image loader does not expose HTTP status consistently. */
+async function isImageAuthenticationRequired(url: string, encryptedAuthToken: string): Promise<boolean> {
+    if (getIsOffline() || !canSendAuthTokenToURL(url)) {
+        return false;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT);
+    try {
+        const response = await fetch(url, {
+            method: 'HEAD',
+            headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: encryptedAuthToken},
+            signal: controller.signal,
+        });
+        return response.status === CONST.HTTP_STATUS.UNAUTHORIZED;
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+export {isImageAuthenticationRequired, reauthenticateAttachmentImages};
