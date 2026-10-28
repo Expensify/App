@@ -67,6 +67,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
+    ToggleCollectDepositAccountsParams,
     TogglePolicyReceiptPartnersParams,
     TogglePolicyUberAutoInvitePageParams,
     TogglePolicyUberAutoRemovePageParams,
@@ -1008,6 +1009,49 @@ function setWorkspaceCurrencyConversionFeesPreference(policyID: string, shouldPr
 
     const params: SetGlobalReimbursementFXPreferenceParams = {policyID, preferCompany: shouldPreferCompany};
     API.write(WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE, params, {optimisticData, failureData, successData});
+}
+
+/**
+ * Turn collecting employee deposit account details on or off. Like Classic, this only flips the flag and leaves the
+ * workspace's reimbursement countries untouched.
+ */
+function toggleCollectDepositAccounts(policyID: string, enabled: boolean, currentIsCollectDepositAccountsEnabled: Policy['isCollectDepositAccountsEnabled']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: enabled,
+                pendingFields: {isCollectDepositAccountsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {isCollectDepositAccountsEnabled: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                pendingFields: {isCollectDepositAccountsEnabled: null},
+                errorFields: {isCollectDepositAccountsEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {isCollectDepositAccountsEnabled: null},
+            },
+        },
+    ];
+
+    const params: ToggleCollectDepositAccountsParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceAutoReportingMonthlyOffset(
@@ -4314,7 +4358,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fun
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string, currentValue: string | undefined) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
 
-    if (value === (currentValue ?? '')) {
+    if (!login || value === (currentValue ?? '')) {
         return;
     }
 
@@ -5159,6 +5203,12 @@ const ENABLE_CONNECTION_FEATURE = {
 function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName: ConnectionFeatureName) {
     if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
         return;
+    }
+    // A workspace that is still being created has no connections to fetch. Without this, the open Connections page
+    // would be replaced by a loader while the fetch waits behind the create request. It's set first so the page never
+    // sees the feature on without it.
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
     ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }
@@ -8236,6 +8286,7 @@ export {
     setWorkspaceAutoHarvesting,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceCurrencyConversionFeesPreference,
+    toggleCollectDepositAccounts,
     setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
