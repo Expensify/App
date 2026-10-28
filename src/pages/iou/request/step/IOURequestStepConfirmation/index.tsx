@@ -26,6 +26,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -172,7 +173,8 @@ function IOURequestStepConfirmationContent({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
     const hasMultipleTransactions = transactions.length > 1;
 
-    const transactionIDs = transactions?.map((item) => item.transactionID);
+    // Draft edits must not reapply policy defaults when the transaction IDs have not changed.
+    const transactionIDs = useStableArrayReference(transactions.map((item) => item.transactionID));
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
