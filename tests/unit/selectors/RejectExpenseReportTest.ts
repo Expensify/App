@@ -67,17 +67,29 @@ function buildPolicy(employeeEmails: string[]): Policy {
 
 describe('currentCycleForwardedActorAccountIDsSelector', () => {
     it('returns undefined when reportActions is nullish', () => {
-        expect(currentCycleForwardedActorAccountIDsSelector(undefined)).toBeUndefined();
+        // Given no report actions are available
+        const reportActions = undefined;
+
+        // When the selector runs
+        const result = currentCycleForwardedActorAccountIDsSelector(reportActions);
+
+        // Then it returns undefined so callers can distinguish "not loaded" from "no forwards"
+        expect(result).toBeUndefined();
     });
 
     it('returns an empty array when the report has no SUBMITTED/FORWARDED actions in the current cycle', () => {
+        // Given a report whose only action is an APPROVED entry
         const reportActions: ReportActions = buildReportActions([buildApprovedAction(1, APPROVER_A_ACCOUNT_ID, '2025-01-01T00:00:00Z')]);
-        expect(currentCycleForwardedActorAccountIDsSelector(reportActions)).toEqual([]);
+
+        // When the selector runs
+        const result = currentCycleForwardedActorAccountIDsSelector(reportActions);
+
+        // Then the forwarder list is empty
+        expect(result).toEqual([]);
     });
 
     it('collects forwarders newest-first and stops at the latest SUBMITTED', () => {
-        // Older cycle (ignored): submit → forward A
-        // Current cycle: submit → forward A → forward B
+        // Given an older cycle (submit → forward A) followed by the current cycle (submit → forward A → forward B)
         const reportActions: ReportActions = buildReportActions([
             buildSubmitAction(1, SUBMITTER_ACCOUNT_ID, '2025-01-01T00:00:00Z'),
             buildForwardAction(2, APPROVER_A_ACCOUNT_ID, '2025-01-02T00:00:00Z'),
@@ -85,52 +97,85 @@ describe('currentCycleForwardedActorAccountIDsSelector', () => {
             buildForwardAction(4, APPROVER_A_ACCOUNT_ID, '2025-02-02T00:00:00Z'),
             buildForwardAction(5, APPROVER_B_ACCOUNT_ID, '2025-02-03T00:00:00Z'),
         ]);
-        expect(currentCycleForwardedActorAccountIDsSelector(reportActions)).toEqual([APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID]);
+
+        // When the selector runs
+        const result = currentCycleForwardedActorAccountIDsSelector(reportActions);
+
+        // Then only the current cycle's forwarders are returned, newest-first
+        expect(result).toEqual([APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID]);
     });
 
     it('deduplicates the same forwarder across the current cycle', () => {
+        // Given approver A forwards twice in the same cycle, with approver B in between
         const reportActions: ReportActions = buildReportActions([
             buildSubmitAction(1, SUBMITTER_ACCOUNT_ID, '2025-02-01T00:00:00Z'),
             buildForwardAction(2, APPROVER_A_ACCOUNT_ID, '2025-02-02T00:00:00Z'),
             buildForwardAction(3, APPROVER_B_ACCOUNT_ID, '2025-02-03T00:00:00Z'),
             buildForwardAction(4, APPROVER_A_ACCOUNT_ID, '2025-02-04T00:00:00Z'),
         ]);
-        expect(currentCycleForwardedActorAccountIDsSelector(reportActions)).toEqual([APPROVER_A_ACCOUNT_ID, APPROVER_B_ACCOUNT_ID]);
+
+        // When the selector runs
+        const result = currentCycleForwardedActorAccountIDsSelector(reportActions);
+
+        // Then each account appears once, at its most recent position
+        expect(result).toEqual([APPROVER_A_ACCOUNT_ID, APPROVER_B_ACCOUNT_ID]);
     });
 });
 
 describe('submitterAndLastForwardedActorEmailSelector', () => {
     it('returns the newest forwarder who is still a workspace member', () => {
+        // Given a workspace where every forwarder is still a member
         const policy = buildPolicy([SUBMITTER_EMAIL, APPROVER_A_EMAIL, APPROVER_B_EMAIL]);
         const selector = submitterAndLastForwardedActorEmailSelector(SUBMITTER_ACCOUNT_ID, [APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, policy);
-        expect(selector(PERSONAL_DETAILS)).toEqual({submitterEmail: SUBMITTER_EMAIL, lastForwardedActorEmail: APPROVER_B_EMAIL});
+
+        // When the selector resolves the emails
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then the submitter and the newest forwarder are returned
+        expect(result).toEqual({submitterEmail: SUBMITTER_EMAIL, lastForwardedActorEmail: APPROVER_B_EMAIL});
     });
 
     it('skips a removed workspace member and walks back to the next eligible approver', () => {
-        // Approver B has left the workspace. The newest forward is B's, so the walk falls through to A.
+        // Given approver B has been removed from the workspace while approver A is still a member
         const policy = buildPolicy([SUBMITTER_EMAIL, APPROVER_A_EMAIL]);
         const selector = submitterAndLastForwardedActorEmailSelector(SUBMITTER_ACCOUNT_ID, [APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, policy);
-        expect(selector(PERSONAL_DETAILS).lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
+
+        // When the selector resolves the last forwarded actor
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then B is skipped and A is offered as the previous approver
+        expect(result.lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
     });
 
     it('skips an approver whose removal is optimistically pending (pendingAction DELETE)', () => {
-        // Approver B is still listed but has been marked for optimistic removal — reject must not target them.
+        // Given approver B is still listed but has been marked for optimistic removal
         const policy = buildPolicy([SUBMITTER_EMAIL, APPROVER_A_EMAIL, APPROVER_B_EMAIL]);
         if (policy.employeeList?.[APPROVER_B_EMAIL]) {
             policy.employeeList[APPROVER_B_EMAIL].pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         }
         const selector = submitterAndLastForwardedActorEmailSelector(SUBMITTER_ACCOUNT_ID, [APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, policy);
-        expect(selector(PERSONAL_DETAILS).lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
+
+        // When the selector resolves the last forwarded actor
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then the pending-delete approver is skipped and A is offered instead
+        expect(result.lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
     });
 
     it('returns no last approver when every forwarder has left the workspace', () => {
+        // Given no forwarder is still a workspace member
         const policy = buildPolicy([SUBMITTER_EMAIL]);
         const selector = submitterAndLastForwardedActorEmailSelector(SUBMITTER_ACCOUNT_ID, [APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, policy);
-        expect(selector(PERSONAL_DETAILS).lastForwardedActorEmail).toBeUndefined();
+
+        // When the selector resolves the last forwarded actor
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then no previous approver is offered, so the picker falls back to the submitter only
+        expect(result.lastForwardedActorEmail).toBeUndefined();
     });
 
     it('skips the current user and the submitter when picking the last approver', () => {
-        // Newest forward is by the current user, next by the submitter — both must be skipped.
+        // Given the newest forward is by the current user and the next by the submitter, with A as the earlier approver
         const policy = buildPolicy([SUBMITTER_EMAIL, APPROVER_A_EMAIL, CURRENT_USER_EMAIL]);
         const selector = submitterAndLastForwardedActorEmailSelector(
             SUBMITTER_ACCOUNT_ID,
@@ -138,22 +183,37 @@ describe('submitterAndLastForwardedActorEmailSelector', () => {
             CURRENT_USER_ACCOUNT_ID,
             policy,
         );
-        expect(selector(PERSONAL_DETAILS).lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
+
+        // When the selector resolves the last forwarded actor
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then the current user and submitter are skipped and A is offered as the previous approver
+        expect(result.lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
     });
 
     it('fails closed and offers no last approver when the policy employeeList is missing (hydration race)', () => {
-        // Pre-fix behaviour was to fall through and offer the newest forward anyway, which exposed the ex-member target bug.
+        // Given the policy's employeeList has not loaded yet
         const policy = buildPolicy([]);
         policy.employeeList = undefined;
         const selector = submitterAndLastForwardedActorEmailSelector(SUBMITTER_ACCOUNT_ID, [APPROVER_B_ACCOUNT_ID, APPROVER_A_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, policy);
-        expect(selector(PERSONAL_DETAILS).lastForwardedActorEmail).toBeUndefined();
+
+        // When the selector resolves the last forwarded actor
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then no previous approver is offered, matching Auth's server-side strictness instead of exposing an ex-member target
+        expect(result.lastForwardedActorEmail).toBeUndefined();
     });
 
     it('keeps the policy owner eligible even when they are not in employeeList', () => {
-        // Owner acts as approver A and the workspace has only the submitter in employeeList.
+        // Given approver A owns the workspace but is not listed in employeeList
         const policy = buildPolicy([SUBMITTER_EMAIL]);
         policy.owner = APPROVER_A_EMAIL;
         const selector = submitterAndLastForwardedActorEmailSelector(SUBMITTER_ACCOUNT_ID, [APPROVER_A_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, policy);
-        expect(selector(PERSONAL_DETAILS).lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
+
+        // When the selector resolves the last forwarded actor
+        const result = selector(PERSONAL_DETAILS);
+
+        // Then the owner is still offered as the previous approver
+        expect(result.lastForwardedActorEmail).toBe(APPROVER_A_EMAIL);
     });
 });
