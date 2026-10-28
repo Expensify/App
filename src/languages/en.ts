@@ -4732,6 +4732,14 @@ const translations = {
                 `This bank account must be linked to a workspace. Go to <a href="${workspaceRoute}">Workspaces</a>, select your workspace, then navigate to Workflows > Payments > Add bank account.`,
         },
     },
+    reimbursementIntentStep: {
+        title: 'How do you usually wanna pay?',
+        subtitle: "Don't worry, you can set up both ways later.",
+        payViaExpensify: 'Pay via Expensify',
+        payViaExpensifyDescription: 'Fast, secure, and easy',
+        payViaABAFile: 'Pay elsewhere via ABA file',
+        payViaABAFileDescription: 'For manual payments',
+    },
     bankInfoStep: {
         whatAreYour: 'What are your business bank account details?',
         letsDoubleCheck: 'Let’s double check that everything looks fine.',

@@ -1253,6 +1253,7 @@ const CONST = {
         },
         PAGE_NAME: {
             CURRENCY_AND_COUNTRY: 'currency-and-country',
+            REIMBURSEMENT_INTENT: 'reimbursement-intent',
             BANK_INFO: 'bank-info',
             BUSINESS_INFO: 'business-info',
             BENEFICIAL_OWNER_INFO: 'beneficial-owner-info',
