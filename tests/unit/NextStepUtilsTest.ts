@@ -1399,7 +1399,9 @@ describe('libs/NextStepUtils', () => {
             };
             const translateEta: LocalizedTranslate = (path, ...parameters) => {
                 if (path === 'nextStep.message.waitingForAutomaticSubmit') {
-                    return String(parameters.at(2));
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                    const params = parameters.at(0) as ReportNextStepMessageParams;
+                    return params.eta ?? '';
                 }
                 return translateLocal(path, ...parameters);
             };
