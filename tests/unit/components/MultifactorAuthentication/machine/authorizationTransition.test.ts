@@ -97,6 +97,7 @@ describe('MFA authorization', () => {
             const actor = createActorAtState(SIGNING_CHALLENGE);
 
             actor.start();
+
             // When the platform ceremony signs the challenge
             sendAuthorizeDone(actor, {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
 
@@ -203,6 +204,43 @@ describe('MFA authorization', () => {
             actor.stop();
         });
 
+        it('never runs the scenario action when the flow closes before the ceremony finishes', async () => {
+            // Given a ceremony still waiting on the user
+            let resolveCeremony: ((output: AuthorizeOutput) => void) | undefined;
+            const executeScenarioAction = jest.fn(() => new Promise<ExecuteScenarioActionOutput>(() => {}));
+            const machine = mfaMachine.provide({
+                actors: {
+                    authorize: fromPromise<AuthorizeOutput, AuthorizeInput>(
+                        () =>
+                            new Promise<AuthorizeOutput>((resolve) => {
+                                resolveCeremony = resolve;
+                            }),
+                    ),
+                    executeScenarioAction: fromPromise<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>(executeScenarioAction),
+                },
+            });
+            const snapshot = machine.resolveState({
+                value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
+                context: createFlowContext(),
+            });
+            const actor = createActor(machine, {snapshot});
+            actor.start();
+            actor.send({type: 'SOFT_PROMPT_APPROVED'});
+            await waitForBatchedUpdates();
+            expect(resolveCeremony).toBeDefined();
+
+            // When the user closes the flow and the ceremony then signs the challenge anyway
+            actor.send({type: 'CLOSE_MODAL'});
+            resolveCeremony?.({success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
+            await waitForBatchedUpdates();
+
+            // Then the scenario action is never sent, since a state that was left drops its actor's late result
+            expect(actor.getSnapshot().matches(MFA_STATE.CLOSING)).toBe(true);
+            expect(executeScenarioAction).not.toHaveBeenCalled();
+
+            actor.stop();
+        });
+
         it('marks the prompt as processing while authorizing', () => {
             const actor = createActorAtState(SIGNING_CHALLENGE, {promptPresentationPhase: MFA_STATE.AUTHORIZING});
 
@@ -251,6 +289,7 @@ describe('MFA authorization', () => {
             const actor = createActorAtState(EXECUTING_SCENARIO_ACTION, {signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
 
             actor.start();
+
             // When the backend accepts the action and the outcome is finalized
             sendExecuteScenarioActionDone(actor, {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE});
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
@@ -270,6 +309,7 @@ describe('MFA authorization', () => {
             const actor = createActorAtState(EXECUTING_SCENARIO_ACTION, {signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD});
 
             actor.start();
+
             // When the backend rejects the action and the outcome is finalized
             sendExecuteScenarioActionDone(actor, {success: false, error: MFA_TEST_SCENARIO_ACTION_ERROR});
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);

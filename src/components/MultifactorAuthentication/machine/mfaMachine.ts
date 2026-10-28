@@ -372,8 +372,9 @@ const MFAMachine = setup({
                                         id: 'authorize',
                                         src: 'authorize',
                                         input: ({context}) => {
-                                            if (context.accountID === undefined) {
-                                                throw new Error('MFA account must be initialized before authorization');
+                                            // The scenario action is checked here too, so a missing one fails before the user is prompted.
+                                            if (context.accountID === undefined || context.runScenarioAction === undefined) {
+                                                throw new Error('MFA account and scenario action must be initialized before authorization');
                                             }
                                             return {accountID: context.accountID};
                                         },
@@ -399,7 +400,6 @@ const MFAMachine = setup({
                                     },
                                 },
                                 [MFA_STATE.EXECUTING_SCENARIO_ACTION]: {
-                                    id: MFA_STATE.EXECUTING_SCENARIO_ACTION,
                                     invoke: {
                                         id: 'executeScenarioAction',
                                         src: 'executeScenarioAction',

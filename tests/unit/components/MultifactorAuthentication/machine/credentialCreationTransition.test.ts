@@ -93,8 +93,10 @@ describe('MFA credential creation', () => {
 
     describe('createCredential actor outcome', () => {
         it('invokes createCredential with the account and registration challenge stored in machine context', async () => {
+            // Given a pending registration challenge and a ceremony that records its input
             const accountID = 67890;
             let receivedInput: CreateCredentialInput | undefined;
+            // When the user approves the soft prompt
             const actor = approveSoftPromptWith(
                 {
                     createCredential: fromPromise<CreateCredentialOutput, CreateCredentialInput>(({input}) => {
@@ -106,7 +108,36 @@ describe('MFA credential creation', () => {
             );
             await waitForBatchedUpdates();
 
+            // Then the ceremony creates the key for this account against the challenge the backend issued
             expect(receivedInput).toEqual({accountID, registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
+
+            actor.stop();
+        });
+
+        it('never registers the key when the flow closes before the ceremony finishes', async () => {
+            // Given a ceremony still waiting on the user
+            let resolveCeremony: ((output: CreateCredentialOutput) => void) | undefined;
+            const registerCredential = jest.fn(() => new Promise<RegisterCredentialOutput>(() => {}));
+            const actor = approveSoftPromptWith({
+                createCredential: fromPromise<CreateCredentialOutput, CreateCredentialInput>(
+                    () =>
+                        new Promise<CreateCredentialOutput>((resolve) => {
+                            resolveCeremony = resolve;
+                        }),
+                ),
+                registerCredential: fromPromise<RegisterCredentialOutput, RegisterCredentialInput>(registerCredential),
+            });
+            await waitForBatchedUpdates();
+            expect(resolveCeremony).toBeDefined();
+
+            // When the user closes the flow and the ceremony then succeeds anyway
+            actor.send({type: 'CLOSE_MODAL'});
+            resolveCeremony?.({success: true, keyInfo: MFA_TEST_KEY_INFO});
+            await waitForBatchedUpdates();
+
+            // Then the key never reaches the backend, since a state that was left drops its actor's late result
+            expect(actor.getSnapshot().matches(MFA_STATE.CLOSING)).toBe(true);
+            expect(registerCredential).not.toHaveBeenCalled();
 
             actor.stop();
         });
@@ -116,6 +147,7 @@ describe('MFA credential creation', () => {
             const actor = createActorAtState(CREATING_KEY, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
 
             actor.start();
+
             // When the platform ceremony creates the key
             sendCreateCredentialDone(actor, {success: true, keyInfo: MFA_TEST_KEY_INFO});
 
@@ -134,6 +166,7 @@ describe('MFA credential creation', () => {
             const failureError = createLocalMFAError(REASON.LOCAL_ERRORS.HSM.KEY_CREATION_FAILED, 'Credential creation transition spec failure');
 
             actor.start();
+
             // When the ceremony fails and the outcome is finalized
             sendCreateCredentialDone(actor, {success: false, error: failureError});
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
@@ -191,6 +224,7 @@ describe('MFA credential creation', () => {
             const actor = createActorAtState(REGISTERING_KEY, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE, registrationKeyInfo: MFA_TEST_KEY_INFO});
 
             actor.start();
+
             // When the backend accepts the key
             sendRegisterCredentialDone(actor, {success: true});
 
@@ -209,6 +243,7 @@ describe('MFA credential creation', () => {
             const failureError = createLocalMFAError(REASON.CLIENT_ERRORS.UNRECOGNIZED, 'Credential registration transition spec failure');
 
             actor.start();
+
             // When the backend rejects the key and the outcome is finalized
             sendRegisterCredentialDone(actor, {success: false, error: failureError});
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);

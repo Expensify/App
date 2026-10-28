@@ -64,7 +64,7 @@ const requestRegistrationChallengeActor = fromPromise<RequestRegistrationChallen
 /**
  * Runs the platform credential ceremony. It is kept apart from backend registration so the machine can
  * stop and restart it while the cancel confirmation is up without touching a registration request
- * already sent. Breadcrumb labels match legacy `Main.tsx` for telemetry continuity.
+ * already sent. The breadcrumb label predates the split and is kept for telemetry continuity.
  */
 const createCredentialActor = fromPromise<CreateCredentialOutput, CreateCredentialInput>(async ({input, signal}) => {
     const creationResult = await createCredential({...input, signal});
@@ -117,9 +117,9 @@ const authorizeActor = fromPromise<AuthorizeOutput, AuthorizeInput>(async ({inpu
 });
 
 /**
- * Sends the scenario's backend action with the signed challenge and returns its result. The request can't
- * be taken back once sent, so stopping this actor never aborts it. No rollback happens after the action
- * fails, matching `registerCredentialActor`'s contract.
+ * Calls the scenario's backend API command (e.g. approving the transaction) with the signed challenge and
+ * returns its result. The request can't be taken back once sent, so stopping this actor never aborts it. No
+ * rollback happens after the action fails, matching `registerCredentialActor`'s contract.
  */
 const executeScenarioActionActor = fromPromise<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>(async ({input}) => {
     const scenarioResult = await input.runScenarioAction({
