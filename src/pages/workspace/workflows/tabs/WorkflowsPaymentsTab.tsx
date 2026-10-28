@@ -455,7 +455,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             subMenuItems={
                                 <View style={[styles.mt3, styles.mbn3]}>
                                     <MenuItemSectionRoot
-                                        // TODO: Navigate to the reimbursement country selector page once it is added
                                         onPress={canWritePayments ? () => {} : undefined}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
                                     >
