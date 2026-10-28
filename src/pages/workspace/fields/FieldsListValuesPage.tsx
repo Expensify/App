@@ -196,9 +196,9 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
         return <NotFoundPage />;
     }
 
-    const getBulkActionOptions = () => {
+    const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-        if (canWrite) {
+        if (canWrite && (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedKeys.length > 0)) {
             if (selectedKeys.length > 0 && !isImportedReportField) {
                 options.push({
                     icon: icons.Trashcan,
@@ -304,15 +304,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     },
                 });
             }
-        }
 
-        return options;
-    };
-
-    const getHeaderButtons = () => {
-        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
-        // page's own buttons no matter what is selected.
-        if (canWrite && isSmallScreenWidth && isMobileSelectionModeEnabled) {
             return (
                 <ButtonWithDropdownMenu
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -320,7 +312,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedKeys.length})}
-                    options={getBulkActionOptions()}
+                    options={options}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedKeys.length}
@@ -386,7 +378,6 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
                     headerComponent={isInvoicePage ? undefined : tableHeaderComponent}
                     onRowSelectionChange={setSelectedKeys}
                     isInvoicePage={isInvoicePage}
-                    bulkActionOptions={canWrite ? getBulkActionOptions() : undefined}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

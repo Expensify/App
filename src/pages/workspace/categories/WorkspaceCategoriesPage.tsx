@@ -540,9 +540,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return null;
         }
 
-        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
-        // page's own buttons no matter what is selected.
-        if (canWriteCategories && isSmallScreenWidth && canSelectMultiple) {
+        // The floating bar over the table takes these actions wherever it fits, which is the full-width page and not
+        // the RHP. The header keeps offering them everywhere the bar cannot go.
+        if (canWriteCategories && shouldUseNarrowLayout && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
             return (
                 <ButtonWithDropdownMenu
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
