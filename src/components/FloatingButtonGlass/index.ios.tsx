@@ -1,4 +1,5 @@
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -17,6 +18,7 @@ const isFloatingButtonGlassAvailable = isLiquidGlassAvailable() && isGlassEffect
 
 /** The liquid glass a floating button is drawn with in place of its solid fill, tinted with the button's color. */
 function FloatingButtonGlass({tintColor, tintOpacity = variables.floatingButtonGlassTintOpacity}: FloatingButtonGlassProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -31,6 +33,8 @@ function FloatingButtonGlass({tintColor, tintOpacity = variables.floatingButtonG
             style={[StyleSheet.absoluteFill, styles.floatingButtonGlass]}
             glassEffectStyle="regular"
             tintColor={glassTintColor}
+            // Fixes light glass over the dark app theme (and the other way around): the glass follows the app theme, not the system appearance.
+            colorScheme={theme.colorScheme}
             isInteractive
         />
     );
