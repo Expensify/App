@@ -97,7 +97,7 @@ index be946f8..8f8de11 100644
  @end
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index cbda377..0b33ca7 100644
+index cbda377..432bdd9 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 @@ -11,6 +11,7 @@
@@ -116,8 +116,8 @@ index cbda377..0b33ca7 100644
 +    __weak __typeof(self) weakSelf = self;
 +    BOOL isPastingFiles = RCTPasteboardReadFiles(UIPasteboard.generalPasteboard, ^(NSArray<NSDictionary<NSString *, id> *> *files) {
 +      id<RCTBackedTextInputDelegate> textInputDelegate = weakSelf.textInputDelegate;
-+      if ([textInputDelegate respondsToSelector:@selector(textInputDidPasteFiles:)]) {
-+        [textInputDelegate textInputDidPasteFiles:files];
++      if ([textInputDelegate respondsToSelector:@selector(textInputDidPaste:)]) {
++        [textInputDelegate textInputDidPaste:files];
 +      }
 +    });
 +    if (isPastingFiles) {
@@ -141,27 +141,29 @@ index cbda377..0b33ca7 100644
  }
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
-index 7187177..c189655 100644
+index 7187177..eea6ab4 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegate.h
-@@ -39,6 +39,8 @@ NS_ASSUME_NONNULL_BEGIN
+@@ -39,6 +39,10 @@ NS_ASSUME_NONNULL_BEGIN
  
  @optional
  
-+- (void)textInputDidPasteFiles:(NSArray<NSDictionary<NSString *, id> *> *)files;
++// Called with the files pasted into an input that accepts them. react-native-live-markdown forwards this method
++// from its own delegate, so keep the name in sync with it.
++- (void)textInputDidPaste:(NSArray<NSDictionary<NSString *, id> *> *)files;
 +
  - (void)scrollViewDidScroll:(UIScrollView *)scrollView;
  
  @end
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
-index b67beb9..357fc86 100644
+index b67beb9..b666a6e 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
 @@ -39,6 +39,8 @@ NS_ASSUME_NONNULL_BEGIN
  @property (nonatomic, assign, readonly) UIEdgeInsets contentInset;
  @property (nullable, nonatomic, copy) NSDictionary<NSAttributedStringKey, id> *typingAttributes;
  @property (nonatomic, strong, nullable) NSArray<NSString *> *acceptDragAndDropTypes;
-+// Whether pasted files are handed to `textInputDidPasteFiles:` instead of being pasted as text.
++// Whether pasted files are handed to `textInputDidPaste:` instead of being pasted as text.
 +@property (nonatomic, assign) BOOL acceptsPastedFiles;
  
  // This protocol disallows direct access to `selectedTextRange` property because
@@ -202,10 +204,10 @@ index 0000000..07207ac
 +NS_ASSUME_NONNULL_END
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteboardFiles.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteboardFiles.mm
 new file mode 100644
-index 0000000..11df49d
+index 0000000..fde64da
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteboardFiles.mm
-@@ -0,0 +1,277 @@
+@@ -0,0 +1,285 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -217,8 +219,8 @@ index 0000000..11df49d
 +
 +#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 +
-+// The Files app lists a private type with this prefix next to the copied file's own type.
-+static NSString *const RCTFilesAppItemTypePrefix = @"com.apple.DocumentManager.FPItem";
++// The Files app marks copied files with a private type with this prefix, next to the file's own type.
++static NSString *const RCTFilesAppItemTypePrefix = @"com.apple.DocumentManager.";
 +
 +static BOOL RCTIsFileMarkerType(NSString *identifier)
 +{
@@ -237,7 +239,7 @@ index 0000000..11df49d
 +      [type conformsToType:UTTypeFlatRTFD] || [type conformsToType:UTTypeWebArchive];
 +}
 +
-+static BOOL RCTIsFileItem(NSArray<NSString *> *identifiers)
++static BOOL RCTHasFileMarkerType(NSArray<NSString *> *identifiers)
 +{
 +  for (NSString *identifier in identifiers) {
 +    if (RCTIsFileMarkerType(identifier)) {
@@ -247,13 +249,20 @@ index 0000000..11df49d
 +  return NO;
 +}
 +
++static BOOL RCTIsFileItem(NSItemProvider *itemProvider)
++{
++  // Apps that copy files, like Files, offer them for opening in place.
++  return RCTHasFileMarkerType(itemProvider.registeredTypeIdentifiers) ||
++      [itemProvider registeredTypeIdentifiersWithFileOptions:NSItemProviderFileOptionOpenInPlace].count > 0;
++}
++
 +/**
 + * The representation to read as a file, or nil when UIKit should paste the item as text.
 + * Pasteboard items list their types from highest to lowest fidelity.
 + */
-+static NSString *_Nullable RCTFileTypeIdentifier(NSArray<NSString *> *identifiers)
++static NSString *_Nullable RCTFileTypeIdentifier(NSArray<NSString *> *identifiers, BOOL isFile)
 +{
-+  if (RCTIsFileItem(identifiers)) {
++  if (isFile) {
 +    // A copied file. Read its own type, which is a text type for files like .txt or .csv.
 +    NSString *genericIdentifier = nil;
 +    for (NSString *identifier in identifiers) {
@@ -418,7 +427,7 @@ index 0000000..11df49d
 +{
 +  NSIndexSet *items = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, pasteboard.numberOfItems)];
 +  for (NSArray<NSString *> *identifiers in [pasteboard pasteboardTypesForItemSet:items]) {
-+    if (RCTFileTypeIdentifier(identifiers)) {
++    if (RCTFileTypeIdentifier(identifiers, RCTHasFileMarkerType(identifiers))) {
 +      return YES;
 +    }
 +  }
@@ -433,7 +442,8 @@ index 0000000..11df49d
 +  NSMutableArray<NSNumber *> *indexes = [NSMutableArray new];
 +  NSMutableArray<NSString *> *typeIdentifiers = [NSMutableArray new];
 +  for (NSUInteger index = 0; index < itemProviders.count; index++) {
-+    NSString *typeIdentifier = RCTFileTypeIdentifier(itemProviders[index].registeredTypeIdentifiers);
++    NSString *typeIdentifier =
++        RCTFileTypeIdentifier(itemProviders[index].registeredTypeIdentifiers, RCTIsFileItem(itemProviders[index]));
 +    if (typeIdentifier) {
 +      [indexes addObject:@(index)];
 +      [typeIdentifiers addObject:typeIdentifier];
@@ -459,7 +469,7 @@ index 0000000..11df49d
 +    NSUInteger index = indexes[position].unsignedIntegerValue;
 +    NSItemProvider *itemProvider = itemProviders[index];
 +    NSString *typeIdentifier = typeIdentifiers[position];
-+    if (!RCTIsFileItem(itemProvider.registeredTypeIdentifiers) &&
++    if (!RCTIsFileItem(itemProvider) &&
 +        [[UTType typeWithIdentifier:typeIdentifier] conformsToType:UTTypeImage]) {
 +      store(position, RCTReadImage(pasteboard, index, typeIdentifier, itemProvider.suggestedName));
 +      continue;
@@ -496,7 +506,7 @@ index fe6d957..b423ac7 100644
  @end
  
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 052c003..0a956c5 100644
+index 052c003..18d01ef 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 @@ -8,6 +8,7 @@
@@ -527,8 +537,8 @@ index 052c003..0a956c5 100644
 +    __weak __typeof(self) weakSelf = self;
 +    BOOL isPastingFiles = RCTPasteboardReadFiles(UIPasteboard.generalPasteboard, ^(NSArray<NSDictionary<NSString *, id> *> *files) {
 +      id<RCTBackedTextInputDelegate> textInputDelegate = weakSelf.textInputDelegate;
-+      if ([textInputDelegate respondsToSelector:@selector(textInputDidPasteFiles:)]) {
-+        [textInputDelegate textInputDidPasteFiles:files];
++      if ([textInputDelegate respondsToSelector:@selector(textInputDidPaste:)]) {
++        [textInputDelegate textInputDidPaste:files];
 +      }
 +    });
 +    if (isPastingFiles) {
@@ -540,7 +550,7 @@ index 052c003..0a956c5 100644
    [super paste:sender];
  }
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index e9f33a7..4dc882c 100644
+index e9f33a7..20a0ff1 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 @@ -335,6 +335,10 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
@@ -558,7 +568,7 @@ index e9f33a7..4dc882c 100644
    }
  }
  
-+- (void)textInputDidPasteFiles:(NSArray<NSDictionary<NSString *, id> *> *)files
++- (void)textInputDidPaste:(NSArray<NSDictionary<NSString *, id> *> *)files
 +{
 +  if (!_eventEmitter || files.count == 0) {
 +    return;
