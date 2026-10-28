@@ -4,7 +4,7 @@ import useTheme from '@hooks/useTheme';
 
 import type {InsightsDashboardID} from '@src/types/onyx';
 
-import {useRef, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {Alert} from 'react-native';
 
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
@@ -21,7 +21,7 @@ function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFi
     const [isExporting, setIsExporting] = useState(false);
     const exportInFlight = useRef(false);
 
-    const reportLoading = (id: string, isLoading: boolean) => {
+    const reportLoading = useCallback((id: string, isLoading: boolean) => {
         setLoadingCharts((current) => {
             if (current.has(id) === isLoading) {
                 return current;
@@ -34,7 +34,7 @@ function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFi
             }
             return next;
         });
-    };
+    }, []);
 
     const exportDashboard = async () => {
         if (exportInFlight.current || loadingCharts.size > 0) {

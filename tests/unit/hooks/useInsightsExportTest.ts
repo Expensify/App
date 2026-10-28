@@ -1,4 +1,6 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook, screen} from '@testing-library/react-native';
+
+import {ChartCaptureContext, useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
 
 import exportInsightsDashboard from '@pages/Insights/exportInsightsDashboard';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
@@ -6,7 +8,8 @@ import useInsightsExport from '@pages/Insights/useInsightsExport';
 
 import CONST from '@src/CONST';
 
-import {Alert} from 'react-native';
+import {createElement} from 'react';
+import {Alert, View} from 'react-native';
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useTheme', () => () => ({appBG: '#ffffff'}));
@@ -14,6 +17,21 @@ jest.mock('@pages/Insights/exportInsightsDashboard', () => jest.fn());
 jest.mock('@pages/Insights/getInsightsExportFileName', () => () => 'Insights.png');
 
 const filters: InsightsFilters = {date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}, policyIDs: [], groupBy: CONST.SEARCH.GROUP_BY.MONTH, groupCurrency: 'USD'};
+
+function LoadingChart({isLoading}: {isLoading: boolean}) {
+    useReportChartCaptureLoading(isLoading);
+    return null;
+}
+
+function Dashboard({isLoading, showChart = true}: {isLoading: boolean; showChart?: boolean}) {
+    const {captureContext, isLoading: isChartLoading} = useInsightsExport(CONST.INSIGHTS.DASHBOARD.SPEND, filters);
+    return createElement(
+        ChartCaptureContext.Provider,
+        {value: captureContext},
+        createElement(View, {accessibilityLabel: isChartLoading ? 'loading' : 'ready'}),
+        showChart && createElement(LoadingChart, {isLoading}),
+    );
+}
 
 describe('useInsightsExport', () => {
     beforeEach(() => {
@@ -26,6 +44,31 @@ describe('useInsightsExport', () => {
     });
 
     afterEach(() => jest.restoreAllMocks());
+
+    it('keeps chart loading registration stable across dashboard renders', () => {
+        // Given a dashboard whose mounted chart reports loading through its capture context
+        const {rerender} = render(createElement(Dashboard, {isLoading: true}));
+
+        // When the dashboard rerenders while the chart is still loading
+        rerender(createElement(Dashboard, {isLoading: true}));
+
+        // Then registration settles without a render loop and export remains blocked
+        expect(screen.getByLabelText('loading')).toBeTruthy();
+
+        // When the chart finishes rendering
+        rerender(createElement(Dashboard, {isLoading: false}));
+
+        // Then it no longer blocks export
+        expect(screen.getByLabelText('ready')).toBeTruthy();
+
+        // When the chart starts loading again and is then removed
+        rerender(createElement(Dashboard, {isLoading: true}));
+        expect(screen.getByLabelText('loading')).toBeTruthy();
+        rerender(createElement(Dashboard, {isLoading: true, showChart: false}));
+
+        // Then cleanup removes its pending loading registration
+        expect(screen.getByLabelText('ready')).toBeTruthy();
+    });
 
     it('waits for every chart and removes unmounted loading charts', async () => {
         // Given two charts still loading their data or renderer
