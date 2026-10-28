@@ -52,7 +52,7 @@ Learn how to [connect Ashby to Expensify](/articles/new-expensify/connections/Co
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Recruiting**.
 2. Next to your ATS, select **Connect**.
-3. In the connection window that opens, follow the prompts to connect your ATS. For Ashby, you enter an Ashby API key instead of signing in. Learn [how to create an API key in Ashby](/articles/new-expensify/connections/Connect-Ashby-to-Expensify#how-to-create-an-api-key-in-ashby).
+3. In the connection window that opens, follow the prompts to connect your ATS. For Ashby, you enter an Ashby API key. Learn [how to create an API key in Ashby](/articles/new-expensify/connections/Connect-Ashby-to-Expensify#how-to-create-an-api-key-in-ashby).
 4. When the connection completes, select **Complete setup** in the **Connected. Complete setup to import candidates.** message under your ATS. You can also select **More (⋮)** next to your ATS, then select **Complete setup**.
 5. On the **Import settings** page, enable **Job stages**, **Tags**, or both, and optionally enable **Offices**. Then select **Save**.
 6. On the **Recruiting** page, select **Default approver** and choose who approves candidate expenses.

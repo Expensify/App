@@ -38,7 +38,7 @@ You can connect and manage Ashby on web and mobile.
 
 ## How to create an API key in Ashby
 
-Expensify connects to Ashby with an API key instead of your Ashby sign-in. Create the key before you connect, or while the connection window is open.
+Expensify connects to Ashby with an API key. Create the key before you connect, or while the connection window is open.
 
 1. In Ashby, select **Admin > Integrations > API Credentials**.
 2. Select **New**.
@@ -53,7 +53,11 @@ Expensify connects to Ashby with an API key instead of your Ashby sign-in. Creat
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Recruiting**.
 2. Next to **Ashby**, select **Connect**.
-3. In the connection window that opens, enter your Ashby API key. You don't sign in to your Ashby account.
+3. In the connection window that opens:
+   - Confirm you're an Ashby admin. Only admins can create the API key.
+   - Confirm your API key has read access.
+   - Choose how far back to sync applications. By default, Expensify syncs applications modified in the last year. If you only need recent candidates, choose a shorter window. Less data means a faster sync.
+   - Enter your API key, then select **Next**.
 4. After you connect, you'll see **Your connection is syncing**. The first sync can take some time. Concierge messages you when the first sync is complete and you're ready to finish setup.
 5. Select **Complete setup** in the **Connected. Complete setup to import candidates.** message under **Ashby**. You can also select **More (⋮)** next to **Ashby**, then select **Complete setup**.
 6. On the **Import settings** page, choose which candidates to import, then select **Save**.
@@ -158,14 +162,6 @@ The last attempt to get that data from Ashby failed. The exact reason isn't avai
 | The API key is missing a permission, such as read access to candidates or applications | Update the API key's permissions in Ashby. |
 | Ashby was slow or temporarily down, such as timeouts on large accounts | No action is needed. Expensify tries again on the next daily sync. If the error lasts more than a day, contact Concierge. |
 | A very large account times out on applications | Contact Concierge to narrow what gets synced. |
-
-**Error: Merge won't deliver the ATS [data type] model (DISABLED)**
-
-That data type is turned off for your connection. You can't fix this yourself. Contact Concierge to turn it on.
-
-**Error: Merge won't deliver the ATS [data type] model (PAUSED)**
-
-Syncing is paused for the whole connection. This usually happens at the account level, for example after repeated failures or an account change. Contact Concierge.
 
 **Error: Timed out waiting for Merge ATS model syncs to complete**
 
