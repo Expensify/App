@@ -1,4 +1,4 @@
-import {getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
+import {getMsSinceJsStartup, getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
 
 import setupTelemetry from '@src/setup/telemetry/index.native';
 
@@ -168,5 +168,41 @@ describe('telemetry startup markers (native)', () => {
 
         // Then later spans get no duration instead of minutes or hours
         expect(getMsSinceNativeAppStart()).toBeUndefined();
+    });
+
+    it('reports the time since JS startup even when the native start time is discarded', () => {
+        // Given an old native process, as when a HybridApp user opens NewDot after more than a minute in OldDot
+        jest.spyOn(Date, 'now').mockReturnValue(1_000 + 60 * 1000 + 1);
+        setupTelemetry();
+
+        // When a span starts 500ms after setup
+        jest.spyOn(performance, 'now').mockReturnValue(10_500);
+
+        // Then the JS-startup duration is still reported, so these sessions can be told apart from true cold launches
+        expect(getMsSinceNativeAppStart()).toBeUndefined();
+        expect(getMsSinceJsStartup()).toBe(500);
+    });
+
+    it('counts deep sleep in the time since JS startup', () => {
+        // Given telemetry setup has run
+        setupTelemetry();
+
+        // When the device sleeps for an hour, so performance.now() advances only 500ms while the wall clock advances an hour
+        jest.spyOn(Date, 'now').mockReturnValue(2_000 + 60 * 60 * 1000);
+        jest.spyOn(performance, 'now').mockReturnValue(10_500);
+
+        // Then the duration includes the sleep, like the native duration
+        expect(getMsSinceJsStartup()).toBe(60 * 60 * 1000);
+    });
+
+    it('reports no JS-startup duration before telemetry setup has run', () => {
+        // Given a fresh module that telemetry setup has not touched yet
+        jest.isolateModules(() => {
+            const {getMsSinceJsStartup: getMsSinceJsStartupBeforeSetup} = jest.requireActual<{getMsSinceJsStartup: typeof getMsSinceJsStartup}>('@libs/telemetry/nativeAppStartTime');
+
+            // When a span reads the duration
+            // Then there is no value, instead of a time measured from an unset origin
+            expect(getMsSinceJsStartupBeforeSetup()).toBeUndefined();
+        });
     });
 });

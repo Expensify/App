@@ -2,25 +2,33 @@
 // device clock is corrected, and performance.now() stops during Android deep sleep. JS cannot tell a forward clock
 // correction from sleep, so a forward correction after setup inflates the value.
 let appStartAgeAtSetupMs: number | undefined;
-let dateNowAtSetupMs = 0;
+let dateNowAtSetupMs: number | undefined;
 let performanceNowAtSetupMs = 0;
 
 function setNativeAppStartTime(timestampMs: number | undefined) {
-    if (timestampMs === undefined) {
-        appStartAgeAtSetupMs = undefined;
-        return;
-    }
     dateNowAtSetupMs = Date.now();
     performanceNowAtSetupMs = performance.now();
-    appStartAgeAtSetupMs = dateNowAtSetupMs - timestampMs;
+    appStartAgeAtSetupMs = timestampMs === undefined ? undefined : dateNowAtSetupMs - timestampMs;
+}
+
+function getElapsedMsSinceSetup(): number | undefined {
+    if (dateNowAtSetupMs === undefined) {
+        return undefined;
+    }
+    return Math.max(Date.now() - dateNowAtSetupMs, performance.now() - performanceNowAtSetupMs);
+}
+
+function getMsSinceJsStartup(): number | undefined {
+    const elapsedMs = getElapsedMsSinceSetup();
+    return elapsedMs === undefined ? undefined : Math.round(elapsedMs);
 }
 
 function getMsSinceNativeAppStart(): number | undefined {
-    if (appStartAgeAtSetupMs === undefined) {
+    const elapsedMs = getElapsedMsSinceSetup();
+    if (appStartAgeAtSetupMs === undefined || elapsedMs === undefined) {
         return undefined;
     }
-    const msSinceSetup = Math.max(Date.now() - dateNowAtSetupMs, performance.now() - performanceNowAtSetupMs);
-    return Math.round(appStartAgeAtSetupMs + msSinceSetup);
+    return Math.round(appStartAgeAtSetupMs + elapsedMs);
 }
 
-export {getMsSinceNativeAppStart, setNativeAppStartTime};
+export {getMsSinceJsStartup, getMsSinceNativeAppStart, setNativeAppStartTime};

@@ -15,7 +15,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
+import {getMsSinceJsStartup, getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
 
 import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
@@ -135,6 +135,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
 
         if (!isMultiScanEnabled) {
             const msSinceNativeAppStart = getMsSinceNativeAppStart();
+            const msSinceJsStartup = getMsSinceJsStartup();
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
@@ -142,6 +143,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
                     ...captureAttributes,
                     ...(msSinceNativeAppStart !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS]: msSinceNativeAppStart}),
+                    ...(msSinceJsStartup !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS]: msSinceJsStartup}),
                 },
             });
         }
