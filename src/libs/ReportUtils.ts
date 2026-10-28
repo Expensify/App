@@ -3292,7 +3292,7 @@ function isMoneyRequestReportEligibleForMerge(
     const isSubmitter = isReportOwner(report, currentUserAccountID);
 
     if (isAdmin) {
-        const isApprovedAndMergeable = !!allowReportApprovedForAdmin && isReportApproved({report});
+        const isApprovedAndMergeable = !!allowReportApprovedForAdmin && isReportApproved({report}) && !report?.isWaitingOnBankAccount && !report?.isWaitingForCancelledReimbursement;
         return isOpenReport(report) || isProcessingReport(report) || isApprovedAndMergeable;
     }
 
