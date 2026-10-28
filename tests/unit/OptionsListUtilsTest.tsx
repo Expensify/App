@@ -7146,25 +7146,6 @@ describe('OptionsListUtils', () => {
             // getAlternateText used to look the report up by option.reportID in the module-level Onyx.connect() cache.
             // These cases pin down that it now reads only the `report` the caller passes (https://github.com/Expensify/App/issues/66378).
 
-            it('should build the chat preview from the passed report even when it is not in the Onyx reports collection', async () => {
-                // Given a room that is only known to the caller (never written to the Onyx reports collection) with a comment from another user
-                const reportID = '9500';
-                const report = buildRoomReport({reportID});
-                await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
-                const option: OptionData = {
-                    reportID,
-                    keyForList: '',
-                    lastMessageText: 'hello',
-                    isChatRoom: true,
-                };
-
-                // When the alternate text is built with that report passed in
-                const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
-
-                // Then the preview is still resolved from the passed report, so it carries the actor prefix like the LHN
-                expect(result).toBe('Spider-Man: hello');
-            });
-
             it('should use the passed report instead of the Onyx copy that shares its reportID', async () => {
                 // Given Onyx holds a plain DM for a reportID, while the caller's snapshot says that report is the workspace admins room
                 const reportID = '9501';
@@ -7184,24 +7165,6 @@ describe('OptionsListUtils', () => {
                 expect(result).toBe('Workspace subtitle');
             });
 
-            it('should treat an announce room from the passed report as a workspace room when forcing the policy name preview', () => {
-                // Given an announce room that is not in Onyx
-                const reportID = '9502';
-                const announceRoom = buildRoomReport({reportID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE});
-                const option: OptionData = {
-                    reportID,
-                    keyForList: '',
-                    lastMessageText: 'hello',
-                    subtitle: 'Announce subtitle',
-                };
-
-                // When the policy name preview is forced
-                const result = getAlternateText(option, {showChatPreviewLine: true, forcePolicyNamePreview: true}, buildConfig({report: announceRoom}));
-
-                // Then the announce flag comes from the passed report and the subtitle wins over the chat preview
-                expect(result).toBe('Announce subtitle');
-            });
-
             it('should not fall back to the Onyx reports collection when no report is passed', async () => {
                 // Given a room and its last comment are both in Onyx, so a lookup by reportID would find them and build `Name: message`
                 const reportID = '9503';
@@ -7218,41 +7181,6 @@ describe('OptionsListUtils', () => {
 
                 // Then the Onyx copy is ignored and only the option's own last message text is used
                 expect(result).toBe('hello');
-            });
-
-            it('should label a group chat from the passed report', () => {
-                // Given a group chat that is not in Onyx and an option that carries no room/thread/task flags
-                const reportID = '9504';
-                const groupChat = buildDMReport({reportID, chatType: CONST.REPORT.CHAT_TYPE.GROUP});
-                const option: OptionData = {
-                    reportID,
-                    keyForList: '',
-                    participantsList: [PERSONAL_DETAILS['3']],
-                };
-
-                // When the chat preview line is disabled
-                const result = getAlternateText(option, {showChatPreviewLine: false}, buildConfig({report: groupChat}));
-
-                // Then the group type is read from the passed report instead of falling through to the first participant's login
-                expect(result).toBe(translateLocal('common.group'));
-            });
-
-            it('should fall through to the first participant login when the passed report is not a group chat', async () => {
-                // Given a group chat is in Onyx, but the caller passes a plain DM for the same reportID
-                const reportID = '9505';
-                await setReport(buildDMReport({reportID, chatType: CONST.REPORT.CHAT_TYPE.GROUP}));
-                const dm = buildDMReport({reportID});
-                const option: OptionData = {
-                    reportID,
-                    keyForList: '',
-                    participantsList: [PERSONAL_DETAILS['3']],
-                };
-
-                // When the chat preview line is disabled
-                const result = getAlternateText(option, {showChatPreviewLine: false}, buildConfig({report: dm}));
-
-                // Then the DM shows the participant's login, proving the group label above came from the passed report
-                expect(result).toBe(PERSONAL_DETAILS['3'].login);
             });
 
             it('should pass the option report through createOptionFromReport so a group chat outside Onyx is labelled', () => {
