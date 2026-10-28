@@ -77,6 +77,9 @@ type CartesianChartProps = ChartProps & {
 
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     yAxisUnitPosition?: UnitPosition;
+
+    /** Keeps the Y-axis ticks on whole numbers, for charts plotting things that don't come in fractions, like a count of expenses. */
+    shouldUseWholeNumberTicks?: boolean;
 };
 
 type PieSlice = {

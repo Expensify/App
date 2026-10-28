@@ -116,7 +116,7 @@ function SearchChartView({
     const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
 
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
-    // Axis ticks take the bare number instead, both to stay short and because `.nice()` ticks land on fractions of an expense.
+    // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
         options?.shouldUseCompactNotation ? numberFormat(value, {maximumFractionDigits: 0, notation: 'compact'}) : translate('iou.expenseCount', {count: value});
     const formatValue = isCountMetric ? formatCount : undefined;
@@ -185,6 +185,7 @@ function SearchChartView({
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 formatValue={formatValue}
+                shouldUseWholeNumberTicks={isCountMetric}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
             />
@@ -199,6 +200,7 @@ function SearchChartView({
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
+                    shouldUseWholeNumberTicks={isCountMetric}
                 />
             ) : (
                 <LineChart
@@ -210,6 +212,7 @@ function SearchChartView({
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                     formatValue={formatValue}
+                    shouldUseWholeNumberTicks={isCountMetric}
                 />
             ),
         [CONST.SEARCH.VIEW.PIE]: (

@@ -16,7 +16,16 @@ import {
     useSyncPointPositions,
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
-import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getLineRuns, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {
+    getAxisLabelStep,
+    getCartesianPlotBounds,
+    getDomainPaddingForEdgeSpace,
+    getLineRuns,
+    getWholeNumberTickCount,
+    getXAxisLabel,
+    getYAxisLabelWidth,
+    labelOverhang,
+} from '@components/Charts/utils';
 import {getCartesianChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
 import type {LineRun} from '@components/Charts/utils/getLineRuns';
 import VictoryTheme, {CARTESIAN_Y_AXIS, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
@@ -52,7 +61,18 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', formatValue: formatValueOverride, onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({
+    data,
+    series,
+    yAxisUnit,
+    yAxisUnitPosition = 'left',
+    formatValue: formatValueOverride,
+    shouldUseWholeNumberTicks = false,
+    onPointPress,
+    labelSteps,
+    chartWidth,
+    fontManager,
+}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -95,7 +115,8 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', f
         formatValue: formatValueOverride,
     });
 
-    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);
+    const yAxisTickCount = shouldUseWholeNumberTicks ? getWholeNumberTickCount(yAxisDomain, CARTESIAN_Y_AXIS.tickCount) : CARTESIAN_Y_AXIS.tickCount;
+    const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding, yAxisTickCount);
 
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const {left: boundsLeft, right: boundsRight, width: plotAreaWidth} = getCartesianPlotBounds(chartWidth, chartPaddingRight);
@@ -355,7 +376,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', f
                         // doesn't draw (we render ChartXAxisLabels ourselves), on top of our own labelSpace.
                         labelPosition: 'inset',
                     }}
-                    yAxis={[{...CARTESIAN_Y_AXIS, domain: yAxisDomain}]}
+                    yAxis={[{...CARTESIAN_Y_AXIS, tickCount: yAxisTickCount, domain: yAxisDomain}]}
                     frame={{lineWidth: 0}}
                     data={chartData}
                 >

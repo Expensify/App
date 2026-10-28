@@ -467,6 +467,14 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
+ * Tick count that keeps a Y axis on whole numbers, for charts plotting counts rather than amounts.
+ * A domain spanning fewer units than the default tick count is otherwise split into fractions, which repeat once the labels drop their decimals.
+ */
+function getWholeNumberTickCount(domain: [number, number], tickCount: number): number {
+    return Math.min(tickCount, Math.max(1, Math.floor(domain[1] - domain[0])));
+}
+
+/**
  * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
  * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
@@ -553,6 +561,7 @@ function getYAxisLabelWidth(
     fontManager: SkTypefaceFontProvider | null,
     fontSize: number,
     domainPadding: {top: number; bottom: number},
+    tickCount: number = VictoryTheme.axis.tickCount,
 ): number {
     if (!fontManager) {
         return 0;
@@ -562,9 +571,7 @@ function getYAxisLabelWidth(
     const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
         0,
-        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
-            measureTextWidth(formatValue(tick), fontManager, fontSize),
-        ),
+        ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom).map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)),
     );
 }
 
@@ -594,6 +601,7 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getWholeNumberTickCount,
     getYAxisLabelWidth,
     getCartesianPlotBounds,
     getBarLayout,
