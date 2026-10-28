@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- First API level that honours uri-relative-filter-group -->
+    <bool name="new_dot_wildcard_links_enabled">true</bool>
+    <bool name="new_dot_legacy_links_enabled">false</bool>
+</resources>
