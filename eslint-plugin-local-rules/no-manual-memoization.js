@@ -5,7 +5,7 @@ const REACT_NAVIGATION_MODULES = ['@react-navigation/native', '@react-navigation
 const meta = {
     type: 'problem',
     docs: {
-        description: 'Disallow manual memoization when both React Compilers memoize the file.',
+        description: 'Disallow manual memoization when React Compiler memoizes the file.',
         recommended: 'error',
     },
     schema: [],
