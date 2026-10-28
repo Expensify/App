@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -148,8 +149,10 @@ function DescribeRuleForm({
 }: DescribeRuleFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
+    const inputTopOffsetRef = useRef(0);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
     const [submittedGenerationID, setSubmittedGenerationID] = useState<string>();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
@@ -279,6 +282,10 @@ function DescribeRuleForm({
         describeRule(prompt);
     };
 
+    // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
+    // the content, therefore the submit button below the input also stays in view when it fits.
+    const scrollToInput = () => formRef.current?.scrollTo(inputTopOffsetRef.current);
+
     const describeSuggestedRule = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
         formRef.current?.resetForm({[INPUT_IDS.PROMPT]: suggestedPrompt});
@@ -302,7 +309,12 @@ function DescribeRuleForm({
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
             {children}
-            <View style={inputContainerStyle}>
+            <View
+                style={inputContainerStyle}
+                onLayout={(event) => {
+                    inputTopOffsetRef.current = event.nativeEvent.layout.y;
+                }}
+            >
                 <InputWrapper
                     InputComponent={TextInput}
                     ref={inputRef}
@@ -314,6 +326,7 @@ function DescribeRuleForm({
                     accessibilityLabel={inputLabel}
                     role={CONST.ROLE.PRESENTATION}
                     onKeyPress={submitFormOnModEnter}
+                    onFocus={scrollToInput}
                     maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                     multiline
                     shouldSaveDraft
@@ -333,6 +346,8 @@ function DescribeRuleForm({
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
+                                // Like the form's submit button, this button sends GenerateRule, which needs a connection
+                                isDisabled={isOffline}
                                 style={[styles.mt2, styles.alignSelfStart]}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
                             >

@@ -344,6 +344,7 @@ describe('handleActionButtonPress', () => {
 
         // When the action button is pressed
         handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -379,6 +380,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -419,6 +421,7 @@ describe('handleActionButtonPress', () => {
 
         // When: the approve action button is pressed
         handleActionButtonPress({
+            isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             hash: searchHash,
             item: updatedMockReportItem,

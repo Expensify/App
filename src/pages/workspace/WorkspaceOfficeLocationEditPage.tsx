@@ -22,7 +22,7 @@ import type {CompanyAddress} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {deepEqual} from 'fast-equals';
-import React from 'react';
+import React, {useState} from 'react';
 
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import WorkspaceOfficeLocationForm from './WorkspaceOfficeLocationForm';
@@ -38,6 +38,7 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
     const policy = usePolicy(policyID);
     const officeLocations = policy?.officeLocations;
     const officeLocation = officeLocations?.[officeID];
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Excluding commutes by home and office needs an office, and the company address counts as one, so only a workspace
     // excluding commutes that way without a company address keeps its last office. Offices being deleted and additions
@@ -83,6 +84,8 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
+            // Keep this page from blocking itself while it closes, so it doesn't flash "Not here" once the office is marked for deletion
+            setIsDeleting(true);
             deleteOfficeLocation(policyID, officeID, officeLocation);
             Navigation.goBack();
         });
@@ -92,7 +95,10 @@ function WorkspaceOfficeLocationEditPage({route}: WorkspaceOfficeLocationEditPag
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) || !officeLocation || officeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+            shouldBeBlocked={
+                !isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) ||
+                (!isDeleting && (!officeLocation || officeLocation.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+            }
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

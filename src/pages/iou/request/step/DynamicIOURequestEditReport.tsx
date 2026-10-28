@@ -42,7 +42,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -80,10 +80,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
-    const ownerPersonalDetails = useMemo(
-        () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
-        [personalDetails, selectedReport?.ownerAccountID],
-    );
+    const ownerPersonalDetails = getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails;
     const [transactions] = useTransactionsByID(transactionIDs);
     const managedCardTransactionID = transactions.find((transaction) => isUnreportedManagedCardTransaction(transaction))?.transactionID;
     const hasUnreportedManagedCardTransactions = !!managedCardTransactionID;

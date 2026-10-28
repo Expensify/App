@@ -45,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
@@ -267,16 +267,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-    const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
-    }, [snapshot, reportItem.reportID]);
-    const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
-    }, [snapshot, reportItem.policyID]);
-    const snapshotChatReport = useMemo(() => {
-        const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
-        return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
-    }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
+    const snapshotReport = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
+    const snapshotPolicy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
+    const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
+    const snapshotChatReport = chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
     const [submitterLogin] = useAllPersonalDetailsWithoutSnapshots(personalDetailsLoginSelector(reportItem.ownerAccountID));
@@ -309,6 +303,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         currentUserLogin,
         introSelected,
         isASAPSubmitBetaEnabled,
+        isWiseReimbursementsBetaEnabled,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -335,6 +330,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
+            isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
