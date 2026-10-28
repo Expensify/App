@@ -105,3 +105,10 @@
 - Upstream PR/issue: [#4985](https://github.com/software-mansion/react-native-screens/pull/4985)
 - E/App issue: https://github.com/Expensify/App/issues/104284
 - PR introducing patch: [#104368](https://github.com/Expensify/App/pull/104368)
+
+### [react-native-screens+4.28.0+007+tab-bar-item-selection-hidden.patch](react-native-screens+4.28.0+007+tab-bar-item-selection-hidden.patch)
+
+- Reason: Adds an iOS `tabBarItemSelectionHidden` prop to `Tabs.Host` that hides the iOS 26 liquid glass selection, which UIKit offers no API for. On Android the selected label is not bold while the active indicator is transparent. Used for Account, which has no bar item with the Insights beta (React Navigation patch 005).
+- Upstream PR/issue: not reported, because the iOS part hides private UIKit views by class name, which RNScreens would not take as is.
+- E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
+- PR introducing patch: [#104491](https://github.com/Expensify/App/pull/104491)

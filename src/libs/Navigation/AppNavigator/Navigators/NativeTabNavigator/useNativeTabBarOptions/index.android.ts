@@ -5,6 +5,7 @@ import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/Nativ
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import useTabAvatarImage from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage';
+import useTabEmojiStatus from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabEmojiStatus';
 
 import variables from '@styles/variables';
 
@@ -25,12 +26,17 @@ const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
     avatarSize: variables.iconBottomBar,
     direction: 'stacked',
+    emojiStatusRadius: variables.nativeTabIconEmojiStatusRadius,
+    emojiStatusFontSize: variables.nativeTabIconEmojiStatusFontSize,
+    // Material scales an icon down to fit its slot, so a badge past the avatar would shrink the whole icon.
+    emojiStatusOffset: 0,
 };
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const avatar = useTabAvatarImage(isAccountAvatarShown);
+    const emojiStatus = useTabEmojiStatus();
 
     // The tint only reaches the labels, since the icons arrive already recolored (react-native-screens patch 004).
     const screenOptions: NativeBottomTabNavigationOptions = {
@@ -51,6 +57,7 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, d
             color: isSelected ? theme.iconMenu : theme.icon,
             avatar: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? avatar : undefined,
             dotColor: dotColors[name],
+            emojiStatus: name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR ? emojiStatus : undefined,
         })),
     });
 

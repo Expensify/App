@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -13,6 +14,7 @@ import PaymentDetailsPage from '@pages/settings/Subscription/PaymentHistoryPage/
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 
@@ -203,5 +205,21 @@ describe('PaymentDetailsPage Activity list', () => {
         // Then the bill keeps the active-user copy, because the wording follows the bill and not the current plan
         expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
         expect(screen.queryByText(/members/)).toBeNull();
+    });
+
+    it('opens an active user’s public profile when their row is pressed', async () => {
+        // Given a month with two billed members
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await setPurchase([TODD.accountID, BOB.accountID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        await screen.findByText(BOB.displayName);
+
+        // When the user presses Bob's row
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: `${BOB.displayName}, ${BOB.login}`}));
+
+        // Then Bob's public profile opens on top of the Payment details page
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.PROFILE.getRoute(BOB.accountID)));
+        navigateSpy.mockRestore();
     });
 });

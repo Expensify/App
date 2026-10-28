@@ -21,10 +21,11 @@ import {autoReportTransactions, changeTransactionsReport} from '@libs/actions/Tr
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import getAllMatchingQueryParams from '@libs/getAllMatchingQueryParams';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getSelectedTransactionOwnerAccountID from '@libs/getSelectedTransactionOwnerAccountID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {generateReportID, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     isDistanceRequest as isDistanceRequestUtil,
@@ -41,7 +42,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -54,7 +55,7 @@ function SearchTransactionsChangeReport() {
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions);
     const {isOffline} = useNetwork();
     const {showOfflineModal} = useAlertModals();
 
@@ -117,55 +118,42 @@ function SearchTransactionsChangeReport() {
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     const areAllTransactionsUnreported =
         selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((transactionKey) => selectedTransactions[transactionKey]?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
-    const targetOwnerAccountID = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0) {
-            return undefined;
-        }
-
+    let targetOwnerAccountID;
+    if (selectedTransactionsKeys.length === 0) {
+        targetOwnerAccountID = undefined;
+    } else {
         // Prefer owner metadata attached to each selection (handles unreported expenses)
         const ownerFromSelection = selectedTransactionsKeys.map((transactionKey) => selectedTransactions[transactionKey]?.ownerAccountID).find((ownerID) => typeof ownerID === 'number');
         if (ownerFromSelection !== undefined) {
-            return ownerFromSelection;
+            targetOwnerAccountID = ownerFromSelection;
+        } else {
+            // Then the cardholder of an unreported card expense, or the report owner, so another cardholder's expenses
+            // are not moved onto the current user's reports
+            targetOwnerAccountID = selectedTransactionsKeys
+                .map((transactionKey) => getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports}))
+                .find((ownerID) => typeof ownerID === 'number');
         }
-
-        const reportIDWithOwner = selectedTransactionsKeys
-            .map((transactionKey) => selectedTransactions[transactionKey]?.reportID)
-            .find((reportID) => reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
-
-        if (!reportIDWithOwner) {
-            return undefined;
-        }
-
-        const report = getReportOrDraftReport(reportIDWithOwner, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDWithOwner}`]);
-        return report?.ownerAccountID;
-    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
-    const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    }
+    const targetOwnerPersonalDetails = getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails;
     // Kept separate from `targetOwnerAccountID`, which stops at the first owner it finds. Counting needs them all.
     // Only distinct resolved owners count. An owner we cannot resolve must not stand in for a second submitter: for an
-    // unreported expense the report lookup can never resolve one (its reportID is `0`), so a search snapshot missing
-    // the money-request action would otherwise file one cardholder's bulk selection as mixed and strip its report list.
+    // unreported expense whose card we cannot find, the report lookup can never resolve one (its reportID is `0`), so a
+    // search snapshot missing the money-request action would otherwise file one cardholder's bulk selection as mixed
+    // and strip its report list.
     // "Auto report" resolves each destination through the expense's card. A card this user cannot resolve, because
     // it is missing or on a feed they do not administer, fails the whole request.
     const areAllManagedCardsResolvable =
         selectedTransactionsKeys.length > 0 &&
         transactions.length === selectedTransactionsKeys.length &&
         transactions.every((transaction) => canResolveTransactionCard(transaction, nonPersonalAndWorkspaceCards, isSearchCardListComplete));
-    const hasMultipleSubmitters = useMemo(() => {
-        const ownerAccountIDs = new Set<number>();
-
-        for (const transactionKey of selectedTransactionsKeys) {
-            const selection = selectedTransactions[transactionKey];
-            const reportID = selection?.reportID;
-            const ownerAccountID =
-                selection?.ownerAccountID ?? getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])?.ownerAccountID;
-
-            if (typeof ownerAccountID === 'number') {
-                ownerAccountIDs.add(ownerAccountID);
-            }
+    const ownerAccountIDs = new Set<number>();
+    for (const transactionKey of selectedTransactionsKeys) {
+        const ownerAccountID = getSelectedTransactionOwnerAccountID(transactionKey, selectedTransactions[transactionKey], {cardList, nonPersonalAndWorkspaceCards, allReports});
+        if (typeof ownerAccountID === 'number') {
+            ownerAccountIDs.add(ownerAccountID);
         }
-
-        return ownerAccountIDs.size > 1;
-    }, [selectedTransactions, selectedTransactionsKeys, allReports]);
+    }
+    const hasMultipleSubmitters = ownerAccountIDs.size > 1;
 
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 

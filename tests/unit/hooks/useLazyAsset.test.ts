@@ -413,6 +413,24 @@ describe('useMemoizedLazyExpensifyIcons', () => {
         // And: The async loader should NOT be called because chunk is already cached
         expect(mockLoadExpensifyIconsChunk).not.toHaveBeenCalled();
     });
+
+    it('does not reload the chunk after a cold load when icon names are unchanged', async () => {
+        // Given a cold chunk and callers that recreate their names array on every render.
+        const mockChunk = createMock<ExpensifyIconsChunk>({});
+        mockChunk.getExpensifyIcon = jest.fn(() => mockAsset);
+        mockGetExpensifyIconsChunk.mockReturnValue(null);
+        // Keep unexpected reloads pending so a regression fails without an infinite update loop.
+        mockLoadExpensifyIconsChunk.mockImplementation(() => new Promise<ExpensifyIconsChunk>(() => {})).mockResolvedValueOnce(mockChunk);
+
+        // When loading updates the hook's state and the parent renders again with equal names.
+        const {result, rerender} = renderHook(() => useMemoizedLazyExpensifyIcons(['AddReaction']));
+        await waitFor(() => expect(result.current.AddReaction).toBe(mockAsset));
+        rerender(undefined);
+
+        // Then the loaded asset is kept without restarting the loading effect.
+        expect(result.current.AddReaction).toBe(mockAsset);
+        expect(mockLoadExpensifyIconsChunk).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('useMemoizedLazyIllustrations', () => {
@@ -451,5 +469,22 @@ describe('useMemoizedLazyIllustrations', () => {
 
         // And: The async loader should NOT be called because chunk is already cached
         expect(mockLoadIllustrationsChunk).not.toHaveBeenCalled();
+    });
+
+    it('does not reload the chunk after a cold load when illustration names are unchanged', async () => {
+        // Given the same cold-loading path for illustrations, with freshly allocated names arrays.
+        const mockChunk = createMock<IllustrationsChunk>({});
+        mockChunk.getIllustration = jest.fn(() => mockAsset);
+        mockGetIllustrationsChunk.mockReturnValue(null);
+        mockLoadIllustrationsChunk.mockImplementation(() => new Promise<IllustrationsChunk>(() => {})).mockResolvedValueOnce(mockChunk);
+
+        // When the chunk resolves and the hook renders again with the same requested illustration.
+        const {result, rerender} = renderHook(() => useMemoizedLazyIllustrations(['Building']));
+        await waitFor(() => expect(result.current.Building).toBe(mockAsset));
+        rerender(undefined);
+
+        // Then no second load is started by a new array containing the same name.
+        expect(result.current.Building).toBe(mockAsset);
+        expect(mockLoadIllustrationsChunk).toHaveBeenCalledTimes(1);
     });
 });

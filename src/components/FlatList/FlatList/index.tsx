@@ -9,7 +9,7 @@ import mergeRefs from '@libs/mergeRefs';
 
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import {FlatList} from 'react-native';
 
 import type {CustomFlatListProps} from './types';
@@ -46,38 +46,35 @@ function MVCPFlatList<T>({
         mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
     }, [mvcpAutoscrollToTopThreshold]);
 
-    const getScrollOffset = useCallback((): number => {
+    const getScrollOffset = (): number => {
         if (!listRef.current) {
             return 0;
         }
         return horizontal ? (getScrollableNode(listRef.current)?.scrollLeft ?? 0) : (getScrollableNode(listRef.current)?.scrollTop ?? 0);
-    }, [horizontal]);
+    };
 
-    const getContentView = useCallback(() => getScrollableNode(listRef.current)?.childNodes[0], []);
+    const getContentView = () => getScrollableNode(listRef.current)?.childNodes[0];
 
-    const scrollToOffset = useCallback(
-        (offset: number, animated: boolean, interrupt: boolean) => {
-            const behavior = animated ? 'smooth' : 'instant';
-            const node = getScrollableNode(listRef.current);
-            if (node == null) {
-                return;
-            }
+    const scrollToOffset = (offset: number, animated: boolean, interrupt: boolean) => {
+        const behavior = animated ? 'smooth' : 'instant';
+        const node = getScrollableNode(listRef.current);
+        if (node == null) {
+            return;
+        }
 
-            const overflowProp = horizontal ? 'overflowX' : 'overflowY';
-            // Stop momentum scrolling on mobile Safari otherwise the scroll position update
-            // will not work.
-            if (IS_MOBILE_SAFARI && interrupt) {
-                node.style[overflowProp] = 'hidden';
-            }
-            node.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
-            if (IS_MOBILE_SAFARI && interrupt) {
-                node.style[overflowProp] = 'scroll';
-            }
-        },
-        [horizontal],
-    );
+        const overflowProp = horizontal ? 'overflowX' : 'overflowY';
+        // Stop momentum scrolling on mobile Safari otherwise the scroll position update
+        // will not work.
+        if (IS_MOBILE_SAFARI && interrupt) {
+            node.style[overflowProp] = 'hidden';
+        }
+        node.scroll(horizontal ? {left: offset, behavior} : {top: offset, behavior});
+        if (IS_MOBILE_SAFARI && interrupt) {
+            node.style[overflowProp] = 'scroll';
+        }
+    };
 
-    const prepareForMaintainVisibleContentPosition = useCallback(() => {
+    const prepareForMaintainVisibleContentPosition = () => {
         if (mvcpMinIndexForVisible == null) {
             return;
         }
@@ -103,35 +100,32 @@ function MVCPFlatList<T>({
                 break;
             }
         }
-    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
+    };
 
-    const adjustForMaintainVisibleContentPosition = useCallback(
-        (animated = true) => {
-            if (mvcpMinIndexForVisible == null) {
-                return;
+    const adjustForMaintainVisibleContentPosition = (animated = true) => {
+        if (mvcpMinIndexForVisible == null) {
+            return;
+        }
+
+        const firstVisibleView = firstVisibleViewRef.current;
+        const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
+        if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
+            return;
+        }
+
+        const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
+        const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
+        if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
+            const scrollOffset = lastScrollOffsetRef.current;
+            prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
+            scrollToOffset(scrollOffset + delta, false, true);
+            if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
+                scrollToOffset(0, animated, false);
             }
+        }
+    };
 
-            const firstVisibleView = firstVisibleViewRef.current;
-            const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
-            if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
-                return;
-            }
-
-            const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
-            const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
-            if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
-                const scrollOffset = lastScrollOffsetRef.current;
-                prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
-                scrollToOffset(scrollOffset + delta, false, true);
-                if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
-                    scrollToOffset(0, animated, false);
-                }
-            }
-        },
-        [scrollToOffset, mvcpMinIndexForVisible, horizontal],
-    );
-
-    const setupMutationObserver = useCallback(() => {
+    const setupMutationObserver = () => {
         const contentView = getContentView();
         if (!(contentView instanceof Node)) {
             return;
@@ -178,7 +172,7 @@ function MVCPFlatList<T>({
         });
 
         mutationObserverRef.current = mutationObserver;
-    }, [adjustForMaintainVisibleContentPosition, prepareForMaintainVisibleContentPosition, getContentView]);
+    };
 
     useEffect(() => {
         if (!isListRenderedRef.current) {
@@ -193,19 +187,16 @@ function MVCPFlatList<T>({
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const onRef = useCallback(
-        (newRef: FlatList) => {
-            // Make sure to only call refs and re-attach listeners if the node changed.
-            if (newRef == null || newRef === listRef.current) {
-                return;
-            }
+    const onRef = (newRef: FlatList) => {
+        // Make sure to only call refs and re-attach listeners if the node changed.
+        if (newRef == null || newRef === listRef.current) {
+            return;
+        }
 
-            mergeRefs<FlatList>(listRef, ref)(newRef);
-            prepareForMaintainVisibleContentPosition();
-            setupMutationObserver();
-        },
-        [prepareForMaintainVisibleContentPosition, ref, setupMutationObserver],
-    );
+        mergeRefs<FlatList>(listRef, ref)(newRef);
+        prepareForMaintainVisibleContentPosition();
+        setupMutationObserver();
+    };
 
     useFlatListHandle<T>({
         ref,
@@ -224,14 +215,11 @@ function MVCPFlatList<T>({
     }, []);
 
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true, inverted: restProps.inverted});
-    const handleScroll = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onScrollProp?.(e);
-            prepareForMaintainVisibleContentPosition();
-            emitComposerScrollEvents();
-        },
-        [emitComposerScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
-    );
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onScrollProp?.(e);
+        prepareForMaintainVisibleContentPosition();
+        emitComposerScrollEvents();
+    };
     return (
         <FlatList
             {...restProps}

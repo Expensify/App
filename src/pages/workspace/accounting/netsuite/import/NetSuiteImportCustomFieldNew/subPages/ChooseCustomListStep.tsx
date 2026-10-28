@@ -15,7 +15,7 @@ import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/net
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.LIST_NAME, INPUT_IDS.INTERNAL_ID];
 
@@ -23,12 +23,9 @@ function ChooseCustomListStep({policyIDParam, onNext, isEditing, netSuiteCustomF
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
-            return getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME], translate);
-        },
-        [translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM> => {
+        return getFieldRequiredErrors(values, [INPUT_IDS.LIST_NAME], translate);
+    };
 
     const handleSubmit = useNetSuiteImportAddCustomListFormSubmit({
         fieldIds: STEP_FIELDS,

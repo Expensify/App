@@ -137,7 +137,10 @@ function TransactionListItemInner<TItem extends ListItem>({
     const [submitterLogin] = usePersonalDetail(transactionItem?.report?.ownerAccountID, loginSelector);
     const [transaction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}` as const;
-    const [transactionViolationsForRow] = useOnyxWithoutSnapshots(transactionViolationsKey);
+    const [liveTransactionViolations] = useOnyxWithoutSnapshots(transactionViolationsKey);
+    // Fall back to the search snapshot when the violations aren't in live Onyx yet (e.g. the expense was never opened),
+    // otherwise the row hides violations the Search API already returned
+    const transactionViolationsForRow = liveTransactionViolations ?? snapshotData?.[transactionViolationsKey];
     const allViolations: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolationsForRow};
     const parentReportActionID = transactionItem?.reportAction?.reportActionID;
     const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {
@@ -157,6 +160,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         currentUserLogin,
         introSelected,
         isASAPSubmitBetaEnabled,
+        isWiseReimbursementsBetaEnabled,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -243,6 +247,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
+            isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveTransactionItem,
