@@ -1,4 +1,4 @@
-import getPageTitle, {isPageShown} from '@components/DynamicForm/utils/getPageTitle';
+import getPageTitle, {getPageSectionName, isPageShown} from '@components/DynamicForm/utils/getPageTitle';
 import paginate, {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import type {DynamicFormField, DynamicFormPage, DynamicFormSchemaField, DynamicFormTextField} from '@src/types/onyx';
@@ -145,15 +145,62 @@ describe('getPageTitle', () => {
         expect(title).toBe('Alpha');
     });
 
-    it('falls back to the first visible field label when there are several questions', () => {
-        // Given an untitled page whose first field is hidden
+    it("prefers the lone question's wording over its label", () => {
+        // Given an untitled page whose only question has its wording as a question
+        const page: DynamicFormPage = {key: 'p', content: [text('a', {label: 'Account number', question: "What's your account number?"})]};
+
+        // When its title is read
+        const title = getPageTitle(page, {}, translateLocal);
+
+        // Then the headline asks the question, so it does not repeat the input's label
+        expect(title).toBe("What's your account number?");
+    });
+
+    it('has no title when there are several questions', () => {
+        // Given an untitled page with several visible questions
         const page: DynamicFormPage = {key: 'p', content: [text('a', {label: 'Alpha', showWhen: {key: 'z', equals: ['1']}}), text('b', {label: 'Beta'}), text('c', {label: 'Gamma'})]};
 
         // When its title is read
         const title = getPageTitle(page, {}, translateLocal);
 
-        // Then the title is the first field the user sees
-        expect(title).toBe('Beta');
+        // Then it is blank, since no one question names the page
+        expect(title).toBe('');
+    });
+});
+
+describe('getPageSectionName', () => {
+    it('uses the page title', () => {
+        // Given a titled page
+        const page: DynamicFormPage = {key: 'p', title: 'Bank details', content: [text('a', {label: 'Alpha'})]};
+
+        // When its section name is read
+        const name = getPageSectionName(page, {}, translateLocal);
+
+        // Then it is the page title
+        expect(name).toBe('Bank details');
+    });
+
+    it("uses the lone question's wording on an untitled page", () => {
+        // Given an untitled page whose only question has its wording
+        const page: DynamicFormPage = {key: 'p', content: [text('a', {label: 'Account number', question: "What's your account number?"})]};
+
+        // When its section name is read
+        const name = getPageSectionName(page, {}, translateLocal);
+
+        // Then it is that wording
+        expect(name).toBe("What's your account number?");
+    });
+
+    it('never uses a label', () => {
+        // Given untitled pages with one question and with several, none with its wording
+        const lonePage: DynamicFormPage = {key: 'p', content: [text('a', {label: 'Account number'})]};
+        const sharedPage: DynamicFormPage = {key: 'q', content: [text('a', {label: 'Account number'}), text('b', {label: 'Settlement currency'})]};
+
+        // When their section names are read
+        const names = [getPageSectionName(lonePage, {}, translateLocal), getPageSectionName(sharedPage, {}, translateLocal)];
+
+        // Then both are blank, since the label is already on the row below and would only name one of several rows
+        expect(names).toEqual(['', '']);
     });
 });
 

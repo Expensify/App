@@ -3,8 +3,8 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
 import Navigation from '@libs/Navigation/Navigation';
 
-import type {OnSaveParams} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
-import {EditAgentAvatarContent} from '@pages/settings/Agents/Fields/EditAgentAvatarPage';
+import type {OnSaveParams} from '@pages/settings/Agents/Fields/DynamicEditAgentAvatarPage';
+import {EditAgentAvatarContent} from '@pages/settings/Agents/Fields/DynamicEditAgentAvatarPage';
 
 import {updateAvatar} from '@userActions/PersonalDetails';
 

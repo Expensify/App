@@ -9,6 +9,8 @@ import {getSuggestedSearches, getSuggestedSearchesVisibility, SPEND_INSIGHT_KEYS
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
@@ -19,15 +21,25 @@ import type {InsightsGraphKey} from '@src/types/onyx';
 import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
-const HOME_INSIGHT_ICONS: Record<InsightsGraphKey, SearchTypeMenuItem['icon']> = {
+// Home only shows Spend charts, which also exist as Search menu items
+type HomeInsightGraphKey = Exclude<InsightsGraphKey, typeof CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME>;
+
+type HomeInsightChartSpec = InsightsChartSpec & {graphKey: HomeInsightGraphKey};
+
+const HOME_INSIGHT_ICONS: Record<HomeInsightGraphKey, SearchTypeMenuItem['icon']> = {
     [CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME]: 'CalendarSolid',
     [CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: 'User',
     [CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]: 'Basket',
     [CONST.INSIGHTS.GRAPH.TOP_CATEGORIES]: 'Folder',
 };
 
+/** Whether the chart is one Home can show. */
+function isHomeInsightChart(chart: InsightsChartSpec): chart is HomeInsightChartSpec {
+    return chart.graphKey in HOME_INSIGHT_ICONS;
+}
+
 /** Builds a Home insight that queries the same chart as the Insights page. */
-function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
+function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: InsightsFilters): SearchTypeMenuItem {
     const searchQuery = applyInsightsFilters(chart, filters);
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
 
@@ -48,7 +60,7 @@ function buildInsightConfigFromChart(chart: InsightsChartSpec, filters: Insights
  * Builds the configs for the Home insights the current user should see, in display order.
  * With the Insights page beta, the charts and their visibility match the Insights Spend dashboard, otherwise the Spend menu.
  */
-function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean} {
+function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
@@ -60,12 +72,14 @@ function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: bo
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
         const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
         const suggestedSearches = getSuggestedSearches(session?.accountID, (defaultCardFeed ?? defaultExpensifyCard)?.id, shouldShowExpensifyCard);
-        return {configs: SPEND_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]), isResolved: true};
+        return {configs: SPEND_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]), isResolved: true, shouldShowRunningTotal: false};
     }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
-    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email).map((chart) => buildInsightConfigFromChart(chart, filters));
-    return {configs, isResolved: areFiltersResolved};
+    const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email)
+        .filter(isHomeInsightChart)
+        .map((chart) => buildInsightConfigFromChart(chart, filters));
+    return {configs, isResolved: areFiltersResolved, shouldShowRunningTotal: filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && isRunningTotalAvailable(filters.date)};
 }
 
 export default useHomeInsightConfigs;

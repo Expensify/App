@@ -1,12 +1,13 @@
 import {changeMoneyRequestHoldStatus, getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import type {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
+import {getOriginalMessage, getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -86,7 +87,7 @@ describe('actions/IOU/Hold', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         mockFetch = createGlobalFetchMock();
-        global.fetch = mockFetch;
+        globalThis.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -95,6 +96,94 @@ describe('actions/IOU/Hold', () => {
     });
 
     describe('putOnHold', () => {
+        test.each([undefined])('preserves an unloaded existing thread %p and its rollback', async (initialReport) => {
+            // Given an existing thread ID whose report is not loaded in Onyx.
+            const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: 'parent'}});
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+            // When the real action puts the transaction on hold without creating another thread.
+            putOnHold({
+                transactionID: transaction.transactionID,
+                transaction,
+                comment: 'Review',
+                initialReportID: 'existing-thread',
+                initialReport,
+                transactionReport: undefined,
+                isOffline: true,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: undefined,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+            const data = request.mock.calls.at(0)?.[2];
+            expect(data).toBeDefined();
+            expect(request.mock.calls.at(0)?.[1]).not.toHaveProperty('transactionThreadReportID');
+            expect(data?.optimisticData?.filter((update) => update.onyxMethod === Onyx.METHOD.SET)).toEqual([]);
+            const rollback = data?.failureData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}existing-thread`);
+            expect(rollback).toBeDefined();
+            expect(rollback?.value).toEqual({lastVisibleActionCreated: undefined});
+            await Onyx.update(data?.optimisticData ?? []);
+            // Then the original thread receives the comment and the rollback removes the held state.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}existing-thread`)).toBeDefined();
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`))?.comment?.hold).toBeTruthy();
+            await Onyx.update(data?.failureData ?? []);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`))?.comment).not.toHaveProperty('hold');
+            request.mockRestore();
+        });
+
+        it('creates and links a new thread and clears it on failure', async () => {
+            // Given an IOU action without a transaction thread, as produced during expense creation.
+            const report = buildOptimisticIOUReport(1, 2, 100, '99', 'USD', getCurrencyDecimalsLocal);
+            const transaction = buildOptimisticTransaction({transactionParams: {amount: 100, currency: 'USD', reportID: report.reportID}});
+            const action = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[action.reportActionID]: action});
+            await waitForBatchedUpdates();
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+            // When the production action creates the complete thread before its SET and link updates.
+            putOnHold({
+                transactionID: transaction.transactionID,
+                transaction,
+                comment: 'Review',
+                initialReportID: undefined,
+                initialReport: undefined,
+                transactionReport: undefined,
+                isOffline: true,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: undefined,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
+            const data = request.mock.calls.at(0)?.[2];
+            const params = request.mock.calls.at(0)?.[1];
+            expect(data).toBeDefined();
+            expect(params).toHaveProperty('transactionThreadReportID');
+            const threadID = params && 'transactionThreadReportID' in params ? params.transactionThreadReportID : undefined;
+            expect(typeof threadID).toBe('string');
+            const threadUpdate = data?.optimisticData?.find((update) => update.onyxMethod === Onyx.METHOD.SET && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT));
+            expect(threadUpdate).toBeDefined();
+            await Onyx.update(data?.optimisticData ?? []);
+            const parentActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
+            // Then real Onyx links the parent action to the created thread and rollback restores that link.
+            expect(parentActions?.[action.reportActionID]).toHaveProperty('childReportID', threadID);
+            await Onyx.update(data?.failureData ?? []);
+            const reverted = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
+            expect(reverted?.[action.reportActionID]).not.toHaveProperty('childReportID');
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`)).toBeFalsy();
+            request.mockRestore();
+        });
+
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
             const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
@@ -975,7 +1064,7 @@ describe('actions/IOU/Hold', () => {
 
             // When the user goes offline and removes the hold
             await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
-            jest.mocked(global.fetch).mockClear();
+            jest.mocked(globalThis.fetch).mockClear();
             unholdRequest({
                 transactionID: transaction.transactionID,
                 transaction: heldTransaction,
@@ -1020,6 +1109,83 @@ describe('actions/IOU/Hold', () => {
                 comment: {...transaction.comment, hold: 'hold-reason'},
             };
         };
+
+        test.each(['ordinary IOU', 'general action', 'missing original message', 'legacy original message'])(
+            'selects only IOU actions and restores %s through real Onyx',
+            async (scenario) => {
+                // Given an ordinary action or a stored action associated with the allowed transaction_undefined key.
+                const report = buildOptimisticIOUReport(1, 2, 100, '99', 'USD', getCurrencyDecimalsLocal);
+                const transaction = buildHeldTransaction(report.reportID, 100);
+                if (scenario !== 'ordinary IOU') {
+                    transaction.transactionID = 'undefined';
+                }
+                const action: ReportAction =
+                    scenario === 'general action'
+                        ? buildOptimisticCreatedReportAction({emailCreatingAction: RORY_EMAIL})
+                        : buildOptimisticIOUReportAction({
+                              type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                              amount: 100,
+                              currency: 'USD',
+                              comment: '',
+                              participants: [],
+                              transactionID: transaction.transactionID,
+                              getCurrencyDecimals: getCurrencyDecimalsLocal,
+                          });
+                if (scenario === 'missing original message') {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- This case represents stored actions before original-message migration.
+                    delete action.originalMessage;
+                    action.message = [];
+                }
+                if (scenario === 'legacy original message') {
+                    // @ts-expect-error Historical primitive message data is intentionally malformed at this one stored field.
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy actions can store a primitive in this field.
+                    action.originalMessage = 'Legacy message';
+                }
+                const chatReport = createMock<Report>({reportID: '99', iouReportID: report.reportID});
+                const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as const;
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(actionsKey, {[action.reportActionID]: action});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+                // When the actual report-move seam selects actions linked to held transactions.
+                const result = getReportFromHoldRequestsOnyxData({
+                    chatReport,
+                    iouReport: report,
+                    recipient: {accountID: 1},
+                    policy: undefined,
+                    delegateAccountID: undefined,
+                    isASAPSubmitBetaEnabled: false,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                });
+                if (scenario === 'general action') {
+                    // Then a general action cannot be copied through an unrelated transaction_undefined entry.
+                    expect(result.optimisticHoldReportExpenseActionIDs).toEqual([]);
+                    await Onyx.update(result.optimisticData);
+                    expect(await getOnyxValue(actionsKey)).toEqual({[action.reportActionID]: action});
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+                    return;
+                }
+                expect(result.optimisticHoldReportExpenseActionIDs).toHaveLength(1);
+                const copiedID = result.optimisticHoldReportExpenseActionIDs.at(0)?.optimisticReportActionID;
+                await Onyx.update(result.optimisticData);
+                // Then the actual store contains the copied IOU action.
+                const copied = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`);
+                expect(copiedID).toBeDefined();
+                if (copiedID === undefined) {
+                    throw new Error('Expected the copied hold action ID');
+                }
+                expect(copied?.[copiedID]).toMatchObject({actionName: action.actionName, reportID: result.optimisticHoldReportID});
+                if (scenario === 'missing original message' || scenario === 'legacy original message') {
+                    expect(copied?.[copiedID]).not.toHaveProperty('originalMessage');
+                } else {
+                    expect(getOriginalMessage(copied?.[copiedID])).toEqual(getOriginalMessage(action));
+                }
+                await Onyx.update(result.failureData);
+                const restored = await getOnyxValue(actionsKey);
+                expect(restored?.[action.reportActionID]).toEqual(action);
+            },
+        );
 
         const buildScenario = (overrides: {
             total: number;

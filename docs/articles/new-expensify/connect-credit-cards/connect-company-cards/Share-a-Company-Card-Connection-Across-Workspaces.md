@@ -52,6 +52,7 @@ To share a company card connection, you must:
 
 - Individual cards appear as a list and can be assigned to workspace members.
 - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
+- If the card is connected through Plaid, pending transactions also import and are marked as pending until they post. [Learn which connections import pending transactions](/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Direct-Connection-for-Company-Cards#do-pending-transactions-import-from-a-direct-connection).
 
 [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/configure-and-manage-company-cards/Assign-Company-Cards).
 
