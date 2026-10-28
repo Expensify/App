@@ -4975,6 +4975,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
