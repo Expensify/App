@@ -754,7 +754,7 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 /**
  * Validates the approval workflow and sets the errors on the approval workflow
  * @param approvalWorkflow the approval workflow to validate
- * @param isMultipleApproversBetaEnabled whether the workflow is saved as approval workflow rules
+ * @param isMultipleApproversBetaEnabled whether the `MULTIPLE_APPROVERS` beta is enabled, which saves the workflow as approval workflow rules
  * @returns true if the approval workflow is valid, false otherwise
  */
 function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMultipleApproversBetaEnabled: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
