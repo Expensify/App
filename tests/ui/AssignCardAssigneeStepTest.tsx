@@ -2,6 +2,8 @@ import {act, render} from '@testing-library/react-native';
 
 import SelectionList from '@components/SelectionList';
 
+import type {shouldHideExpensifyTeamCardholder} from '@libs/PolicyUtils/members';
+
 import AssigneeStep from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 
 import CONST from '@src/CONST';
@@ -13,6 +15,8 @@ import type {PropsWithChildren} from 'react';
 
 import React from 'react';
 
+type PolicyMemberUtils = {shouldHideExpensifyTeamCardholder: typeof shouldHideExpensifyTeamCardholder};
+
 const mockUseState = React.useState;
 
 const POLICY_ID = 'policy1';
@@ -21,9 +25,18 @@ const CARD_ID = 'card1';
 // "user09" sorts to the middle by display name, so seeing it first proves pinning (not the sort) put it there.
 const INITIAL_ASSIGNEE = 'user09@example.com';
 
+const EXPENSIFY_TEAM_MEMBER = 'guide@team.expensify.com';
+
 // The current assignee comes from Onyx; a mutable holder lets each test set it (and clear it) before render.
 let mockAssigneeEmail: string | undefined;
 let mockPolicy: Policy | undefined;
+let mockCanInviteMembers = false;
+let mockAvailableOptions: {selectedOptions: unknown[]; recentOptions: unknown[]; personalDetails: unknown[]; userToInvite: unknown} = {
+    selectedOptions: [],
+    recentOptions: [],
+    personalDetails: [],
+    userToInvite: null,
+};
 
 /** Build a policy whose employeeList has `count` members keyed user00..user{count-1} (zero-padded so the display-name sort is stable). */
 function buildPolicy(count: number): Policy {
@@ -34,6 +47,12 @@ function buildPolicy(count: number): Policy {
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
     return {id: POLICY_ID, owner: 'owner@example.com', employeeList} as unknown as Policy;
+}
+
+/** Add an Expensify-team member (a guide) to the policy's employeeList. */
+function withExpensifyTeamMember(policy: Policy): Policy {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
+    return {...policy, employeeList: {...policy.employeeList, [EXPENSIFY_TEAM_MEMBER]: {email: EXPENSIFY_TEAM_MEMBER, role: CONST.POLICY.ROLE.USER}}} as unknown as Policy;
 }
 
 jest.mock('@react-navigation/native', () => {
@@ -86,7 +105,7 @@ jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
             searchTerm,
             setSearchTerm,
             debouncedSearchTerm: searchTerm,
-            availableOptions: {selectedOptions: [], recentOptions: [], personalDetails: [], userToInvite: null},
+            availableOptions: mockAvailableOptions,
             areOptionsInitialized: true,
         };
     }),
@@ -99,12 +118,13 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
     }),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
-    canMemberWrite: jest.fn(() => false),
+    canMemberWrite: jest.fn(() => mockCanInviteMembers),
     canRoleCreateExpenses: jest.fn((role?: string) => role !== 'approveOnly'),
     filterGuideAndAccountManager: jest.fn((items: unknown[]) => items),
     getGuideAndAccountManagerInfo: jest.fn(() => ({assignedGuideEmail: undefined, accountManagerLogin: undefined, exclusions: {}})),
     getIneligibleInvitees: jest.fn(() => []),
     isDeletedPolicyEmployee: jest.fn(() => false),
+    shouldHideExpensifyTeamCardholder: jest.requireActual<PolicyMemberUtils>('@libs/PolicyUtils/members').shouldHideExpensifyTeamCardholder,
 }));
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: (value: string) => value,
@@ -123,7 +143,7 @@ jest.mock('@libs/CardUtils', () => ({
 }));
 
 type MockSelectionListProps = {
-    data: Array<{value?: string; keyForList?: string; isSelected?: boolean; text?: string}>;
+    data: Array<{value?: string; login?: string | null; keyForList?: string; isSelected?: boolean; text?: string}>;
     initiallyFocusedItemKey?: string;
     shouldScrollToFocusedIndexOnMount?: boolean;
     shouldUpdateFocusedIndex?: boolean;
@@ -144,6 +164,8 @@ describe('AssignCard AssigneeStep', () => {
         mockedSelectionList.mockClear();
         mockPolicy = buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2);
         mockAssigneeEmail = INITIAL_ASSIGNEE;
+        mockCanInviteMembers = false;
+        mockAvailableOptions = {selectedOptions: [], recentOptions: [], personalDetails: [], userToInvite: null};
     });
 
     it('pins the current assignee to the top and disables mount-time focused scroll', () => {
@@ -182,5 +204,64 @@ describe('AssignCard AssigneeStep', () => {
 
         const props = getSelectionListProps();
         expect(props?.data.at(0)?.value).toBe(INITIAL_ASSIGNEE);
+    });
+
+    it('hides Expensify team members, matching the Workspace Members page', () => {
+        mockPolicy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+
+        renderStep();
+
+        const props = getSelectionListProps();
+        expect(props?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(false);
+    });
+
+    it('still shows the already-assigned Expensify team member so editing an assignment does not blank out', () => {
+        mockPolicy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+        mockAssigneeEmail = EXPENSIFY_TEAM_MEMBER;
+
+        renderStep();
+
+        const props = getSelectionListProps();
+        expect(props?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
+    });
+
+    it('shows Expensify team members when the policy is owned by Expensify', () => {
+        const policy = withExpensifyTeamMember(buildPolicy(CONST.STANDARD_LIST_ITEM_LIMIT + 2));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only minimal Policy stub
+        mockPolicy = {...policy, owner: 'owner@expensify.com'} as unknown as Policy;
+
+        renderStep();
+
+        const props = getSelectionListProps();
+        expect(props?.data.some((item) => item.value === EXPENSIFY_TEAM_MEMBER)).toBe(true);
+    });
+
+    it('hides Expensify team accounts that come back from search results', () => {
+        // Given an admin who can invite members, so search also offers non-members, and search results that include
+        // Expensify team accounts alongside an ordinary user
+        mockCanInviteMembers = true;
+        mockAvailableOptions = {
+            selectedOptions: [],
+            recentOptions: [{login: 'support@expensify.com', keyForList: 'support@expensify.com'}],
+            personalDetails: [
+                {login: EXPENSIFY_TEAM_MEMBER, keyForList: EXPENSIFY_TEAM_MEMBER},
+                {login: 'outside@example.com', keyForList: 'outside@example.com'},
+            ],
+            userToInvite: {login: 'new@team.expensify.com', keyForList: 'new@team.expensify.com'},
+        };
+        renderStep();
+
+        // When the admin searches
+        act(() => {
+            getSelectionListProps()?.textInputOptions?.onChangeText?.('e');
+        });
+
+        // Then only the ordinary user is offered, because the member-list filter would be pointless if search could
+        // bring the same Expensify team accounts back
+        const logins = getSelectionListProps()?.data.map((item) => item.login);
+        expect(logins).toContain('outside@example.com');
+        expect(logins).not.toContain(EXPENSIFY_TEAM_MEMBER);
+        expect(logins).not.toContain('support@expensify.com');
+        expect(logins).not.toContain('new@team.expensify.com');
     });
 });
