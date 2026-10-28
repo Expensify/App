@@ -5903,6 +5903,26 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getAllPolicyValues category projections', () => {
+        test('selects projected names and skips undefined collection members', () => {
+            // Given category selectors retain only names and collection members may not have loaded
+            const names: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {foodKey: {name: 'Food'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`]: {travelKey: {name: 'Travel'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}3`]: undefined,
+            };
+            // When workspace filters must work without complete category metadata
+            const projected = getAllPolicyValues({value: ['1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const negated = getAllPolicyValues({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const all = getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            // Then filtering must skip unloaded members without reconstructing the selected projections
+            expect(projected).toEqual([{foodKey: {name: 'Food'}}]);
+            expect(projected.at(0)).toBe(names[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]);
+            expect(negated).toEqual([{travelKey: {name: 'Travel'}}]);
+            expect(all).toEqual([...projected, ...negated]);
+        });
+    });
+
     describe('getAllPolicyValuesMap', () => {
         const policy1 = createRandomPolicy(1, undefined, 'Workspace 1');
         const policy2 = createRandomPolicy(2, undefined, 'Workspace 2');
