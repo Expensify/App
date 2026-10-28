@@ -137,6 +137,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
     getTagGLCode,
+    getVendorDisplayName,
     isArchivedOrPendingDeletePolicy,
     isControlPolicy,
     isGroupPolicy,
@@ -4160,6 +4161,14 @@ function getSortedTransactionData(
         return data.sort((a, b) => {
             const aValue = a.report?.reportName ?? '';
             const bValue = b.report?.reportName ?? '';
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.VENDOR) {
+        return data.sort((a, b) => {
+            const aValue = getVendorDisplayName(a.policy, a.comment?.vendor);
+            const bValue = getVendorDisplayName(b.policy, b.comment?.vendor);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
