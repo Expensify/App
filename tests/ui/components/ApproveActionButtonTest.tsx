@@ -10,9 +10,9 @@ import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolations} from '@src/types/onyx';
 
-import type {UseOnyxResult} from 'react-native-onyx';
+import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
@@ -149,6 +149,31 @@ describe('ApproveActionButton', () => {
         });
 
         expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({full: false}));
+    });
+
+    it('forwards the transaction violations collection to approveMoneyRequest', () => {
+        // Given the full transaction violations collection is loaded, which approveMoneyRequest needs to evaluate sibling reports in the chat
+        const allTransactionViolations: OnyxCollection<TransactionViolations> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}],
+        };
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(iouReport);
+            }
+            if (key === ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS) {
+                return createOnyxResult(allTransactionViolations);
+            }
+            return createOnyxResult(undefined);
+        });
+        render(<ApproveActionButton />);
+
+        // When the user approves the report
+        act(() => {
+            mockApprovalButtonProps.current?.onApprove(true);
+        });
+
+        // Then the collection read by the hook is passed through, so the action no longer reads violations from Onyx itself
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({allTransactionViolations}));
     });
 
     it('surfaces held expenses to the approval button so it shows the approval options instead of approving directly', () => {

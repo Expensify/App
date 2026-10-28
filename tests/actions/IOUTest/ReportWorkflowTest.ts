@@ -37,7 +37,7 @@ import DateUtils from '@src/libs/DateUtils';
 import {generateAccountID} from '@src/libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportNameValuePairs, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {AnyOnyxData} from '@src/types/onyx/Request';
@@ -3442,6 +3442,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: DELEGATE_EMAIL,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
 
@@ -3485,6 +3486,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
 
@@ -3539,6 +3541,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
 
@@ -4669,6 +4672,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             delegateEmail: undefined,
             delegateAccountID: undefined,
             ownerLogin: undefined,
+            allTransactionViolations: undefined,
         });
 
         beforeEach(() => {
@@ -4862,6 +4866,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -4916,6 +4921,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -4969,6 +4975,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5014,6 +5021,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5141,6 +5149,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5174,6 +5183,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5205,6 +5215,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5266,6 +5277,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5327,6 +5339,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         delegateEmail: undefined,
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        allTransactionViolations: undefined,
                         ownerLogin: undefined,
                     });
                     return waitForBatchedUpdates();
@@ -5460,6 +5473,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                allTransactionViolations: undefined,
                 ownerLogin: undefined,
             });
             await waitForBatchedUpdates();
@@ -5467,6 +5481,216 @@ describe('actions/IOU/ReportWorkflow', () => {
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
             expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+    });
+
+    describe('approveMoneyRequest transaction violations', () => {
+        const CURRENT_USER_ACCOUNT_ID = CARLOS_ACCOUNT_ID;
+        const CURRENT_USER_EMAIL = CARLOS_EMAIL;
+
+        const duplicatedViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            type: CONST.VIOLATION_TYPES.WARNING,
+        };
+        const missingCategoryViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+        const autoRejectedViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Type-only reference to API.write for the spy below, not an API call.
+        let writeSpy: jest.SpiedFunction<typeof API.write>;
+
+        beforeEach(() => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic/failure data.
+            writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+        });
+
+        const getOnyxDataArg = () => getRequiredWriteCall(writeSpy.mock.calls, 0)[2];
+
+        const findOnyxUpdate = (dataType: 'optimisticData' | 'failureData', key: string) =>
+            getRequiredOnyxUpdates(getOnyxDataArg(), dataType).find((update) => isObject(update) && update.key === key);
+
+        /**
+         * Builds a policy expense chat holding two sibling expense reports:
+         * - `approvedReport` is the SUBMITTED report the current user approves. Its only transaction is the one a
+         *   duplicate violation can be attached to, so the tests can check the duplicate cleanup purely through the
+         *   violations argument. The chat has no preview action for it, so it never affects the chat's outstanding flag.
+         * - `outstandingReport` is an OPEN sibling the current user still has to submit, which is what keeps the chat's
+         *   `hasOutstandingChildRequest` true. An auto-rejected violation on its transaction flips that flag.
+         */
+        async function setUpChatWithApprovedAndOutstandingReports() {
+            const policy: Policy = {
+                ...createRandomPolicy(6),
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                harvesting: {
+                    enabled: false,
+                },
+            };
+            const chatReport: Report = {
+                ...createRandomReport(11, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: policy.id,
+                hasOutstandingChildRequest: true,
+                isOwnPolicyExpenseChat: true,
+            };
+            const approvedReport: Report = {
+                ...createRandomReport(5, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+                total: -100,
+                nonReimbursableTotal: 0,
+                currency: CONST.CURRENCY.USD,
+            };
+            const outstandingReport: Report = {
+                ...createRandomReport(6, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatReportID: chatReport.reportID,
+                parentReportID: chatReport.reportID,
+            };
+            const outstandingReportPreview: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {
+                    linkedReportID: outstandingReport.reportID,
+                },
+            };
+            const approvedTransaction: Transaction = {
+                ...createRandomTransaction(21),
+                reportID: approvedReport.reportID,
+            };
+            const outstandingTransaction: Transaction = {
+                ...createRandomTransaction(22),
+                reportID: outstandingReport.reportID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                email: CURRENT_USER_EMAIL,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [outstandingReportPreview.reportActionID]: outstandingReportPreview,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${approvedReport.reportID}`, approvedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, outstandingReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${approvedTransaction.transactionID}`, approvedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${outstandingTransaction.transactionID}`, outstandingTransaction);
+            await waitForBatchedUpdates();
+
+            return {policy, chatReport, approvedReport, approvedTransaction, outstandingTransaction};
+        }
+
+        function approve(approvedReport: Report, policy: Policy, allTransactionViolations: OnyxCollection<TransactionViolations>) {
+            approveMoneyRequest({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport: approvedReport,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmailParam: CURRENT_USER_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: CURRENT_USER_EMAIL,
+                full: true,
+                shouldPlaySuccessSound: false,
+                allTransactionViolations,
+            });
+        }
+
+        it('removes the duplicate violation from the passed violations and restores them on failure', async () => {
+            // Given an approved report whose only transaction is flagged as a duplicate, per the violations passed in
+            const {policy, approvedReport, approvedTransaction} = await setUpChatWithApprovedAndOutstandingReports();
+            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${approvedTransaction.transactionID}`;
+
+            // When the report is approved with those violations
+            approve(approvedReport, policy, {[violationsKey]: [duplicatedViolation, missingCategoryViolation]});
+
+            // Then approving dismisses the duplicate optimistically while keeping the other violations
+            const optimisticViolations = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', violationsKey, Onyx.METHOD.MERGE);
+            expect(optimisticViolations.value).toEqual([missingCategoryViolation]);
+
+            // And a failed approval puts back the violations exactly as they were passed in
+            const failureViolations = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', violationsKey, Onyx.METHOD.MERGE);
+            expect(failureViolations.value).toEqual([duplicatedViolation, missingCategoryViolation]);
+        });
+
+        it('reads the duplicate violation from the passed argument and not from the global Onyx collection', async () => {
+            // Given Onyx holds a duplicate violation for the approved report's transaction
+            const {policy, approvedReport, approvedTransaction} = await setUpChatWithApprovedAndOutstandingReports();
+            const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${approvedTransaction.transactionID}` as const;
+            await Onyx.merge(violationsKey, [duplicatedViolation]);
+            await waitForBatchedUpdates();
+
+            // When the report is approved while an empty violations collection is passed in
+            approve(approvedReport, policy, {});
+
+            // Then no duplicate cleanup is queued, proving the global collection is ignored
+            expect(findOnyxUpdate('optimisticData', violationsKey)).toBeUndefined();
+            expect(findOnyxUpdate('failureData', violationsKey)).toBeUndefined();
+        });
+
+        it('keeps the chat flagged as outstanding when the passed violations leave a sibling report actionable', async () => {
+            // Given a chat that still holds an OPEN sibling report the current user has to submit
+            const {policy, chatReport, approvedReport} = await setUpChatWithApprovedAndOutstandingReports();
+
+            // When the report is approved with no violations
+            approve(approvedReport, policy, {});
+
+            // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
+            const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticChatReport).toMatchObject({hasOutstandingChildRequest: true});
+        });
+
+        it('clears the chat outstanding flag when the passed violations auto-reject every sibling transaction', async () => {
+            // Given the sibling report's only transaction is auto-rejected, per the violations passed in
+            const {policy, chatReport, approvedReport, outstandingTransaction} = await setUpChatWithApprovedAndOutstandingReports();
+
+            // When the report is approved with those violations
+            approve(approvedReport, policy, {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`]: [autoRejectedViolation]});
+
+            // Then nothing is left for the user to act on, so the chat's outstanding flag is cleared
+            const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticChatReport).toMatchObject({hasOutstandingChildRequest: false});
+        });
+
+        it('treats an undefined violations argument as no violations', async () => {
+            // Given Onyx holds an auto-rejected violation for the sibling transaction
+            const {policy, chatReport, approvedReport, outstandingTransaction} = await setUpChatWithApprovedAndOutstandingReports();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${outstandingTransaction.transactionID}`, [autoRejectedViolation]);
+            await waitForBatchedUpdates();
+
+            // When the caller has no violations loaded yet and passes undefined
+            approve(approvedReport, policy, undefined);
+
+            // Then it behaves like an empty collection rather than falling back to Onyx
+            const optimisticChatReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value;
+            expect(optimisticChatReport).toMatchObject({hasOutstandingChildRequest: true});
         });
     });
 

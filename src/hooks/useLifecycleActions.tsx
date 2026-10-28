@@ -221,6 +221,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateAccountID,
             isTrackIntentUser,
             rules,
+            allTransactionViolations,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);

@@ -8,6 +8,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -156,6 +157,7 @@ describe('PaymentUtils', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             ownerLogin: undefined,
+            allTransactionViolations: undefined,
         };
 
         beforeEach(() => {
@@ -289,6 +291,24 @@ describe('PaymentUtils', () => {
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
             });
+        });
+
+        it('should forward the transaction violations to approveMoneyRequest when payment type is APPROVE and no confirmApproval', () => {
+            // Given the caller has a transaction violations collection loaded
+            const allTransactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1`]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.WARNING}],
+            };
+            const params = {
+                ...baseParams,
+                iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType,
+                allTransactionViolations,
+            };
+
+            // When the approve option is selected without a confirmation step
+            selectPaymentType(params);
+
+            // Then approveMoneyRequest receives the same collection instead of reading violations from Onyx itself
+            expect(approveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({allTransactionViolations}));
         });
 
         it('should call onPress with payment type for other payment types', () => {
