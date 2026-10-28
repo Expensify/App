@@ -89,7 +89,7 @@ const navigation = createMock<IOURequestStepConfirmationProps['navigation']>({ad
 const blockDistanceRequestIfNeeded: ReturnType<typeof useBlockDistanceRequest> = jest.fn(() => false);
 
 // A draft started from global create before its participants are known, so it still holds the member's Payment currency.
-function createParticipantlessDraft(overrides: Partial<Transaction> = {}): Transaction {
+function createDraftWithoutParticipants(overrides: Partial<Transaction> = {}): Transaction {
     return {
         transactionID: TRANSACTION_ID,
         reportID: REPORT_ID,
@@ -138,7 +138,7 @@ describe('useParticipantPickerState', () => {
     it('switches the draft to the default workspace currency when it auto-assigns the workspace chat', async () => {
         // Given a participant-less USD draft whose default participant is a GBP workspace chat
         // When the confirmation auto-assigns the default participant
-        await renderParticipantPickerState(createParticipantlessDraft());
+        await renderParticipantPickerState(createDraftWithoutParticipants());
 
         // Then the workspace chat is assigned and the draft currency is corrected to the workspace currency
         expect(mockedSetMoneyRequestParticipants).toHaveBeenCalledWith(TRANSACTION_ID, [workspaceChatParticipant]);
@@ -149,7 +149,7 @@ describe('useParticipantPickerState', () => {
     it('keeps the draft currency when an amount was already entered', async () => {
         // Given a draft where the member already entered an amount in their chosen currency
         // When the confirmation auto-assigns the default participant
-        await renderParticipantPickerState(createParticipantlessDraft({amount: 1000, isAmountSet: true}));
+        await renderParticipantPickerState(createDraftWithoutParticipants({amount: 1000, isAmountSet: true}));
 
         // Then the participants are still assigned, but the currency the member chose is left alone
         expect(mockedSetMoneyRequestParticipants).toHaveBeenCalledWith(TRANSACTION_ID, [workspaceChatParticipant]);
@@ -159,7 +159,7 @@ describe('useParticipantPickerState', () => {
     it('keeps the draft currency for distance requests', async () => {
         // Given a distance draft, whose currency comes from the selected mileage rate
         // When the confirmation auto-assigns the default participant
-        await renderParticipantPickerState(createParticipantlessDraft({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE}), true);
+        await renderParticipantPickerState(createDraftWithoutParticipants({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE}), true);
 
         // Then the currency is not overwritten with the workspace output currency
         expect(mockedSetMoneyRequestCurrency).not.toHaveBeenCalled();
@@ -168,7 +168,7 @@ describe('useParticipantPickerState', () => {
     it('does not set the currency when the draft already uses the workspace currency', async () => {
         // Given a draft that already uses the workspace currency
         // When the confirmation auto-assigns the default participant
-        await renderParticipantPickerState(createParticipantlessDraft({currency: 'GBP'}));
+        await renderParticipantPickerState(createDraftWithoutParticipants({currency: 'GBP'}));
 
         // Then no redundant currency update is written
         expect(mockedSetMoneyRequestCurrency).not.toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('useParticipantPickerState', () => {
         mockDefaultPolicy = undefined;
 
         // When the confirmation auto-assigns the default participant
-        await renderParticipantPickerState(createParticipantlessDraft());
+        await renderParticipantPickerState(createDraftWithoutParticipants());
 
         // Then the self DM is assigned and the draft keeps the member's Payment currency
         expect(mockedSetMoneyRequestParticipants).toHaveBeenCalledWith(TRANSACTION_ID, [selfDMParticipant]);
