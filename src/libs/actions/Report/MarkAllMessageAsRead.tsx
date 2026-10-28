@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -56,6 +56,8 @@ function markAllMessagesAsRead(
     const optimisticReports: Record<string, PartialReport> = {};
     const failureReports: Record<string, PartialReport> = {};
     const reportIDList: string[] = [];
+    // Chats the user marked unread, whose manual "New" line anchor this mark-all clears.
+    const reportKeysWithManualUnreadAnchor: Array<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`> = [];
     // Tells open chats how far they are read now, so their "New" line goes away (see useUnreadMarker).
     const readUpToTimes: Record<string, string> = {};
     const reportsToMark = reportIDs ? reportIDs.map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : Object.values(allReports ?? {});
@@ -78,9 +80,12 @@ function markAllMessagesAsRead(
             continue;
         }
 
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const;
         optimisticReports[reportKey] = {lastReadTime: newLastReadTime};
         failureReports[reportKey] = {lastReadTime: report.lastReadTime ?? null};
+        if (report.manuallyMarkedUnreadReportActionID) {
+            reportKeysWithManualUnreadAnchor.push(reportKey);
+        }
         reportIDList.push(report.reportID);
         readUpToTimes[report.reportID] = newLastReadTime;
     }
@@ -91,12 +96,20 @@ function markAllMessagesAsRead(
         return;
     }
 
-    const optimisticData = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT,
             value: optimisticReports,
         },
+        // A chat the user marked unread keeps its "New" line on that action until the anchor is cleared, and mark all
+        // reads it. Like openReport, the anchor is not restored on failure, which would resurrect a marker the user
+        // moved past.
+        ...reportKeysWithManualUnreadAnchor.map((key) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {manuallyMarkedUnreadReportActionID: null},
+        })),
     ];
 
     const failureData = [

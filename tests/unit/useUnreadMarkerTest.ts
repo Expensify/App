@@ -128,39 +128,47 @@ describe('useUnreadMarker', () => {
     });
 
     it('clears the marker when "Mark all as read" includes this report', () => {
+        // Given an open chat showing the "New" line on an unread message
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
 
+        // When "Mark all as read" reads this chat up to a later time
         act(() => {
             DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {[REPORT_ID]: '2023-01-01 12:00:00.000'});
         });
 
+        // Then the "New" line goes away
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
     it('keeps the marker when "Mark all as read" only includes other reports', () => {
+        // Given an open chat showing the "New" line on an unread message
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
 
+        // When "Mark all as read" only covers a different chat
         act(() => {
             DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {otherReport: '2023-01-01 12:00:00.000'});
         });
 
+        // Then this chat keeps its "New" line
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
     });
 
     it('does not move the marker back when "Mark all as read" sends an older time', () => {
+        // Given an open chat that was already read past its newest message
         const {result} = renderUnreadMarker({sortedVisibleReportActions: [makeAction('m1')]});
-
         act(() => {
             DeviceEventEmitter.emit(`unreadAction_${REPORT_ID}`, '2023-01-01 12:00:00.000');
         });
         expect(result.current.unreadMarkerReportActionID).toBeNull();
 
+        // When "Mark all as read" sends an older read time for it
         act(() => {
             DeviceEventEmitter.emit(CONST.EVENTS.MARK_ALL_AS_READ, {[REPORT_ID]: '2023-01-01 10:30:00.000'});
         });
 
+        // Then the marker does not come back
         expect(result.current.unreadMarkerReportActionID).toBeNull();
     });
 

@@ -4389,6 +4389,28 @@ describe('actions/Report', () => {
             expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.MARK_ALL_AS_READ, {[openedReport.reportID]: currentTime});
             emitSpy.mockRestore();
         });
+
+        it('should clear the manual unread anchor of the chats it marks as read', async () => {
+            // Given a chat the user marked unread from one of its messages
+            const currentTime = DateUtils.getDBTime();
+            const markedUnreadReport: OnyxTypes.Report = {
+                ...createRandomReport(4, undefined),
+                lastMessageText: 'test',
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1000),
+                lastVisibleActionCreated: currentTime,
+                manuallyMarkedUnreadReportActionID: 'markedAction',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${markedUnreadReport.reportID}`, markedUnreadReport);
+
+            // When the user marks all as read
+            markAllMessagesAsRead(undefined, [markedUnreadReport.reportID], undefined);
+            await waitForBatchedUpdates();
+
+            // Then the anchor is gone, so the open chat no longer shows the "New" line on that message
+            const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${markedUnreadReport.reportID}`);
+            expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+            expect(report?.manuallyMarkedUnreadReportActionID).toBeFalsy();
+        });
     });
 
     describe('updateDescription', () => {
