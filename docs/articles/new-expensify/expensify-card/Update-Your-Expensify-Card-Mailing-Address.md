@@ -47,7 +47,7 @@ Learn more about [Expensify Card 3D Secure verification](/articles/new-expensify
 If your card hasn't shipped yet and you only need to change the address on file:
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2. Select **Wallet**.
+3. Locate your physical Expensify card and select **Report card lost or damaged**.
 3. Locate your physical Expensify card and click **Report card lost or damaged**.
 4. Choose **My card was damaged**.
    - **Note:** Even if you haven't damaged the card, selecting that option allows you to update your address.
@@ -63,10 +63,10 @@ Your address is now updated. If the card hasn't shipped yet, it will automatical
 If your card has already shipped to the wrong address:
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
-2. Select **Wallet**.
-3. Locate your physical card and click **Report card lost or damaged**.
+3. Locate your physical card and select **Report card lost or damaged**.
 4. Choose **My card was lost or stolen**.
-5. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
+5. Enter your updated address under **Please confirm the mailing address for your new card** and select **Save**.
+6. Select **Deactivate card** to complete the card replacement process.
 6. Click **Deactivate card** to complete the card replacement process.
 
 Your new Expensify Visa® Commercial Card will be shipped to your updated address and arrive in 3-5 business days.

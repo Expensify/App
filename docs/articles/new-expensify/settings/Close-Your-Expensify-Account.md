@@ -31,7 +31,7 @@ If you are the owner of a workspace on an Annual subscription, you can’t close
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Security**.
-3. Under **Security**, click **Close account**.
+3. Under **Security**, select **Close account**.
 4. Follow the prompts and answer the required questions.
 5. Click **Close account** to confirm.
 

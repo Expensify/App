@@ -54,7 +54,7 @@ A Copilot cannot:
 2. Select **Copilot**.
 3. In the **Copilot: Delegated access** section, locate the Copilot.
 4. Select the three dots **(⋮)**.
-5. Select **Change access level**.
+4. Select **More (⋮)**.
 6. Choose **Full** or **Limited**.
 7. Confirm your selection.
 
@@ -64,7 +64,7 @@ A Copilot cannot:
 2. Select **Copilot**.
 3. In the **Copilot: Delegated access** section, locate the Copilot.
 4. Select the three dots **(⋮)**.
-5. Select **Remove copilot**.
+4. Select **More (⋮)**.
 6. Confirm the removal.
 
 If you're offline when you confirm the removal, Expensify queues the change and finishes it the next time you're connected.

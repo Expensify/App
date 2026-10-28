@@ -49,9 +49,9 @@ To adjust how chats are sorted in your inbox:
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Preferences**.
-3. Click or tap **Priority mode**.
+3. Select **Priority mode**.
 4. Select either **#focus** or **Most recent**.
-5. Click or tap **Save**.
+5. Select **Save**.
 
 **Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most recent** to see everything chronologically. The change is applied only after you tap **Save**.
 

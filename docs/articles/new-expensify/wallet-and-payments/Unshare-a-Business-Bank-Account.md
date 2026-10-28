@@ -23,11 +23,11 @@ Any member who has a validated business bank account in their **Wallet** that is
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Wallet**.
-3. In the **Bank accounts** section, find the verified business bank account and select the three dots **(⋮)** next to the account.
+3. In the **Bank accounts** section, find the verified business bank account and select **More (⋮)** next to the account.
 4. Select **Unshare**.
 5. Select the members you want to remove. 
-6. Click **Unshare**.
-7. Click **Confirm**
+6. Select **Unshare**.
+7. Select **Confirm**.
 
 You'll see a confirmation once the account has been unshared. 
 

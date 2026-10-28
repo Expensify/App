@@ -24,12 +24,12 @@ If you have multiple Expensify accounts, you can merge them into a single login.
 # How to Merge Accounts
 
 1. Log in to the account you want to keep as your primary account.
-2. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+4. Select **Merge Accounts**.
 3. Select **Security**.
 4. Click **Merge Accounts**.
-5. Enter the **email address or phone number** for the account you want to merge into this one.
-6. Check the box that says **"Yes, I understand this is not reversible"**.
-7. Click **Merge Accounts**.
+7. Select **Merge Accounts**.
+8. Check your email for the security code sent by Expensify.
+9. Enter the code into the prompt and select **Merge**.
 8. Check your email for the security code sent by Expensify.
 9. Enter the code into the prompt and click **Merge**.
 

@@ -18,8 +18,8 @@ If your physical card is damaged but still in your possession, you can request a
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Wallet**.
 3. Select your physical Expensify Card and choose **Report card lost or damaged**.
-4. Choose **My card was damaged** and select **Next**
-5. Enter or confirm your mailing address under **Please confirm the mailing address for your new card** and click **Save**.
+5. Enter or confirm your mailing address under **Please confirm the mailing address for your new card** and select **Save**.
+6. Select **Ship new card** to complete the replacement request.
 6. Click **Ship new card** to complete the replacement request.
 
 Your new Expensify Visa® Commercial Card will be shipped to the confirmed address and arrive in 3-5 business days. You can continue using your current Expensify Card until you activate your replacement card.
@@ -33,8 +33,8 @@ If your card has been lost or stolen, you should report it immediately. Reportin
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Wallet**.
 3. Select your physical Expensify Card and choose **Report card lost or damaged**.
-4. Choose **My card was lost or stolen**.
-5. Enter or confirm your mailing address under **Please confirm the mailing address for your new card** and click **Save**.
+5. Enter or confirm your mailing address under **Please confirm the mailing address for your new card** and select **Save**.
+6. Select **Deactivate card** to deactivate your current card and complete the replacement request.
 6. Click **Deactivate card** to deactivate your current card and complete the replacement request.
 
 Your current card is deactivated immediately, and your replacement card will arrive in 3–5 business days.

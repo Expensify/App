@@ -37,7 +37,7 @@ When you see the three test amounts post to your bank account:
 2. Select **Wallet**.
 3. In the **Bank accounts** section, find the business bank account with the **Pending** badge and the message **Please confirm test transactions**, then click **Confirm**.
 4. If **Continue setup** and **Start over** appear instead of the validation screen, click **Continue setup**. Don't click **Start over**, which clears the setup already completed for the account.
-5. On the **Validate your bank account** screen, enter each amount in **Transaction 1**, **Transaction 2**, and **Transaction 3**.
+6. Select **Validate**.
 6. Click **Validate**.
 
 Once the values are confirmed, your business bank account is fully connected and ready to use.

@@ -38,7 +38,7 @@ To replace an existing card:
 
 1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Subscription**.
-3. In the **Payment** section, select the three dots **(⋮)**, then select **Change payment card**.
+3. In the **Payment** section, select **More (⋮)**, then select **Change payment card**.
 4. Enter the new credit card details.
 5. Select **Add payment card**.
 
