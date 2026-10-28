@@ -1,4 +1,4 @@
-import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
+import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
@@ -68,5 +68,16 @@ describe('summarizeListItem', () => {
 
         // Then the hidden name is ignored, as validation and submission ignore it
         expect(summary).toEqual({title: 'Acme', description: 'Company'});
+    });
+
+    it('numbers the fallback name of an entry, so two unnamed entries sound different', () => {
+        // Given a list of owners whose second entry holds only sensitive answers
+        const owners: DynamicFormField = {key: 'owners', type: 'list', required: true, itemLabel: 'owner', itemFields: [{key: 'ssn', type: 'text', required: true, sensitive: true}]};
+
+        // When its fallback name is taken
+        const title = getListItemFallbackTitle(owners, 1, translateLocal);
+
+        // Then the noun is capitalized and numbered by the entry's place in the list
+        expect(title).toBe(translateLocal('dynamicForm.numberedItem', {item: 'Owner', number: 2}));
     });
 });
