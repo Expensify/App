@@ -131,6 +131,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
+    // Native stack never renders a popped screen unfocused, so also clear on unmount.
     useEffect(() => () => clearDeleteTransactionNavigateBackUrlAfterTransitions(), []);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
