@@ -34,6 +34,14 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from './ReportUtils';
+import {
+    getAutoReportingOffsetsForFrequency,
+    getPolicyAutoReportingOffsets,
+    getWeekdayKey,
+    getWorkspaceTimezone,
+    LAST_WEEKDAY_OFFSETS,
+    sortSemiMonthlyOffsets,
+} from './SubmissionScheduleUtils';
 import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
 
 type BuildOptimisticNextStepParams = {
@@ -57,6 +65,58 @@ type BuildOptimisticNextStepParams = {
     translate?: LocaleContextProps['translate'];
     rules: OnyxCollection<Rule>;
 };
+
+/** The backend still sends the legacy ETA key for older clients, so a custom schedule is read from the schedule fields sent with it. */
+function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string | undefined {
+    const frequency = eta?.autoReportingFrequency;
+    const {offset, secondOffset} = getAutoReportingOffsetsForFrequency(frequency, {offset: eta?.autoReportingOffset, secondOffset: eta?.autoReportingOffsetSecondSemiMonthly});
+    const formatDay = (day: number) => format(setDate(new Date(), day), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale});
+
+    // Default schedules keep their legacy ETA text
+    switch (frequency) {
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+            if (offset === CONST.POLICY.AUTO_REPORTING_WEEKDAYS.SUNDAY) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.weekly.${getWeekdayKey(Number(offset))}`);
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
+            const sortedOffsets = sortSemiMonthlyOffsets({offset, secondOffset});
+            const isDefaultSchedule =
+                sortedOffsets.offset === CONST.POLICY.AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET && sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH;
+            if (typeof sortedOffsets.offset !== 'number' || isDefaultSchedule) {
+                return undefined;
+            }
+            const firstDay = formatDay(sortedOffsets.offset);
+            if (sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                return translate('nextStep.scheduleEta.twiceAMonthAndLastDay', {firstDay});
+            }
+            if (typeof sortedOffsets.secondOffset !== 'number') {
+                return undefined;
+            }
+            return translate('nextStep.scheduleEta.twiceAMonth', {firstDay, secondDay: formatDay(sortedOffsets.secondOffset)});
+        }
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            const lastWeekdayOffset = LAST_WEEKDAY_OFFSETS.find((lastWeekday) => lastWeekday === offset);
+            if (!lastWeekdayOffset) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.monthlyLastWeekday.${lastWeekdayOffset}`);
+        }
+        default:
+            return undefined;
+    }
+}
+
+/** Sent with the optimistic ETA so it reads the same as the one the backend sends. */
+function getScheduleETAFields(policy: OnyxEntry<Policy>): NonNullable<ReportNextStep['eta']> {
+    const {offset, secondOffset} = getPolicyAutoReportingOffsets(policy);
+    return {
+        autoReportingFrequency: getCorrectedAutoReportingFrequency(policy),
+        autoReportingOffset: offset,
+        autoReportingOffsetSecondSemiMonthly: secondOffset,
+        timeZone: getWorkspaceTimezone(policy),
+    };
+}
 
 function buildNextStepMessage(
     nextStep: ReportNextStep,
@@ -83,7 +143,11 @@ function buildNextStepMessage(
 
     let eta: string | undefined;
     let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
-    if (nextStep.eta?.etaKey) {
+    const scheduleETA = getScheduleETA(nextStep.eta, translate, dateFnsLocale);
+    if (scheduleETA) {
+        eta = scheduleETA;
+        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
+    } else if (nextStep.eta?.etaKey) {
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
@@ -207,23 +271,25 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
                         nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
-                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK};
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, ...getScheduleETAFields(policy)};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
-                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY};
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY, ...getScheduleETAFields(policy)};
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
                         if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
                         } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                             nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
-                        } else if (policy?.autoReportingOffset !== undefined) {
+                        } else if (typeof policy?.autoReportingOffset === 'number') {
                             let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
                             if (isPast(etaDateTime)) {
                                 etaDateTime = addMonths(etaDateTime, 1);
                             }
 
                             nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
+                        } else {
+                            nextStep.eta = getScheduleETAFields(policy);
                         }
                         break;
                     case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:

@@ -10,6 +10,7 @@ import {
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {ReportNextStepMessageParams} from '@src/languages/TranslationTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -1334,6 +1335,80 @@ describe('libs/NextStepUtils', () => {
 
             const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>15th</next-step>');
+        });
+
+        it.each([
+            {
+                name: 'weekly on a custom day',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, autoReportingOffset: 3},
+                expectedETA: 'on Wednesday',
+            },
+            {
+                name: 'weekly on the default day',
+                eta: {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY, autoReportingOffset: 7},
+                expectedETA: 'on Sunday',
+            },
+            {
+                name: 'twice a month on custom days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 10,
+                    autoReportingOffsetSecondSemiMonthly: 20,
+                },
+                expectedETA: 'on the 10th and 20th of each month',
+            },
+            {
+                name: 'twice a month on a custom day and the last day',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 10,
+                    autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                },
+                expectedETA: 'on the 10th and the last day of each month',
+            },
+            {
+                name: 'twice a month on the default days',
+                eta: {
+                    etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                    autoReportingOffset: 15,
+                    autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                },
+                expectedETA: 'on the 1st and 16th of each month',
+            },
+            {
+                name: 'monthly on the last weekday',
+                eta: {
+                    dateTime: '2026-10-30',
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                    autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH,
+                },
+                expectedETA: 'on the last Friday of the month',
+            },
+        ])('renders the automatic-submit eta for $name from the schedule the backend sends', async ({eta, expectedETA}) => {
+            // Given English translations and a next step whose eta carries the workspace schedule next to the legacy etaKey or dateTime
+            IntlStore.load(CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: 999999,
+                eta,
+            };
+            const translateEta: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForAutomaticSubmit') {
+                    return String(parameters.at(2));
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
+
+            // Then custom schedules show their own day, and default schedules keep the legacy text
+            expect(message).toBe(`<next-step>${expectedETA}</next-step>`);
         });
 
         describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {

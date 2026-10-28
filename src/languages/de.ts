@@ -2200,6 +2200,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'am letzten Tag des Monats',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'am Ende deiner Reise',
         },
+        scheduleEta: {
+            weekly: {monday: 'am Montag', tuesday: 'am Dienstag', wednesday: 'am Mittwoch', thursday: 'am Donnerstag', friday: 'am Freitag', saturday: 'am Samstag', sunday: 'am Sonntag'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `am ${firstDay}. und ${secondDay}. eines jeden Monats`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `am ${firstDay}. und am letzten Tag jedes Monats`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'am letzten Montag des Monats',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'am letzten Dienstag des Monats',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'am letzten Mittwoch des Monats',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'am letzten Donnerstag des Monats',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'am letzten Freitag des Monats',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'am letzten Samstag des Monats',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'am letzten Sonntag des Monats',
+            },
+        },
     },
     profilePage: {
         profile: 'Profil',
@@ -3206,6 +3220,13 @@ ${amount} für ${merchant} – ${date}`,
                 '9': 'Neunter',
                 '10': 'Zehnter',
             },
+            lastMondayOfMonth: 'Letzten Montag',
+            lastTuesdayOfMonth: 'Letzten Dienstag',
+            lastWednesdayOfMonth: 'Letzten Mittwoch',
+            lastThursdayOfMonth: 'Letzten Donnerstag',
+            lastFridayOfMonth: 'Letzten Freitag',
+            lastSaturdayOfMonth: 'Letzten Samstag',
+            lastSundayOfMonth: 'Letzten Sonntag',
         },
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungsworkflow. Alle Aktualisierungen hier werden sich auch dort auswirken.',
         approverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person oder löschen Sie diesen Workflow.',
@@ -3227,10 +3248,60 @@ ${amount} für ${merchant} – ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `von ${provider}`,
         finalApprover: 'Letzte*r Genehmigende*r',
         manager: 'Manager',
+        submitFrequency: 'Einreichungshäufigkeit',
+        submitOn: 'Einreichen am',
+        dayOfTheWeek: 'Wochentag',
+        dayOfTheMonth: 'Tag des Monats',
+        firstSubmission: 'Erste Einreichung',
+        secondSubmission: 'Zweite Einreichung',
+        submissionDatesOrderError: 'Das erste Einreichungsdatum muss vor dem zweiten Einreichungsdatum liegen',
+        daysOfWeek: {monday: 'Montag', tuesday: 'Dienstag', wednesday: 'Mittwoch', thursday: 'Donnerstag', friday: 'Freitag', saturday: 'Samstag', sunday: 'Sonntag'},
+        frequencySummary: {
+            weekly: {
+                monday: 'Wöchentlich montags',
+                tuesday: 'Wöchentlich dienstags',
+                wednesday: 'Wöchentlich mittwochs',
+                thursday: 'Wöchentlich donnerstags',
+                friday: 'Wöchentlich freitags',
+                saturday: 'Wöchentlich am Samstag',
+                sunday: 'Wöchentlich sonntags',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Zweimal im Monat am ${firstDay} und ${secondDay}`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Zweimal im Monat am ${firstDay} und am letzten Tag`,
+            monthly: ({day}: {day: string}) => `Monatlich am ${day}`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Monatlich am letzten Tag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Monatlich am letzten Werktag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Monatlich am letzten Montag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Monatlich am letzten Dienstag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Monatlich am letzten Mittwoch',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Monatlich am letzten Donnerstag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Monatlich am letzten Freitag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Monatlich am letzten Samstag',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Monatlich am letzten Sonntag',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Ausgaben werden eingereicht, sobald sie erstellt werden',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Berichte werden nach zwei Tagen ohne Spesen eingereicht',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Berichte bleiben im Entwurf, bis ein Mitglied sie einreicht',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Ausgaben werden direkt nach der Erstellung eingereicht.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Berichte werden jeden Tag automatisch eingereicht, basierend auf der <a href="${timezoneLink}">Workspace-Zeitzone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Berichte werden jede Woche automatisch eingereicht, basierend auf der <a href="${timezoneLink}">Workspace-Zeitzone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Berichte werden zweimal im Monat automatisch eingereicht, basierend auf der <a href="${timezoneLink}">Arbeitsbereichszeitzone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Berichte werden jeden Monat automatisch eingereicht, basierend auf der <a href="${timezoneLink}">Workspace-Zeitzone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Berichte werden nach zwei vollen Tagen ohne neue Ausgaben eingereicht.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Berichte bleiben im Entwurf, bis ein:e Nutzer:in sie einreicht.',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Sendehäufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
-        monthlyOffsetErrorMessage: 'Die monatliche Häufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Währungsumrechnungsgebühren',
@@ -5042,6 +5113,11 @@ ${amount} für ${merchant} – ${date}`,
             archived: 'Archiviert',
             workspaceStatus: 'Workspace-Status',
             findRoom: 'Raum finden',
+            emptyRoomsTitle: 'Keine Räume anzuzeigen',
+            emptyRoomsSubtitle: 'Räume in diesem Arbeitsbereich werden hier angezeigt.',
+            emptyRoomsArchivedTitle: 'Diese Räume sind archiviert',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Archivierung dieses Workspaces aufheben</a>, um sie wieder zu verwenden.</centered-text></muted-text>`,
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
             disabled: 'Deaktiviert',
@@ -7909,6 +7985,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Campfire-Daten werden synchronisiert';
                         case 'campfireSyncConnection':
                             return 'Verbindung zu Campfire wird initialisiert';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-Daten werden synchronisiert';
                         case 'zohoBooksSyncConnection':
                             return 'Verbindung zu Zoho Books wird initialisiert';
                         case 'campfireSyncImportData':
@@ -8167,6 +8245,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             avatarUploadFailureMessage: 'Beim Hochladen des Avatars ist ein Fehler aufgetreten. Bitte versuche es erneut.',
             addressContext: 'Für die Aktivierung von Expensify Travel ist eine Workspace-Adresse erforderlich. Bitte gib eine Adresse ein, die deinem Unternehmen zugeordnet ist.',
             policy: 'Spesenrichtlinie',
+            timezoneInputLabel: 'Zeitzone',
+            timezoneInputHelpText: 'Ihre Zeitzone wird für das automatische Einreichen von Berichten verwendet',
+            timezoneErrorMessage: 'Zeitzone konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
         },
         officeLocations: {
             title: 'Bürostandorte',
@@ -9008,7 +9089,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
                 suggestionsTab: 'Vorschläge',
-                writeTab: 'Bearbeiten',
+                writeTab: 'Benutzerdefiniert',
                 findSuggestion: 'Regel finden',
                 emptySuggestionsTitle: 'Keine Vorschläge verfügbar',
                 emptySuggestionsSubtitle: 'Versuchen Sie, Ihre eigene Regel zu schreiben.',
@@ -9487,6 +9568,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
+            organizationSelectDescription: 'Wählen Sie die Organisation in Zoho Books aus, aus der Sie Daten importieren möchten.',
+            noOrganizationsFound: 'Keine Organisationen gefunden',
+            noOrganizationsFoundDescription: 'Bitte fügen Sie eine Organisation in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
+            multiLocationNotSupported: 'Organisationen mit mehreren Standorten werden noch nicht unterstützt',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -10738,6 +10823,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             pleaseSelectDatesForBothFromAndTo: 'Bitte wähle Daten für Von und Bis',
         },
         spendOverTime: 'Ausgaben im Zeitverlauf',
+        trip: {
+            tripName: 'Reisename',
+            traveler: 'Reisende*r',
+            status: {
+                upcoming: 'Bevorstehend',
+                done: 'Abgeschlossen',
+                canceled: 'Storniert',
+            },
+        },
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',
@@ -10832,6 +10926,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         genericUpdateReportFieldFailureMessage: 'Unerwarteter Fehler beim Aktualisieren des Feldes. Bitte versuchen Sie es später noch einmal.',
         genericUpdateReportNameEditFailureMessage: 'Unerwarteter Fehler beim Umbenennen des Berichts. Bitte versuche es später noch einmal.',
         noActivityYet: 'Noch keine Aktivität',
+        collapsedSystemMessages: () => ({
+            one: '1 Aktualisierung anzeigen',
+            other: (count: number) => `${count} Aktualisierungen anzeigen`,
+        }),
         connectionSettings: 'Verbindungseinstellungen',
         actions: {
             type: {

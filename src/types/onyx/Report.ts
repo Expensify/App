@@ -5,7 +5,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {ValueOf} from 'type-fest';
 
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyReportField} from './Policy';
+import type {AutoReportingOffset, PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -70,6 +70,18 @@ type ReportNextStep = {
 
         /** The ETA date time */
         dateTime?: string;
+
+        /** The submission frequency the ETA was calculated from */
+        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+        /** The submission day the ETA was calculated from */
+        autoReportingOffset?: AutoReportingOffset;
+
+        /** The second twice a month submission day the ETA was calculated from */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The workspace timezone the ETA was calculated in */
+        timeZone?: string;
     };
 
     /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */

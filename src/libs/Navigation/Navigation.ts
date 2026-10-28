@@ -36,7 +36,7 @@ import Onyx from 'react-native-onyx';
 import type {LinkToOptions} from './helpers/linkTo/types';
 import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RightModalNavigatorParamList, State} from './types';
 
-import {consumePreMountReplaceOutcome, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import {consumePreMountReplaceOutcome, getFocusedRouteFromNavigatorState, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
@@ -69,7 +69,7 @@ import {
 import replaceWithSplitNavigator from './helpers/replaceWithSplitNavigator';
 import runAfterClosingScreenUnmount from './helpers/runAfterClosingScreenUnmount';
 import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionToMicrotaskQueue';
-import {cancelWideTabPreMount, discardWideTabPreMount, finishWideTabPreMountReveal} from './helpers/wideTabPreMount';
+import {cancelWideTabPreMount, discardWideTabPreMount, finishWideTabPreMountReveal, preMountWideDestinationInTab} from './helpers/wideTabPreMount';
 import {setRevealedWideTabPreMountModalRouteKey} from './helpers/wideTabPreMountRouteKey';
 import {config as linkingConfig} from './linkingConfig/config';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
@@ -1275,20 +1275,33 @@ function revealRouteBeforeDismissingModal(route: Route, options?: {afterTransiti
 }
 
 /**
- * Pre-inserts a fullscreen route (e.g. Search) underneath the currently open RHP on narrow layout.
- * The route renders behind the fullscreen RHP so that when the user later submits,
- * we can simply dismiss the RHP to reveal the already-mounted screen.
+ * Wide layout counterpart of the narrow pre-insert. The destination is visible next to the RHP on wide, so it cannot go
+ * under the RHP. Instead, the destination screen is mounted hidden inside the current TAB_NAVIGATOR (see wideTabPreMount),
+ * and revealRouteBeforeDismissingModal later shows that instance through the regular REPLACE.
+ */
+function preMountFullscreenOnWide(route: Route, outermostFullScreen: NavigationPartialRoute | undefined, targetRouteName: string | undefined) {
+    if (outermostFullScreen?.name !== NAVIGATORS.TAB_NAVIGATOR) {
+        return;
+    }
+    const focusedTargetTab = getFocusedRouteFromNavigatorState(outermostFullScreen.state);
+    const preMountedRouteKey = focusedTargetTab && preMountWideDestinationInTab(focusedTargetTab);
+    if (!preMountedRouteKey) {
+        return;
+    }
+    markFullscreenPreInsertedUnderRHP(targetRouteName, {routeKey: preMountedRouteKey, route});
+}
+
+/**
+ * Mounts the submit destination (e.g. Search) ahead of the submit, while the RHP is still open.
+ * On narrow layout the route goes underneath the fullscreen RHP, so a later submit can simply dismiss the RHP to reveal
+ * the already-mounted screen. On wide layout the destination is visible next to the RHP, so it is pre-mounted hidden
+ * instead (see preMountFullscreenOnWide).
  *
- * This is the mobile counterpart of revealRouteBeforeDismissingModal; the difference
- * is that the insert happens eagerly (on confirmation screen mount) rather than at
+ * Unlike revealRouteBeforeDismissingModal, this runs eagerly (on confirmation screen mount) rather than at
  * submission time, giving React time to mount the destination component tree while
  * the user is still filling in details.
  */
 function preInsertFullscreenUnderRHP(route: Route) {
-    if (!getIsNarrowLayout()) {
-        return;
-    }
-
     if (getIsFullscreenPreInsertedUnderRHP()) {
         return;
     }
@@ -1303,6 +1316,11 @@ function preInsertFullscreenUnderRHP(route: Route) {
     // Use the active inner tab name (e.g. REPORTS_SPLIT_NAVIGATOR) when the outermost
     // fullscreen is a TAB_NAVIGATOR wrapper, so callers comparing against specific tab names match.
     const targetRouteName = getActiveTabName(outermostFullScreen);
+
+    if (!getIsNarrowLayout()) {
+        preMountFullscreenOnWide(route, outermostFullScreen, targetRouteName);
+        return;
+    }
 
     const stateBefore = navigationRef.current.getRootState();
     const routeCountBefore = stateBefore.routes.length;
