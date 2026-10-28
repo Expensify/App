@@ -336,6 +336,7 @@ function IOURequestStepConfirmationContent({
         handleParticipantsAdded,
     } = useParticipantPickerState({
         transaction,
+        transactions,
         iouType,
         reportID,
         reportDrafts,
