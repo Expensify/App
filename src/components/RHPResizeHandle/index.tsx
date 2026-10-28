@@ -9,15 +9,8 @@ import {clearLiveSingleRHPWidth, writeLiveSingleRHPWidth} from '@libs/Navigation
 
 import CONST from '@src/CONST';
 
-import type {RefObject} from 'react';
-
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-
-type RHPResizeHandleProps = {
-    /** Holds the live width mid-drag. Contains the RHP cards and this handle, which all read it. */
-    scopeRef: RefObject<HTMLElement | null>;
-};
 
 type Drag = {
     startClientX: number;
@@ -49,7 +42,7 @@ const LINE_STYLE: React.CSSProperties = {
  * Drags the single RHP card's left edge. A sibling of the card rather than a child, because the card clips its overflow,
  * and rendered after the overlay so it wins hit-testing over the scrim that closes the RHP.
  */
-function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
+function RHPResizeHandle() {
     const styles = useThemeStyles();
     const {width, min, max} = useSingleRHPWidth();
     const [isHovered, setIsHovered] = useState(false);
@@ -60,7 +53,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
         dragRef,
         onMove: (drag, clientX) => {
             const liveWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max});
-            writeLiveSingleRHPWidth(scopeRef.current, liveWidth);
+            writeLiveSingleRHPWidth(liveWidth);
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
         },
@@ -69,7 +62,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
 
             // Nothing gets saved, so no render follows to clear the live width.
             if (liveWidth === undefined || liveWidth === width) {
-                clearLiveSingleRHPWidth(scopeRef.current);
+                clearLiveSingleRHPWidth();
                 return;
             }
 
@@ -83,14 +76,11 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
             return;
         }
 
-        clearLiveSingleRHPWidth(scopeRef.current);
-    }, [width, scopeRef]);
+        clearLiveSingleRHPWidth();
+    }, [width]);
 
-    // The scope outlives the handle, so unmounting before the save renders would otherwise pin the cards at the live width.
-    useEffect(() => {
-        const scope = scopeRef.current;
-        return () => clearLiveSingleRHPWidth(scope);
-    }, [scopeRef]);
+    // The document outlives the handle, so unmounting before the save renders would otherwise pin the cards at the live width.
+    useEffect(() => clearLiveSingleRHPWidth, []);
 
     return (
         <View style={styles.rhpResizeHandle(width)}>

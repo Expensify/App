@@ -1,12 +1,13 @@
 import {fireEvent, render} from '@testing-library/react-native';
 
+import type RHPResizeHandleComponent from '@components/RHPResizeHandle';
+
 import {setSingleRHPWidth} from '@libs/actions/SingleRHPWidth';
-import type RHPResizeHandleComponent from '@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle';
 
 import React from 'react';
 
 // Jest resolves the native no-op, so the web implementation is loaded by its file name.
-const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResizeHandleComponent}>('@libs/Navigation/AppNavigator/Navigators/RHPResizeHandle/index.tsx');
+const {default: RHPResizeHandle} = jest.requireActual<{default: typeof RHPResizeHandleComponent}>('@components/RHPResizeHandle/index.tsx');
 
 // The native helpers never touch the DOM, so the web ones are loaded by their file name too.
 jest.mock('@libs/Navigation/helpers/singleRHPWidth', () => jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/singleRHPWidth/index.ts'));
@@ -25,16 +26,14 @@ const WIDTH_VARIABLE = '--rhp-width';
 
 type PointerEventName = 'pointerDown' | 'pointerMove' | 'pointerUp' | 'lostPointerCapture';
 
-/** Renders the handle with a scope element, the way the RHP navigators mount it. */
+/** Renders the handle the way the RHP navigators mount it. */
 function renderHandle() {
-    const scopeElement = document.createElement('div');
     const handleElement = document.createElement('div');
 
     // jsdom has no pointer capture.
     handleElement.setPointerCapture = jest.fn();
 
-    const scopeRef = {current: scopeElement};
-    const screen = render(<RHPResizeHandle scopeRef={scopeRef} />);
+    const screen = render(<RHPResizeHandle />);
 
     const getHandle = () => {
         // The first div is the handle; the indicator line is a second one, rendered while hovered or dragging.
@@ -51,9 +50,9 @@ function renderHandle() {
     const firePointer = (eventName: PointerEventName, clientX: number) =>
         fireEvent(getHandle(), eventName, {button: 0, clientX, pointerId: 1, currentTarget: handleElement, preventDefault: jest.fn(), stopPropagation: jest.fn()});
 
-    const readLiveWidth = () => scopeElement.style.getPropertyValue(WIDTH_VARIABLE);
+    const readLiveWidth = () => document.documentElement.style.getPropertyValue(WIDTH_VARIABLE);
 
-    const rerenderHandle = () => screen.rerender(<RHPResizeHandle scopeRef={scopeRef} />);
+    const rerenderHandle = () => screen.rerender(<RHPResizeHandle />);
 
     return {...screen, firePointer, readLiveWidth, rerenderHandle};
 }
@@ -62,6 +61,8 @@ describe('RHPResizeHandle', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSavedWidth = 400;
+        // The live width lives on the shared document, so a test that leaves it set would leak into the next.
+        document.documentElement.style.removeProperty(WIDTH_VARIABLE);
     });
 
     it('paints the live width mid-drag and saves it once on release', () => {
