@@ -1976,6 +1976,70 @@ describe('actions/Task', () => {
             const cancelAction = getRequiredReportAction(reportActionsUpdate, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED);
             expect(cancelAction.delegateAccountID).toBeUndefined();
         });
+
+        it("should resolve the parent report's last visible action from the acting user's own visibility", async () => {
+            const parentReportID = 'parent_report_delete_whisper';
+            const taskReportID = 'task_report_delete_whisper';
+            const WHISPER_TARGET_ACCOUNT_ID = 909;
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Whisper visibility task',
+                parentReportID,
+                parentReportActionID: '90001',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+            const parentReport = {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT};
+            const parentReportAction = createMock<OnyxEntry<ReportAction>>({reportActionID: '90001', reportID: parentReportID, childReportID: taskReportID});
+
+            const olderComment = createMock<ReportAction>({
+                reportActionID: '90002',
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2027-03-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = createMock<ReportAction>({
+                reportActionID: '90003',
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2027-03-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            });
+
+            // Given a parent report whose newest action is a whisper aimed at one account
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [whisper.reportActionID]: whisper,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            const deleteAsAndReadParentUpdate = async (currentUserAccountID: number) => {
+                mockWrite.mockClear();
+                deleteTask(taskReport, parentReport, false, currentUserAccountID, false, parentReportAction, 'concierge_123', undefined, undefined);
+                await waitForBatchedUpdatesWithAct();
+
+                const update = getRequiredOnyxUpdate(getRequiredWriteOnyxData(), 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}` as const);
+                return 'value' in update && update.value && typeof update.value === 'object' && 'lastVisibleActionCreated' in update.value
+                    ? update.value.lastVisibleActionCreated
+                    : undefined;
+            };
+
+            // When the whispered-to account deletes the task, the whisper is the newest action they can see
+            expect(await deleteAsAndReadParentUpdate(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // When somebody the whisper does not target deletes it, the older comment is tracked instead
+            expect(await deleteAsAndReadParentUpdate(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
+        });
     });
 
     describe('getShareDestination', () => {

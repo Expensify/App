@@ -16,7 +16,7 @@ jobs:
     if: |
       github.actor != 'OSBotify'
       && github.actor != 'imgbot[bot]'
-      && github.actor != 'MelvinBot'
+      && github.event.pull_request.user.login != 'MelvinBot'
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0

@@ -1,0 +1,853 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import LoadingIndicator from '@components/LoadingIndicator';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ParticipantPicker from '@components/ParticipantPicker';
+import PrevNextButtons from '@components/PrevNextButtons';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFetchRoute from '@hooks/useFetchRoute';
+import useFilesValidation from '@hooks/useFilesValidation';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOdometerReceiptStitcher from '@hooks/useOdometerReceiptStitcher';
+import useOnyx from '@hooks/useOnyx';
+import useParticipantsPolicies from '@hooks/useParticipantsPolicies';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useStableArrayReference from '@hooks/useStableArrayReference';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU/MoneyRequest';
+import {isMobileSafari} from '@libs/Browser';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {
+    getIsWorkspacesOnlyForTransaction,
+    getSelectedWorkspacePolicyID,
+    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    isSelfDMSoleDestination,
+    navigateToStartMoneyRequestStep,
+    pickReportForPolicy,
+    resolveOptimisticChatReportID,
+    resolveReportForMoneyRequest,
+    shouldShowReceiptEmptyState,
+    shouldUseTransactionDraft,
+} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import Navigation from '@libs/Navigation/Navigation';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
+import {
+    getRequestType,
+    hasReceipt,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
+    isPartiallyEnteredScanExpense,
+    isScanning,
+    isScanRequest,
+} from '@libs/TransactionUtils';
+
+import CategoryDefaultsSetter from '@pages/iou/request/step/confirmation/CategoryDefaultsSetter';
+import DraftWorkspaceOpener from '@pages/iou/request/step/confirmation/DraftWorkspaceOpener';
+import ExpenseDefaultsSetter from '@pages/iou/request/step/confirmation/ExpenseDefaultsSetter';
+import MoneyRequestInitializer from '@pages/iou/request/step/confirmation/MoneyRequestInitializer';
+import ReceiptFileValidator from '@pages/iou/request/step/confirmation/ReceiptFileValidator';
+import useSubmissionOnboardingIntent from '@pages/iou/request/step/confirmation/submission/useSubmissionOnboardingIntent';
+import useSubmitLock from '@pages/iou/request/step/confirmation/submission/useSubmitLock';
+import SubmitExpenseOrchestrator from '@pages/iou/request/step/confirmation/SubmitExpenseOrchestrator';
+import TelemetrySpanManager from '@pages/iou/request/step/confirmation/TelemetrySpanManager';
+import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
+import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+
+import {copyScanResultsToMovedExpenseDraft, getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+
+import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {Receipt} from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {startTransition, useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+
+import useConfirmationTransactionPager from './useConfirmationTransactionPager';
+import useParticipantPickerState from './useParticipantPickerState';
+import useSubmitDestinationPreMount from './useSubmitDestinationPreMount';
+
+type ConfirmationParticipantsParams = Pick<
+    Parameters<typeof getReportOption>[0],
+    'policy' | 'personalDetails' | 'conciergeReportID' | 'reportAttributesDerived' | 'currentUserAccountID' | 'localize' | 'rules'
+> & {
+    participants: Participant[] | undefined;
+    iouType: IOUType;
+    privateIsArchivedMap: ReturnType<typeof usePrivateIsArchivedMap>;
+    participantsPolicies: ReturnType<typeof useParticipantsPolicies>;
+    reportDrafts: OnyxCollection<Report>;
+};
+
+function useConfirmationParticipants({participants, iouType, privateIsArchivedMap, participantsPolicies, reportDrafts, ...reportOptions}: ConfirmationParticipantsParams) {
+    // Keep the projected rows immutable across the receipt-validation and list hooks.
+    'use memo';
+
+    return (
+        participants?.map((participant) => {
+            if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
+                return participant;
+            }
+            const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
+            const participantReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`];
+            // Newly created draft workspaces are not in participantsPolicies yet.
+            const participantPolicy =
+                (participant.policyID ? participantsPolicies[participant.policyID] : reportOptions.policy) ??
+                (participant.policyID === reportOptions.policy?.id ? reportOptions.policy : undefined);
+            // Phone contacts have an optimistic accountID but no reportID, so keep their participant text.
+            return participant.accountID || !participant.reportID
+                ? getParticipantsOption(participant, reportOptions.personalDetails, reportOptions.localize.translate)
+                : getReportOption({
+                      ...reportOptions,
+                      participant,
+                      privateIsArchived,
+                      policy: participantPolicy,
+                      reportDraft: participantReportDraft,
+                      pendingDeleteMemberAccountIDs: undefined,
+                  });
+        }) ?? []
+    );
+}
+
+function IOURequestStepConfirmationContent({
+    report: reportReal,
+    reportDraft,
+    route,
+    transaction: initialTransaction,
+    isLoadingTransaction,
+    shouldHideHeader = false,
+    navigation,
+}: IOURequestStepConfirmationProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
+    const params = route.params;
+    const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
+    const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
+
+    const {
+        transactions,
+        transaction,
+        existingTransaction,
+        currentTransactionID,
+        currentTransactionIndex,
+        setCurrentTransactionID,
+        showNextTransaction,
+        showPreviousTransaction,
+        confirmRemoveCurrentTransaction,
+    } = useConfirmationTransactionPager(initialTransaction, initialTransactionID);
+    const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${initialTransaction?.participants?.at(0)?.reportID}`);
+    const hasMultipleTransactions = transactions.length > 1;
+
+    // Draft edits must not reapply policy defaults when the transaction IDs have not changed.
+    const transactionIDs = useStableArrayReference(transactions.map((item) => item.transactionID));
+    const requestType = getRequestType(transaction);
+    const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const selectedWorkspacePolicyID = getSelectedWorkspacePolicyID(initialTransaction, action);
+    // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
+    // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
+    // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
+    // the selected participant's report, or the workspace expense fields (Category, etc.) never resolve. See #96576.
+    const realPolicyID = selectedWorkspacePolicyID ?? getIOURequestPolicyID(initialTransaction, pickReportForPolicy(reportReal, participantReport));
+    const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
+
+    /*
+     * We want to use a report from the transaction if it exists
+     * Also if the report was submitted and delayed submission is on, then we should use an initial report
+     * Additionally, if neither reportReal nor reportDraft exist, we fallback to the transactionReport
+     * to ensure proper navigation after expense creation.
+     */
+    const transactionReport = useReportOrReportDraft(transaction?.reportID);
+    const reportWithDraftFallback = reportReal ?? reportDraft;
+    const shouldHideToSection = isMoneyRequestReport(reportWithDraftFallback);
+    const report = resolveReportForMoneyRequest({
+        transaction,
+        transactionReport,
+        routeReport: reportWithDraftFallback,
+        reportNameValuePair,
+        rules,
+    });
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
+
+    const {policy} = usePolicyForTransaction({
+        transaction: initialTransaction,
+        reportPolicyID: realPolicyID ?? draftPolicyID,
+        action,
+        iouType,
+        // Forward the draft policy so a freshly created draft workspace (e.g. "Submit to my employer" with no existing
+        // workspace) resolves here. Without it `policy` is undefined for drafts, `isDraftPolicy` is false, and the submit
+        // is routed to ConvertTrackedExpenseToRequest (which needs a real payer) instead of AddTrackedExpenseToPolicy.
+        policyDraft,
+        isPerDiemRequest,
+    });
+    const policyID = policy?.id;
+    const isDraftPolicy = policy === policyDraft;
+
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`);
+    const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
+
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+        selector: validTransactionDraftIDsSelector,
+    });
+
+    const reportAttributesDerived = useReportAttributes();
+
+    const policyCategories = isDraftPolicy && draftPolicyID ? policyCategoriesDraft : policyCategoriesReal;
+
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {isOffline} = useNetwork();
+    // isConfirming, selectedParticipantList, and startLocationPermissionFlow state
+    // moved to SubmitExpenseOrchestrator.
+
+    const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
+    const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        policyID: policy?.id,
+        isDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+    });
+    const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
+    const {isLookingAroundUser} = useSubmissionOnboardingIntent();
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
+
+    const receiptFilename = transaction?.receipt?.filename;
+    const receiptPath = transaction?.receipt?.source;
+    const isEditingReceipt = hasReceipt(transaction);
+    const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
+    const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
+    // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
+    // tracked expense being moved already carries real values, and its emptiness
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
+    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
+    // has been scanned), and so are test receipts, whose values are fixed.
+    const canEnterScanFieldsManually =
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
+        !isMovingTransactionFromTrackExpense &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !transaction?.receipt?.isTestReceipt &&
+        !transaction?.receipt?.isTestDriveReceipt;
+
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
+    let headerTitle;
+    if (isCategorizingTrackExpense) {
+        headerTitle = translate('iou.categorize');
+    } else if (isSharingTrackExpense) {
+        headerTitle = translate('iou.share');
+    } else if (iouType === CONST.IOU.TYPE.INVOICE) {
+        headerTitle = translate('workspace.invoices.sendInvoice');
+    } else {
+        headerTitle = translate('iou.confirmDetails');
+    }
+
+    // A moved tracked expense is shown from a draft copied when the move started, so a scan that completes while this
+    // page is open only reaches the real transaction. Copy the results over so the fields stop showing "Scanning…".
+    const isDraftScanning = isScanning(transaction);
+    const isExistingTransactionScanning = isScanning(existingTransaction);
+    useEffect(() => {
+        if (!isMovingTransactionFromTrackExpense || !isDraftScanning || !existingTransaction || isExistingTransactionScanning) {
+            return;
+        }
+        copyScanResultsToMovedExpenseDraft(transaction, existingTransaction);
+    }, [isMovingTransactionFromTrackExpense, isDraftScanning, isExistingTransactionScanning, transaction, existingTransaction]);
+
+    useEffect(() => {
+        if (!transaction?.transactionID || !transactionReport || iouType !== CONST.IOU.TYPE.PAY) {
+            return;
+        }
+        setMoneyRequestParticipantsFromReport(transaction.transactionID, transactionReport, currentUserPersonalDetails.accountID);
+    }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
+
+    const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
+
+    const participants = useConfirmationParticipants({
+        participants: transaction?.participants,
+        iouType,
+        privateIsArchivedMap,
+        participantsPolicies,
+        reportDrafts,
+        policy,
+        personalDetails,
+        conciergeReportID,
+        reportAttributesDerived,
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
+        rules,
+    });
+
+    const {
+        defaultParticipants,
+        isParticipantPickerVisible,
+        participantPickerIOUType,
+        openParticipantPicker,
+        closeParticipantPicker,
+        closeParticipantPickerForReferralNavigation,
+        handleParticipantsAdded,
+    } = useParticipantPickerState({
+        transaction,
+        iouType,
+        reportID,
+        reportDrafts,
+        navigation,
+        policyID,
+        isDistanceRequest,
+        isManualRequest,
+        blockDistanceRequestIfNeeded,
+    });
+
+    let isPolicyExpenseChat;
+    const hasPolicyExpenseChat = (participantList: typeof defaultParticipants) =>
+        participantList.some((participant) => {
+            if (isPolicyExpenseChatUtils(participant)) {
+                return true;
+            }
+            return (
+                !!participant?.reportID &&
+                isPolicyExpenseChatUtils(
+                    getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}),
+                )
+            );
+        });
+    if (isPolicyExpenseChatUtils(report)) {
+        isPolicyExpenseChat = true;
+    } else {
+        const transactionParticipants = transaction?.participants ?? [];
+        if (hasPolicyExpenseChat(transactionParticipants)) {
+            isPolicyExpenseChat = true;
+        } else {
+            isPolicyExpenseChat = hasPolicyExpenseChat(defaultParticipants);
+        }
+    }
+
+    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
+    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
+
+    const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
+
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT, policy);
+
+    const policyExpenseChatPolicyID =
+        transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID ??
+        defaultParticipants.find((participant) => participant?.isPolicyExpenseChat)?.policyID ??
+        (isPolicyExpenseChatUtils(report) ? report?.policyID : undefined);
+
+    const senderPolicyID = transaction?.participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
+
+    const {
+        hasVerifiedBlobs,
+        isReady: isOdometerReady,
+        isStitching: isStitchingReceipt,
+        error: stitchError,
+    } = useOdometerReceiptStitcher({
+        transaction,
+        isOdometerDistanceRequest,
+        reportID,
+        iouType,
+        backToReport,
+    });
+
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
+    const submitLock = useSubmitLock();
+    const {isConfirmed, setIsConfirmed, formHasBeenSubmitted} = submitLock;
+
+    const {destinationReportID, optimisticP2PDestinationReportID, preMountDestinationReportID, revealPreMountDestination, cleanupPreMount, onExpenseWriteWillStart} =
+        useSubmitDestinationPreMount({
+            transaction,
+            report,
+            reportDrafts,
+            participants,
+            iouType,
+            backToReport,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            isPerDiemRequest,
+            isFromGlobalCreate,
+            isCreatingTrackExpense,
+            isSelfDMDestination,
+            isLookingAroundUser,
+            isMovingTransactionFromTrackExpense,
+            formHasBeenSubmitted,
+        });
+
+    const {createTransaction, sendMoney} = useExpenseSubmission({
+        reportDrafts,
+        transaction,
+        transactions,
+        receiptFiles,
+        canEnterScanFieldsManually,
+        report,
+        reportID,
+        policy,
+        policyCategories,
+        isDraftPolicy,
+        currentUserPersonalDetails,
+        personalDetails,
+        participants,
+        iouType,
+        action,
+        isDistanceRequest,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isPerDiemRequest,
+        isTimeRequest,
+        isMovingTransactionFromTrackExpense,
+        isCategorizingTrackExpense,
+        isSharingTrackExpense,
+        isUnreported,
+        isPolicyExpenseChat,
+        draftTransactionIDs,
+        privateIsArchivedMap,
+        backToReport,
+        onExpenseWriteWillStart,
+        submitLock,
+    });
+
+    // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
+    // already on top. This is safe for per-diem TRACK (which navigates to self-DM, but when
+    // search is on top dismissModalAndOpenReportInInboxTab only dismisses). SPLIT/PAY need
+    // dedicated handling because they preserve Search from Spend but reveal a report from
+    // other tabs.
+    const canDismissFromSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT;
+
+    // Cancel the telemetry span when confirmation unmounts without a completed submission.
+    // If getPendingSubmitFollowUpAction() is set, the orchestrator (or sendMoney flow) has
+    // already taken ownership of the span lifecycle - do not interfere.
+    useEffect(() => {
+        return () => {
+            if (!isTracking() || getPendingSubmitFollowUpAction()) {
+                return;
+            }
+            cancelTracking();
+        };
+    }, []);
+
+    const handleSendMoney = (paymentMethod: PaymentMethodType | undefined) => {
+        if (isConfirmed) {
+            return;
+        }
+
+        if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            sendMoney(paymentMethod);
+            return;
+        }
+
+        const participant = participants.at(0);
+        if (!participant) {
+            sendMoney(paymentMethod);
+            return;
+        }
+
+        const resolvedReportIDs = optimisticP2PDestinationReportID
+            ? {optimisticChatReportID: optimisticP2PDestinationReportID, chatReportID: optimisticP2PDestinationReportID}
+            : resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        const payDestinationReportID = optimisticP2PDestinationReportID ?? destinationReportID ?? resolvedReportIDs.chatReportID;
+        if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
+            sendMoney(paymentMethod, {resolvedReportIDs});
+            return;
+        }
+
+        setIsConfirmed(true);
+        submitWithDismissFirst({
+            executeWrite: (overrides) =>
+                sendMoney(paymentMethod, {
+                    shouldHandleNavigation: overrides.shouldHandleNavigation,
+                    resolvedReportIDs,
+                    shouldStartTracking: false,
+                }),
+            destinationReportID: payDestinationReportID,
+            telemetryContext: {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                iouType: CONST.IOU.TYPE.PAY,
+                requestType: CONST.IOU.TYPE.PAY,
+                isFromGlobalCreate: !report?.reportID,
+                hasReceipt: !!transaction?.receipt,
+            },
+        });
+    };
+
+    const navigateBack = () => {
+        // User is explicitly abandoning the flow - cancel any active telemetry span.
+        // The orchestrator never calls navigateBack (it uses dismissModal), so this
+        // reliably distinguishes user-initiated back from programmatic dismiss.
+        cancelTracking();
+        cleanupPreMount();
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        // If the transaction was seeded by reusing a previous route, go back to the previous screen in the stack
+        // (e.g. the reuse route list) instead of navigating to the start money request step.
+        if (transaction?.isReusedRoute) {
+            Navigation.goBack();
+            return;
+        }
+        // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
+        // We don't need to subscribe to policy_ collection as we only need to check on the latest collection value
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            Navigation.goBack();
+            return;
+        }
+        if (isPerDiemRequest) {
+            if (isMovingTransactionFromTrackExpense || isCreatingTrackExpense) {
+                Navigation.goBack();
+                return;
+            }
+            Navigation.goBack(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                            ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                        ),
+                    ),
+                ),
+            );
+            return;
+        }
+
+        if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
+            // If the participants weren't automatically added to the transaction, then we should go back to the participants step.
+            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+                Navigation.goBack(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID: initialTransactionID, reportID: transaction?.reportID || reportID}),
+                        ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                    ),
+                    {compareParams: false},
+                );
+                return;
+            }
+
+            // If the participant was auto-assigned, we need to keep the reportID that is already on the stack.
+            // This will allow the user to edit the participant field after going back and forward.
+            Navigation.goBack();
+            return;
+        }
+
+        // This has selected the participants from the beginning and the participant field shouldn't be editable.
+        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
+    };
+
+    const setBillable = (billable: boolean) => {
+        setMoneyRequestBillable(currentTransactionID, billable);
+    };
+
+    const setReimbursable = (reimbursable: boolean) => {
+        setMoneyRequestReimbursable(currentTransactionID, reimbursable);
+    };
+
+    // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
+    // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
+    const isLoading = !!transaction?.originalCurrency;
+
+    // Submit orchestration (fast-path selection, telemetry, navigation) is handled
+    // by SubmitExpenseOrchestrator which wraps MoneyRequestConfirmationList below.
+
+    /**
+     * Sets the Receipt object when dragging and dropping a file
+     */
+    const setReceiptOnDrop = (files: FileObject[]) => {
+        const file = files.at(0);
+        if (!file) {
+            return;
+        }
+        const source = URL.createObjectURL(file as Blob);
+        setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
+    };
+
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptOnDrop);
+
+    const handleDroppingReceipt = (e: DragEvent) => {
+        const file = e?.dataTransfer?.files[0];
+        if (file) {
+            file.uri = URL.createObjectURL(file);
+            validateFiles([file], Array.from(e.dataTransfer?.items));
+        }
+    };
+
+    if (isLoadingTransaction) {
+        // When embedded on IOURequestStartPage (shouldHideHeader), the parent header and tab bar stay visible,
+        // so per UI-1 use ActivityIndicator (the user can still go back). In the standalone RHP route there is
+        // no chrome behind this early return, so keep the fullscreen loader.
+        return shouldHideHeader ? (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
+        ) : (
+            <FullScreenLoadingIndicator onGoBack={navigateBack} />
+        );
+    }
+
+    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
+
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN || canEnterScanFieldsManually;
+    return (
+        <>
+            <TelemetrySpanManager
+                iouType={iouType}
+                requestType={requestType}
+                hasReceipt={!!transaction?.receipt}
+            />
+            <DraftWorkspaceOpener
+                isCreatingTrackExpense={isCreatingTrackExpense}
+                policyID={policyID}
+                policyPendingAction={policy?.pendingAction}
+                policyExpenseChatPolicyID={policyExpenseChatPolicyID}
+                senderPolicyID={senderPolicyID}
+                isOffline={isOffline}
+            />
+            <ExpenseDefaultsSetter
+                transactionIDs={transactionIDs}
+                policy={policy}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+                isCreatingTrackExpense={isCreatingTrackExpense}
+            />
+            {/*
+             * When this screen is embedded on IOURequestStartPage (shouldHideHeader=true),
+             * skip MoneyRequestInitializer to avoid duplicate initialization and navigation side effects.
+             */}
+            {!shouldHideHeader && (
+                <MoneyRequestInitializer
+                    isLoadingTransaction={!!isLoadingTransaction}
+                    transaction={transaction}
+                    iouType={iouType}
+                    reportID={reportID}
+                    draftTransactionIDs={draftTransactionIDs}
+                />
+            )}
+            <CategoryDefaultsSetter
+                transactions={transactions}
+                transactionIDs={transactionIDs}
+                existingTransaction={existingTransaction}
+                policyCategories={policyCategories}
+                policy={policy}
+                isDistanceRequest={isDistanceRequest}
+                requestType={requestType}
+                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+            />
+            <ReceiptFileValidator
+                transactions={transactions}
+                requestType={requestType}
+                iouType={iouType}
+                initialTransactionID={initialTransactionID}
+                reportID={reportID}
+                action={action}
+                backToReport={backToReport}
+                report={report}
+                participants={participants}
+                draftTransactionIDs={draftTransactionIDs}
+                isReceiptReady={!isOdometerDistanceRequest || isOdometerReady}
+                canEnterScanFieldsManually={canEnterScanFieldsManually}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                onReceiptFilesChange={setReceiptFiles}
+            />
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
+                <View style={styles.flex1}>
+                    {/*
+                     * Keep a single header in embedded mode: IOURequestStartPage renders the parent header,
+                     * so this inner header must be hidden to prevent duplicate back buttons and title layout issues.
+                     */}
+                    {!shouldHideHeader && (
+                        <HeaderWithBackButton
+                            title={headerTitle}
+                            subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
+                            onBackButtonPress={navigateBack}
+                            /** Skip focus of the first interactive element in the header to make sure that Enter key submits the expense on the confirmation page instead of navigating back.  */
+                            shouldSkipFocusAfterTransition
+                        >
+                            {hasMultipleTransactions ? (
+                                <PrevNextButtons
+                                    isPrevButtonDisabled={currentTransactionIndex === 0}
+                                    isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
+                                    onNext={() => startTransition(showNextTransaction)}
+                                    onPrevious={() => startTransition(showPreviousTransaction)}
+                                />
+                            ) : null}
+                        </HeaderWithBackButton>
+                    )}
+                    <View style={styles.flex1}>
+                        {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <LoadingIndicator />}
+                        {PDFValidationComponent}
+                        <DragAndDropConsumer onDrop={handleDroppingReceipt}>
+                            <DropZoneUI
+                                icon={isEditingReceipt ? expensifyIcons.ReplaceReceipt : expensifyIcons.SmartScan}
+                                dropStyles={styles.receiptDropOverlay(true)}
+                                dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
+                                dropTextStyles={styles.receiptDropText}
+                                dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
+                            />
+                        </DragAndDropConsumer>
+                        <SubmitExpenseOrchestrator
+                            createTransaction={createTransaction}
+                            destinationReportID={preMountDestinationReportID}
+                            isFromGlobalCreate={isFromGlobalCreate}
+                            iouType={iouType}
+                            isSelfDMDestination={isSelfDMDestination}
+                            isLookingAroundUser={isLookingAroundUser}
+                            requestType={requestType}
+                            canDismissFromSearch={canDismissFromSearch}
+                            gpsRequired={!!gpsRequired}
+                            isDistanceRequest={isDistanceRequest}
+                            isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+                            isUnreported={isUnreported}
+                            isCategorizingTrackExpense={isCategorizingTrackExpense}
+                            isSharingTrackExpense={isSharingTrackExpense}
+                            isPerDiemRequest={isPerDiemRequest}
+                            receiptFiles={receiptFiles}
+                            isFromGlobalCreateOnTransaction={!!transaction?.isFromGlobalCreate}
+                            isFromFloatingActionButtonOnTransaction={!!transaction?.isFromFloatingActionButton}
+                            revealPreMountDestination={revealPreMountDestination}
+                        >
+                            {({onConfirm, isConfirming}) => (
+                                <MoneyRequestConfirmationList
+                                    transaction={transaction}
+                                    selectedParticipants={participants}
+                                    isParticipantPickerVisible={isParticipantPickerVisible}
+                                    onOpenParticipantPicker={openParticipantPicker}
+                                    onToggleBillable={setBillable}
+                                    onConfirm={onConfirm}
+                                    onSendMoney={handleSendMoney}
+                                    showRemoveExpenseConfirmModal={() => {
+                                        confirmRemoveCurrentTransaction();
+                                    }}
+                                    receiptOptions={{
+                                        receiptPath,
+                                        receiptFilename,
+                                        shouldDisplayReceipt:
+                                            !isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest,
+                                        isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
+                                        isReceiptEditable: true,
+                                    }}
+                                    iouType={iouType}
+                                    reportID={reportID}
+                                    isPolicyExpenseChat={isPolicyExpenseChat}
+                                    policyID={policyID}
+                                    isOdometerDistanceRequest={isOdometerDistanceRequest}
+                                    receiptStitchError={stitchError}
+                                    isPerDiemRequest={isPerDiemRequest}
+                                    shouldShowSmartScanFields={shouldShowSmartScanFields}
+                                    canEnterScanFieldsManually={canEnterScanFieldsManually}
+                                    partiallyManuallyFilledScanID={partiallyManuallyFilledScanID}
+                                    onSwitchToTransaction={setCurrentTransactionID}
+                                    action={action}
+                                    isConfirmed={isConfirmed}
+                                    isConfirming={isConfirming}
+                                    onToggleReimbursable={setReimbursable}
+                                    expensesNumber={transactions.length}
+                                    isTimeRequest={isTimeRequest}
+                                    shouldHideToSection={shouldHideToSection}
+                                />
+                            )}
+                        </SubmitExpenseOrchestrator>
+                        <ParticipantPicker
+                            participants={participants}
+                            iouType={participantPickerIOUType}
+                            action={action}
+                            isPerDiemRequest={isPerDiemRequest}
+                            isTimeRequest={isTimeRequest}
+                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
+                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
+                            onParticipantsAdded={handleParticipantsAdded}
+                            onFinish={closeParticipantPicker}
+                            isVisible={isParticipantPickerVisible}
+                            onClose={closeParticipantPicker}
+                            onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
+                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
+                            // matching standard RHP behavior, not just close the stacked participant picker.
+                            onBackdropPress={() => Navigation.dismissModal()}
+                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
+                        />
+                    </View>
+                </View>
+            </DragAndDropProvider>
+        </>
+    );
+}
+
+/**
+ * The standalone RHP route. It owns the chrome for this screen - the ScreenWrapper, its focus trap and its
+ * viewport sizing - and renders the same body inside it. IOURequestStartPage composes the body directly instead,
+ * because it already owns a trap whose containers are its header (with the Back button), its tab bar and the
+ * active tab; a second ScreenWrapper there would push another FocusTrapForScreen onto the shared trap stack,
+ * pause that one, and confine Tab to the confirmation form.
+ */
+function IOURequestStepConfirmation(props: IOURequestStepConfirmationProps) {
+    return (
+        <ScreenWrapper
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
+            testID="IOURequestStepConfirmation"
+        >
+            <IOURequestStepConfirmationContent {...props} />
+        </ScreenWrapper>
+    );
+}
+
+const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);
+
+const IOURequestStepConfirmationWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationWithFullTransactionOrNotFound);
+
+const IOURequestStepConfirmationContentWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmationContent);
+
+const IOURequestStepConfirmationContentWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepConfirmationContentWithFullTransactionOrNotFound);
+
+export default IOURequestStepConfirmationWithWritableReportOrNotFound;
+
+/** The body on its own, for a parent that already owns this screen's ScreenWrapper and focus trap. */
+export {IOURequestStepConfirmationContentWithWritableReportOrNotFound};

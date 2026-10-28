@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
+import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
 import MergeConnectionsPageBase from '@pages/workspace/merge/MergeConnectionsPageBase';
 
 import CONST from '@src/CONST';
@@ -56,4 +57,4 @@ function WorkspaceRecruitingPage({
     );
 }
 
-export default WorkspaceRecruitingPage;
+export default withUnifiedConnectionsBeta(WorkspaceRecruitingPage);

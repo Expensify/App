@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName, getEmailFromTransitionURL, getPartnerCredentials, isAgentEmail, isLoggingInAsDelegate, isLoggingInAsNewUser} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, getPartnerCredentials, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -109,53 +109,6 @@ describe('SessionUtils', () => {
             ['should return true when delegatorEmail value contains encoded characters', '?delegatorEmail=user%40example.com', true],
         ])('%s', (_description, transitionURL, expectedResult) => {
             expect(isLoggingInAsDelegate(transitionURL)).toBe(expectedResult);
-        });
-    });
-
-    describe('isLoggingInAsNewUser', () => {
-        test.each([
-            ['should return false when email matches sessionEmail directly', '?email=user@example.com', 'user@example.com', false],
-            ['should return false when delegatorEmail matches sessionEmail directly', '?delegatorEmail=user@example.com', 'user@example.com', false],
-            ['should return true when email does not match sessionEmail', '?email=other@example.com', 'user@example.com', true],
-            ['should return true when transitionURL has no email or delegatorEmail param', '?shortLivedAuthToken=abc123', 'user@example.com', true],
-            ['should return true when transitionURL is undefined', undefined, 'user@example.com', true],
-            [
-                'should return false for full URL where URLSearchParams mangles the first param key but the regex-extracted email matches',
-                'https://example.com?email=user@example.com',
-                'user@example.com',
-                false,
-            ],
-            ['should return true for full URL where the regex-extracted email does not match sessionEmail', 'https://example.com?email=other@example.com', 'user@example.com', true],
-            [
-                'should return false for full URL where the regex-extracted delegatorEmail matches sessionEmail',
-                'https://example.com?delegatorEmail=user@example.com',
-                'user@example.com',
-                false,
-            ],
-            ['should return true when the encoded email does not match sessionEmail', '?email=other%40example.com', 'user@example.com', true],
-            ['should return false when the encoded email matches sessionEmail after decoding', '?email=user%40example.com', 'user@example.com', false],
-        ])('%s', (_description, transitionURL, sessionEmail, expectedResult) => {
-            expect(isLoggingInAsNewUser(transitionURL, sessionEmail)).toBe(expectedResult);
-        });
-    });
-
-    describe('getEmailFromTransitionURL', () => {
-        test.each([
-            ['should return undefined when url is undefined', undefined, undefined],
-            ['should return undefined when url is empty', '', undefined],
-            ['should return undefined when url has no query string', 'https://example.com/transition', undefined],
-            ['should return undefined when email param is absent', '?shortLivedAuthToken=abc123', undefined],
-            ['should return the email when present as the only param', '?email=user@example.com', 'user@example.com'],
-            ['should return the email when it is a subsequent param', '?shortLivedAuthToken=abc123&email=user@example.com', 'user@example.com'],
-            ['should stop at the next query param delimiter', '?email=user@example.com&exitTo=%2Fhome', 'user@example.com'],
-            ['should return the decoded email for a full URL where URLSearchParams would mangle the first param key', 'https://example.com?email=user%40example.com', 'user@example.com'],
-            ['should decode a plus-encoded email', '?email=user%2Btag%40example.com', 'user+tag@example.com'],
-            ['should return the raw value unchanged when it contains an un-encoded percent that is not a valid escape sequence', '?email=100%off@example.com', '100%off@example.com'],
-            ['should ignore a fragment after the query string', '?email=user@example.com#section', 'user@example.com'],
-            ['should return undefined when email only appears after a hash fragment', '?shortLivedAuthToken=abc123#email=user@example.com', undefined],
-            ['should strip a zero-width space from the email', '?email=user@exa​mple.com', 'user@example.com'],
-        ])('%s', (_description, url, expectedResult) => {
-            expect(getEmailFromTransitionURL(url)).toBe(expectedResult);
         });
     });
 });
