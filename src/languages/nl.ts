@@ -27,6 +27,7 @@ import startCase from 'lodash/startCase';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
+import type {ReportNextStepMessageParams} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;

@@ -18,7 +18,7 @@ import {CONST as COMMON_CONST, Str} from 'expensify-common';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
-import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
+import type {AllConnectionName, PolicyConnectionSyncStage, ReportNextStepMessageParams} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     common: {

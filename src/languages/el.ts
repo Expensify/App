@@ -23,7 +23,7 @@ import startCase from 'lodash/startCase';
 
 import type en from './en';
 import type {CompanyCardBalanceParams} from './params';
-import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
+import type {AllConnectionName, PolicyConnectionSyncStage, ReportNextStepMessageParams} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 type StateValue = {
     stateISO: string;
