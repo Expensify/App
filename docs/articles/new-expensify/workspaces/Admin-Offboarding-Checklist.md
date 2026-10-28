@@ -66,8 +66,9 @@ If you’re the new Workspace Admin taking over billing and payment responsibili
 If the former Workspace Admin shared a business bank account with you, follow these steps to complete verification as a new Workspace Admin:
 
 1. Wait 1–2 business days for test transactions (two withdrawals and one deposit) to appear.
-2. In the navigation tabs (on the left on web, and at the bottom on mobile), choose **Account > Wallet**.
-3. Enter the test transaction amounts to complete verification.
+2. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+3. Select **Wallet**.
+4. Enter the test transaction amounts to complete verification.
 
 **Note:** Only the person who sees the test transactions in their bank can complete the verification.
 

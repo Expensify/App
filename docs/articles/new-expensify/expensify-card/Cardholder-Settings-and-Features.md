@@ -22,9 +22,10 @@ Once your card arrives, you can manage your PIN — including revealing, changin
 
 # Activate your Expensify Card
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet > Expensify Card**.
-2. Complete the task labeled **Activate your Expensify Card**.
-3. Enter the last 4 digits of your physical card to activate it.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet > Expensify Card**.
+3. Complete the task labeled **Activate your Expensify Card**.
+4. Enter the last 4 digits of your physical card to activate it.
 
 Until you activate your physical card, it shows a **Pending** status under **Cards** in **Wallet**. Once activated, the status changes to **Active** and your card is ready to use!
 
@@ -35,8 +36,9 @@ Until you activate your physical card, it shows a **Pending** status under **Car
 Your **Smart Limit** is the amount you're allowed to spend without approved expenses. This limit is set and managed by your workspace admin.
 
 **To view your current limit:**
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet**.
-2. Click your Expensify Card to view your Smart Limit.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Click your Expensify Card to view your Smart Limit.
 
 If you try to make a purchase that exceeds this limit, the transaction will be declined.
 
@@ -46,8 +48,9 @@ If you try to make a purchase that exceeds this limit, the transaction will be d
 
 Your workspace admin may set a Spend Rule on your card that approves or declines transactions in real time based on the merchant, spend category, or amount. You can view the rule on your card, but only your admin can change it.
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Account > Wallet > Expensify Card**.
-2. Click your Expensify Card to view its Spend Rule summary.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet > Expensify Card**.
+3. Click your Expensify Card to view its Spend Rule summary.
 
 [Learn about Expensify Card Spend Rules](/articles/new-expensify/expensify-card/Expensify-Card-Spend-Rules).
 
@@ -100,9 +103,10 @@ A virtual card is a secure, flexible way to manage online spending:
 
 ## View your virtual card details
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet**.
-2. Click your Expensify Card.
-3. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Click your Expensify Card.
+4. Click **Reveal** to view the card number, expiration date, CVV, and billing address.
 
 If any of your personal details are missing, you'll be prompted to add them before your card details can be revealed. Click **Add details**, then enter your legal name, date of birth, address, and phone number. After you confirm these details, authenticate to reveal your card. US cardholders confirm with a security code sent to their email, while UK and EU cardholders confirm with biometrics or a passkey.
 
@@ -132,10 +136,11 @@ Freezing your card:
 
 ## To freeze or unfreeze your card
 
-1. From the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Wallet > Expensify Card**.
-2. Click your Expensify Card to view its details.
-3. Click **Freeze card** or **Unfreeze card**, depending on the card's current state.
-4. Click **Confirm** in the dialog that appears.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet > Expensify Card**.
+3. Click your Expensify Card to view its details.
+4. Click **Freeze card** or **Unfreeze card**, depending on the card's current state.
+5. Click **Confirm** in the dialog that appears.
 
 Once frozen:
 - You'll see a **Frozen** badge and a scarf graphic over your card
@@ -164,9 +169,10 @@ Common reasons for Expensify card declines include:
 ## How do I deactivate my card and request a replacement?
 
 If your card is lost, stolen, or damaged:
-1. Go to **Account > Wallet** from the navigation tabs (on the left on web, and at the bottom on mobile).
-2. Locate your physical card and click **Report card lost or damaged**.
-3. Choose the reason for the card replacement.
-4. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
-5. Update your mailing address and click **Deactivate card** to complete the card replacement process.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Locate your physical card and click **Report card lost or damaged**.
+4. Choose the reason for the card replacement.
+5. Enter your updated address under **Please confirm the mailing address for your new card** and click **Save**.
+6. Update your mailing address and click **Deactivate card** to complete the card replacement process.
 

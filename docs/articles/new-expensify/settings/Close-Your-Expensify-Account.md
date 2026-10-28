@@ -29,10 +29,11 @@ If you are the owner of a workspace on an Annual subscription, you can’t close
 
 ## How to close your Expensify account 
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Account > Security**.
-2. Under **Security**, click **Close account**.
-3. Follow the prompts and answer the required questions.
-4. Click **Close account** to confirm.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Security**.
+3. Under **Security**, click **Close account**.
+4. Follow the prompts and answer the required questions.
+5. Click **Close account** to confirm.
 
 If you don't see **Close account**, your account may be domain-controlled. Contact a domain admin and ask them to [deactivate your account](/articles/new-expensify/domains/Manage-Domain-Members#how-to-close-or-deactivate-a-domain-members-account). 
 

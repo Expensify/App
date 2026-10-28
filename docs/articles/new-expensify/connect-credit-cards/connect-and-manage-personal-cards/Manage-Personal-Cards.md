@@ -22,8 +22,9 @@ Anyone with a personal credit card connected to their Expensify account can mana
 
 ## How to view personal cards in Wallet
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Account > Wallet**.
-2. Under **Cards**:
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Under **Cards**:
    - Personal cards will appear in the **Personal** section. 
    - You'll see the card name, bank icon, and last 4 digits.
 
@@ -50,9 +51,10 @@ You can manage the following settings for a personal card:
 
 ## How to update personal card settings
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile), then select **Account > Wallet**.
-2. Under **Cards**, select a personal card.
-3. On the **Card details** page, you can:
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Under **Cards**, select a personal card.
+4. On the **Card details** page, you can:
    - Rename the card
    - Update the card to pull in new transactions (if not CSV-imported)
    - Unassign the card if it's no longer needed
@@ -96,10 +98,11 @@ Design request: https://github.com/Expensify/Expensify/issues/620248
 
 ## How to fix a broken personal card connection
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Account > Wallet**. 
-2. Under **Cards**, select the card with the broken connection. 
-3. Choose **Fix card**.
-4. Log into your bank when prompted to re-authenticate the connection.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Wallet**.
+3. Under **Cards**, select the card with the broken connection. 
+4. Choose **Fix card**.
+5. Log into your bank when prompted to re-authenticate the connection.
 
 If logging into your bank doesn't resolve the issue, tap **Update card** to attempt a manual refresh.
 
