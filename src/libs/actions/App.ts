@@ -631,8 +631,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const isStateImported = isUsingImportedState;
     rollbackOngoingRequest();
     const sequentialQueue = getAll();
-    // The cleared state has no Concierge reportID, so anything that opens Concierge must wait for the next OpenApp
-    // instead of creating a duplicate optimistic Concierge chat.
+    // The cleared state has no Concierge reportID, so opening Concierge must wait for OpenApp instead of creating a duplicate chat
     resetAllChecks();
 
     Navigation.clearPreloadedRoutes();

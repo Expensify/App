@@ -107,9 +107,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // We should clear out the optimistically created report and re-route the user to the preexisting report.
             const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
             const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-            // Spread the existing report first so server fields the optimistic report lacks (e.g. type) survive the swap.
-            // The optimistic report's errors and pending fields belong to the optimistic report, not to the preexisting one,
-            // e.g. a "Report not found" error from re-opening the optimistic reportID would otherwise land on the real report.
+            // Keep the existing report's server fields (e.g. type) and its own errors, so an optimistic "Report not found" error never lands on it
             const mergedReport = {
                 ...existingReport,
                 ...report,

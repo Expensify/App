@@ -259,7 +259,7 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    // Callers already waiting on the previous promise would otherwise never resolve, so they now wait for the next load instead
+    // Hand callers still waiting on the old promise to the new one so they never hang
     resolvePreviousPromise?.(isServerDataReadyPromise);
     isLoadingReportData = true;
     hasStartedLoading = false;

@@ -222,8 +222,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         existingReport.errorFields = undefined;
         existingReport.pendingFields = undefined;
 
-        // And a leftover optimistic report that only carries a "Report not found" error from re-opening its own reportID,
-        // which is what a cache clear can leave behind when two optimistic Concierge chats map to the same report
+        // And a leftover optimistic report that only carries a "Report not found" error, as a cache clear can leave behind
         const optimisticReport = {
             reportID,
             preexistingReportID,

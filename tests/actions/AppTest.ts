@@ -253,8 +253,7 @@ describe('actions/App', () => {
         await App.clearOnyxAndResetApp();
         await waitForBatchedUpdates();
 
-        // Then onServerDataReady() stays pending, because the cleared state has no Concierge reportID yet and
-        // resolving early would let navigateToConciergeChat create a duplicate optimistic Concierge chat
+        // Then onServerDataReady() stays pending, so navigateToConciergeChat cannot create a duplicate Concierge chat
         let isServerDataReady = false;
         onServerDataReady().then(() => {
             isServerDataReady = true;
