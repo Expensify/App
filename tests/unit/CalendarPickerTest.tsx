@@ -1,16 +1,18 @@
 import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
-import type {DayProps} from '@components/DatePicker/CalendarPicker/Day';
 
 import DateUtils from '@libs/DateUtils';
+
+// eslint-disable-next-line no-restricted-imports
+import themes, {defaultTheme} from '@styles/theme';
 
 import CONST from '@src/CONST';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 import type {ComponentType, ReactNode} from 'react';
 
-import {addMonths, addYears, format, subMonths, subYears} from 'date-fns';
+import {addDays, addMonths, addYears, eachDayOfInterval, endOfMonth, format, isSameDay, startOfMonth, subDays, subMonths, subYears} from 'date-fns';
 
 type MockPressableProps = {testID?: string; accessibilityLabel?: string; role?: string; disabled?: boolean; onPress?: () => void; children?: ReactNode};
 type MockTextProps = {children?: ReactNode};
@@ -125,12 +127,6 @@ jest.mock('@components/DatePicker/CalendarPicker/YearPickerModal', () => {
     return MockYearPickerModal;
 });
 
-// Exposes the today prop as a testID, since the real Day shows it only as a background color
-function MockTodayDay({today}: DayProps) {
-    const {View} = jest.requireActual<MockReactNativePrimitives>('react-native');
-    return <View testID={today ? 'today-day' : undefined} />;
-}
-
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
         render(<CalendarPicker />);
@@ -227,29 +223,6 @@ describe('CalendarPicker', () => {
 
         // Then today is shown but not selected, because nothing has been picked yet
         expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(new Date(), undefined))).not.toBeSelected();
-    });
-
-    test('marks only today as today', () => {
-        // Given a day component that shows which day it was told is today
-        const todayLabel = DateUtils.formatToLongDateWithWeekday(new Date(), undefined);
-
-        // When the calendar opens, which it does on the current month
-        render(<CalendarPicker DayComponent={MockTodayDay} />);
-
-        // Then exactly one day is marked, and it is today's date, so the user can find relative dates like "yesterday"
-        expect(screen.getAllByTestId('today-day')).toHaveLength(1);
-        expect(within(screen.getByLabelText(todayLabel)).getByTestId('today-day')).toBeTruthy();
-    });
-
-    test('marks no day as today in another month', () => {
-        // Given a day component that shows which day it was told is today
-        render(<CalendarPicker DayComponent={MockTodayDay} />);
-
-        // When the user moves to the previous month
-        fireEvent.press(screen.getByTestId('prev-month-arrow'));
-
-        // Then no day is marked, because today isn't in that month
-        expect(screen.queryByTestId('today-day')).toBeNull();
     });
 
     test('clicking next month arrow and selecting day updates the selected date', () => {
@@ -1125,5 +1098,109 @@ describe('CalendarPicker defaultMonth', () => {
         // Then the calendar stays on February 2020, because only a move to another month moves the view
         expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(1) ?? '')).toBeTruthy();
         expect(within(screen.getByTestId('currentYearText')).getByText('2020')).toBeTruthy();
+    });
+});
+
+describe('CalendarPicker today highlight', () => {
+    // Today's highlight used to show only as a side effect of the calendar selecting today when there was no value, so it disappeared when that default was removed.
+    // These tests render the real Day and check the color the user sees, on dates where the month or year changes, so the highlight can't silently go away again.
+    const midMonthToday = new Date(2026, 9, 28, 12);
+    const todays = [midMonthToday, new Date(2026, 2, 1, 12), new Date(2026, 9, 31, 12), new Date(2026, 11, 31, 12), new Date(2028, 1, 29, 12)];
+
+    /** Returns the circle the real Day draws inside the day's cell, which carries the background color */
+    function getDayCircle(date: Date) {
+        const cell = screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(date, undefined));
+        // The cell is a host View too, so the first host View of the same type inside it is the circle
+        return cell.findAll((node) => node !== cell && node.type === cell.type).at(0);
+    }
+
+    /** Returns every day of the month of the given date, except that date */
+    function getOtherDaysOfMonth(date: Date) {
+        return eachDayOfInterval({start: startOfMonth(date), end: endOfMonth(date)}).filter((day) => !isSameDay(day, date));
+    }
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    test.each(todays)('gives only today the today background when nothing is selected, on %s', (today) => {
+        // Given today's date, and no value, as when the user hasn't picked a date yet
+        jest.useFakeTimers({now: today});
+
+        // When the calendar opens, which it does on today's month
+        render(<CalendarPicker />);
+
+        // Then today has the soft fill and every other day has none, so the user can find relative dates like "yesterday"
+        expect(getDayCircle(today)).toHaveStyle({backgroundColor: defaultTheme.buttonDefaultBG});
+        for (const day of getOtherDaysOfMonth(today)) {
+            expect(getDayCircle(day)).toHaveStyle({backgroundColor: defaultTheme.transparent});
+        }
+    });
+
+    test.each(todays)('keeps the today background when another day is selected, on %s', (today) => {
+        // Given today's date, and a value on another day of the same month
+        jest.useFakeTimers({now: today});
+        const value = today.getDate() === 1 ? addDays(today, 1) : subDays(today, 1);
+
+        // When the calendar opens on that value
+        render(<CalendarPicker value={value} />);
+
+        // Then the selected day is green, today keeps its soft fill, and the other days have none, so the two states can't be confused
+        expect(getDayCircle(value)).toHaveStyle({backgroundColor: defaultTheme.success});
+        expect(getDayCircle(today)).toHaveStyle({backgroundColor: defaultTheme.buttonDefaultBG});
+        for (const day of getOtherDaysOfMonth(today).filter((otherDay) => !isSameDay(otherDay, value))) {
+            expect(getDayCircle(day)).toHaveStyle({backgroundColor: defaultTheme.transparent});
+        }
+    });
+
+    test.each(todays)('shows the selected fill when today is selected, on %s', (today) => {
+        // Given today's date, and a value of today
+        jest.useFakeTimers({now: today});
+
+        // When the calendar opens on that value
+        render(<CalendarPicker value={today} />);
+
+        // Then today is green, because the selected fill wins over the today fill
+        expect(getDayCircle(today)).toHaveStyle({backgroundColor: defaultTheme.success});
+    });
+
+    test('keeps the today background when today can not be selected', () => {
+        // Given today's date, and a rule that rejects every day
+        const today = midMonthToday;
+        jest.useFakeTimers({now: today});
+
+        // When the calendar opens on today's month
+        render(<CalendarPicker isDateSelectable={() => false} />);
+
+        // Then today still stands out from the other disabled days
+        expect(getDayCircle(today)).toHaveStyle({backgroundColor: defaultTheme.buttonDefaultBG});
+        for (const day of getOtherDaysOfMonth(today)) {
+            expect(getDayCircle(day)).toHaveStyle({backgroundColor: defaultTheme.transparent});
+        }
+    });
+
+    test('gives no day the today background in another month', () => {
+        // Given today's date
+        const today = midMonthToday;
+        jest.useFakeTimers({now: today});
+        render(<CalendarPicker />);
+
+        // When the user moves to the previous month
+        fireEvent.press(screen.getByTestId('prev-month-arrow'));
+
+        // Then no day has the today fill, because today isn't in that month
+        for (const day of eachDayOfInterval({start: startOfMonth(subMonths(today, 1)), end: endOfMonth(subMonths(today, 1))})) {
+            expect(getDayCircle(day)).toHaveStyle({backgroundColor: defaultTheme.transparent});
+        }
+    });
+
+    test.each(Object.entries(themes))('uses a today fill in the %s theme that differs from the other days and the selected day', (themeName, theme) => {
+        // Given a theme the user can pick
+        // When today is drawn with that theme's today fill
+        // Then the fill differs from an unselected day, the background behind the calendar and the selected day, so today stands out in every theme
+        expect(theme.buttonDefaultBG).not.toBe(theme.transparent);
+        expect(theme.buttonDefaultBG).not.toBe(theme.componentBG);
+        expect(theme.buttonDefaultBG).not.toBe(theme.appBG);
+        expect(theme.buttonDefaultBG).not.toBe(theme.success);
     });
 });
