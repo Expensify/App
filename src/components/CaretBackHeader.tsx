@@ -23,13 +23,15 @@ type CaretBackHeaderProps = {
     shouldShowBackButton?: boolean;
 
     shouldShowCloseButton?: boolean;
+
+    isFocusable?: boolean;
 };
 
 /**
  * Popover-style back link: caret + "Back" label, and optional close button.
  * Matches the submenu back row used by PopoverMenu.
  */
-function CaretBackHeader({onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false}: CaretBackHeaderProps) {
+function CaretBackHeader({onBackButtonPress, onCloseButtonPress, shouldShowBackButton = true, shouldShowCloseButton = false, isFocusable = true}: CaretBackHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -40,10 +42,12 @@ function CaretBackHeader({onBackButtonPress, onCloseButtonPress, shouldShowBackB
             {shouldShowBackButton ? (
                 <PressableWithoutFeedback
                     onPress={onBackButtonPress}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.borderRadiusNormal]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.back')}
                     sentryLabel="OnboardingHeader-Back"
+                    focusable={isFocusable}
+                    tabIndex={isFocusable ? 0 : -1}
                 >
                     <Icon
                         src={icons.BackArrow}

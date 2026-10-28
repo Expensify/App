@@ -25,7 +25,9 @@ type OnboardingHeaderProps = {
 };
 
 type OnboardingHeaderState = Required<Pick<OnboardingHeaderProps, 'shouldShowBackButton' | 'shouldShowCloseButton' | 'shouldCollapseOnKeyboard' | 'shouldEnableMaxHeight'>> &
-    Pick<OnboardingHeaderProps, 'onBackButtonPress' | 'onCloseButtonPress'>;
+    Pick<OnboardingHeaderProps, 'onBackButtonPress' | 'onCloseButtonPress'> & {
+        isHeaderFocused?: boolean;
+    };
 
 type RegisteredOnboardingHeaderProps = OnboardingHeaderProps & {
     setHeaderState: React.Dispatch<React.SetStateAction<OnboardingHeaderState>>;
@@ -36,6 +38,7 @@ const DEFAULT_ONBOARDING_HEADER_STATE: OnboardingHeaderState = {
     shouldShowCloseButton: false,
     shouldCollapseOnKeyboard: false,
     shouldEnableMaxHeight: false,
+    isHeaderFocused: false,
 };
 
 const OnboardingHeaderStateContext = createContext<OnboardingHeaderState>(DEFAULT_ONBOARDING_HEADER_STATE);
@@ -67,6 +70,8 @@ function RegisteredOnboardingHeader({
         onCloseButtonPressRef.current = onCloseButtonPress;
     }, [onCloseButtonPress]);
 
+    const [isHeaderFocused, setIsHeaderFocused] = useState(false);
+
     useLayoutEffect(() => {
         if (!isFocused) {
             return;
@@ -79,15 +84,39 @@ function RegisteredOnboardingHeader({
             shouldShowCloseButton,
             shouldCollapseOnKeyboard,
             shouldEnableMaxHeight,
+            isHeaderFocused,
         };
         setHeaderState(headerState);
 
         return () => {
             setHeaderState((currentHeaderState) => (currentHeaderState === headerState ? DEFAULT_ONBOARDING_HEADER_STATE : currentHeaderState));
         };
-    }, [hasOnBackButtonPress, hasOnCloseButtonPress, isFocused, setHeaderState, shouldCollapseOnKeyboard, shouldEnableMaxHeight, shouldShowBackButton, shouldShowCloseButton]);
+    }, [
+        hasOnBackButtonPress,
+        hasOnCloseButtonPress,
+        isFocused,
+        isHeaderFocused,
+        setHeaderState,
+        shouldCollapseOnKeyboard,
+        shouldEnableMaxHeight,
+        shouldShowBackButton,
+        shouldShowCloseButton,
+    ]);
 
-    return <View style={styles.onboardingHeaderContainer} />;
+    return (
+        <View
+            onFocus={() => setIsHeaderFocused(true)}
+            onBlur={() => setIsHeaderFocused(false)}
+            style={isHeaderFocused ? undefined : styles.opacity0}
+        >
+            <CaretBackHeader
+                onBackButtonPress={onBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+                shouldShowBackButton={shouldShowBackButton}
+                shouldShowCloseButton={shouldShowCloseButton}
+            />
+        </View>
+    );
 }
 
 function OnboardingHeader({
@@ -138,7 +167,8 @@ function OnboardingStickyHeader() {
     const styles = useThemeStyles();
     const {paddingTop} = useSafeAreaPaddings();
     const viewportOffsetTop = useViewportOffsetTop();
-    const {onBackButtonPress, onCloseButtonPress, shouldShowBackButton, shouldShowCloseButton, shouldCollapseOnKeyboard, shouldEnableMaxHeight} = useContext(OnboardingHeaderStateContext);
+    const {onBackButtonPress, onCloseButtonPress, shouldShowBackButton, shouldShowCloseButton, shouldCollapseOnKeyboard, shouldEnableMaxHeight, isHeaderFocused} =
+        useContext(OnboardingHeaderStateContext);
 
     if (!shouldShowBackButton && !shouldShowCloseButton) {
         return null;
@@ -150,13 +180,17 @@ function OnboardingStickyHeader() {
             onCloseButtonPress={onCloseButtonPress}
             shouldShowBackButton={shouldShowBackButton}
             shouldShowCloseButton={shouldShowCloseButton}
+            isFocusable={false}
         />
     );
 
     return (
         <View
             pointerEvents="box-none"
-            style={[styles.onboardingStickyHeaderContainer, {paddingTop}, shouldEnableMaxHeight && {marginTop: viewportOffsetTop}]}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            aria-hidden
+            style={[styles.onboardingStickyHeaderContainer, {paddingTop}, shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, isHeaderFocused && styles.opacity0]}
         >
             {shouldCollapseOnKeyboard ? <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>{header}</CollapsibleHeaderOnKeyboard> : header}
         </View>
