@@ -24,7 +24,7 @@ To learn more about the workspace owner role and what permissions they have, see
 3. Select **Delete workspace**.
 4. In the **Delete [workspace name]?** confirmation window, select **Delete**.
 
-You can also delete a workspace from its settings. Open the workspace, select **More**, then choose **Delete**.
+You can also delete a workspace from its settings. Open the workspace, select **More**, then select **Delete**.
 
 ## What happens after you delete a workspace
 
@@ -40,7 +40,7 @@ After you confirm the deletion:
 
 ## Why can't I delete my workspace?
 
-You must be the workspace owner to delete a Workspace. If your workspace is on an annual subscription, you can't delete it until the end of the current subscription term.
+You must be the workspace owner to delete a workspace. If your workspace is on an annual subscription, you can't delete it until the end of the current subscription term.
 
 To learn more about the annual subscription commitment, see [When You Can Change Your Subscription](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-subscription/Learn-About-Plan-and-Subscription-Management#when-you-can-change-your-subscription).
 
