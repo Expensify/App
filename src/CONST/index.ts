@@ -961,6 +961,9 @@ const CONST = {
             // The back-end is always returning account number with 4 last digits and mask the rest with X
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
+            AU_BSB_NUMBER: /^[0-9]{3}-[0-9]{3}$/,
+            AU_ACCOUNT_NUMBER: /^[0-9]{5,9}$/,
+            AU_BANK_USER_IDENTIFICATION_NUMBER: /^[0-9]{1,6}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',
@@ -1269,6 +1272,11 @@ const CONST = {
             ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
             ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
             ROUTING_CODE: 'routingNumber',
+        },
+        REIMBURSEMENT_INTENT_STEP: {
+            SUB_PAGE_NAMES: {
+                ABA_WITHDRAWAL_DETAILS: 'aba-withdrawal-details',
+            },
         },
         BANK_INFO_STEP: {
             SUB_PAGE_NAMES: {

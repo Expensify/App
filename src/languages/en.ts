@@ -4740,6 +4740,18 @@ const translations = {
         payViaABAFile: 'Pay elsewhere via ABA file',
         payViaABAFileDescription: 'For manual payments',
     },
+    abaWithdrawalDetailsStep: {
+        title: 'What are your account details?',
+        bsbNumber: 'BSB',
+        accountNumber: 'Account Number',
+        bankUserIdentificationNumber: 'Bank User Identification Number',
+        companyName: 'Company Name',
+        includeSelfBalancingTransaction: 'Include self-balancing transaction in the ABA file',
+        error: {
+            bsbNumber: 'Please enter a valid BSB, like 123-456',
+            bankUserIdentificationNumber: 'Please enter a valid bank user identification number of up to 6 digits',
+        },
+    },
     bankInfoStep: {
         whatAreYour: 'What are your business bank account details?',
         letsDoubleCheck: 'Let’s double check that everything looks fine.',
