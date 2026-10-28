@@ -1035,6 +1035,10 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -8154,7 +8158,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8345,6 +8349,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                DECLINED: {
+                    column: this.TABLE_COLUMNS.DECLINED,
+                    search: true,
+                    reportView: false,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8428,6 +8437,7 @@ const CONST = {
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
+                    DECLINED: this.TABLE_COLUMNS.DECLINED,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -8644,6 +8654,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
+            DECLINED: 'declined',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8931,6 +8942,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
+                [this.TABLE_COLUMNS.DECLINED]: 'declined',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
