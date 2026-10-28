@@ -150,9 +150,12 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
 
 type Props = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+
+    /** Renders an invisible copy that only takes the banner's space, so a screen laid out under the banner can end above it */
+    isPlaceholder?: boolean;
 };
 
-function DebugTabView({selectedTab}: Props) {
+function DebugTabView({selectedTab, isPlaceholder = false}: Props) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -239,12 +242,13 @@ function DebugTabView({selectedTab}: Props) {
     // and the DebugTabView's own placement.
     return (
         <View
-            testID="DebugTabViewContainer"
-            style={[shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle}]}
-            pointerEvents="box-none"
+            testID={isPlaceholder ? undefined : 'DebugTabViewContainer'}
+            style={[shouldUseNarrowLayout ? positionStyle : {...styles.pAbsolute, ...positionStyle}, isPlaceholder && styles.visibilityHidden]}
+            pointerEvents={isPlaceholder ? 'none' : 'box-none'}
+            aria-hidden={isPlaceholder}
         >
             <View
-                testID="DebugTabView"
+                testID={isPlaceholder ? undefined : 'DebugTabView'}
                 style={[
                     StyleUtils.getBackgroundColorStyle(theme.cardBG),
                     styles.p3,

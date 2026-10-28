@@ -198,6 +198,35 @@ describe('DebugTabView', () => {
 
                     expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
+
+                it('renders a hidden placeholder without the banner test IDs', async () => {
+                    // Given a login error, so the Settings banner has a message to show
+                    await Onyx.set(ONYXKEYS.LOGINS, {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '1_foo@bar.com': {
+                            partnerID: 1,
+                            partnerUserID: 'foo@bar.com',
+                            errorFields: {
+                                addedLogin: {
+                                    message: 'Partner name is missing!',
+                                },
+                            },
+                        },
+                    });
+
+                    // When the banner is rendered as the placeholder the Account page uses to keep the banner's space
+                    renderWithNavigation(
+                        <DebugTabView
+                            selectedTab={NAVIGATION_TABS.SETTINGS}
+                            isPlaceholder
+                        />,
+                    );
+
+                    // Then it takes the banner's space but stays hidden, and doesn't add a second element with the banner's test IDs
+                    expect(await screen.findByText("There's a problem with a contact method", {includeHiddenElements: true})).toBeTruthy();
+                    expect(screen.queryByTestId('DebugTabView', {includeHiddenElements: true})).toBeNull();
+                    expect(screen.queryByTestId('DebugTabViewContainer', {includeHiddenElements: true})).toBeNull();
+                });
             });
         });
     });

@@ -1,3 +1,4 @@
+import DebugTabViewPlaceholder from '@components/Navigation/DebugTabViewPlaceholder';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
@@ -52,6 +53,7 @@ function BaseSidebarScreen() {
                     />
                     {!shouldShowSkeleton && <InboxTabSelector />}
                     <View style={[styles.flex1]}>{shouldShowSkeleton ? <OptionsListSkeletonView shouldAnimate /> : <SidebarLinksData insets={insets} />}</View>
+                    <DebugTabViewPlaceholder selectedTab={NAVIGATION_TABS.INBOX} />
                 </>
             )}
         </ScreenWrapper>
