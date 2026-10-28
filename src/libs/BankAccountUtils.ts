@@ -151,6 +151,16 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
 }
 
 /**
+ * Whether a payment from this account would be rejected until global reimbursements are set up, so the onboarding should open instead of paying.
+ * Only an explicit `false` counts, so an account without the flag still goes to the backend, which makes the final call.
+ */
+function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return (
+        bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
+    );
+}
+
+/**
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
@@ -368,6 +378,7 @@ export {
     getBankAccountSearchLabel,
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
+    shouldSetUpGlobalReimbursementsBeforePaying,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,

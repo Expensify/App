@@ -1,7 +1,7 @@
 import Log from '@libs/Log';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, getGroupPoliciesWhereReportCanBeCreated, isSubmitPolicy} from '@libs/PolicyUtils';
 
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -44,16 +44,19 @@ function useAutoCreateSubmitWorkspace() {
     } = useOnboardingWorkspaceCreationState();
     const delegateAccountID = useDelegateAccountID();
 
-    const groupPolicySelector = (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy));
-    const [hasEditableGroupPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
+    // Use the same check as the Submit plan welcome modal guard, so the modal only opens when "Get the free plan" will
+    // create a workspace. It also skips workspaces pending deletion (e.g. deleted while offline), which stay in Onyx
+    // until the request succeeds and would otherwise block creating a new workspace and send us to a deleted one.
+    const groupPolicySelector = (policies: OnyxCollection<Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, currentUserEmail).length > 0;
+    const [hasGroupPolicyWhereReportCanBeCreated] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPolicySelector});
     const existingSubmitPolicyIDSelector = (policies: OnyxCollection<Policy>) =>
-        Object.values(policies ?? {}).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id;
+        getGroupPoliciesWhereReportCanBeCreated(policies, currentUserEmail).find((policy) => isSubmitPolicy(policy) && canEditWorkspaceSettings(policy, currentUserEmail))?.id;
     const [existingSubmitPolicyID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: existingSubmitPolicyIDSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const autoCreateSubmitWorkspace = async (firstName: string, lastName: string, shouldCompleteOnboarding = true) => {
-        const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasEditableGroupPolicy;
+        const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasGroupPolicyWhereReportCanBeCreated;
         const displayName = createDisplayName(currentUserEmail, {firstName, lastName}, formatPhoneNumber);
 
         const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
