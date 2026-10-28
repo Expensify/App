@@ -22,7 +22,6 @@ type DayProps = {
     children?: number;
 };
 
-/** The selected day's fill wins over today's, so picking today still shows it as selected */
 function getBackgroundColor(theme: ThemeColors, selected?: boolean, today?: boolean) {
     if (selected) {
         return theme.success;
