@@ -403,3 +403,10 @@
 - Reason: Select the profiling runtime for the configured Android ABI so the PGO build switches also work on x86_64 emulators. ARM64 device builds retain the aarch64 runtime.
 - E/App issue: https://github.com/Expensify/App/issues/98008
 - PR introducing patch: https://github.com/margelo/Expensify/pull/34
+
+### [react-native+0.86.0+049+flatten-hermes-tarball-from-any-owner.patch](react-native+0.86.0+049+flatten-hermes-tarball-from-any-owner.patch)
+
+- Reason: GitHub moved `facebook/hermes` to `meta/hermes` on 2026-10-28, so the top-level folder of the Hermes source tarball is now `meta-hermes-<sha>/`. `unzipHermes` only flattened paths starting with `facebook-hermes-`, so every Android source build of Hermes failed at `configureBuildForHermes` because `sdks/hermes` had no `CMakeLists.txt`. The patch strips the tarball's single top-level folder whatever its name, like the folly, fmt and fast_float tasks in `ReactAndroid/build.gradle.kts`. Builds that use the prebuilt React Native artifacts don't download Hermes and are unaffected. Drop the patch once upstream fixes `unzipHermes`.
+- Upstream PR/issue: https://github.com/react/react-native/issues/59587
+- E/App issue: https://github.com/Expensify/App/issues/98008
+- PR introducing patch: https://github.com/margelo/Expensify/pull/35

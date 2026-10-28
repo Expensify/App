@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+--- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -134,13 +134,10 @@
+     tasks.registering(Copy::class) {
+       dependsOn(downloadHermes)
+       from(tarTree(downloadHermesDest)) {
+-        eachFile {
+-          // We flatten the unzip as the tarball contains a `facebook-hermes-<SHA>`
+-          // folder at the top level.
+-          if (this.path.startsWith("facebook-hermes-")) {
+-            this.path = this.path.substringAfter("/")
+-          }
+-        }
++        // We flatten the unzip as the tarball contains a single `<owner>-hermes-<SHA>` folder at the
++        // top level. Its owner changed from facebook to meta when the repository moved.
++        eachFile { path = path.substringAfter("/") }
++        includeEmptyDirs = false
+       }
+       into(hermesDir)
+       doLast {
