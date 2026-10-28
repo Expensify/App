@@ -2315,7 +2315,9 @@ function getActions(
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
+
     if (
+        isGroupPolicy(policy) &&
         canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
