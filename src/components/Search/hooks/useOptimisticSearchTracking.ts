@@ -1,7 +1,12 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import useOnyx from '@hooks/useOnyx';
+
+import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isInvoiceReport} from '@libs/ReportUtils';
 import {isSearchDataLoaded, isTransactionSearchType} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
@@ -24,6 +29,8 @@ type UseOptimisticSearchTrackingParams = {
     searchResults: SearchResults | undefined;
     /** Parsed query controlling the active search (type, filters, etc.). */
     queryJSON: SearchQueryJSON;
+    /** Account ID of the current user, used to match the optimistic transaction against the query. */
+    currentUserAccountID: number;
     /** Full transactions collection used to resolve optimistic watch keys. */
     transactions: OnyxCollection<Transaction> | undefined;
     /** Report actions collection used to augment search data with optimistic IOU actions. */
@@ -39,7 +46,7 @@ type UseOptimisticSearchTrackingParams = {
  * Returns `searchDataWithOptimisticTransaction` (used to compute filteredData -> sortedData)
  * and a `trackingState` object to pass to `useStableOptimisticSortedData`.
  */
-function useOptimisticSearchTracking({searchResults, queryJSON, transactions, reportActions}: UseOptimisticSearchTrackingParams) {
+function useOptimisticSearchTracking({searchResults, queryJSON, currentUserAccountID, transactions, reportActions}: UseOptimisticSearchTrackingParams) {
     const {type} = queryJSON;
 
     const hasPendingWriteOnMount = hasPendingSearchWrite();
@@ -61,6 +68,18 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMount);
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMount);
     const [isOptimisticTrackingCleared, setIsOptimisticTrackingCleared] = useState(false);
+
+    const optimisticTransactionKey = optimisticWatchKey?.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)
+        ? (optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`)
+        : undefined;
+    const optimisticTransaction = optimisticTransactionKey ? transactions?.[optimisticTransactionKey] : undefined;
+    const [optimisticIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(optimisticTransaction?.reportID)}`);
+
+    // The server leaves an expense that doesn't match the query out of its results, so it must not be added here either.
+    const doesOptimisticTransactionMatchQuery =
+        !optimisticTransaction ||
+        optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID ||
+        shouldOptimisticallyUpdateSearch(queryJSON, optimisticIOUReport, isInvoiceReport(optimisticIOUReport), currentUserAccountID, optimisticTransaction);
 
     const clearOptimisticTracking = () => {
         const tracking = mutableRef.current;
@@ -116,7 +135,14 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
             return cleanup;
         }
 
-        // Step 2: if the watched transaction is a split parent, swap to child.
+        // Step 2: stop tracking an expense the query filters out. The server never returns it, so tracking
+        // would otherwise never resolve.
+        if (isTransactionSearchType(type) && !doesOptimisticTransactionMatchQuery) {
+            clearOptimisticTracking();
+            return;
+        }
+
+        // Step 3: if the watched transaction is a split parent, swap to child.
         // The O(n) scan over transactions only runs when the watched tx is
         // confirmed to be a split parent (reportID === SPLIT_REPORT_ID), which
         // is a rare, single-occurrence event per optimistic lifecycle.
@@ -140,7 +166,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         tracking.hasSwappedFromParent = true;
         const rafID = requestAnimationFrame(() => setOptimisticWatchKey(childKey));
         return () => cancelAnimationFrame(rafID);
-    }, [isOptimisticTrackingCleared, optimisticWatchKey, transactions]);
+    }, [isOptimisticTrackingCleared, optimisticWatchKey, transactions, type, doesOptimisticTransactionMatchQuery]);
 
     // Augment search data with the optimistic transaction (before it appears in server snapshot).
     const searchDataWithOptimisticTransaction = (() => {
@@ -149,11 +175,13 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
             return searchData;
         }
 
-        const optimisticTransactionKey = optimisticWatchKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)
-            ? (optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`)
-            : undefined;
-        const optimisticTransaction = optimisticTransactionKey ? transactions?.[optimisticTransactionKey] : undefined;
-        if (!optimisticTransactionKey || !optimisticTransaction?.transactionID || searchData[optimisticTransactionKey] || optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID) {
+        if (
+            !optimisticTransactionKey ||
+            !optimisticTransaction?.transactionID ||
+            searchData[optimisticTransactionKey] ||
+            optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID ||
+            !doesOptimisticTransactionMatchQuery
+        ) {
             return searchData;
         }
 
