@@ -145,9 +145,6 @@ type BuildWorkspaceNavigationItemsParams = {
 
     isVendorMatchingBetaEnabled: boolean;
 
-    /** Whether the company agents beta is enabled. */
-    isCompanyAgentsBetaEnabled: boolean;
-
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
 
@@ -296,7 +293,6 @@ function buildWorkspaceNavigationItems({
     icons,
     isOffline,
     isVendorMatchingBetaEnabled,
-    isCompanyAgentsBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -316,7 +312,6 @@ function buildWorkspaceNavigationItems({
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
                 isVendorMatchingBetaEnabled,
-                isCompanyAgentsBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -452,7 +447,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         icons,
         isOffline: !!isOffline,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
-        isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),

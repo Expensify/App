@@ -106,6 +106,8 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the workspace agents has errors. */
+    hasAgentErrors?: boolean;
     /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
     hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
@@ -118,8 +120,6 @@ type GetWorkspaceMenuItemsParams = {
     hasApprovalWorkflowWithNonMemberApprover?: boolean;
     /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
-    /** Whether the company agents beta is enabled. */
-    isCompanyAgentsBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
@@ -132,13 +132,13 @@ function getWorkspaceMenuItems({
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasAgentErrors,
     hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
     shouldShowRBR = false,
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
-    isCompanyAgentsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
     const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
@@ -230,7 +230,7 @@ function getWorkspaceMenuItems({
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
 
-    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && isCompanyAgentsBetaEnabled && !isAgentAccount) {
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && !isAgentAccount) {
         const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
         items.splice(membersItemIndex + 1, 0, {
             translationKey: 'agentsPage.title',
@@ -239,6 +239,7 @@ function getWorkspaceMenuItems({
             screenName: SCREENS.WORKSPACE.AGENTS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
             badgeTranslationKey: 'common.beta',
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
