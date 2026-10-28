@@ -41,20 +41,39 @@ const mockGetSearchOptions = jest.mocked(getSearchOptions);
 // Holds the Onyx-sourced personal detail options returned by the mocked useFilteredOptions, so individual tests can control them.
 const mockFilteredPersonalDetails: {current: OptionData[]} = {current: []};
 
+// The real useFilteredOptions keeps the same options object between renders, so the mock caches it per personal details array.
+// Returning a fresh object on every render would invalidate the memoized option lists in useSearchSelectorBase.
+const mockFilteredOptionsCache: {
+    personalDetails?: OptionData[];
+    options?: {reports: OptionData[]; personalDetails: OptionData[]};
+} = {};
+
 jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
-    default: () => ({
-        options: {reports: [], personalDetails: mockFilteredPersonalDetails.current},
-        isLoading: false,
-        loadMore: jest.fn(),
-        hasMore: false,
-        isLoadingMore: false,
-    }),
+    default: () => {
+        if (!mockFilteredOptionsCache.options || mockFilteredOptionsCache.personalDetails !== mockFilteredPersonalDetails.current) {
+            mockFilteredOptionsCache.personalDetails = mockFilteredPersonalDetails.current;
+            mockFilteredOptionsCache.options = {
+                reports: [],
+                personalDetails: mockFilteredPersonalDetails.current,
+            };
+        }
+        return {
+            options: mockFilteredOptionsCache.options,
+            isLoading: false,
+            loadMore: jest.fn(),
+            hasMore: false,
+            isLoadingMore: false,
+        };
+    },
 }));
+
+// A stable reference, like the real provider value, so the hook's memoized option lists are not invalidated on every render.
+const mockPersonalDetails = {};
 
 jest.mock('@components/OnyxListItemProvider', () => ({
     ...jest.requireActual<typeof OnyxListItemProvider>('@components/OnyxListItemProvider'),
-    usePersonalDetails: () => ({}),
+    usePersonalDetails: () => mockPersonalDetails,
     useCardList: () => ({}),
     useWorkspaceCardList: () => ({}),
 }));
@@ -767,5 +786,87 @@ describe('useSearchSelector search term trimming', () => {
         await renderWithSearchTerm(CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL, ' +1 (234) 567-8901 ');
 
         expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.searchString).toBe('+12345678901');
+    });
+});
+
+describe('useSearchSelector memoization', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockFilteredPersonalDetails.current = [];
+        mockGetValidOptions.mockReturnValue({
+            options: {
+                ...EMPTY_OPTIONS,
+                personalDetails: [EXISTING_CONTACT, SECOND_CONTACT],
+            },
+            hasMore: false,
+        });
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet(
+                createMock<OnyxMultiSetInput>({
+                    [ONYXKEYS.SESSION]: {accountID: MOCK_ACCOUNT_ID, email: MOCK_EMAIL},
+                    [ONYXKEYS.BETAS]: [],
+                    [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
+                }),
+            );
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    afterAll(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+    });
+
+    it('does not recompute the option lists when the parent only passes new callbacks', async () => {
+        // Given a multi-select search selector whose parent passes inline callbacks, as NewChatPage and ParticipantSearchResults do
+        const {result, rerender} = renderHook(
+            ({onSelectionChange}: {onSelectionChange: (options: OptionData[]) => void}) =>
+                useSearchSelectorBase({
+                    selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                    searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                    onSelectionChange,
+                }),
+            {initialProps: {onSelectionChange: () => {}}},
+        );
+        await waitForBatchedUpdatesWithAct();
+        const getValidOptionsCallCount = mockGetValidOptions.mock.calls.length;
+        const initialAvailableOptions = result.current.availableOptions;
+
+        // When the parent re-renders with a new callback reference and no data change
+        rerender({onSelectionChange: () => {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then getValidOptions does not run again and the derived options keep their reference. A hook call placed between
+        // getValidOptions and the derived lists stops React Compiler from memoizing them, which this test would catch.
+        expect(mockGetValidOptions).toHaveBeenCalledTimes(getValidOptionsCallCount);
+        expect(result.current.availableOptions).toBe(initialAvailableOptions);
+    });
+
+    it('recomputes the option lists when the selection changes', async () => {
+        // Given a multi-select search selector with nothing selected
+        const {result} = renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+        const getValidOptionsCallCount = mockGetValidOptions.mock.calls.length;
+
+        // When an option is selected
+        act(() => {
+            result.current.toggleSelection(EXISTING_CONTACT);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the memoized option lists are invalidated, so the selected contact leaves availableOptions
+        expect(mockGetValidOptions.mock.calls.length).toBeGreaterThan(getValidOptionsCallCount);
+        expect(result.current.availableOptions.personalDetails.map((option) => option.login)).not.toContain(EXISTING_CONTACT.login);
     });
 });
