@@ -4607,6 +4607,7 @@ const CONST = {
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
             CONFIRMATION: 'confirmation',
+            VALIDATE_CODE: 'validate-code',
             SUCCESS: 'success',
         },
     },
