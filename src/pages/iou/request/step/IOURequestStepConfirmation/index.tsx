@@ -264,7 +264,7 @@ function IOURequestStepConfirmationContent({
     const isEditingReceipt = hasReceipt(transaction);
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isMovingTransactionFromTrackExpense = !!isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
     // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
     // tracked expense being moved already carries real values, and its emptiness
