@@ -24,6 +24,7 @@ import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
@@ -123,7 +124,7 @@ function SearchPageNarrow({
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         if (!isMobileSelectionModeEnabled) {
             return false;
         }
@@ -131,7 +132,7 @@ function SearchPageNarrow({
         clearSelectedTransactions();
         turnOffMobileSelectionMode();
         return true;
-    }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
+    };
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
@@ -173,13 +174,15 @@ function SearchPageNarrow({
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
+    const handleSearchAction = (value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
         }
-    }, []);
+    };
 
     const navigation = useNavigation();
     // When pre-inserted behind the RHP (not focused), always start in static rendering
@@ -202,14 +205,14 @@ function SearchPageNarrow({
     useEffect(() => {
         isHeaderInteractiveRef.current = isHeaderInteractive;
     }, [isHeaderInteractive]);
-    const onSearchLayout = useCallback(() => {
+    const onSearchLayout = () => {
         if (isHeaderInteractiveRef.current) {
             return;
         }
         startTransition(() => {
             setIsHeaderInteractive(true);
         });
-    }, [startTransition]);
+    };
 
     const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: true});
 
@@ -259,6 +262,10 @@ function SearchPageNarrow({
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
+    // Static rendering also covers Spend mounted in the background by native tabs, which may be first shown before
+    // any results exist, so it needs the loading skeleton too. The submit overlay is the exception: Search has to
+    // mount under it even without results, to flush the deferred write and dismiss the overlay.
+    const shouldShowStaticLoadingSkeleton = shouldShowLoadingSkeleton && !isOverlayActive;
 
     return (
         <View
@@ -343,20 +350,23 @@ function SearchPageNarrow({
                         <View style={styles.flex1}>
                             {useStaticRendering && (
                                 <>
-                                    {isInteractive && (
-                                        <Search
-                                            searchResults={contentSearchResults}
-                                            queryJSON={contentQueryJSON}
-                                            key={contentQueryJSON.hash}
-                                            contentContainerStyle={contentContainerStyle}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            onSearchListScroll={scrollHandler}
-                                            onDestinationVisible={endSubmitNavigationSpans}
-                                            onContentReady={onSearchContentReady}
-                                            hasFilterBars={hasFilterBars}
-                                        />
-                                    )}
+                                    {isInteractive &&
+                                        (shouldShowStaticLoadingSkeleton ? (
+                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                        ) : (
+                                            <Search
+                                                searchResults={contentSearchResults}
+                                                queryJSON={contentQueryJSON}
+                                                key={contentQueryJSON.hash}
+                                                contentContainerStyle={contentContainerStyle}
+                                                handleSearch={handleSearchAction}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                onSearchListScroll={scrollHandler}
+                                                onDestinationVisible={endSubmitNavigationSpans}
+                                                onContentReady={onSearchContentReady}
+                                                hasFilterBars={hasFilterBars}
+                                            />
+                                        ))}
                                     {!isInteractive && !searchOverlayContent && (
                                         <SearchRowSkeleton
                                             shouldAnimate={hasBeenFocused}

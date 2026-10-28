@@ -38,7 +38,7 @@ Complete these steps in order. Each step has its own section below with detailed
 7. Check your expense report transaction forms
 8. Check your vendor bill transaction forms
 9. Check your vendor credit transaction forms
-10. Set up tax groups in NetSuite
+10. Configure taxes in NetSuite
 11. Connect Expensify to NetSuite using OAuth 2.0
 
 If you're connecting with token-based authentication instead, follow the steps in **How to connect to NetSuite using token-based authentication** below.
@@ -134,9 +134,29 @@ Expense categories map to Expensify categories and are linked to GL accounts so 
 
 ---
 
-## How to set up tax groups in NetSuite
+## How to configure taxes in NetSuite
 
-Expensify supports Tax Groups, not individual Tax Codes, except when you use SuiteTax. Under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each Tax Group contains only one Tax Code.
+SuiteTax accounts import individual Tax Codes. Legacy tax accounts import Tax Groups.
+
+**SuiteTax accounts**
+
+If the account uses SuiteTax, complete these steps:
+
+1. Go to **Setup > Users/Roles > Manage Roles**.
+2. Edit the role used for the Expensify connection.
+3. Under **Permissions > Lists**, set **Tax Details Tab** to **Full**.
+4. Select **Save**.
+5. Go to **Setup > SuiteTax Engine > Manage SuiteTax Engine Roles**.
+6. Select **Assign SuiteTax Engine Permissions to Role**.
+7. In the **Role** field, choose the role used for the Expensify connection.
+8. On the **SuiteTax Engine Permissions** subtab, set each permission to **Full**.
+9. Select **Save**.
+
+Do not complete the **Legacy tax accounts** steps.
+
+**Legacy tax accounts**
+
+If the account uses legacy taxes, under **Setup > Accounting > Set Up Taxes**, set **Tax Code Lists Include** to **Tax Groups And Tax Codes** or **Tax Groups Only**. In the UK and Ireland, make sure each Tax Group contains only one Tax Code.
 
 To create a Tax Group:
 
@@ -198,7 +218,7 @@ Complete these steps in order. Steps 1 and 5–11 are the same as for an OAuth 2
 8. Check your expense report transaction forms
 9. Check your vendor bill transaction forms
 10. Check your vendor credit transaction forms
-11. Set up tax groups in NetSuite
+11. Configure taxes in NetSuite
 12. Connect Expensify to NetSuite using access tokens
 
 ---

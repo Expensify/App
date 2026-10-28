@@ -173,9 +173,10 @@ function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
 /**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
+ * The workspace's default bank account is listed first when it is eligible. All other accounts keep their order.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
-    return formattedPaymentMethods
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string, defaultBankAccountID?: number): BusinessBankAccountOption[] {
+    const options = formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
                 return false;
@@ -198,6 +199,13 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             iconSize: formattedPaymentMethod?.iconSize,
             methodID: formattedPaymentMethod?.methodID,
         }));
+
+    const defaultOption = defaultBankAccountID === undefined ? undefined : options.find((option) => option.methodID === defaultBankAccountID);
+    if (!defaultOption) {
+        return options;
+    }
+
+    return [defaultOption, ...options.filter((option) => option !== defaultOption)];
 }
 
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {

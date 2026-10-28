@@ -767,6 +767,79 @@ describe('actions/Transaction', () => {
             expect(updated?.modifiedMerchant).toContain('mi');
         });
 
+        it('does not save Search row display fields on the moved transaction', async () => {
+            // Given an unreported expense selected from Search, which hands over the whole row item with its display-only fields
+            const policyID = generatePolicyID();
+            const mockPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: policyID, outputCurrency: CONST.CURRENCY.USD, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+
+            const transactionID = 'txn-search-row-move';
+            const transaction: Transaction = {
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Original merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            const searchRowItem = {
+                ...transaction,
+                formattedMerchant: 'Original merchant',
+                formattedFrom: 'Rory',
+                formattedTo: '',
+                formattedTotal: 1000,
+                date: transaction.created,
+                keyForList: transactionID,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                from: {accountID: RORY_ACCOUNT_ID},
+                to: {accountID: CARLOS_ACCOUNT_ID},
+            } as Transaction;
+
+            const expenseReport = {
+                reportID: 'dest-expense-report-search-row',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID: 'dest-chat-report-search-row',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When the row is moved to the report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                newReport: expenseReport,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: searchRowItem},
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: undefined,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction is moved without the row's display fields, so a later merchant edit isn't shadowed by a stale formattedMerchant
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updated?.reportID).toBe(expenseReport.reportID);
+            expect(updated?.merchant).toBe('Original merchant');
+            expect(updated).not.toHaveProperty('formattedMerchant');
+            expect(updated).not.toHaveProperty('formattedFrom');
+            expect(updated).not.toHaveProperty('formattedTotal');
+            expect(updated).not.toHaveProperty('date');
+            expect(updated).not.toHaveProperty('keyForList');
+            expect(updated).not.toHaveProperty('action');
+            expect(updated).not.toHaveProperty('from');
+            expect(updated).not.toHaveProperty('to');
+        });
+
         describe('unheldTotal', () => {
             const SOURCE_REPORT_ID = 'source-unheld-total';
             const DESTINATION_REPORT_ID = 'destination-unheld-total';

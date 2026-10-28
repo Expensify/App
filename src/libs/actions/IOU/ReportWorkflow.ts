@@ -41,7 +41,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses,
     hasOutstandingChildRequest,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -91,6 +90,7 @@ type ApproveMoneyRequestFunctionParams = {
 
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReportTransactions: OnyxTypes.Transaction[];
     policy: OnyxEntry<OnyxTypes.Policy>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
@@ -988,6 +988,7 @@ function unapproveExpenseReport(
 
 function submitReport({
     expenseReport,
+    expenseReportTransactions,
     policy,
     rules,
     currentUserAccountIDParam,
@@ -1033,11 +1034,10 @@ function submitReport({
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
     // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
-    const reportTransactions = getReportTransactions(expenseReport.reportID);
-    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
 
-    if (hasOnlyHeldExpenses(reportTransactions)) {
+    if (hasHeldExpenses && heldTransactions.length === expenseReportTransactions.length) {
         return;
     }
 
@@ -1307,7 +1307,7 @@ function submitReport({
 
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
-    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    // exportReportToPDF does so the report PDF download modal shows progress and auto-downloads once the filename arrives.
     if (shouldExportToPDF) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
