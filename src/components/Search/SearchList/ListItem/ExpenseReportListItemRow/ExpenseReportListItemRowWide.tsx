@@ -60,7 +60,7 @@ function ExpenseReportListItemRowWide({
     const submitterUserID = item.submitterUserID;
     const submitterPayrollID = item.submitterPayrollID;
     const orderDealNumbers = item.orderDealNumbers;
-    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency, paid: paidDate = ''} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
@@ -111,6 +111,16 @@ function ExpenseReportListItemRowWide({
                     date={item.firstApproved ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID, {isPaidColumnWide: item.shouldShowYearPaid})]}>
+                <DateCell
+                    date={paidDate}
+                    showTooltip
+                    isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
