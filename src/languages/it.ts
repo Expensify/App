@@ -10740,6 +10740,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             pleaseSelectDatesForBothFromAndTo: 'Seleziona le date per Da e A',
         },
         spendOverTime: 'Spesa nel tempo',
+        trip: {
+            tripName: 'Nome del viaggio',
+            traveler: 'Viaggiatore',
+            status: {
+                upcoming: 'In arrivo',
+                done: 'Completato',
+                canceled: 'Annullato',
+            },
+        },
         tabs: {
             expenseReports: 'Note spese',
             reports: 'Report',

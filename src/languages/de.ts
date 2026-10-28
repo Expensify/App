@@ -10786,6 +10786,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             pleaseSelectDatesForBothFromAndTo: 'Bitte wähle Daten für Von und Bis',
         },
         spendOverTime: 'Ausgaben im Zeitverlauf',
+        trip: {
+            tripName: 'Reisename',
+            traveler: 'Reisende*r',
+            status: {
+                upcoming: 'Bevorstehend',
+                done: 'Abgeschlossen',
+                canceled: 'Storniert',
+            },
+        },
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',

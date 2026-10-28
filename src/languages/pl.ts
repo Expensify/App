@@ -10731,6 +10731,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',
         },
         spendOverTime: 'Wydatki w czasie',
+        trip: {
+            tripName: 'Nazwa podróży',
+            traveler: 'Podróżny',
+            status: {
+                upcoming: 'Nadchodząca',
+                done: 'Zakończona',
+                canceled: 'Anulowana',
+            },
+        },
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
