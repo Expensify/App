@@ -10,7 +10,7 @@ import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import React, {memo, useMemo} from 'react';
+import React from 'react';
 
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -85,77 +85,43 @@ function ReportActionsListItemRenderer({
     reportsParentHierarchy,
     onExpandedSystemMessageReady,
 }: ReportActionsListItemRendererProps) {
-    const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
+    const originalMessage = getOriginalMessage(reportAction);
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
      * passing in only the required props.
      */
-    const action: ReportAction = useMemo(
-        () =>
-            ({
-                reportActionID: reportAction.reportActionID,
-                message: reportAction.message,
-                pendingAction: reportAction.pendingAction,
-                actionName: reportAction.actionName,
-                errors: reportAction.errors,
-                originalMessage,
-                childCommenterCount: reportAction.childCommenterCount,
-                linkMetadata: reportAction.linkMetadata,
-                childReportID: reportAction.childReportID,
-                childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
-                error: reportAction.error,
-                created: reportAction.created,
-                actorAccountID: reportAction.actorAccountID,
-                adminAccountID: reportAction.adminAccountID,
-                childVisibleActionCount: reportAction.childVisibleActionCount,
-                childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
-                childType: reportAction.childType,
-                person: reportAction.person,
-                isOptimisticAction: reportAction.isOptimisticAction,
-                delegateAccountID: reportAction.delegateAccountID,
-                previousMessage: reportAction.previousMessage,
-                isAttachmentWithText: reportAction.isAttachmentWithText,
-                isOriginalReportDeleted: reportAction.isOriginalReportDeleted,
-                childStateNum: reportAction.childStateNum,
-                childStatusNum: reportAction.childStatusNum,
-                childReportName: reportAction.childReportName,
-                childManagerAccountID: reportAction.childManagerAccountID,
-                childMoneyRequestCount: reportAction.childMoneyRequestCount,
-                childOwnerAccountID: reportAction.childOwnerAccountID,
-            }) as ReportAction,
-        [
-            reportAction.reportActionID,
-            reportAction.message,
-            reportAction.pendingAction,
-            reportAction.actionName,
-            reportAction.errors,
-            reportAction.childCommenterCount,
-            reportAction.linkMetadata,
-            reportAction.childReportID,
-            reportAction.childLastVisibleActionCreated,
-            reportAction.error,
-            reportAction.created,
-            reportAction.actorAccountID,
-            reportAction.adminAccountID,
-            reportAction.childVisibleActionCount,
-            reportAction.childOldestFourAccountIDs,
-            reportAction.childType,
-            reportAction.person,
-            reportAction.isOptimisticAction,
-            reportAction.delegateAccountID,
-            reportAction.previousMessage,
-            reportAction.isAttachmentWithText,
-            reportAction.isOriginalReportDeleted,
-            reportAction.childStateNum,
-            reportAction.childStatusNum,
-            reportAction.childReportName,
-            reportAction.childManagerAccountID,
-            reportAction.childMoneyRequestCount,
-            reportAction.childOwnerAccountID,
-            originalMessage,
-        ],
-    );
+    const action: ReportAction = {
+        reportActionID: reportAction.reportActionID,
+        message: reportAction.message,
+        pendingAction: reportAction.pendingAction,
+        actionName: reportAction.actionName,
+        errors: reportAction.errors,
+        originalMessage,
+        childCommenterCount: reportAction.childCommenterCount,
+        linkMetadata: reportAction.linkMetadata,
+        childReportID: reportAction.childReportID,
+        childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
+        error: reportAction.error,
+        created: reportAction.created,
+        actorAccountID: reportAction.actorAccountID,
+        adminAccountID: reportAction.adminAccountID,
+        childVisibleActionCount: reportAction.childVisibleActionCount,
+        childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
+        childType: reportAction.childType,
+        person: reportAction.person,
+        isOptimisticAction: reportAction.isOptimisticAction,
+        delegateAccountID: reportAction.delegateAccountID,
+        previousMessage: reportAction.previousMessage,
+        isAttachmentWithText: reportAction.isAttachmentWithText,
+        isOriginalReportDeleted: reportAction.isOriginalReportDeleted,
+        childStateNum: reportAction.childStateNum,
+        childStatusNum: reportAction.childStatusNum,
+        childReportName: reportAction.childReportName,
+        childManagerAccountID: reportAction.childManagerAccountID,
+        childMoneyRequestCount: reportAction.childMoneyRequestCount,
+        childOwnerAccountID: reportAction.childOwnerAccountID,
+    } as ReportAction;
 
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
@@ -201,4 +167,4 @@ function ReportActionsListItemRenderer({
     );
 }
 
-export default memo(ReportActionsListItemRenderer);
+export default ReportActionsListItemRenderer;

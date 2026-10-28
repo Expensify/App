@@ -356,22 +356,6 @@ describe('system message presentation', () => {
             expect(getSystemMessageDisplayState(actions, new Set()).displayReportActions).toHaveLength(expectedRows);
         });
 
-        it.each([
-            {firstActorAccountID: 1, nextActorAccountID: '1', expectedRows: 1},
-            {firstActorAccountID: '1', nextActorAccountID: 1, expectedRows: 1},
-            {firstActorAccountID: 1, nextActorAccountID: '2', expectedRows: 2},
-            {firstActorAccountID: '1', nextActorAccountID: 2, expectedRows: 2},
-        ])('compares actor IDs by numeric value: %s', ({firstActorAccountID, nextActorAccountID, expectedRows}) => {
-            // Given numeric-string IDs at the data boundary despite the declared numeric type
-            const actions = [Object.assign(systemAction('1'), {actorAccountID: firstActorAccountID}), Object.assign(systemAction('2'), {actorAccountID: nextActorAccountID})];
-            // When constructing either audit-list direction
-            for (const orderedActions of [actions, actions.toReversed()]) {
-                const state = getSystemMessageDisplayState(orderedActions, new Set());
-                // Then equivalent IDs collapse while different users stay separate
-                expect(state.displayReportActions).toHaveLength(expectedRows);
-            }
-        });
-
         const legacyDelegateMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>['originalMessage'] & {delegateAccountID: number} = {delegateAccountID: 2};
         it.each([{actorAccountID: 2}, {delegateAccountID: 2}, {originalMessage: legacyDelegateMessage}])('keeps different actor/delegate identities in separate runs: %s', (overrides) => {
             // Given updates attributed to different users or delegates

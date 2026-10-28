@@ -3316,7 +3316,7 @@ describe('ReportActionsUtils', () => {
                 },
             };
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
             const expected = translateLocal('report.actions.type.updatedCustomField1', formatPhoneNumber(email), newValue, previousValue);
             expect(actual).toBe(expected);
         });
@@ -3358,8 +3358,270 @@ describe('ReportActionsUtils', () => {
                 translateLocal('workspace.common.roleName', newRole).toLowerCase(),
             );
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
             expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
+        });
+
+        it('should show an approval workflow message instead of a role change when submitsTo changes', () => {
+            // Given an employee update where only the approver (submitsTo) changed
+            const email = 'employee@example.com';
+            const newApprover = 'new.approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO,
+                    newValue: newApprover,
+                    oldValue: previousApprover,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it describes the approver change, because the user's role did not change
+            expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToApprover', {members: email, approver: newApprover, previousApprover}));
+        });
+
+        it('should show a default approver message when submitsTo is cleared', () => {
+            // Given an employee update where submitsTo was cleared, like a member import with a blank Submit To value
+            const email = 'employee@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO,
+                    newValue: '',
+                    oldValue: previousApprover,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it says reports now go to the default approver, because an empty submitsTo means the member uses the default approver
+            expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToDefault', {members: email, previousApprover}));
+        });
+
+        it('should show a stopped forwarding message when forwardsTo is cleared', () => {
+            // Given an employee update where forwardsTo was removed
+            const email = 'approver@example.com';
+            const previousForwardsTo = 'final.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.FORWARDS_TO,
+                    newValue: '',
+                    oldValue: previousForwardsTo,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it says forwarding stopped, because there is no new forwardsTo approver
+            expect(actual).toBe(translateLocal('workspaceActions.removedForwardsTo', {approver: email, previousForwardsTo}));
+        });
+
+        it('should fall back to the server message for a field without dedicated copy', () => {
+            // Given an employee update for a field App has no copy for, alongside a role change
+            const serverText = 'updated the someNewField of employee@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'employee@example.com',
+                    fields: [
+                        {field: 'someNewField', newValue: 'new', oldValue: 'old'},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.ROLE, newValue: CONST.POLICY.ROLE.ADMIN, oldValue: CONST.POLICY.ROLE.USER},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, so the unknown field is not reported as a role change or silently dropped
+            expect(actual).toBe(serverText);
+        });
+
+        it('should show an approval limit message in the currency saved on the action when approvalLimit changes', () => {
+            // Given an employee update where only the approval limit changed, with the currency and limits saved on the action
+            const email = 'approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.EUR,
+                    limit: 200000,
+                    previousLimit: 100000,
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 200000, oldValue: 100000}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it describes the new and previous limits in the saved currency, so the log doesn't change when the workspace currency changes later
+            expect(actual).toBe(
+                translateLocal('workspaceActions.changedApprovalLimit', {
+                    member: email,
+                    limit: convertToDisplayString(200000, CONST.CURRENCY.EUR),
+                    previousLimit: convertToDisplayString(100000, CONST.CURRENCY.EUR),
+                }),
+            );
+        });
+
+        it('should fall back to the server message for an older approvalLimit change without a saved currency', () => {
+            // Given an approval limit change logged before the currency was saved on the action
+            const serverText = 'added a approvalLimit of "" to approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'approver@example.com',
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 200000, oldValue: 100000}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, because guessing the currency could show the wrong amount
+            expect(actual).toBe(serverText);
+        });
+
+        it('should use the limit saved on the action when only overLimitForwardsTo changes', () => {
+            // Given an employee update where only the over-limit approver changed, and the member's unchanged limit is saved on the action
+            const email = 'approver@example.com';
+            const newApprover = 'new.approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 100000,
+                    previousLimit: 100000,
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: newApprover, oldValue: previousApprover}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it describes the new over-limit approver with the saved limit, without a previous limit because it didn't change
+            expect(actual).toBe(
+                translateLocal('workspaceActions.changedOverLimitForwardsTo', {
+                    member: email,
+                    approver: newApprover,
+                    limit: convertToDisplayString(100000, CONST.CURRENCY.USD),
+                    previousApprover,
+                }),
+            );
+        });
+
+        it('should show one stopped forwarding message when overLimitForwardsTo and approvalLimit are cleared together', () => {
+            // Given an employee update that clears both the approval limit and the over-limit approver
+            const email = 'approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 0,
+                    previousLimit: 200000,
+                    fields: [
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: '', oldValue: 200000},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: '', oldValue: previousApprover},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the cleared limit is folded into a single message, because the removed over-limit approver already names the previous limit
+            expect(actual).toBe(
+                translateLocal('workspaceActions.removedOverLimitForwardsTo', {member: email, previousApprover, previousLimit: convertToDisplayString(200000, CONST.CURRENCY.USD)}),
+            );
+        });
+
+        it('should show the limit and approver together when overLimitForwardsTo is set with a new approvalLimit', () => {
+            // Given an employee update that sets an approval limit and an over-limit approver for the first time
+            const email = 'approver@example.com';
+            const newApprover = 'new.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 100000,
+                    previousLimit: 0,
+                    fields: [
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 100000, oldValue: ''},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: newApprover, oldValue: ''},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it shows a single "set" message with the new limit saved on the action
+            expect(actual).toBe(
+                translateLocal('workspaceActions.changedOverLimitForwardsTo', {member: email, approver: newApprover, limit: convertToDisplayString(100000, CONST.CURRENCY.USD)}),
+            );
+        });
+
+        it('should fall back to the server message when the approval limit is unknown', () => {
+            // Given an older over-limit approver change with no currency or limit saved on the action
+            const serverText = 'updated the overLimitForwardsTo of approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'approver@example.com',
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: 'new.approver@example.com', oldValue: 'old.approver@example.com'}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, because the over-limit copy needs a limit and we should not invent one
+            expect(actual).toBe(serverText);
         });
     });
 
@@ -8326,6 +8588,88 @@ describe('ReportActionsUtils', () => {
             // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
+        });
+    });
+    describe('getReportActionMessageText', () => {
+        it('reads an edited file attachment as the attachment token', () => {
+            // Given an edited text-and-file comment as the server returns it, which drops data-expensify-source but keeps the attachment ID
+            const html =
+                'test 2<br /><br /><a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" data-attachment-id="456" target="_blank" rel="noreferrer noopener">renamed.csv</a>';
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html, text: 'test 2 renamed.csv'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            const text = ReportActionsUtils.getReportActionMessageText(reportAction);
+
+            // Then the file reads as an attachment, as it does before the edit, instead of its file name
+            expect(text).toContain(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(text).not.toContain('renamed.csv');
+        });
+
+        it('keeps a plain link as its label', () => {
+            // Given a comment with an ordinary link
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://example.com/a.csv">a.csv</a>', text: 'a.csv'}],
+            } as ReportAction;
+
+            // When the text is read
+            // Then the label is kept
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('a.csv');
+        });
+
+        it('keeps a link to another host as its label even when it carries an attachment ID', () => {
+            // Given a file anchor edited to point at another host, which the server returns with only the attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'see <a href="https://example.com/file.csv" data-attachment-id="456">the file</a>', text: 'see the file'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the label is kept, because the chat draws it as a link and not a file card
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see the file');
+        });
+
+        it("reads a link to the action's own uploaded file as the attachment token", () => {
+            // Given an edited file anchor with no attachment attributes left, whose URL names the action it was uploaded to
+            const reportAction = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv">renamed.csv</a><br />notes', text: 'renamed.csv\nnotes'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the file reads as an attachment and the text after it stays on its own line
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe(`${CONST.ATTACHMENT_MESSAGE_TEXT}\nnotes`);
+        });
+
+        it('keeps a pasted attachment link as its label', () => {
+            // Given a typed link to an uploaded file, which the server stores without an attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'see <a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" target="_blank" rel="noreferrer noopener">old sheet</a>',
+                        text: 'see old sheet',
+                    },
+                ],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the link keeps its label, because only an uploaded file is an attachment
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see old sheet');
         });
     });
 

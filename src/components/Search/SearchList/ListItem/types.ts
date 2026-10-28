@@ -30,8 +30,10 @@ import type {
     SearchMerchantGroup,
     SearchMonthGroup,
     SearchQuarterGroup,
+    SearchReport,
     SearchTagGroup,
     SearchTask,
+    SearchTransaction,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
@@ -71,7 +73,7 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     };
 
 type TransactionListItemType = ListItem &
-    Transaction & {
+    SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
@@ -80,6 +82,9 @@ type TransactionListItemType = ListItem &
 
         /** The date the report was approved */
         approved?: string;
+
+        /** The date the report was paid */
+        paid?: string;
 
         /** The date the report was posted */
         posted?: string;
@@ -143,6 +148,11 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was approved in past years
          */
         shouldShowYearApproved: boolean;
+
+        /** Whether we should show the year for the paid date.
+         * This is true if at least one transaction in the dataset belongs to a report paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** Whether we should show the year for the posted date.
          * This is true if at least one transaction in the dataset was posted in past years
@@ -227,7 +237,7 @@ type TransactionGroupListItemType = ListItem & {
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
@@ -254,6 +264,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
+
+        /** The date the report was paid (created date of the latest payment report action that was not cancelled) */
+        paid?: string;
 
         firstApproverAvatar?: AvatarSource;
 
@@ -297,6 +310,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was exported in past years
          */
         shouldShowYearExported: boolean;
+
+        /**
+         * Whether we should show the year for the paid date.
+         * This is true if at least one report in the dataset was paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
