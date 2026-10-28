@@ -10,7 +10,7 @@ import {applyShiftRangeBatchToKeySet} from '@libs/shiftRangeSelection';
 import type {Dispatch, SetStateAction} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 
 import type {MiddlewareHookResult} from './types';
 
@@ -107,13 +107,13 @@ export default function useSelection<DataType extends TableData>({
     });
 
     // The shift anchor deliberately survives clears — a vanished anchor re-resolves and stale deselects are no-ops, so the next shift+click still ranges from the last click.
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         onRowSelectionChange?.([]);
-    }, [onRowSelectionChange]);
+    };
 
     // Disable selection mode when the Android hardware back button is pressed. A table that is always in selection mode
     // has none to leave, so the press has to fall through to navigation instead.
-    const androidBackButtonDisableSelectionMode = useCallback(() => {
+    const androidBackButtonDisableSelectionMode = () => {
         if (!isSelectionModeEnabled || shouldAlwaysEnableSelection) {
             return false;
         }
@@ -121,7 +121,7 @@ export default function useSelection<DataType extends TableData>({
         clearSelection();
         setSelectionModeEnabled(false);
         return true;
-    }, [isSelectionModeEnabled, shouldAlwaysEnableSelection, clearSelection, setSelectionModeEnabled]);
+    };
 
     useAndroidBackButtonHandler(androidBackButtonDisableSelectionMode);
 

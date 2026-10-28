@@ -33,7 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import {AccountingContextProvider, useAccountingActions} from './AccountingContext';
@@ -68,15 +68,10 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const syncingAccountingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
 
-    const isConnectedToIntegration = useMemo(() => {
-        if (integration === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-            return connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-        }
-        if (integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER) {
-            return isUberConnected;
-        }
-        return false;
-    }, [connectedIntegration, integration, isUberConnected]);
+    const isConnectedToIntegration =
+        integration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            ? connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            : integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER && isUberConnected;
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
         xero: {
