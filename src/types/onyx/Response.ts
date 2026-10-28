@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type {FlightFareRules, TravelAirport} from './TravelFlightSearch';
 import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
@@ -85,6 +86,12 @@ type Response<TKey extends OnyxKey> = {
 
     /** Whether the account is set for testing Travel and should use the sandbox environment */
     isTestAccount?: boolean;
+
+    /** Airports matching a flight search's From or To text */
+    airports?: TravelAirport[];
+
+    /** Full fare rule text per leg of a flight fare */
+    fareRules?: FlightFareRules[];
 
     /** User authorization token to authorize Pusher connections */
     auth?: string;

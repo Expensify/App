@@ -481,6 +481,10 @@ export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscri
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
 export type {default as UpdatePersonalKarmaParams} from './UpdatePersonalKarmaParams';
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
+export type {default as SearchTravelAirportsParams} from './SearchTravelAirportsParams';
+export type {default as SearchFlightsParams} from './SearchFlightsParams';
+export type {default as GetFlightFareRulesParams} from './GetFlightFareRulesParams';
+export type {default as StartFlightCheckoutParams} from './StartFlightCheckoutParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as SetPromoCodeParams} from './SetPromoCodeParams';
 export type {default as ReportExportParams} from './ReportExportParams';
