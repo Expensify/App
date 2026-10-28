@@ -264,6 +264,7 @@ function AddAgentRulePage({
                                             : translate('workspace.rules.agentRules.fallbackBanner')
                                     }
                                     icon={icons.Info}
+                                    iconSize={CONST.ICON_SIZE.SMALL}
                                     shouldShowIcon
                                     containerStyles={[styles.mh5, styles.ph0, styles.pt1, styles.pb4, styles.bgTransparent]}
                                     textStyles={[styles.breakWord, styles.textSupporting]}
