@@ -130,7 +130,7 @@ type GetUnreadMarkerReportActionParams = {
     /** The visible report actions to scan */
     visibleReportActions: OnyxTypes.ReportAction[];
 
-    /** Index of the earliest message received while offline, used to limit the scan range */
+    /** Index of the earliest message received while offline; also limits the newest-first scan range */
     earliestReceivedOfflineMessageIndex: number | undefined;
 
     currentUserAccountID: number;
@@ -203,7 +203,8 @@ const getUnreadMarkerReportAction = ({
         : false;
 
     const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
-    const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
+    // The oldest-first list must still reach unread messages before the offline window, including explicit manual anchors.
+    const endIndex = isReversed ? 0 : visibleReportActions.length;
     const step = isReversed ? -1 : 1;
 
     for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
