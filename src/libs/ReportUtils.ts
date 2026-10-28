@@ -9007,7 +9007,7 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
 
 /**
  * Builds an optimistic UNDELETED_TRANSACTION report action with a randomly generated reportActionID.
- * Used when an admin or the owner restores a trashed card expense. actorAccountID is the current
+ * Used when an admin or the owner restores a trashed expense. actorAccountID is the current
  * user, so an admin undeleting a member's expense correctly shows the admin as the actor.
  */
 function buildOptimisticUndeletedTransactionAction(transactionThreadReportID: string | undefined) {

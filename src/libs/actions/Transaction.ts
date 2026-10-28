@@ -881,6 +881,9 @@ type ChangeTransactionsReportProps = {
     isVendorMatchingBetaEnabled: boolean | undefined;
     jsonQuery?: string;
     hash?: number;
+
+    /** When true, each transaction gets an UNDELETED_TRANSACTION action from the caller instead of the normal move action. */
+    isUndelete?: boolean;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -905,6 +908,7 @@ function getChangeTransactionsReportOnyxData({
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
     cardList,
+    isUndelete,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1729,9 +1733,12 @@ function getChangeTransactionsReportOnyxData({
             );
         }
 
-        // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
+        // 7. Add MOVED_TRANSACTION / UNREPORTED_TRANSACTION / UNDELETED_TRANSACTION report actions.
+        // The undelete flow always emits the action and attributes it to the caller, including when an admin undeletes another member's expense.
         let movedAction;
-        if (!isUnreportingSomeoneElsesTransaction) {
+        if (isUndelete) {
+            movedAction = buildOptimisticUndeletedTransactionAction(transactionThreadReportID);
+        } else if (!isUnreportingSomeoneElsesTransaction) {
             if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
             } else if (!isOpenReport(newReport)) {
@@ -2250,66 +2257,19 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
 }
 
 /**
- * Restore trashed card expenses to unreported. Routes through the dedicated UndeleteTransactions
- * command so the backend records the caller as the actor on the UNDELETED_TRANSACTION action,
- * even when the caller is a card admin acting on another member's expense. The optimistic action
- * mirrors that by attributing to the current user.
+ * Restore trashed card expenses to unreported through the dedicated UndeleteTransactions command, so
+ * the backend records the caller as the actor on the UNDELETED_TRANSACTION action even when a card
+ * admin undeletes another member's expense.
  */
-function undeleteTransactions(props: ChangeTransactionsReportProps) {
-    const changeTransactionsReportOnyxData = getChangeTransactionsReportOnyxData(props);
-    if (!changeTransactionsReportOnyxData) {
+function undeleteTransactions(props: Omit<ChangeTransactionsReportProps, 'isUndelete'>) {
+    const undeleteOnyxData = getChangeTransactionsReportOnyxData({...props, isUndelete: true});
+    if (!undeleteOnyxData) {
         return;
     }
-    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs} = changeTransactionsReportOnyxData;
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs} = undeleteOnyxData;
 
     if (movedTransactionIDs.length === 0) {
         return;
-    }
-
-    // getChangeTransactionsReportOnyxData skips the optimistic move action when the caller does not own the transaction,
-    // which is exactly the admin undelete case. Build an UNDELETED_TRANSACTION action for every moved transaction and
-    // attribute it to the current user so the UI immediately shows the correct actor.
-    for (const transactionID of movedTransactionIDs) {
-        const threadInfo = transactionIDToReportActionAndThreadData[transactionID];
-        const transactionThreadReportID = threadInfo?.transactionThreadReportID;
-        if (!transactionThreadReportID) {
-            continue;
-        }
-
-        // Drop the shared builder's UNREPORTED_TRANSACTION in optimistic and success so its
-        // {pendingAction: null} merge can't resurrect it as a partial action after success.
-        if (threadInfo.movedReportActionID) {
-            const supersededReportActionID = threadInfo.movedReportActionID;
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[supersededReportActionID]: null},
-            });
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: {[supersededReportActionID]: null},
-            });
-        }
-
-        const undeletedAction = buildOptimisticUndeletedTransactionAction(transactionThreadReportID);
-        threadInfo.movedReportActionID = undeletedAction.reportActionID;
-
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[undeletedAction.reportActionID]: undeletedAction},
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[undeletedAction.reportActionID]: {pendingAction: null}},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {[undeletedAction.reportActionID]: null},
-        });
     }
 
     const parameters: UndeleteTransactionsParams = {
