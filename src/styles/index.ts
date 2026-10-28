@@ -6276,6 +6276,10 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
+        twoFARequiredTestToolsHost: {
+            zIndex: 22, // must be greater than twoFARequiredOverlay.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
