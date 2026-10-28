@@ -1,6 +1,7 @@
 import * as API from '@libs/API';
 import type {AcceptSpotnanaTermsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -119,10 +120,10 @@ function searchTravelAirports(policyID: string, query: string): Promise<TravelAi
  * previous leg's searchID and the fare picked from it. The results replace travelFlightSearch.
  */
 function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: FlightSearchFilters = {}, legIndex = 0, searchID = '', selectedFareID = '') {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_FLIGHT_SEARCH>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.TRAVEL_FLIGHT_SEARCH,
+            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH,
             value: {
                 query: {policyID, legs, filters},
                 legIndex,
@@ -130,11 +131,11 @@ function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: Fligh
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_FLIGHT_SEARCH>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.TRAVEL_FLIGHT_SEARCH,
-            value: {isLoading: false},
+            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH,
+            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
     ];
 
@@ -153,18 +154,18 @@ function getFlightFareRules(policyID: string, searchID: string, fareID: string):
  * Starts checkout for the fare picked on the last leg of the search, replacing travelFlightCheckout
  */
 function startFlightCheckout(policyID: string, searchID: string, fareID: string) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_FLIGHT_CHECKOUT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.TRAVEL_FLIGHT_CHECKOUT,
+            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT,
             value: {policyID, searchID, fareID, isLoading: true},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_FLIGHT_CHECKOUT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.TRAVEL_FLIGHT_CHECKOUT,
-            value: {isLoading: false},
+            key: ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT,
+            value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
         },
     ];
 
@@ -175,8 +176,8 @@ function startFlightCheckout(policyID: string, searchID: string, fareID: string)
  * Clears the flight search and checkout when the traveler leaves the booking flow
  */
 function clearFlightBooking() {
-    Onyx.set(ONYXKEYS.TRAVEL_FLIGHT_SEARCH, null);
-    Onyx.set(ONYXKEYS.TRAVEL_FLIGHT_CHECKOUT, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, null);
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_CHECKOUT, null);
 }
 
 function cleanupTravelProvisioningSession() {

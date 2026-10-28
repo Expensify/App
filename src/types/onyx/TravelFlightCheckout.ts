@@ -1,5 +1,5 @@
 import type {Errors} from './OnyxCommon';
-import type {FlightFare, FlightSegment} from './TravelFlightSearch';
+import type {FlightFareRuleSummary, FlightPolicyViolation, FlightSegment} from './TravelFlightSearch';
 
 /** A flight segment at checkout */
 type FlightCheckoutSegment = FlightSegment & {
@@ -15,8 +15,14 @@ type FlightCheckoutLeg = {
     /** Flight segments in order */
     flights: FlightCheckoutSegment[];
 
-    /** Fare booked for the leg */
-    fare: FlightFare;
+    /** Fare family name, such as Main Basic */
+    fareName: string;
+
+    /** Cabin view category: BASIC, ECONOMY, PREMIUM_ECONOMY, BUSINESS or FIRST */
+    cabin: string;
+
+    /** Change, refund, seat and bag rules of the leg's fare */
+    rules: FlightFareRuleSummary;
 };
 
 /** Price of the itinerary, in cents */
@@ -61,25 +67,31 @@ type FlightSeat = {
     currency: string;
 };
 
-/** The seat map of one flight */
-type FlightSeatMap = {
-    /** Spotnana's seat map ID */
-    seatMapID?: string;
-
-    /** Cabin the seat map covers */
-    cabin?: string;
+/** One cabin of a seat map, which has its own seat layout */
+type FlightSeatMapCabin = {
+    /** Cabin, such as BUSINESS or ECONOMY */
+    cabin: string;
 
     /** Column blocks between aisles, left to right */
-    columns?: FlightSeatMapColumn[][];
+    columns: FlightSeatMapColumn[][];
 
     /** Rows front to back */
-    rows?: Array<{
+    rows: Array<{
         /** Row number */
         row: number;
 
         /** Seats in the row */
         seats: FlightSeat[];
     }>;
+};
+
+/** The seat map of one flight */
+type FlightSeatMap = {
+    /** Spotnana's seat map ID */
+    seatMapID?: string;
+
+    /** Cabins front to back */
+    cabins?: FlightSeatMapCabin[];
 };
 
 /** A card the traveler can pay for flights with */
@@ -125,6 +137,9 @@ type TravelFlightCheckout = {
         /** Legs in order */
         legs: FlightCheckoutLeg[];
 
+        /** Travel policy rules the itinerary breaks, empty when in policy */
+        policyViolations: FlightPolicyViolation[];
+
         /** Whether the itinerary is made of independent tickets */
         isSeparateTicket: boolean;
     };
@@ -152,4 +167,4 @@ type TravelFlightCheckout = {
 };
 
 export default TravelFlightCheckout;
-export type {FlightCheckoutSegment, FlightCheckoutLeg, FlightPriceSummary, FlightSeatMapColumn, FlightSeat, FlightSeatMap, FlightPaymentSource};
+export type {FlightCheckoutSegment, FlightCheckoutLeg, FlightPriceSummary, FlightSeatMapColumn, FlightSeat, FlightSeatMapCabin, FlightSeatMap, FlightPaymentSource};
