@@ -165,14 +165,13 @@ function GenericTooltip({
         hideTooltip();
     };
 
-    // Skip the tooltip and return the children if the text is empty, we don't have a render function.
-    if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
-        return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
-    }
+    // Skip the tooltip if the text is empty and we don't have a render function. The children stay in the same place in the
+    // tree either way, so toggling `text` doesn't remount them (which would, for example, drop an input's focus).
+    const hasTooltipContent = !StringUtils.isEmptyString(text) || renderTooltipContent != null;
 
     return (
         <>
-            {shouldRender && isRendered && (
+            {hasTooltipContent && shouldRender && isRendered && (
                 <BaseGenericTooltip
                     isEducationTooltip={isEducationTooltip}
                     animation={animation}

@@ -14,6 +14,9 @@ type TextInputLabelProps = {
 
     /** For attribute for label */
     for?: string;
+
+    /** Called with whether the label is cut off, whenever that may have changed. Web only, since there is no hover on native. */
+    onTruncationChange?: (isTruncated: boolean) => void;
 };
 
 export default TextInputLabelProps;
