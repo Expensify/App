@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import LottieAnimations from '@components/LottieAnimations';
@@ -40,14 +41,21 @@ function ActivateStep({userWallet}: ActivateStepProps) {
     return (
         <>
             <HeaderWithBackButton title={translate('activateStep.headerTitle')} />
-            <ConfirmationPage
-                illustration={animation}
-                heading={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
-                description={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
-                shouldShowButton={isActivatedWallet}
-                buttonText={continueButtonText}
-                onButtonPress={() => continueSetup(kycWallRef)}
-            />
+            <ConfirmationPage>
+                <ConfirmationPage.Content>
+                    <ConfirmationPage.Illustration illustration={animation} />
+                    <ConfirmationPage.Heading>{translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Description>{translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}</ConfirmationPage.Description>
+                </ConfirmationPage.Content>
+                {!!isActivatedWallet && (
+                    <FixedFooter>
+                        <ConfirmationPage.PrimaryButton
+                            text={continueButtonText}
+                            onPress={() => continueSetup(kycWallRef)}
+                        />
+                    </FixedFooter>
+                )}
+            </ConfirmationPage>
         </>
     );
 }

@@ -7,8 +7,6 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import {useAllPersonalDetailsWithoutSnapshots} from './usePersonalDetails';
@@ -63,14 +61,11 @@ export default function useShortMentionsList() {
     const [availableLoginsList = emptyLoginsList] = useAllPersonalDetailsWithoutSnapshots(availableLoginsListSelector(currentUserLogin));
 
     // We want to highlight both short and long version of current user login
-    const currentUserMentions = useMemo(() => {
-        if (!currentUserPersonalDetails.login) {
-            return [];
-        }
-
+    const currentUserMentions: string[] = [];
+    if (currentUserPersonalDetails.login) {
         const [baseName] = currentUserPersonalDetails.login.split('@');
-        return [baseName, currentUserPersonalDetails.login];
-    }, [currentUserPersonalDetails.login]);
+        currentUserMentions.push(baseName, currentUserPersonalDetails.login);
+    }
 
     return {availableLoginsList, currentUserMentions};
 }

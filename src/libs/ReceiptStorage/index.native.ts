@@ -50,7 +50,7 @@ const adopt: ReceiptStorage['adopt'] = async (uriOrPath, fileName) => {
 
     const sourcePath = fileURIToPath(uriOrPath);
 
-    // vision-camera writes straight into the receipts folder through its `path` option.
+    // The in-app camera saves captures straight into the receipts folder (see `captureReceipt`).
     const existingName = toDurableName(uriOrPath);
     if (existingName) {
         return verify(dir, existingName);
