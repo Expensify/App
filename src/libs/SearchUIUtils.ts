@@ -221,6 +221,7 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
+import tokenizedSearch from './tokenizedSearch';
 import {
     getAmount,
     getAttendees,
@@ -340,6 +341,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.HELD]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: 'declined' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MCC]: 'mcc' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: 'taxCode' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
@@ -4059,16 +4061,15 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
 /**
  * @private
  * Gets the value to use for sorting a transaction by a given property.
- * Handles special cases like comments and boolean fields (reimbursable, billable, held).
+ * Handles special cases like comments and boolean fields (reimbursable, billable, held, declined).
  */
 function getTransactionSortValue(transaction: TransactionListItemType, sortingProperty: string): unknown {
     if (sortingProperty === 'comment') {
         return transaction.comment?.comment;
     }
 
-    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable') {
-        const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
-        return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable' || sortingProperty === 'declined') {
+        return transaction[sortingProperty] ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
     }
 
     if (sortingProperty === CONST.SEARCH.TABLE_COLUMNS.HELD) {
@@ -4385,6 +4386,15 @@ function getSortedReportData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.DECLINED) {
+        return data.sort((a, b) => {
+            // Ranked as 'yes'/'no' to match the backend, with a report that never got the field ranked as not rejected.
+            const aValue = a.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            const bValue = b.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty =
         sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : expenseReportColumnNamesToSortingProperty[sortBy];
 
@@ -4645,6 +4655,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.HELD:
             return 'search.filters.held';
+        case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
+            return 'search.filters.rejected';
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             return 'common.mcc';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -6388,10 +6400,28 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 }
 
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && (isCreatedDateType(type) || type === CONST.SEARCH.DATA_TYPES.INVOICE)) {
         return 'search.filters.createdDate';
     }
     return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
+function isLabelMatchingSearchValue(label: string, searchValue: string): boolean {
+    return tokenizedSearch([label], searchValue, (item) => [item]).length > 0;
+}
+
+function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
+    return isLabelMatchingSearchValue(translate(getFilterViewLabelKey(filterKey, type)), searchValue);
+}
+
+/** Keeps the filters whose label contains every word of the search value, dropping the sections left empty. */
+function getMatchingFilters(
+    filters: Array<Array<SearchFilter['key']>>,
+    type: SearchDataTypes | undefined,
+    searchValue: string,
+    translate: LocalizedTranslate,
+): Array<Array<SearchFilter['key']>> {
+    return filters.map((section) => section.filter((filterKey) => isFilterMatchingSearchValue(filterKey, type, searchValue, translate))).filter((section) => section.length > 0);
 }
 
 function mapFiltersFormToLabelValueList(
@@ -6903,6 +6933,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.HELD]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
@@ -7311,6 +7342,7 @@ function getTableMinWidth(
             column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
             column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
             column === CONST.SEARCH.TABLE_COLUMNS.HELD ||
+            column === CONST.SEARCH.TABLE_COLUMNS.DECLINED ||
             column === CONST.SEARCH.TABLE_COLUMNS.MCC ||
             column === CONST.SEARCH.TABLE_COLUMNS.TAX_CODE
         ) {
@@ -7719,6 +7751,9 @@ export {
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
+    isLabelMatchingSearchValue,
+    isFilterMatchingSearchValue,
+    getMatchingFilters,
     isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,

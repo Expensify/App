@@ -285,12 +285,24 @@ type SearchQuarterGroup = SearchGroupBase & {
     quarter: number;
 };
 
+/** Model of an expense in the search results */
+type SearchTransaction = Transaction & {
+    /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
+/** Model of a report in the search results */
+type SearchReport = Report & {
+    /** Whether the expense report was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
 /** SearchResultDataType */
-type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
     Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
@@ -326,6 +338,8 @@ export default SearchResults;
 export type {
     ListItemDataType,
     SearchTask,
+    SearchTransaction,
+    SearchReport,
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,

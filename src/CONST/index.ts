@@ -1035,6 +1035,10 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -1460,13 +1464,13 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
@@ -8154,7 +8158,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8345,6 +8349,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                DECLINED: {
+                    column: this.TABLE_COLUMNS.DECLINED,
+                    search: true,
+                    reportView: false,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8428,6 +8437,7 @@ const CONST = {
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
+                    DECLINED: this.TABLE_COLUMNS.DECLINED,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -8644,6 +8654,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
+            DECLINED: 'declined',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8931,6 +8942,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
+                [this.TABLE_COLUMNS.DECLINED]: 'declined',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
@@ -9642,6 +9654,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
@@ -10286,6 +10299,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -11147,12 +11161,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
