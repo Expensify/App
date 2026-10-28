@@ -2,9 +2,11 @@
 
 /** Shared PGO workflow types and constants. */
 
+import {join} from 'node:path';
+
 import type {PlatformName} from '../lib/nativeAppBenchmark';
 
-import {fail, sleep} from '../lib/scriptUtils';
+import {fail, rootDirectory, sleep} from '../lib/scriptUtils';
 
 const STARTUP_SPAN_NAME = 'ManualAppStartup';
 const JOURNEY_SPAN_NAMES = ['ManualNavigateToReportsFirstPaint', 'ManualNavigateToReportsContentLoad', 'ManualNavigateToInboxTab'] as const;
@@ -43,11 +45,16 @@ function benchmarkCooldownSeconds(): number {
     return seconds;
 }
 
+/** Emulator builds replace index.js with the real app plus CI sign-in, or with the synthetic verification workload. */
+function emulatorEntryFile(): string {
+    return join(rootDirectory, process.env.PGO_CI_WORKLOAD === 'app' ? 'src/PgoEmulatorApp.ts' : 'src/PgoVerificationApp.tsx');
+}
+
 async function cooldownBeforeBenchmark(): Promise<void> {
     const seconds = benchmarkCooldownSeconds();
     console.log(`Waiting ${seconds}s before the discarded warm-up. This delay does not verify thermal state.`);
     await sleep(seconds * 1000);
 }
 
-export {benchmarkCooldownSeconds, cooldownBeforeBenchmark, BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME};
+export {benchmarkCooldownSeconds, cooldownBeforeBenchmark, emulatorEntryFile, BENCHMARK_SPANS_ENVIRONMENT, HEAVY_JOURNEY_SPAN_NAMES, JOURNEY_SPAN_NAMES, STARTUP_SPAN_NAME};
 export type {BenchmarkKind, BuildArtifactPaths, BuildKind, PgoMode, PlatformAdapter};

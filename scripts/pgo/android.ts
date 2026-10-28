@@ -9,9 +9,9 @@ import process from 'node:process';
 
 import type {BenchmarkKind, BuildArtifactPaths, BuildKind, PlatformAdapter} from './shared';
 
-import {capture, captureBinary, fail, findFiles, rootDirectory, run, sleep} from '../lib/scriptUtils';
+import {capture, captureBinary, fail, findFiles, rootDirectory, run, runAllowFailure, sleep} from '../lib/scriptUtils';
 import {androidBuildEnvironment} from './proof';
-import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
+import {BENCHMARK_SPANS_ENVIRONMENT, emulatorEntryFile} from './shared';
 
 const ANDROID_JAVA_NAMESPACE = 'org.me.mobiexpensifyg';
 const PROFILE_BROADCAST_ACTION = 'com.expensify.chat.action.WRITE_PGO_PROFILES';
@@ -99,7 +99,13 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
             `-PpgoMode=${pgoModes[kind]}`,
             ...releasePipeline.arguments,
             ...(emulatorVerification
-                ? ['--init-script', join(rootDirectory, 'scripts/pgo/androidEmulator.init.gradle'), '--max-workers=2', '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1024m']
+                ? [
+                      '--init-script',
+                      join(rootDirectory, 'scripts/pgo/androidEmulator.init.gradle'),
+                      `-PpgoEntryFile=${emulatorEntryFile()}`,
+                      '--max-workers=2',
+                      '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1024m',
+                  ]
                 : []),
         ];
         if (releasePipeline.enabled) {
@@ -143,6 +149,10 @@ function createAndroidPgoAdapter(configuredAppID?: string, configuredDeviceIdent
             fail(`Missing APK at ${apkPath}. Build the APK first.`);
         }
         adb(['install', '-r', apkPath]);
+        if (emulatorVerification) {
+            // A fresh emulator would otherwise cover the signed-in app with the notification prompt. API levels below 33 have no such permission.
+            runAllowFailure('adb', [...(configuredDeviceIdentifier ? ['-s', configuredDeviceIdentifier] : []), 'shell', 'pm', 'grant', appID(), 'android.permission.POST_NOTIFICATIONS']);
+        }
         console.log(`Installed APK: ${apkPath}`);
     }
 

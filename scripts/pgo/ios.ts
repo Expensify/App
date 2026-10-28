@@ -12,7 +12,7 @@ import type {BenchmarkKind, BuildArtifactPaths, BuildKind, PgoMode, PlatformAdap
 
 import {capture, environmentString, fail, findFiles, rootDirectory, run, runAllowFailure, sleep, valueAt} from '../lib/scriptUtils';
 import {createIOSSimulatorDevice} from './iosSimulator';
-import {BENCHMARK_SPANS_ENVIRONMENT} from './shared';
+import {BENCHMARK_SPANS_ENVIRONMENT, emulatorEntryFile} from './shared';
 
 function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: string): PlatformAdapter {
     const simulatorIdentifier = environmentString('PGO_IOS_SIMULATOR_ID');
@@ -244,7 +244,7 @@ function createIOSPgoAdapter(configuredAppID?: string, cliDeviceIdentifier?: str
                 `ARCHS=${architecture}`,
                 'ONLY_ACTIVE_ARCH=YES',
                 'COMPILER_INDEX_STORE_ENABLE=NO',
-                ...(simulator ? ['-sdk', 'iphonesimulator', '-jobs', '2', `ENTRY_FILE=${join(rootDirectory, 'src/PgoVerificationApp.tsx')}`] : []),
+                ...(simulator ? ['-sdk', 'iphonesimulator', '-jobs', '2', `ENTRY_FILE=${emulatorEntryFile()}`] : []),
                 ...(codeSigningAllowed ? ['-allowProvisioningUpdates'] : []),
                 ...signingSettings,
                 ...pgoBuildSettings(kind, profilePath),

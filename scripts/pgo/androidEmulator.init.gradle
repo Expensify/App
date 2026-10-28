@@ -1,8 +1,8 @@
-// Disposable verification builds use the bundled workload and the Android debug key.
+// Disposable emulator builds use the CI entry file selected by scripts/pgo/android.ts and the Android debug key.
 gradle.beforeProject { application ->
     application.plugins.withId('com.facebook.react') {
         application.extensions.getByName('react').entryFile.set(
-            application.file('../../src/PgoVerificationApp.tsx')
+            application.file(application.property('pgoEntryFile'))
         )
     }
     application.plugins.withId('com.android.application') {
