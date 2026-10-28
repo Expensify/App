@@ -144,12 +144,12 @@ import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
-    canCreateReportOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
+    getGroupPoliciesWhereReportCanBeCreated,
     getManagerAccountEmail,
     getManagerAccountID,
     getPerDiemCustomUnit,
@@ -6219,31 +6219,15 @@ function canEditFieldOfMoneyRequest({
             return false;
         }
 
-        // A member who cannot create expenses on the report's policy can only move their own expense,
-        // and only to another workspace where it can be reported, or to an existing outstanding report there.
+        // A member who cannot create expenses on the report's policy can only move their own expense to another workspace where they can create a report.
         if (!isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail)) {
             if (!isOwner) {
                 return false;
             }
             const isPerDiem = isPerDiemRequest(transaction);
-            return policiesArray.some((destinationPolicy) => {
-                if (destinationPolicy.id === moneyRequestReport.policyID || (isPerDiem && !canSubmitPerDiemExpenseFromWorkspace(destinationPolicy))) {
-                    return false;
-                }
-                const destinationPolicyID = destinationPolicy.id;
-                const canCreateReportElsewhere = canCreateReportOnPolicy(destinationPolicy, deprecatedCurrentUserEmail);
-                return (
-                    canCreateReportElsewhere ||
-                    (canCreateExpensesOnPolicy(destinationPolicy, deprecatedCurrentUserEmail) &&
-                        getOutstandingReportsForUser(
-                            destinationPolicyID,
-                            moneyRequestReport.ownerAccountID,
-                            rules,
-                            reportNameValuePairs,
-                            outstandingReportsByPolicyID?.[destinationPolicyID] ?? {},
-                        ).length > 0)
-                );
-            });
+            return getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
+                (destinationPolicy) => destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy)),
+            );
         }
 
         // Check the cheaper condition first
