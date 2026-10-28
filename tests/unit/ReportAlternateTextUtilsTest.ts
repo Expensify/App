@@ -27,6 +27,7 @@ import {
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getUnassignedCompanyCardMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedCardFeedLiabilityMessage,
@@ -43,7 +44,7 @@ import {
     getWelcomeMessage,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewReportActionMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -61,7 +62,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -466,10 +467,52 @@ describe('ReportAlternateTextUtils', () => {
             expect(getAlternateText({lastAction})).toBe('Alice renamed this room to "#new-room" (previously "#old-room")');
         });
 
+        it('should show where the expense policy document lives, matching the #admins room message', () => {
+            // Given a change log for a policy document upload that carries its workspace
+            const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT, {originalMessage: {isReplacement: false, policyID: 'ABC123'}});
+
+            // When the LHN builds its preview
+            const alternateText = getAlternateText({lastAction});
+
+            // Then the preview carries the same "in Workspace > Overview" wording as the room message, without the link markup
+            expect(alternateText).toBe('added an expense policy document in Workspace > Overview');
+        });
+
         it('should return the plain last message for a report preview in a workspace chat', () => {
             const report = makeReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, reportName: 'Workspace chat'});
             expect(getAlternateText({report, lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW), lastMessageTextFromReport: 'owes $1.00'})).toBe('owes $1.00');
         });
+    });
+
+    it.each([
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY, 'archived this workspace'],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY, 'unarchived this workspace'],
+    ] as const)('localizes workspace history previews for %s', (actionName, expectedMessage) => {
+        // Given a changelog whose backend fallback text differs from the localized message.
+        const report = makeReport();
+        const lastAction = makeAction(actionName, {originalMessage: {}});
+
+        // When report and sidebar previews resolve the action.
+        const lastMessage = getLastMessageTextForReport({
+            dateFnsLocale: undefined,
+            conciergeReportID: undefined,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            personalDetails: undefined,
+            translate: translateLocal,
+            convertToDisplayString,
+            report,
+            lastActorDetails: null,
+            isReportArchived: false,
+            lastAction,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        const alternateText = getAlternateText({report, lastAction});
+
+        // Then both previews use the localized changelog instead of the fallback.
+        expect(lastMessage).toBe(expectedMessage);
+        expect(alternateText).toContain(expectedMessage);
     });
 
     describe('getLastMessageTextForReport', () => {
@@ -602,7 +645,9 @@ describe('ReportAlternateTextUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -611,7 +656,7 @@ describe('ReportAlternateTextUtils', () => {
                         isForListPreview: true,
                         originalReportAction: reportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
@@ -1680,6 +1725,11 @@ describe('ReportAlternateTextUtils', () => {
                 getUpdatedOfficeLocationMessage,
             ],
             [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, getDeletedOfficeLocationMessage],
+            [
+                CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                getUpdatedEmployeeOfficeLocationMessage,
+            ],
         ] as const)('%s action', async (actionName, originalMessage, getMessage) => {
             // Given an office location change log, whose stored text is Auth's English message
             const report: Report = createRandomReport(0, undefined);

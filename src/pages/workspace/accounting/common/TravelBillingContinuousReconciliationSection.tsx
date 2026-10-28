@@ -67,15 +67,15 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
     return (
         <>
             <ToggleSettingOptionRow
-                title={translate('workspace.accounting.syncTravelInvoicingSettlements')}
+                title={translate('workspace.accounting.syncTravelBillingSettlements')}
                 isActive={!!travelBillingContinuousReconciliation}
-                switchAccessibilityLabel={translate('workspace.accounting.syncTravelInvoicingSettlements')}
+                switchAccessibilityLabel={translate('workspace.accounting.syncTravelBillingSettlements')}
                 disabled={isToggleDisabled}
                 showLockIcon={isToggleDisabled}
                 disabledText={
                     isPayableAccountSet
-                        ? translate('workspace.accounting.syncTravelInvoicingSettlementsNoAutoSyncTooltip')
-                        : translate('workspace.accounting.syncTravelInvoicingSettlementsNoAccountTooltip')
+                        ? translate('workspace.accounting.syncTravelBillingSettlementsNoAutoSyncTooltip')
+                        : translate('workspace.accounting.syncTravelBillingSettlementsNoAccountTooltip')
                 }
                 onToggle={(isEnabled) => {
                     if (isEnabled && !travelBillingReconciliationBankAccountID) {

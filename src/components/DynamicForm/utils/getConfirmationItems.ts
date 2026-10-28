@@ -16,7 +16,7 @@ import getVisibleFields from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
-import maskSensitiveValue from './maskSensitiveValue';
+import maskSensitiveValue, {getVisibleEnding} from './maskSensitiveValue';
 import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** One avatar row per list entry, which opens the entry. A readonly list gets plain rows that open nothing. */
@@ -26,8 +26,8 @@ function getListItemRows(
     translate: LocalizedTranslate,
     onEditListItem: (listKey: string, itemID: string) => void,
 ): SummaryGroupRow[] {
-    return getListItems(values[field.key]).map((item): SummaryGroupRow => {
-        const {title, description} = summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, translate));
+    return getListItems(values[field.key]).map((item, index): SummaryGroupRow => {
+        const {title, description} = summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, index, translate));
         if (field.readonly) {
             return {id: `${field.key}-${item.id}`, title, description, shouldShowRightIcon: false, onPress: noop, interactive: false};
         }
@@ -63,25 +63,32 @@ function getConfirmationItems(
         }
 
         const handleEdit = () => onEditPage(pageIndex);
+        const sectionName = getPageSectionName(page, values, translate, allFields);
 
         return [
             {
                 id: page.key,
-                name: getPageSectionName(page, values, translate, allFields),
+                name: sectionName,
                 rows: fields.flatMap((field): SummaryGroupRow[] => {
                     const listItemRows = field.type === 'list' ? getListItemRows(field, values, translate, onEditListItem) : [];
                     if (listItemRows.length > 0) {
-                        return listItemRows;
+                        // The section heading names a list that is alone in it, so the list's own label is shown only when nothing else names the entries or other answers sit beside them
+                        const shouldNameList = !sectionName || fields.length > 1;
+                        return shouldNameList ? [{kind: 'label', id: `${field.key}-label`, title: getFieldLabel(field, translate)}, ...listItemRows] : listItemRows;
                     }
 
                     const answer = formatDynamicFieldValue(field, values, translate);
                     const isEditable = !field.readonly;
+                    const fieldLabel = getFieldLabel(field, translate);
+                    const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
 
                     return [
                         {
                             id: field.key,
-                            description: getFieldLabel(field, translate),
+                            description: fieldLabel,
                             title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                            // Screen readers would read out each bullet of the mask
+                            accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(answer)}) : undefined,
                             shouldShowRightIcon: isEditable,
                             onPress: isEditable ? handleEdit : noop,
                             interactive: isEditable,

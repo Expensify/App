@@ -12,5 +12,15 @@ function getFieldLabel(field: DynamicFormField, translate: LocalizedTranslate): 
     return getLocalizedText(translate, field.labelKey, field.label) ?? field.key;
 }
 
+/** The label an input shows, marked optional when the user may leave the field empty. A checkbox is not marked, since leaving it unchecked is an answer. */
+function getInputLabel(field: DynamicFormField, translate: LocalizedTranslate): string {
+    const label = getFieldLabel(field, translate);
+    const isCheckbox = field.type === 'boolean' && field.presentation === 'checkbox';
+    if (field.required || field.readonly || isCheckbox) {
+        return label;
+    }
+    return `${label} (${translate('common.optional')})`;
+}
+
 export default getLocalizedText;
-export {getFieldLabel};
+export {getFieldLabel, getInputLabel};

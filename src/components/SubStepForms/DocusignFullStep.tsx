@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default value for file upload input */
@@ -61,12 +61,9 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
 
     const [uploadedFiles, setUploadedFiles] = useState<FileObject[]>(defaultValue);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            return getFieldRequiredErrors(values, [inputID], translate);
-        },
-        [inputID, translate],
-    );
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        return getFieldRequiredErrors(values, [inputID], translate);
+    };
 
     const handleSelectFile = (files: FileObject[]) => {
         setDraftValues(formID, {[inputID]: [...uploadedFiles, ...files]});
