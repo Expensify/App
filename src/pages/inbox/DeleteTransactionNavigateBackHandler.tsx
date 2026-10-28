@@ -1,3 +1,4 @@
+import useClearDeleteTransactionNavigateBackUrlOnUnmount from '@hooks/useClearDeleteTransactionNavigateBackUrlOnUnmount';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -5,7 +6,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isReportTransactionThread} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
 
-import {clearDeleteTransactionNavigateBackUrl, clearDeleteTransactionNavigateBackUrlAfterTransitions} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -44,13 +45,7 @@ function DeleteTransactionNavigateBackHandler({reportID}: DeleteTransactionNavig
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
-    // Native stack never renders a popped screen unfocused, so also clear when a transaction thread unmounts.
-    useEffect(() => {
-        if (!isTransactionThread) {
-            return;
-        }
-        return () => clearDeleteTransactionNavigateBackUrlAfterTransitions();
-    }, [isTransactionThread]);
+    useClearDeleteTransactionNavigateBackUrlOnUnmount(isTransactionThread);
 
     return null;
 }

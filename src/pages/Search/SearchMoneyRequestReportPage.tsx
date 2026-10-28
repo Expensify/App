@@ -7,6 +7,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import useClearDeleteTransactionNavigateBackUrlOnUnmount from '@hooks/useClearDeleteTransactionNavigateBackUrlOnUnmount';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -42,13 +43,7 @@ import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
 
-import {
-    clearDeleteTransactionNavigateBackUrl,
-    clearDeleteTransactionNavigateBackUrlAfterTransitions,
-    createTransactionThreadReport,
-    openReport,
-    updateLastVisitTime,
-} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,8 +126,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
-    // Native stack never renders a popped screen unfocused, so also clear on unmount.
-    useEffect(() => () => clearDeleteTransactionNavigateBackUrlAfterTransitions(), []);
+    useClearDeleteTransactionNavigateBackUrlOnUnmount(true);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
