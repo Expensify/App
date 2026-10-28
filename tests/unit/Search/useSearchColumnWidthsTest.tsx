@@ -2,14 +2,20 @@ import {renderHook} from '@testing-library/react-native';
 
 import useSearchColumnWidths from '@components/Search/hooks/useSearchColumnWidths';
 import {SearchColumnWidthsProvider, useSearchColumnStyles} from '@components/Search/SearchColumnWidthsContext';
+import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType} from '@components/Search/types';
 import {getColumnWidthValue} from '@components/Table/columnResize/columnWidthExpressions';
+import {getAvailableColumnsWidth} from '@components/Table/columnResize/getResizableColumnLayout';
 
 import useStyleUtils from '@hooks/useStyleUtils';
+
+import {getSearchTableRowChromeWidths} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
+
+import {buildTransactionRow} from '../../utils/collections/searchListItems';
 
 // Text renders 10px per character, so a column's width follows its heading.
 jest.mock('@libs/measureTextWidth', () => ({
@@ -20,8 +26,10 @@ jest.mock('@libs/measureTextWidth', () => ({
 
 const COLUMNS: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, CONST.SEARCH.TABLE_COLUMNS.STATUS];
 
-function renderSearchColumnWidths(isColumnResizingEnabled: boolean, columns = COLUMNS) {
-    return renderHook(() => useSearchColumnWidths({columns, data: [], tableWidth: 1200, isEnabled: true, isColumnResizingEnabled, storedTableColumnWidths: undefined})).result.current;
+const TABLE_WIDTH = 1200;
+
+function renderSearchColumnWidths(isColumnResizingEnabled: boolean, columns = COLUMNS, data: SearchListItem[] = []) {
+    return renderHook(() => useSearchColumnWidths({columns, data, tableWidth: TABLE_WIDTH, isEnabled: true, isColumnResizingEnabled, storedTableColumnWidths: undefined})).result.current;
 }
 
 describe('useSearchColumnWidths', () => {
@@ -56,6 +64,29 @@ describe('useSearchColumnWidths', () => {
 
         // Then there's no layout, so the table keeps its plain sizing and paints no edges
         expect(resizableLayout).toBeUndefined();
+    });
+
+    it('sizes the columns from their rows, with the badge hugged and the last free-text column taking the leftover', () => {
+        // Given a row with a long merchant name and a short description, so merchant needs more than an equal share
+        const data = [buildTransactionRow(1, '1', {formattedMerchant: 'A merchant name long enough to need room', comment: {comment: 'Lunch'}})];
+
+        // When the table is sized from those rows with resizing on
+        const {columnWidths, resizableLayout} = renderSearchColumnWidths(true, COLUMNS, data);
+        const merchant = columnWidths[CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+        const status = columnWidths[CONST.SEARCH.TABLE_COLUMNS.STATUS];
+
+        // Then merchant takes exactly its content and the status badge hugs its content rather than sharing spare room
+        expect(merchant?.width).toBe(merchant?.contentWidth);
+        expect(status).toMatchObject({shouldHug: true, width: status?.contentWidth});
+
+        // And the resizable layout pins the badge at that width, keeps merchant at its content width, and grows
+        // description into whatever is left, so the columns fill the row exactly without overflowing it
+        const resolvedColumnWidths = resizableLayout?.resolvedColumnWidths ?? {};
+        const columnsWidthSum = Object.values(resolvedColumnWidths).reduce((sum, width) => sum + width, 0);
+
+        expect(resolvedColumnWidths).toMatchObject({[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: merchant?.width, [CONST.SEARCH.TABLE_COLUMNS.STATUS]: status?.contentWidth});
+        expect(resolvedColumnWidths[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBeGreaterThan(columnWidths[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]?.contentWidth ?? 0);
+        expect(columnsWidthSum).toBe(getAvailableColumnsWidth(TABLE_WIDTH, getSearchTableRowChromeWidths(COLUMNS.length)));
     });
 });
 

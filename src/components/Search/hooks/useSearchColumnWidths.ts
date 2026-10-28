@@ -90,7 +90,7 @@ type UseSearchColumnWidthsParams = {
     /** Data some columns need to resolve their text, read once at the list level rather than per row. */
     measurementContext?: SearchColumnMeasurementContext;
 
-    /** When on, every column is pinned to a px width read from a CSS custom property. */
+    /** When on, free-text columns read their px width from a CSS custom property. Fixed and hugged columns keep their declared widths. */
     isColumnResizingEnabled: boolean;
 
     /** `undefined` until the first drag. After it, content no longer sizes the columns. */

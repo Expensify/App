@@ -39,14 +39,14 @@ type SearchColumnSizingState = {
     resizableColumnWidths?: Partial<Record<SearchColumnType, number>>;
 };
 
+/** Holds a column at the width set beside it, so it neither grows into spare room nor shrinks. */
+const PINNED_FLEX_STYLE: ViewStyle = {flex: undefined, flexGrow: 0, flexShrink: 0};
+
 /**
  * Defaults to sizing nothing, because the components that read this are shared well beyond the Search table: the same
  * row and heading render in the Money Request report, the unreported expense list, and the duplicate and merge
  * transaction pages, none of which mount the provider. Those keep the widths they are styled with.
  */
-/** Holds a column at the width set beside it, so it neither grows into spare room nor shrinks. */
-const PINNED_FLEX_STYLE: ViewStyle = {flex: undefined, flexGrow: 0, flexShrink: 0};
-
 const SearchColumnWidthsContext = createContext<SearchColumnSizingState>({columnWidths: {}, sizedColumns: new Set(), columnOptions: {}});
 
 function SearchColumnWidthsProvider({columnWidths, sizedColumns, columnOptions, resizableColumnWidths, children}: React.PropsWithChildren<SearchColumnSizingState>) {

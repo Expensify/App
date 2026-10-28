@@ -319,23 +319,27 @@ describe('getResizableColumnLayout', () => {
         expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(250);
     });
 
-    it('resets only a column the user resized', () => {
-        // Given a row with a resized name column, whose fresh load caps it at 150px, and an email column nobody resized
+    it('resets a column to its fresh width within its cap, and only a column the user resized', () => {
+        // Given a row with a resized name column whose 400px content is capped at 150px, where a fresh load squeezes it
+        // further to 120px so the row fits the 600px table, and an email column nobody resized
         const columns = [column('name', {contentWidth: 400, maxWidth: 150}), column('email', {contentWidth: 120}), column('role')];
+        const freshColumnWidths = {name: 120, email: 240, role: 240};
 
         // When the layout is built
         const {getTargetColumnWidth} = getResizableColumnLayout({
             columns,
             resolvedColumnWidths: {name: 300, email: 300, role: 300},
             resizedColumnKeys: ['name'],
-            freshColumnWidths: {name: 150, email: 225, role: 225},
+            freshColumnWidths,
             tableWidth: 600,
             rowChromeWidths,
         });
+        const resetNameWidth = getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET) ?? 0;
 
-        // Then the name column goes back to where a reload would paint it, and the email column has nothing to reset,
-        // since the user never sized it
-        expect(getTargetColumnWidth('name', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(150);
+        // Then the name column goes back to its fresh 120px, not its 150px cap or 400px content, so the reset row fits
+        // the table again, and the email column has nothing to reset, since the user never sized it
+        expect(resetNameWidth).toBe(120);
+        expect(resetNameWidth + freshColumnWidths.email + freshColumnWidths.role).toBeLessThanOrEqual(600);
         expect(getTargetColumnWidth('email', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBeUndefined();
     });
 });
