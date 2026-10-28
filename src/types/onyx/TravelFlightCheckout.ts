@@ -5,8 +5,6 @@ import type {FlightFareRuleSummary, FlightPolicyViolation, FlightSegment} from '
 type FlightCheckoutSegment = FlightSegment & {
     /** Spotnana's ID for the flight, used to pick its seat */
     flightID: string;
-
-    /** Cabin booked on the flight */
     cabin: string;
 };
 
@@ -20,8 +18,6 @@ type FlightCheckoutLeg = {
 
     /** Cabin view category: BASIC, ECONOMY, PREMIUM_ECONOMY, BUSINESS or FIRST */
     cabin: string;
-
-    /** Change, refund, seat and bag rules of the leg's fare */
     rules: FlightFareRuleSummary;
 };
 
@@ -42,7 +38,6 @@ type FlightPriceSummary = {
 
 /** A column of a seat map */
 type FlightSeatMapColumn = {
-    /** Column letter */
     column: string;
 
     /** WINDOW, CENTER or AISLE */
@@ -51,10 +46,7 @@ type FlightSeatMapColumn = {
 
 /** A seat in a seat map row */
 type FlightSeat = {
-    /** Column letter */
     column: string;
-
-    /** Whether the seat can be picked */
     isAvailable: boolean;
 
     /** Spotnana's seat type, such as SEAT */
@@ -62,8 +54,6 @@ type FlightSeat = {
 
     /** Seat price in cents, 0 when free */
     price: number;
-
-    /** Currency of the price */
     currency: string;
 };
 
@@ -77,10 +67,7 @@ type FlightSeatMapCabin = {
 
     /** Rows front to back */
     rows: Array<{
-        /** Row number */
         row: number;
-
-        /** Seats in the row */
         seats: FlightSeat[];
     }>;
 };
@@ -98,26 +85,17 @@ type FlightSeatMap = {
 type FlightPaymentSource = {
     /** Spotnana's ID for the card */
     paymentSourceID: string;
-
-    /** Card label */
     name: string;
 
     /** Card network, such as VISA */
     network: string;
-
-    /** Last four digits */
     lastFour: string;
-
-    /** Expiry month */
     expiryMonth: number;
-
-    /** Expiry year */
     expiryYear: number;
 };
 
 /** The flights the traveler is checking out, replaced each time checkout starts */
 type TravelFlightCheckout = {
-    /** Policy the traveler is booking on */
     policyID?: string;
 
     /** Spotnana search ID of the last leg */
@@ -134,7 +112,6 @@ type TravelFlightCheckout = {
 
     /** Legs, flights and fares shown in Flight details */
     itinerary?: {
-        /** Legs in order */
         legs: FlightCheckoutLeg[];
 
         /** Travel policy rules the itinerary breaks, empty when in policy */
@@ -143,8 +120,6 @@ type TravelFlightCheckout = {
         /** Whether the itinerary is made of independent tickets */
         isSeparateTicket: boolean;
     };
-
-    /** Price of the itinerary */
     priceSummary?: FlightPriceSummary;
 
     /** Traveler fields the airline requires, such as DATE_OF_BIRTH */
@@ -158,11 +133,7 @@ type TravelFlightCheckout = {
 
     /** The traveler's cards that can pay for flights */
     paymentSources?: FlightPaymentSource[];
-
-    /** Whether checkout is loading */
     isLoading?: boolean;
-
-    /** Errors from starting checkout */
     errors?: Errors | null;
 };
 

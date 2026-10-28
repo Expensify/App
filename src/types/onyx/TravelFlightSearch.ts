@@ -11,10 +11,7 @@ type FlightSearchLocation = {
 
 /** One leg of a flight search */
 type FlightSearchLeg = {
-    /** Where the leg departs from */
     origin: FlightSearchLocation;
-
-    /** Where the leg arrives */
     destination: FlightSearchLocation;
 
     /** Departure date, YYYY-MM-DD */
@@ -29,7 +26,7 @@ type FlightSearchFilters = {
     /** Cabin to search, such as ECONOMY or BUSINESS */
     cabin?: string;
 
-    /** Airline codes to include */
+    /** IATA airline codes to include */
     airlines?: string[];
 
     /** Alliances to include, such as STAR_ALLIANCE */
@@ -40,11 +37,7 @@ type FlightSearchFilters = {
 type FlightAirport = {
     /** IATA airport code */
     code: string;
-
-    /** Airport name */
     name: string;
-
-    /** City the airport serves */
     cityName: string;
 
     /** IANA timezone of the airport, for showing local times and computing durations */
@@ -61,11 +54,7 @@ type FlightSegment = {
 
     /** Airline that operates the flight, when it differs from the marketing airline */
     operatingAirline: string;
-
-    /** Departure airport */
     origin: FlightAirport;
-
-    /** Arrival airport */
     destination: FlightAirport;
 
     /** Local departure time, ISO 8601 without a timezone */
@@ -76,8 +65,6 @@ type FlightSegment = {
 
     /** Flight duration, ISO 8601 duration such as PT5H31M */
     duration: string;
-
-    /** Aircraft name */
     aircraft: string;
 };
 
@@ -88,14 +75,8 @@ type FlightFareRuleSummary = {
 
     /** Refund rule, such as "Non-refundable" */
     refund: string;
-
-    /** Seat selection rule */
     seatSelection: string;
-
-    /** Carry-on allowances */
     carryOn: string[];
-
-    /** Checked bag allowances and fees */
     checkedBags: string[];
 };
 
@@ -103,8 +84,6 @@ type FlightFareRuleSummary = {
 type FlightPolicyViolation = {
     /** Spotnana's rule name, such as HIGHEST_ALLOWED_CABIN_VIOLATION */
     rule: string;
-
-    /** Description of the rule */
     description: string;
 
     /** The policy limit, as Spotnana returns it */
@@ -127,11 +106,7 @@ type FlightFare = {
 
     /** Total price in cents */
     total: number;
-
-    /** Currency of the total */
     currency: string;
-
-    /** Change, refund, seat and bag rules */
     rules: FlightFareRuleSummary;
 
     /** Travel policy rules the fare breaks, empty when in policy */
@@ -148,23 +123,15 @@ type FlightItinerary = {
 
     /** Flight segments in order */
     flights: FlightSegment[];
-
-    /** Fares sold for these flights */
     fares: FlightFare[];
 };
 
 /** Values present in the results, for the filter menus */
 type FlightSearchFilterOptions = {
-    /** Airlines in the results */
     airlines: Array<{
-        /** Airline code */
         code: string;
-
-        /** Airline name */
         name: string;
     }>;
-
-    /** Alliances in the results */
     alliances: string[];
 
     /** Airports where results connect */
@@ -175,13 +142,8 @@ type FlightSearchFilterOptions = {
 type TravelFlightSearch = {
     /** The search the traveler entered */
     query?: {
-        /** Policy the traveler is booking on */
         policyID: string;
-
-        /** Legs of the search */
         legs: FlightSearchLeg[];
-
-        /** Filters applied to the search */
         filters: FlightSearchFilters;
     };
 
@@ -196,11 +158,7 @@ type TravelFlightSearch = {
 
     /** Values present in the results, for the filter menus */
     filterOptions?: FlightSearchFilterOptions;
-
-    /** Whether a search is in progress */
     isLoading?: boolean;
-
-    /** Errors from the last search */
     errors?: Errors | null;
 };
 
@@ -208,14 +166,10 @@ type TravelFlightSearch = {
 type TravelAirport = {
     /** IATA airport code */
     code: string;
-
-    /** Airport name */
     name: string;
 
     /** IATA city code, shared by the airports of one city */
     cityCode: string;
-
-    /** City name */
     cityName: string;
 
     /** State or region name */
@@ -223,8 +177,6 @@ type TravelAirport = {
 
     /** ISO country code */
     countryCode: string;
-
-    /** Country name */
     countryName: string;
 };
 
@@ -235,16 +187,12 @@ type FlightFareRules = {
 
     /** Leg destination airport code */
     destination: string;
-
-    /** Rule sections */
     rules: Array<{
         /** Fare basis code the rule belongs to */
         fareBasisCode: string;
 
         /** Section title, such as PENALTIES */
         title: string;
-
-        /** Rule text */
         text: string;
     }>;
 };
