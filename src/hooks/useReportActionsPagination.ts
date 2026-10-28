@@ -97,6 +97,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         : [];
 
     const allReportActionIDs = allReportActions.map((action) => action.reportActionID);
+    // A one-expense report shows the comments of its transaction thread. Onyx stores those comments under the
+    // reportID of the thread, therefore allReportActionIDs does not contain them.
     const persistedReportActionIDs = [...allReportActionIDs, ...(thread.transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
 
     return {
