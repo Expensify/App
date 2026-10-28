@@ -363,7 +363,7 @@ describe('system message presentation', () => {
             {firstActorAccountID: '1', nextActorAccountID: 2, expectedRows: 2},
         ])('compares actor IDs by numeric value: %s', ({firstActorAccountID, nextActorAccountID, expectedRows}) => {
             // Given numeric-string IDs at the data boundary despite the declared numeric type
-            const actions = [systemAction('1', {actorAccountID: firstActorAccountID as number}), systemAction('2', {actorAccountID: nextActorAccountID as number})];
+            const actions = [Object.assign(systemAction('1'), {actorAccountID: firstActorAccountID}), Object.assign(systemAction('2'), {actorAccountID: nextActorAccountID})];
             // When constructing either audit-list direction
             for (const orderedActions of [actions, actions.toReversed()]) {
                 const state = getSystemMessageDisplayState(orderedActions, new Set());
