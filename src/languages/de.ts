@@ -4300,6 +4300,8 @@ ${amount} für ${merchant} – ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Beispiel: ${example}`,
+        onFile: 'Hinterlegt',
+        onFileHint: 'Gespeichert. Leer lassen, um es zu behalten, oder neu eingeben.',
         fileCount: ({count}: {count: number}) => ({
             one: '1 Datei',
             other: `${count} Dateien`,

@@ -218,7 +218,7 @@ function DynamicFormFlow({
         if (removedSensitiveKeys.length > 0) {
             forgetSensitiveAnswers(formID, removedSensitiveKeys);
         }
-        onPageSubmit?.(page, {...draftAnswers, ...listAnswers});
+        onPageSubmit?.(page, {...draftAnswers, ...listAnswers}, sensitiveAnswers);
     };
 
     /** An entry opened from the confirmation page, or from a page edited from it, returns there */

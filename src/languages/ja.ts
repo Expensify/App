@@ -4246,6 +4246,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `例：${example}`,
+        onFile: '登録済み',
+        onFileHint: '保存済みです。そのままにするには空欄のままにするか、新しく入力してください。',
         fileCount: ({count}: {count: number}) => ({
             one: `${count} 件のファイル`,
             other: `${count} 件のファイル`,

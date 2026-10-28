@@ -4349,6 +4349,8 @@ ${amount} για ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Παράδειγμα: ${example}`,
+        onFile: 'Καταχωρημένο',
+        onFileHint: 'Αποθηκεύτηκε. Αφήστε το κενό για να το κρατήσετε ή εισαγάγετε νέο.',
         fileCount: ({count}: {count: number}) => ({
             one: '1 αρχείο',
             other: `${count} αρχεία`,

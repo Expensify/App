@@ -13,6 +13,7 @@ import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
 import {getPageSectionName, isPageShown} from './getPageTitle';
 import getVisibleFields from './getVisibleFields';
+import hasProvidedAnswer from './hasProvidedAnswer';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
@@ -77,7 +78,8 @@ function getConfirmationItems(
                         return shouldNameList ? [{kind: 'label', id: `${field.key}-label`, title: getFieldLabel(field, translate)}, ...listItemRows] : listItemRows;
                     }
 
-                    const answer = formatDynamicFieldValue(field, values, translate);
+                    const typedAnswer = formatDynamicFieldValue(field, values, translate);
+                    const answer = !typedAnswer && hasProvidedAnswer(field, values) ? translate('dynamicForm.onFile') : typedAnswer;
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
                     const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
@@ -86,7 +88,7 @@ function getConfirmationItems(
                         {
                             id: field.key,
                             description: fieldLabel,
-                            title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                            title: isSensitiveField(field) && typedAnswer ? maskSensitiveValue(answer) : answer,
                             // Screen readers would read out each bullet of the mask
                             accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(answer)}) : undefined,
                             shouldShowRightIcon: isEditable,

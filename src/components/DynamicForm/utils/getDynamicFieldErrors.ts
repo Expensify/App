@@ -32,6 +32,7 @@ import getAnswerKeys from './getAnswerKeys';
 import getFieldOptions from './getFieldOptions';
 import {getFieldLabel} from './getLocalizedText';
 import getVisibleFields from './getVisibleFields';
+import hasProvidedAnswer from './hasProvidedAnswer';
 import isSupportedField from './isSupportedField';
 import {getListItems, getListItemSensitiveAnswers} from './listItems';
 import logSchemaProblem from './logSchemaProblem';
@@ -252,6 +253,10 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
             }
         }
         if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation !== 'checkbox')) {
+            // A sensitive answer the server holds is kept when the field is left blank
+            if (hasProvidedAnswer(field, values)) {
+                continue;
+            }
             if (field.type === 'address' ? isAddressRequired(field, values) : field.required) {
                 addErrorMessage(errors, field.key, translate('common.error.fieldRequired'));
             }

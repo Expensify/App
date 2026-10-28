@@ -1,7 +1,9 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
@@ -35,7 +37,11 @@ function getTextInputMode(field: DynamicFormTextField): InputModeOptions | undef
     return field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined;
 }
 
-function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate): string | undefined {
+function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate, values: DynamicFormValues | undefined): string | undefined {
+    // The server holds the answer, so the hint says leaving the field blank keeps it
+    if (values && hasProvidedAnswer(field, values)) {
+        return translate('dynamicForm.onFileHint');
+    }
     const description = getLocalizedText(translate, field.descriptionKey, field.description);
     if (description || !field.example) {
         return description;
@@ -45,7 +51,7 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
 
 function renderTextInput(
     field: DynamicFormTextField | DynamicFormNumberField,
-    {translate}: DynamicFieldContext,
+    {translate, values}: DynamicFieldContext,
     inputProps: DynamicFieldInputProps<string>,
     inputMode: InputModeOptions | undefined,
     isMultiline = false,
@@ -58,7 +64,7 @@ function renderTextInput(
                 InputComponent={TextInput}
                 {...inputProps}
                 label={getInputLabel(field, translate)}
-                hint={getTextHint(field, translate)}
+                hint={getTextHint(field, translate, values)}
                 maxLength={field.maxLength}
                 inputMode={inputMode}
                 multiline={isMultiline}

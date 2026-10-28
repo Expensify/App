@@ -4279,6 +4279,8 @@ ${amount} voor ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Voorbeeld: ${example}`,
+        onFile: 'Opgeslagen',
+        onFileHint: 'Opgeslagen. Laat leeg om te behouden of voer een nieuwe in.',
         fileCount: ({count}: {count: number}) => ({
             one: '1 bestand',
             other: `${count} bestanden`,

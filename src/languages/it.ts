@@ -4278,6 +4278,8 @@ ${amount} per ${merchant} - ${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Esempio: ${example}`,
+        onFile: 'Registrato',
+        onFileHint: 'Salvato. Lascia vuoto per mantenerlo o inseriscine uno nuovo.',
         fileCount: ({count}: {count: number}) => ({
             one: '1 file',
             other: `${count} file`,

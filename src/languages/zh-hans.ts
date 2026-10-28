@@ -4153,6 +4153,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `示例：${example}`,
+        onFile: '已存档',
+        onFileHint: '已保存。留空以保留，或输入新的。',
         fileCount: ({count}: {count: number}) => ({
             one: `${count} 个文件`,
             other: `${count} 个文件`,

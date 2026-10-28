@@ -4,9 +4,10 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
+import type {DynamicFormSavedValues} from './DynamicFormField';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WiseKYCRequirement} from './WiseKYCReview';
 
@@ -270,37 +271,10 @@ type WiseBusinessOnboarding = {
     /** The bank account's currency */
     currency?: string;
 
-    /** Last saved step */
-    step?: string;
+    /** The answers of each saved intake page, by page key. A key a later save dropped comes back as null. */
+    pages?: Record<string, DynamicFormSavedValues>;
 
-    /** Business page answers. The bank account already holds the company's name, website, tax ID and address, so they are not stored here */
-    business?: {
-        /** The legal form, prefilled from the account's incorporation type where it maps cleanly */
-        companyType: ValueOf<typeof CONST.WISE.COMPANY_TYPE>;
-
-        companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
-        industryCategories: Array<TupleToUnion<typeof CONST.WISE.INDUSTRY_CATEGORIES>>;
-        description: string;
-    };
-
-    /** Representative page answers. The full SSN stays on the server */
-    representative?: {
-        /** Last four digits of the SSN */
-        ssnLast4?: string;
-
-        /** The representative has no SSN or ITIN */
-        hasNoSSN?: boolean;
-    };
-
-    /** KYC requirement answers, by requirement then by Wise's field name */
-    requirements?: {
-        ID_DOCUMENT?: {
-            issuingCountry: string;
-            documentType: string;
-        };
-    } & Record<string, Record<string, unknown>>;
-
-    /** Uploaded file keys, by requirement then by field */
+    /** Uploaded file keys, by page key then by field */
     documents?: Record<string, Record<string, string[]>>;
 
     /**
@@ -345,6 +319,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we are saving the beneficial owners data via the API (non USD flow Step 4) */
     isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
+
+    /** Whether a Wise onboarding page is being saved */
+    isSavingWiseOnboardingPage?: boolean;
 
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;

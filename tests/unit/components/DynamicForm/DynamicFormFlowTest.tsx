@@ -390,7 +390,7 @@ describe('DynamicFormFlow', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('personal-details'), {forceReplace: true});
     });
 
-    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen draft answers only', async () => {
+    it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the sensitive ones apart', async () => {
         // Given the first page
         const {pageProps, onPageSubmit} = await renderFlow();
         const page = pageProps?.pages.at(0);
@@ -401,10 +401,10 @@ describe('DynamicFormFlow', () => {
         // When the user leaves it with Next, with FormProvider's values also holding another page's answer
         pageProps.onPageSubmit(page, {firstName: 'Jane', ssn: '123456789', legalType: 'PRIVATE'});
 
-        // Then only this page's name is drafted, the SSN goes to memory only, and the screen never sees the SSN, since a page save would queue it
+        // Then only this page's name is drafted, the SSN goes to memory only, and the screen gets the SSN apart from the draft answers, so it can send it without the request queue
         expect(saveDraftAnswers).toHaveBeenCalledWith(FORM_ID, {firstName: 'Jane'});
         expect(saveSensitiveAnswers).toHaveBeenCalledWith(FORM_ID, {ssn: '123456789'});
-        expect(onPageSubmit).toHaveBeenCalledWith(page, {firstName: 'Jane'});
+        expect(onPageSubmit).toHaveBeenCalledWith(page, {firstName: 'Jane'}, {ssn: '123456789'});
     });
 
     it('submits the visible answers, sensitive ones included, from the confirmation page', async () => {
@@ -672,7 +672,7 @@ describe('DynamicFormFlow', () => {
             pageProps.onPageSubmit(page, {directors: [jane]});
 
             // Then a screen saving page by page gets the director, while the SSN stays in memory, out of the request queue
-            expect(onPageSubmit).toHaveBeenCalledWith(page, {directors: [jane]});
+            expect(onPageSubmit).toHaveBeenCalledWith(page, {directors: [jane]}, {});
         });
 
         it('keeps a sensitive list in memory instead of the draft', async () => {

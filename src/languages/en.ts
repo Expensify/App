@@ -4477,6 +4477,8 @@ const translations = {
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        onFile: 'On file',
+        onFileHint: 'Saved. Leave blank to keep it, or enter a new one.',
         fileCount: ({count}: {count: number}) => ({
             one: '1 file',
             other: `${count} files`,
