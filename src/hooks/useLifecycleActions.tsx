@@ -94,9 +94,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-    // The "Received payment" handler awaits a confirmation modal (and the hold menu on top of it), and approval can resume after the
-    // magic-code screen, so the collection captured when the menu item was pressed can be out of date by the time the action actually runs.
-    // Keep the latest collection in a ref so those handlers read the violations as of execution instead of the earlier render.
+    // The "Received payment" handler awaits a confirmation modal (and the hold menu on top of it), so the collection captured when the
+    // menu item was pressed can be out of date by the time the payment is actually recorded. Keep the latest collection in a ref so those
+    // handlers read the violations as of the confirmation instead of the earlier render.
     const allTransactionViolationsRef = useRef(allTransactionViolations);
     useEffect(() => {
         allTransactionViolationsRef.current = allTransactionViolations;
@@ -219,8 +219,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateAccountID,
             isTrackIntentUser,
             rules,
-            // Read through the ref: approval can resume after the magic-code screen, so the collection captured at press time may be stale.
-            allTransactionViolations: allTransactionViolationsRef.current,
+            allTransactionViolations,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
