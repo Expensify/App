@@ -140,24 +140,37 @@ function clearMergeWithValidateCode() {
     });
 }
 
-// Deep-link handlers can fire the same URL more than once, but each mergeValidateCode is single-use.
+// Deep-link handlers can fire the same URL more than once. Dedupe only against codes already consumed server-side (success)
+// and codes currently in flight; a failed attempt leaves the code eligible for retry after the user fixes the cause.
+const inFlightMergeValidateCodes = new Set<string>();
 let lastHandledMergeValidateCode: string | undefined;
 
 function approveAccountMerge(validateCode: string, currentUserEmail: string) {
-    if (validateCode === lastHandledMergeValidateCode) {
+    if (validateCode === lastHandledMergeValidateCode || inFlightMergeValidateCodes.has(validateCode)) {
         return;
     }
-    lastHandledMergeValidateCode = validateCode;
+    inFlightMergeValidateCodes.add(validateCode);
 
     const parameters: MergeAccountWithSAMLParams = {validateCode};
 
+    // We need the server result immediately to navigate to the correct merge-result page instead of storing transient state in Onyx.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.MERGE_ACCOUNT_WITH_SAML, parameters).then((response) => {
-        const isSuccess = response?.jsonCode === CONST.JSON_CODE.SUCCESS;
-        const login = (isSuccess ? response?.newAccountEmail : undefined) ?? currentUserEmail;
-        const result = isSuccess ? CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_SUCCESS : CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_FAILED;
-        Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(login, result, ROUTES.INBOX));
-    });
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.MERGE_ACCOUNT_WITH_SAML, parameters)
+        .then((response) => {
+            const isSuccess = response?.jsonCode === CONST.JSON_CODE.SUCCESS;
+            if (isSuccess) {
+                lastHandledMergeValidateCode = validateCode;
+            }
+            const login = (isSuccess ? response?.newAccountEmail : undefined) ?? currentUserEmail;
+            const result = isSuccess ? CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_SUCCESS : CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_FAILED;
+            Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(login, result, ROUTES.INBOX));
+        })
+        .catch(() => {
+            Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserEmail, CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_FAILED, ROUTES.INBOX));
+        })
+        .finally(() => {
+            inFlightMergeValidateCodes.delete(validateCode);
+        });
 }
 
 export {requestValidationCodeForAccountMerge, clearGetValidateCodeForAccountMerge, mergeWithValidateCode, clearMergeWithValidateCode, approveAccountMerge};

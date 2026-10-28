@@ -97,6 +97,8 @@ function AccountDetailsPage() {
     const mergeError = getLatestErrorMessage(mergeWithValidateCodeData);
     const mergeErrorPage = getMergeErrorPage(mergeError);
     const resultPage = errorKey ?? mergeErrorPage;
+    // Show the get-code error unless it maps to a dedicated result page or is the admin-approval signal (handled separately);
+    // otherwise fall back to the merge error only when it has no dedicated result page.
     const genericError = (!errorKey && !isAdminApprovalRequired ? latestError : '') || (!mergeErrorPage ? mergeError : '') || undefined;
 
     const styles = useThemeStyles();

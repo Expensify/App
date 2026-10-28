@@ -538,7 +538,7 @@ function openReportFromDeepLink(
         const mergeValidateCode = new URLSearchParams(route.split('?').at(1) ?? '').get('mergeValidateCode');
         if (mergeValidateCode) {
             Navigation.waitForProtectedRoutes().then(() => {
-                // Only the signed-in Domain Admin can approve the merge, so anonymous sessions must sign in first; the deep link replays after sign-in.
+                // Only the signed-in Domain Admin can approve the merge, so anonymous sessions must sign in first. The deep link replays after sign-in.
                 if (isAnonymousUser()) {
                     signOutAndRedirectToSignIn(true);
                     return;
