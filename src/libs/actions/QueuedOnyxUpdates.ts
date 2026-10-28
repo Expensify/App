@@ -19,9 +19,6 @@ let flushPromise: Promise<void> | null = null;
 let resolveFlushPromise: (() => void) | undefined;
 let rejectFlushPromise: ((error: unknown) => void) | undefined;
 
-// The queue array is emptied as soon as a flush starts, so this is what tells a catch-up response a flush is still writing.
-let inFlightFlushPromise: Promise<void> | null = null;
-
 // We use `connectWithoutView` because it is not connected to any UI component.
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -90,7 +87,7 @@ function flushQueue(): Promise<void> {
     }
     // WRITE requests gate their lastUpdateID watermark advance on this flush (see OnyxUpdates.apply), so a
     // failure here keeps the watermark back and the next reconnect can refetch and reapply the missed updates.
-    const currentFlushPromise = Onyx.update(copyUpdates)
+    return Onyx.update(copyUpdates)
         .then(() => resolveCurrentFlush?.())
         .catch((error: unknown) => {
             Log.alert('[OnyxUpdateManagerError] Deferred WRITE Onyx update failed to apply, not advancing lastUpdateID so the client can recover on the next reconnect', {
@@ -98,23 +95,11 @@ function flushQueue(): Promise<void> {
             });
             rejectCurrentFlush?.(error);
             throw error;
-        })
-        .finally(() => {
-            if (inFlightFlushPromise !== currentFlushPromise) {
-                return;
-            }
-            inFlightFlushPromise = null;
         });
-    inFlightFlushPromise = currentFlushPromise;
-    return currentFlushPromise;
-}
-
-function getInFlightFlushPromise(): Promise<void> | null {
-    return inFlightFlushPromise;
 }
 
 function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, getInFlightFlushPromise, isEmpty};
+export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, isEmpty};

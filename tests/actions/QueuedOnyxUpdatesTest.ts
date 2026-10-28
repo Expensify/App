@@ -1,4 +1,4 @@
-import {flushQueue, getInFlightFlushPromise, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
 
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -181,64 +181,6 @@ describe('actions/QueuedOnyxUpdates', () => {
                     },
                 });
             });
-        });
-    });
-
-    describe('getInFlightFlushPromise', () => {
-        it('returns the flush promise only while its storage write is still running', async () => {
-            // Given a staged update and a signed-in session
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
-            await queueOnyxUpdates([{key: ONYXKEYS.NVP_TRY_FOCUS_MODE, value: true, onyxMethod: 'merge'}]);
-
-            // When the flush starts, the staged array is already empty but the write is still in flight
-            const flush = flushQueue();
-            expect(getInFlightFlushPromise()).toBe(flush);
-
-            // Then it is cleared once the write settles
-            await flush;
-            expect(getInFlightFlushPromise()).toBeNull();
-        });
-
-        it('keeps a newer flush in flight when an older one settles first', async () => {
-            // Given the first flush's storage write is held open
-            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
-            const realUpdate = Onyx.update.bind(Onyx);
-            let releaseFirstFlush: (() => void) | undefined;
-            let releaseSecondFlush: (() => void) | undefined;
-            const updateSpy = jest
-                .spyOn(Onyx, 'update')
-                .mockImplementationOnce(
-                    (updates) =>
-                        new Promise<void>((resolve) => {
-                            releaseFirstFlush = () => {
-                                realUpdate(updates).then(resolve);
-                            };
-                        }),
-                )
-                .mockImplementationOnce(
-                    (updates) =>
-                        new Promise<void>((resolve) => {
-                            releaseSecondFlush = () => {
-                                realUpdate(updates).then(resolve);
-                            };
-                        }),
-                );
-            await queueOnyxUpdates([{key: ONYXKEYS.NVP_TRY_FOCUS_MODE, value: true, onyxMethod: 'merge'}]);
-            const firstFlush = flushQueue();
-
-            // When a second flush starts before the first settles, and the first settles first
-            await queueOnyxUpdates([{key: ONYXKEYS.PREFERRED_THEME, value: 'system', onyxMethod: 'merge'}]);
-            const secondFlush = flushQueue();
-            releaseFirstFlush?.();
-            await firstFlush;
-
-            // Then the second flush is still reported as in flight, since catch-up responses must keep waiting on it
-            expect(getInFlightFlushPromise()).toBe(secondFlush);
-
-            releaseSecondFlush?.();
-            await secondFlush;
-            updateSpy.mockRestore();
-            expect(getInFlightFlushPromise()).toBeNull();
         });
     });
 });
