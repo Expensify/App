@@ -30,7 +30,6 @@ function RequestMoneyConfirmation({submissionPath, submissionParams, orchestrato
     const {
         transaction,
         policy,
-        participants,
         iouType,
         isDistanceRequest,
         isManualDistanceRequest,
@@ -39,9 +38,9 @@ function RequestMoneyConfirmation({submissionPath, submissionParams, orchestrato
         isTimeRequest,
         isUnreported,
         isPolicyExpenseChat,
+        isSelfDMDestination,
         submitLock,
     } = submissionParams;
-    const {isSelfDMDestination} = orchestratorProps;
 
     const transactionTaxValues = getTransactionTaxValues({
         transaction,
@@ -58,9 +57,7 @@ function RequestMoneyConfirmation({submissionPath, submissionParams, orchestrato
     const submissionHookParams = {
         ...submissionParams,
         ...transactionTaxValues,
-        selectedParticipants: participants.filter((participant) => participant.selected),
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
-        isSelfDMDestination,
     };
 
     const requestMoneySubmission = useRequestMoneySubmission(submissionHookParams);

@@ -36,6 +36,7 @@ type ConfirmationSubmissionParams = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     participants: Participant[];
+    selectedParticipants: Participant[];
 
     // Request type flags
     iouType: DeepValueOf<typeof CONST.IOU.TYPE>;
@@ -50,6 +51,7 @@ type ConfirmationSubmissionParams = {
     isSharingTrackExpense: boolean;
     isUnreported: boolean;
     isPolicyExpenseChat: boolean;
+    isSelfDMDestination: boolean;
     isSubmittingExpenseToDraftWorkspace: boolean;
 
     // Onyx values

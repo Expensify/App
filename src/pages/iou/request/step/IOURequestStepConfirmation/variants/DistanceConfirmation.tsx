@@ -21,8 +21,7 @@ import type {ConfirmationVariantProps} from './types';
  * self DM. Both submissions stay mounted so switching "To" doesn't remount the orchestrator and the list.
  */
 function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
-    const {transaction, policy, participants, iouType, isManualDistanceRequest, isOdometerDistanceRequest, isUnreported, isPolicyExpenseChat, submitLock} = submissionParams;
-    const {isSelfDMDestination} = orchestratorProps;
+    const {transaction, policy, iouType, isManualDistanceRequest, isOdometerDistanceRequest, isUnreported, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
 
     const transactionTaxValues = getTransactionTaxValues({
         transaction,
@@ -37,9 +36,7 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
     const submissionHookParams = {
         ...submissionParams,
         ...transactionTaxValues,
-        selectedParticipants: participants.filter((participant) => participant.selected),
         isGPSDistanceRequest: isGPSDistanceRequestTransactionUtils(transaction),
-        isSelfDMDestination,
     };
 
     const distanceSubmission = useDistanceSubmission(submissionHookParams);
