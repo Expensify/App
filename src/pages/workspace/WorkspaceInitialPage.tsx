@@ -217,17 +217,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
     const triggerScrollEvent = useScrollEventEmitter();
+    const connectionsMenuItem = workspaceMenuItems.find((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS);
     const {
         shouldShowTooltip: shouldShowConnectionsTooltip,
         hideTooltip: hideConnectionsTooltip,
         renderTooltipContent: renderConnectionsTooltip,
     } = useConnectionsMovedTooltip(
         // New workspaces never used the old integration pages, so only point this out where something is already connected.
-        isWorkspacesTabFocused &&
-            !hasPolicyCreationError &&
-            (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) &&
-            workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+        isWorkspacesTabFocused && !hasPolicyCreationError && (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) && !!connectionsMenuItem,
         activeRoute,
+        !!connectionsMenuItem && [connectionsMenuItem.screenName, ...(connectionsMenuItem.aliasScreenNames ?? [])].some((screenName) => screenName === activeRoute),
         isWorkspacesTabFocused,
     );
     // Close RHP if we land on a route that no longer exists in the menu

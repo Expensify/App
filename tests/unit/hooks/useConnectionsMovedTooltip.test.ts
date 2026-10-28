@@ -22,9 +22,9 @@ describe('useConnectionsMovedTooltip', () => {
     });
 
     it('should hide and dismiss the tooltip when the user is already on Connections', () => {
-        // Given the tooltip would show and the focused page is Connections, for example after opening it from a link
+        // Given the tooltip would show and the focused page is Connections, for example opened from an old /accounting link
         // When the workspace menu renders
-        const {result} = renderHook(() => useConnectionsMovedTooltip(true, SCREENS.WORKSPACE.CONNECTIONS, true));
+        const {result} = renderHook(() => useConnectionsMovedTooltip(true, SCREENS.WORKSPACE.ACCOUNTING.ROOT, true, true));
 
         // Then it does not point at the page the user is already on, and it is dismissed so it does not come back later
         expect(result.current.shouldShowTooltip).toBe(false);
@@ -34,7 +34,7 @@ describe('useConnectionsMovedTooltip', () => {
     it('should show the tooltip on other workspace pages until the user leaves them', () => {
         // Given the tooltip would show and the focused page is not Connections
         // When the workspace menu renders
-        const {result} = renderHook(() => useConnectionsMovedTooltip(true, SCREENS.WORKSPACE.PROFILE, true));
+        const {result} = renderHook(() => useConnectionsMovedTooltip(true, SCREENS.WORKSPACE.PROFILE, false, true));
 
         // Then it shows and is not dismissed, since the user has not found Connections yet
         expect(result.current.shouldShowTooltip).toBe(true);

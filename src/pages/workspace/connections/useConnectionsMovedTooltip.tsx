@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -19,14 +18,13 @@ import {View} from 'react-native';
  * The tooltip on the workspace menu's Connections item telling users their integrations moved there. Reaching
  * Connections, or leaving the page it was first shown on, counts as dismissing it, so it only shows once.
  */
-function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | undefined, isWorkspacesTabFocused: boolean) {
+function useConnectionsMovedTooltip(shouldShow: boolean, activeRoute: string | undefined, isOnConnectionsPage: boolean, isWorkspacesTabFocused: boolean) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONNECTIONS_MOVED, shouldShow);
     const shownOnRouteRef = useRef<string | undefined>(undefined);
-    const isOnConnectionsPage = activeRoute === SCREENS.WORKSPACE.CONNECTIONS;
 
     useEffect(() => {
         if (shouldShowProductTrainingTooltip && isOnConnectionsPage) {

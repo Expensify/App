@@ -71,7 +71,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <Header>
-                    <Header.BackButton onPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))} />
+                    <Header.BackButton onPress={() => Navigation.goBack()} />
                     {!!connectionDetails?.icon && (
                         <UserAvatar
                             containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
