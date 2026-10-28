@@ -1,6 +1,17 @@
+import type {WebComposerRef} from '@components/Composer/types';
+
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import requestKeyboardForFocusedComposer from '@libs/focusComposerWithDelay/requestKeyboardForFocusedComposer';
 
 import CONST from '@src/CONST';
+
+import type {TextInput} from 'react-native';
+
+import createMock from '../utils/createMock';
+
+jest.mock('@libs/focusComposerWithDelay/requestKeyboardForFocusedComposer', () =>
+    jest.fn<ReturnType<typeof requestKeyboardForFocusedComposer>, Parameters<typeof requestKeyboardForFocusedComposer>>(),
+);
 
 function createInput() {
     const input = document.createElement('textarea');
@@ -40,5 +51,49 @@ describe('focusComposerWithDelay', () => {
         jest.runAllTimers();
 
         expect(focus).toHaveBeenCalled();
+    });
+});
+
+describe('focusComposerWithDelay command categories', () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it('focuses a web command handle without inventing a DOM selection method', async () => {
+        // Given the public web handle exposes common commands and a numeric scroll getter.
+        const input = {
+            clear: jest.fn<ReturnType<WebComposerRef['clear']>, Parameters<WebComposerRef['clear']>>(),
+            blur: jest.fn<ReturnType<WebComposerRef['blur']>, Parameters<WebComposerRef['blur']>>(),
+            focus: jest.fn<ReturnType<WebComposerRef['focus']>, Parameters<WebComposerRef['focus']>>(),
+            isFocused: () => false,
+            scrollTop: 0,
+        } satisfies WebComposerRef;
+
+        // When focus with a forced selection reaches the unchanged platform selection helper.
+        await focusComposerWithDelay(input)(false, {start: 2, end: 4});
+
+        // Then the common focus command executes without requiring native or DOM selection capabilities.
+        expect(input.focus).toHaveBeenCalledTimes(1);
+        expect(input.clear).not.toHaveBeenCalled();
+        expect(input.blur).not.toHaveBeenCalled();
+    });
+
+    it('keeps native top-level selection and requests the keyboard for an already focused input', async () => {
+        // Given native selection belongs to the input itself, without a wrapper.
+        const focus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
+        const input = createMock<TextInput>({
+            focus,
+            isFocused: () => false,
+            setSelection: jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>(),
+        });
+        const requestKeyboard = jest.mocked(requestKeyboardForFocusedComposer);
+
+        // When an unfocused input receives selection and a focused input requests its keyboard.
+        await focusComposerWithDelay(input)(false, {start: 1, end: 3});
+        input.isFocused = () => true;
+        await focusComposerWithDelay(input)(false, {start: 2, end: 2}, true);
+
+        // Then selection uses the top-level native command and the focused branch delegates its keyboard request.
+        expect(focus).toHaveBeenCalledTimes(1);
+        expect(input.setSelection).toHaveBeenCalledWith(1, 3);
+        expect(requestKeyboard).toHaveBeenCalledWith(input, {start: 2, end: 2});
     });
 });

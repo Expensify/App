@@ -30,7 +30,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
@@ -77,7 +77,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     // checks if all required columns are mapped and no column is mapped more than once
     // returns found errors or empty object if both conditions are met
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Record<string, string | null> = {};
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
@@ -104,7 +104,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         return errors;
-    }, [containsHeader, currency, currencySymbol, getCurrencyDecimals, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
+    };
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);

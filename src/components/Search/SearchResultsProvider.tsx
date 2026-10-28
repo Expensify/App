@@ -11,7 +11,7 @@ import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import React, {useState} from 'react';
 // This provider is the source of the snapshot data that `@hooks/useOnyx` later routes consumers onto,
 // so going through that wrapper here would be self-referential. The wrapper also short-circuits its own
-// logic for snapshot keys (see the `!key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)` guard in useOnyx.ts),
+// logic for snapshot keys (see the snapshot collection guard in `isSnapshotCompatibleKey` in @libs/SnapshotUtils),
 // so it would add nothing for this read. Use the raw react-native-onyx hook directly.
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';
@@ -53,7 +53,7 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     // selections upstream, and this is the one place that would act on one anyway, so it checks for itself.
     const {isBetaEnabled} = usePermissions();
     const {footerTotal} = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) ? getFooterSelectionFromQuery(currentSearchQueryJSON) : {footerTotal: undefined};
-    const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal);
+    const liveTodoData = useTodoSearchResults(shouldUseLiveData ? currentSearchKey : undefined, footerTotal, snapshotSearchResults?.search);
 
     // If viewing a to-do search, use live Onyx data for the active category, otherwise return the snapshot data.
     // We do this so the results stay fresh as the user acts on reports, instead of showing a stale server snapshot.
@@ -65,6 +65,7 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
             count: liveData.metadata.count,
             total: liveData.metadata.total,
             currency: liveData.metadata.currency,
+            reportCount: liveData.metadata.reportCount,
         };
         const hasResults = Object.keys(liveData.data).length > 0;
         // For to-do searches, always return a valid SearchResults object (even with empty data)

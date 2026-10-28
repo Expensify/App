@@ -39,13 +39,15 @@ describe('reportAvatarKindSelector', () => {
         ['a system chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         // A trip room is itself a thread of its trip preview, so it routes to the thread wrapper.
         ['a trip room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, ...threadFields}, CONST.REPORT_AVATAR_KIND.CHAT_THREAD],
-        ['a trip room without parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
+        ['a trip room without parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.TRIP_ROOM],
         ['a report without a type', {}, CONST.REPORT_AVATAR_KIND.DEFAULT],
         // Legacy getIcons classifies chats purely off chatType — a chat row whose type hasn't populated yet still routes by it.
         ['a group chat without a type', {chatType: CONST.REPORT.CHAT_TYPE.GROUP}, CONST.REPORT_AVATAR_KIND.GROUP_CHAT],
         ['a policy room without a type', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}, CONST.REPORT_AVATAR_KIND.ROOM],
         // The thread check requires type=chat (isChatThread semantics), so without a type the chatType wins.
         ['a group chat without a type but with parent fields', {chatType: CONST.REPORT.CHAT_TYPE.GROUP, ...threadFields}, CONST.REPORT_AVATAR_KIND.GROUP_CHAT],
+        // Legacy isTripRoom requires type=chat.
+        ['a trip room without a type', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}, CONST.REPORT_AVATAR_KIND.DEFAULT],
     ] as const)('should return the kind for %s', (_case, overrides, expectedKind) => {
         expect(reportAvatarKindSelector(createReport(overrides))).toBe(expectedKind);
     });

@@ -14,7 +14,7 @@ import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown
 import type {ForwardedRef} from 'react';
 
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 
@@ -59,18 +59,15 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     }, [props.value, isCursorAtEnd]);
 
     // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
-    const parserWorklet = useCallback(
-        (text: string) => {
-            'worklet';
+    const parserWorklet = (text: string) => {
+        'worklet';
 
-            if (parser) {
-                return parser(text);
-            }
+        if (parser) {
+            return parser(text);
+        }
 
-            return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
-        },
-        [currentUserMentions, mentionsSharedVal, parser],
-    );
+        return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
+    };
 
     useEffect(() => {
         scheduleOnLiveMarkdownRuntime(() => {

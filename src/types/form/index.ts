@@ -102,6 +102,7 @@ export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
 export type {CollectDepositAccountForm} from './CollectDepositAccountForm';
 export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
 export type {DynamicFormListItemForm} from './DynamicFormListItemForm';
+export type {WiseBusinessOnboardingForm} from './WiseBusinessOnboardingForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
 export type {MoneyRequestRejectReasonForm} from './MoneyRequestRejectReasonForm';
 export type {ReportRejectForm} from './ReportRejectForm';

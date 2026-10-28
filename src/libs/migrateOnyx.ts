@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import Log from './Log';
 import MoveFilesOutOfDocuments from './migrations/MoveFilesOutOfDocuments';
 import MoveSearchQueryByHashToSnapshots from './migrations/MoveSearchQueryByHashToSnapshots';
+import RemoveSearchRowFieldsFromTransactions from './migrations/RemoveSearchRowFieldsFromTransactions';
 import RenameLegacySageIntacctExportDate from './migrations/RenameLegacySageIntacctExportDate';
 import ReplaceShouldUseStagingServerWithActiveServer from './migrations/ReplaceShouldUseStagingServerWithActiveServer';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
@@ -24,6 +25,7 @@ export default function () {
             ReplaceShouldUseStagingServerWithActiveServer,
             MoveSearchQueryByHashToSnapshots,
             RenameLegacySageIntacctExportDate,
+            RemoveSearchRowFieldsFromTransactions,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
