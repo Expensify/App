@@ -4858,7 +4858,7 @@ ${amount} per ${merchant} - ${date}`,
             emptyRoomsSubtitle: 'Le stanze di questo spazio di lavoro verranno visualizzate qui.',
             emptyRoomsArchivedTitle: 'Queste stanze sono archiviate',
             emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
-                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Riattiva questo spazio di lavoro</a> per usarle di nuovo.</centered-text></muted-text>`,
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Annulla l’archiviazione di questo workspace</a> per usarle di nuovo.</centered-text></muted-text>`,
             edit: 'Modifica spazio di lavoro',
             enabled: 'Abilitato',
             disabled: 'Disattivato',

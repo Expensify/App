@@ -4893,7 +4893,7 @@ ${amount} dla ${merchant} - ${date}`,
             emptyRoomsSubtitle: 'Pokoje w tym obszarze roboczym pojawią się tutaj.',
             emptyRoomsArchivedTitle: 'Te pokoje są zarchiwizowane',
             emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
-                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Przywróć to miejsce pracy z archiwum</a>, aby znów z nich korzystać.</centered-text></muted-text>`,
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Przywróć to miejsce pracy z archiwum</a>, żeby używać ich ponownie.</centered-text></muted-text>`,
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
             disabled: 'Wyłączone',
