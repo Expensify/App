@@ -1,6 +1,8 @@
 import useOnyx from '@hooks/useOnyx';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {isReportTransactionThread} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
 
 import {clearDeleteTransactionNavigateBackUrl, clearDeleteTransactionNavigateBackUrlAfterTransitions} from '@userActions/Report';
@@ -10,14 +12,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
 
+type DeleteTransactionNavigateBackHandlerProps = {
+    /** The reportID of the report screen this handler is mounted in */
+    reportID: string | undefined;
+};
+
 /**
  * Component that does not render anything but isolates the NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL
  * subscription from ReportScreen. Clears the URL after interactions complete
  * when the report is no longer focused.
  */
-function DeleteTransactionNavigateBackHandler() {
+function DeleteTransactionNavigateBackHandler({reportID}: DeleteTransactionNavigateBackHandlerProps) {
     const isFocused = useIsFocused();
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [isTransactionThread = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: isReportTransactionThread});
 
     useEffect(() => {
         if (isFocused || !deleteTransactionNavigateBackUrl) {
@@ -36,8 +44,13 @@ function DeleteTransactionNavigateBackHandler() {
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
 
-    // Native stack never renders a popped screen unfocused, so also clear on unmount.
-    useEffect(() => () => clearDeleteTransactionNavigateBackUrlAfterTransitions(), []);
+    // Native stack never renders a popped screen unfocused, so also clear when a transaction thread unmounts.
+    useEffect(() => {
+        if (!isTransactionThread) {
+            return;
+        }
+        return () => clearDeleteTransactionNavigateBackUrlAfterTransitions();
+    }, [isTransactionThread]);
 
     return null;
 }
