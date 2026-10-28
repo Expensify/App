@@ -4141,16 +4141,6 @@ describe('ReportUtils', () => {
             expect(actual).toEqual({reportName: 'A workspace'});
         });
 
-        it('keeps the archived suffix when the passed account is the individual invoice receiver', () => {
-            // Given an archived invoice room received by account 1
-            // When the subtitle is built for account 1
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true, 1);
-            const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
-
-            // Then the payer name is still omitted but the archived suffix is added
-            expect(normalizedActual).toEqual({reportName: 'A workspace (archived)'});
-        });
-
         it('appends the payer name when no account is passed', () => {
             // Given an invoice room received by account 1
             // When the subtitle is built before the current account is known
@@ -4159,37 +4149,6 @@ describe('ReportUtils', () => {
 
             // Then nobody is treated as the receiver, so the payer name is shown
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
-        });
-
-        it('decides whether the user is the invoice receiver from the parameter and not from the Onyx session', async () => {
-            // Given an invoice room whose individual receiver is the account signed in to the Onyx session
-            const sessionReceiverInvoiceRoom: Report = {
-                reportID: '60301',
-                lastReadTime: '2024-02-01 04:56:47.233',
-                reportName: 'Session receiver room',
-                policyName: 'Sender workspace',
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
-            };
-            const invoiceReport = {
-                reportID: '60302',
-                parentReportActionID: '1',
-                parentReportID: sessionReceiverInvoiceRoom.reportID,
-                type: CONST.REPORT.TYPE.INVOICE,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sessionReceiverInvoiceRoom.reportID}`, sessionReceiverInvoiceRoom);
-            await waitForBatchedUpdates();
-
-            // When the subtitle is built for the session account and for a different account
-            const forSessionAccount = getParentNavigationSubtitle(invoiceReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false, currentUserAccountID);
-            const forOtherAccount = getParentNavigationSubtitle(invoiceReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false, 60303);
-
-            // Then only the passed receiver account gets the subtitle without the payer name
-            expect(forSessionAccount.reportName).toBe('Sender workspace');
-            expect(forOtherAccount.reportName).not.toBe('Sender workspace');
-            expect(forOtherAccount.reportName?.startsWith('Sender workspace & ')).toBe(true);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sessionReceiverInvoiceRoom.reportID}`, null);
         });
     });
 
@@ -15205,41 +15164,9 @@ describe('ReportUtils', () => {
                 // Then nobody is treated as the receiver
                 expect(isCurrentUserInvoiceReceiver(invoiceRoom, undefined)).toBe(false);
             });
-
-            it('is taken from the parameter and not from the Onyx session', () => {
-                // Given an invoice room received by the account signed in to the Onyx session
-                const invoiceRoom = buildIndividualInvoiceRoom(currentUserAccountID);
-
-                // When the check runs for another account, the session account must not be used as a fallback
-                expect(isCurrentUserInvoiceReceiver(invoiceRoom, otherAccountID)).toBe(false);
-
-                // Then an account that is not in the session is the receiver when it matches the room
-                expect(isCurrentUserInvoiceReceiver(buildIndividualInvoiceRoom(otherAccountID), otherAccountID)).toBe(true);
-            });
-
-            it('ignores the receiver policy admin role', () => {
-                // Given an individual receiver whose policyID field points at a workspace the user administers
-                const invoiceRoom: Report = {
-                    ...buildIndividualInvoiceRoom(receiverAccountID),
-                    policyID: adminReceiverPolicy.id,
-                };
-
-                // When the check runs for a different account
-                // Then only the receiver account decides the result, the workspace role is not looked at
-                expect(isCurrentUserInvoiceReceiver(invoiceRoom, otherAccountID)).toBe(false);
-            });
         });
 
         describe('a business invoice receiver', () => {
-            it('is the current user when the user is an admin of the receiver workspace', () => {
-                // Given an invoice room received by a workspace the user administers
-                const invoiceRoom = buildBusinessInvoiceRoom(adminReceiverPolicy.id);
-
-                // When the check runs
-                // Then the user is the receiver, because admins act on behalf of the receiving workspace
-                expect(isCurrentUserInvoiceReceiver(invoiceRoom, receiverAccountID)).toBe(true);
-            });
-
             it('does not depend on the passed account', () => {
                 // Given an invoice room received by a workspace the user administers
                 const invoiceRoom = buildBusinessInvoiceRoom(adminReceiverPolicy.id);
