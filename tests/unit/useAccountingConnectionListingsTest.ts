@@ -57,7 +57,7 @@ describe('useAccountingConnectionListings', () => {
         const xero = findListing(CONST.POLICY.CONNECTIONS.NAME.XERO);
 
         // When the admin connects Xero
-        xero?.onConnect();
+        xero?.onConnect?.();
 
         // Then Xero's flow starts with nothing to disconnect
         expect(mockStartIntegrationFlow).toHaveBeenCalledWith({name: CONST.POLICY.CONNECTIONS.NAME.XERO, isIntuitEnterpriseSuite: undefined});
@@ -69,7 +69,7 @@ describe('useAccountingConnectionListings', () => {
         const xero = findListing(CONST.POLICY.CONNECTIONS.NAME.XERO);
 
         // When the admin connects Xero
-        xero?.onConnect();
+        xero?.onConnect?.();
 
         // Then the flow is told to disconnect QuickBooks Online first, which asks the admin before replacing it
         expect(mockStartIntegrationFlow).toHaveBeenCalledWith({
@@ -86,7 +86,7 @@ describe('useAccountingConnectionListings', () => {
         const xero = findListing(CONST.POLICY.CONNECTIONS.NAME.XERO);
 
         // When they try to connect Xero
-        xero?.onConnect();
+        xero?.onConnect?.();
 
         // Then they are told they can't, and no flow starts
         expect(mockShowReadOnlyModal).toHaveBeenCalledTimes(1);

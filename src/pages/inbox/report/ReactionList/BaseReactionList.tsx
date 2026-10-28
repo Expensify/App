@@ -50,7 +50,7 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
 
 function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -65,34 +65,38 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
      * so that the sticky headers function properly
      *
      */
-    const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => (
-        <OptionRow
-            boldStyle
-            style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
-            hoverStyle={hoveredComponentBG}
-            onSelectRow={() => {
-                onClose?.();
-                Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
-                });
-            }}
-            option={{
-                accountID: item.accountID,
-                text: Str.removeSMSDomain(getDisplayNameOrYou(item.displayName ?? '', item.accountID, accountID, translate)),
-                alternateText: Str.removeSMSDomain(item.login ?? ''),
-                participantsList: [item],
-                icons: [
-                    {
-                        id: item.accountID,
-                        source: item.avatar ?? icons.FallbackAvatar,
-                        name: item.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                    },
-                ],
-                keyForList: item.login ?? String(item.accountID),
-            }}
-        />
-    );
+    const renderItem: FlatListProps<PersonalDetails>['renderItem'] = ({item}) => {
+        const displayName = getDisplayNameOrYou(item.displayName ?? '', item.accountID, accountID, translate);
+
+        return (
+            <OptionRow
+                boldStyle
+                style={{maxWidth: variables.mobileResponsiveWidthBreakpoint}}
+                hoverStyle={hoveredComponentBG}
+                onSelectRow={() => {
+                    onClose?.();
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
+                    });
+                }}
+                option={{
+                    accountID: item.accountID,
+                    text: Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName,
+                    alternateText: formatPhoneNumber(item.login ?? ''),
+                    participantsList: [item],
+                    icons: [
+                        {
+                            id: item.accountID,
+                            source: item.avatar ?? icons.FallbackAvatar,
+                            name: item.login ?? '',
+                            type: CONST.ICON_TYPE_AVATAR,
+                        },
+                    ],
+                    keyForList: item.login ?? String(item.accountID),
+                }}
+            />
+        );
+    };
 
     return (
         <>

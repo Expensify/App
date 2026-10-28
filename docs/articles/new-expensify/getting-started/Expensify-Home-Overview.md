@@ -20,8 +20,7 @@ It gives you a quick way to see whether anything needs attention, get oriented, 
 
 Home is the default view when you sign in.
 
-- **Web:** Click the **Home** icon in the navigation tabs on the left to return to Home at any time.
-- **Mobile:** Tap the **Home** icon in the navigation tabs on the bottom to return to Home.
+To return to Home at any time, select **Home** in the navigation tabs (on the left on web, on the bottom on mobile).
 
 ---
 
@@ -106,28 +105,27 @@ To review every trip instead of just the next 7 days, learn how to [view upcomin
 The **Recently added** section shows your most recently added expenses, so you can quickly get back to what you just created or imported.
 
 - Select any expense to open it.
-- To see your full list of expenses, select the three dots **(⋮)** in the **Recently added** section, then select **View all expenses**.
+- To see your full list of expenses, select **More (⋮)** in the **Recently added** section, then select **View all expenses**.
 
 ---
 
-## How the Spend over time chart and insights work on Home
+## How insights work on Home
 
-The chart section on Home shows one spending insight at a time, starting with **Spend over time**, which displays a line chart of your workspace spending trends.
+**Home** displays one insight at a time, with **Spend over time** selected by default.
 
-Select the insight title (with the chevron next to it) to open the insight picker, then choose a different insight to show in the chart. The available insights match the ones you can open under **Spend**, and can include:
+To display a different insight, select the insight title and choose another insight, such as:
 
 - **Spend over time**
 - **Top categories**
 - **Top merchants**
 - **Top spenders**
 
-Your selection is saved, so the chart shows the same insight the next time you return to Home, even after you sign out and back in.
+To view all available insights: 
 
-To open the selected insight in full, select the three dots **(⋮)**, then select **View**. This takes you to that insight on the **Spend** page.
+ - On web, select **Insights** in the navigation tabs on the left.
+ - On mobile, select **Spend** in the navigation tabs on the bottom,.
 
-This section is available to Workspace Admins, Auditors, and approvers on paid workspaces. If an insight doesn't have enough data yet to draw a chart, the section still appears and shows a **Chart unavailable** message instead. If you don't hold one of these roles on any workspace, this section won't appear.
-
-To learn more about each insight, see [Learn how to use Insights in Expensify](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
+To learn more about each insight, see [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights).
 
 ---
 
@@ -199,7 +197,7 @@ The **Time sensitive** section only appears when there is an urgent issue or lim
 
 ## Why don’t I see the Spend over time section?
 
-The Home chart section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace. If you don't hold one of these roles on any workspace, this section won't be visible. If you do hold one of these roles but an insight doesn't have enough data yet, the section still appears and shows a **Chart unavailable** message rather than disappearing. You can switch which insight the chart shows using the insight title dropdown.
+The Home chart section only appears if you're a member of a paid workspace. If you're on a paid workspace but an insight doesn't have enough data yet, the section still appears and shows a **Chart unavailable** message rather than disappearing. You can switch which insight the chart shows using the insight title dropdown.
 
 ## Why don’t I see the Getting started section?
 
