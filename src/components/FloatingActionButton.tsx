@@ -127,7 +127,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                             ]}
                             testID="fab-animated-container"
                         >
-                            {shouldUseGlass && <FloatingButtonGlass tintColor={buttonDefaultBG} />}
+                            {shouldUseGlass && <FloatingButtonGlass tintColor={isActive ? buttonHoveredBG : buttonDefaultBG} />}
                             <Svg
                                 width={fabSize}
                                 height={fabSize}
