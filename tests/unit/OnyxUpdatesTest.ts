@@ -1,4 +1,5 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
@@ -609,6 +610,47 @@ describe('OnyxUpdatesTest', () => {
         await flushQueue();
         await waitForBatchedUpdates();
         expect(await getOnyxValue(reportKey)).toStrictEqual(expectedSummary);
+    });
+
+    it('keeps a Pusher update that lands after the catch-up while the sequential queue is paused', async () => {
+        // Given the client is caught up to update 10 and a WRITE response up to update 20 is staged for the deferred flush
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        await waitForBatchedUpdates();
+
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${NumberUtils.rand64()}` as const;
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 10,
+            lastUpdateID: 20,
+            request: {command: WRITE_COMMANDS.CREATE_WORKSPACE, data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'staged write'}}]},
+        });
+        await waitForBatchedUpdates();
+
+        // And the sequential queue is paused for a gap fill, the way the deferred updates manager runs it
+        SequentialQueue.pause();
+        PusherUtils.subscribeToMultiEvent('test.pusher.onyx', (data: Array<OnyxServerUpdate<OnyxKey>>) => Onyx.update(data));
+
+        // When the catch-up applies and then a newer Pusher update applies before the queue is unpaused
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 20,
+            lastUpdateID: 30,
+            request: {command: SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, data: {updateIDFrom: 20, updateIDTo: 30}},
+            response: {jsonCode: 200, onyxData: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'catch-up'}}]},
+        });
+        await OnyxUpdates.apply({
+            type: CONST.ONYX_UPDATE_TYPES.PUSHER,
+            previousUpdateID: 30,
+            lastUpdateID: 31,
+            updates: [{eventType: 'test.pusher.onyx', data: [{onyxMethod: 'merge', key: reportKey, value: {lastMessageText: 'newer pusher'}}]}],
+        });
+        await waitForBatchedUpdates();
+        SequentialQueue.unpause();
+        await waitForBatchedUpdates();
+
+        // Then the flush on unpause does not rewind the newer Pusher update
+        expect(await getOnyxValue(reportKey)).toStrictEqual({lastMessageText: 'newer pusher'});
     });
 
     it('keeps catch-up responses in arrival order when the second one lands while the staged WRITE flush is still writing', async () => {
