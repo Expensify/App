@@ -8,8 +8,10 @@ import {putOnHold} from '@libs/actions/IOU/Hold';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
+import * as API from '@libs/API';
+import '@libs/actions/IOU/MoneyRequest';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -2084,9 +2086,21 @@ describe('actions/Transaction', () => {
             // When the admin undeletes it
             await triggerUndelete();
 
-            // Then the transaction thread shows an UNDELETED_TRANSACTION action with the admin, not the member, as the actor
-            const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
-            const undeletedAction = Object.values(threadActions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION);
+            // Then an UNDELETED_TRANSACTION action lands on a transaction-thread report with the admin as the actor
+            // The deleted-expense branch of getChangeTransactionsReportOnyxData builds a fresh optimistic thread, so look across every REPORT_ACTIONS collection rather than guessing its reportID
+            let undeletedAction: ReportAction | undefined;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                callback: (allReportActions) => {
+                    for (const actionsForReport of Object.values(allReportActions ?? {})) {
+                        const found = Object.values(actionsForReport ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION);
+                        if (found) {
+                            undeletedAction = found;
+                            return;
+                        }
+                    }
+                },
+            });
             expect(undeletedAction).toBeDefined();
             expect(undeletedAction?.actorAccountID).toBe(ADMIN_ACCOUNT_ID);
         });
@@ -2104,19 +2118,18 @@ describe('actions/Transaction', () => {
         });
 
         it('sends UndeleteTransactions, not ChangeTransactionsReport', async () => {
-            // Given a trashed member expense and a fetch mock that records every API command the client fires
-            const mockFetch = getGlobalFetchMock();
-            global.fetch = mockFetch;
+            // Given a trashed member expense and a spy on API.write that records every command the client fires
+            const writeSpy = jest.spyOn(API, 'write');
             await buildTrashedMemberExpense();
 
             // When the admin undeletes it
             await triggerUndelete();
 
-            // Then the backend is called with the dedicated UndeleteTransactions command, not the generic move command that would attribute the action to the owner on the corporate card path
-            const calls = (mockFetch as jest.Mock).mock.calls as unknown[][];
-            const commandURLs = calls.map((call) => String(call[0] ?? ''));
-            expect(commandURLs.some((url) => url.includes('command=UndeleteTransactions'))).toBe(true);
-            expect(commandURLs.some((url) => url.includes('command=ChangeTransactionsReport'))).toBe(false);
+            // Then the dedicated UndeleteTransactions command is fired, not the generic move command that would attribute the action to the owner on the corporate card path
+            const commands = writeSpy.mock.calls.map(([command]) => command);
+            expect(commands).toContain(WRITE_COMMANDS.UNDELETE_TRANSACTIONS);
+            expect(commands).not.toContain(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT);
+            writeSpy.mockRestore();
         });
     });
 });
