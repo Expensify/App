@@ -46,8 +46,10 @@ function WorkspacePerDiemTableRow({item, rowIndex, shouldUseNarrowTableLayout}: 
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.ROW}
             offlineWithFeedback={{
+                errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
+                onClose: item.dismissError,
             }}
             onPress={item.action}
         >

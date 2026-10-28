@@ -49,7 +49,7 @@ import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescr
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -106,17 +106,14 @@ function IOURequestStepDistanceMap({
     const transactionWaypoints = transaction?.comment?.waypoints;
     const areTransactionWaypointsEmpty = !transactionWaypoints || Object.values(transactionWaypoints).every((w) => isEmptyObject(w));
 
-    const waypoints = useMemo(() => {
-        return (
-            optimisticWaypoints ??
-            (areTransactionWaypointsEmpty
-                ? {
-                      waypoint0: {keyForList: 'start_waypoint'},
-                      waypoint1: {keyForList: 'stop_waypoint'},
-                  }
-                : transactionWaypoints)
-        );
-    }, [optimisticWaypoints, transactionWaypoints, areTransactionWaypointsEmpty]);
+    const waypoints =
+        optimisticWaypoints ??
+        (areTransactionWaypointsEmpty
+            ? {
+                  waypoint0: {keyForList: 'start_waypoint'},
+                  waypoint1: {keyForList: 'stop_waypoint'},
+              }
+            : transactionWaypoints);
     const reportAttributesDerived = useReportAttributes();
 
     const transactionState: TransactionStateType = shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT;
@@ -160,13 +157,11 @@ function IOURequestStepDistanceMap({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
-        }
-
-        return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
+    const shouldSkipConfirmation: boolean =
+        !(!skipConfirmation || !report?.reportID) &&
+        iouType !== CONST.IOU.TYPE.SPLIT &&
+        !isArchived &&
+        !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     let buttonText = translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -217,17 +212,17 @@ function IOURequestStepDistanceMap({
         setShouldShowAtLeastTwoDifferentWaypointsError(false);
     }, [atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, isLoading, isLoadingRoute, nonEmptyWaypointsCount, transaction]);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
 
     /**
      * Takes the user to the page for editing a specific waypoint
      * @param index of the waypoint to edit
      */
-    const navigateToWaypointEditPage = useCallback((index: number) => {
+    const navigateToWaypointEditPage = (index: number) => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(index)));
-    }, []);
+    };
 
     const navigateToNextStep = useDistanceNavigation({
         iouType,
@@ -258,7 +253,7 @@ function IOURequestStepDistanceMap({
         introSelected,
     });
 
-    const getError = useCallback(() => {
+    const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return getLatestErrorField(transaction, 'route');
@@ -279,7 +274,7 @@ function IOURequestStepDistanceMap({
             } as Errors;
         }
         return {};
-    }, [hasRouteError, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, transaction, translate]);
+    };
 
     type DataParams = {
         data: string[];
@@ -287,35 +282,32 @@ function IOURequestStepDistanceMap({
 
     const {waypointItems, getWaypoint, getWaypointKey, extractKey} = useWaypointItems(waypoints);
 
-    const updateWaypoints = useCallback(
-        ({data}: DataParams) => {
-            if (deepEqual(waypointItems, data)) {
-                return;
+    const updateWaypoints = ({data}: DataParams) => {
+        if (deepEqual(waypointItems, data)) {
+            return;
+        }
+
+        const newWaypoints: WaypointCollection = {};
+        let emptyWaypointIndex = -1;
+        for (const [index, item] of data.entries()) {
+            newWaypoints[`waypoint${index}`] = getWaypoint(item) ?? {};
+            // Find waypoint that BECOMES empty after dragging
+            if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
+                emptyWaypointIndex = index;
             }
+        }
 
-            const newWaypoints: WaypointCollection = {};
-            let emptyWaypointIndex = -1;
-            for (const [index, item] of data.entries()) {
-                newWaypoints[`waypoint${index}`] = getWaypoint(item) ?? {};
-                // Find waypoint that BECOMES empty after dragging
-                if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
-                    emptyWaypointIndex = index;
-                }
-            }
+        setOptimisticWaypoints(newWaypoints);
 
-            setOptimisticWaypoints(newWaypoints);
+        Promise.all([
+            removeWaypoint(transaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), undefined),
+            updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
+        ]).then(() => {
+            setOptimisticWaypoints(null);
+        });
+    };
 
-            Promise.all([
-                removeWaypoint(transaction, emptyWaypointIndex.toString(), shouldUseTransactionDraft(action), undefined),
-                updateWaypointsUtil(transactionID, newWaypoints, transactionState, waypoints),
-            ]).then(() => {
-                setOptimisticWaypoints(null);
-            });
-        },
-        [waypointItems, transaction, action, transactionID, transactionState, getWaypoint, waypoints],
-    );
-
-    const submitWaypoints = useCallback(() => {
+    const submitWaypoints = () => {
         if (blockDistanceRequestIfNeeded()) {
             return;
         }
@@ -326,40 +318,34 @@ function IOURequestStepDistanceMap({
         }
         suppressDiscardPrompt();
         navigateToNextStep();
-    }, [blockDistanceRequestIfNeeded, duplicateWaypointsError, atLeastTwoDifferentWaypointsError, hasRouteError, isLoadingRoute, isLoading, suppressDiscardPrompt, navigateToNextStep]);
+    };
 
-    const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
-            const index = getIndex?.();
-            const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
-            return (
-                <DistanceRequestRenderItem
-                    waypoints={waypoints}
-                    item={getWaypointKey(item)}
-                    onSecondaryInteraction={drag}
-                    isActive={isActive}
-                    getIndex={getIndex}
-                    onPress={navigateToWaypointEditPage}
-                    disabled={isLoadingRoute}
-                    sentryLabel={sentryLabel}
-                />
-            );
-        },
-        [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
-    );
+    const renderItem = ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
+        const index = getIndex?.();
+        const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
+        return (
+            <DistanceRequestRenderItem
+                waypoints={waypoints}
+                item={getWaypointKey(item)}
+                onSecondaryInteraction={drag}
+                isActive={isActive}
+                getIndex={getIndex}
+                onPress={navigateToWaypointEditPage}
+                disabled={isLoadingRoute}
+                sentryLabel={sentryLabel}
+            />
+        );
+    };
 
-    const errorState = useMemo(
-        () => ({
-            shouldShowAtLeastTwoDifferentWaypointsError,
-            atLeastTwoDifferentWaypointsError,
-            duplicateWaypointsError,
-            hasRouteError,
-            getError,
-        }),
-        [shouldShowAtLeastTwoDifferentWaypointsError, atLeastTwoDifferentWaypointsError, duplicateWaypointsError, hasRouteError, getError],
-    );
+    const errorState = {
+        shouldShowAtLeastTwoDifferentWaypointsError,
+        atLeastTwoDifferentWaypointsError,
+        duplicateWaypointsError,
+        hasRouteError,
+        getError,
+    };
 
-    const loadingState = useMemo(() => ({isOffline, isLoadingRoute, shouldFetchRoute, isLoading}), [isOffline, isLoadingRoute, shouldFetchRoute, isLoading]);
+    const loadingState = {isOffline, isLoadingRoute, shouldFetchRoute, isLoading};
 
     return (
         <StepScreenWrapper
