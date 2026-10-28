@@ -1,19 +1,22 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {getLoneField, getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
-import isHeading from '@components/DynamicForm/utils/isHeading';
+import groupContentBySection from '@components/DynamicForm/utils/groupContentBySection';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormValue} from '@components/Form/types';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type {DynamicFormContentItem, DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
 
 import React, {useState} from 'react';
+import {View} from 'react-native';
 
 import DynamicFormFieldRow from './DynamicFormFieldRow';
-import DynamicFormHeadingRow from './DynamicFormHeadingRow';
+import DynamicFormSection from './DynamicFormSection';
 
 type DynamicFormFieldsProps = {
     /** Headings and fields to render, in order. Fields of a type this App version does not know are left out. */
@@ -61,6 +64,7 @@ function DynamicFormFields({
     isSensitive = false,
 }: DynamicFormFieldsProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const visibleContent = getVisibleContent(content, values, allFields);
     const visibleFields = getContentFields(visibleContent);
     const loneField = getLoneField(visibleFields);
@@ -90,29 +94,49 @@ function DynamicFormFields({
         />
     );
 
-    return visibleContent.map((item, index) =>
-        isHeading(item) ? (
-            <DynamicFormHeadingRow
-                key={`heading-${item.key}`}
-                heading={item}
-                isFirst={index === 0}
-            />
-        ) : (
-            <DynamicFormFieldRow
-                key={item.key}
-                field={item}
-                values={values}
-                currency={currency}
-                maxFileSize={maxFileSize}
-                isLoneField={item === loneField}
-                shouldHideLabel={isLoneFieldInHeadline && item === loneField}
-                onRefreshRequirements={onRefreshRequirements}
-                onOpenListItemEditor={onOpenListItemEditor}
-                onListItemsChange={onListItemsChange}
-                isSensitive={isSensitive}
-                renderFields={renderFields}
-            />
-        ),
+    const renderRows = (fields: DynamicFormField[], key?: string) => (
+        <FormFields key={key}>
+            {fields.map((field) => (
+                <DynamicFormFieldRow
+                    key={field.key}
+                    field={field}
+                    values={values}
+                    currency={currency}
+                    maxFileSize={maxFileSize}
+                    isLoneField={field === loneField}
+                    shouldHideLabel={isLoneFieldInHeadline && field === loneField}
+                    onRefreshRequirements={onRefreshRequirements}
+                    onOpenListItemEditor={onOpenListItemEditor}
+                    onListItemsChange={onListItemsChange}
+                    isSensitive={isSensitive}
+                    renderFields={renderFields}
+                />
+            ))}
+        </FormFields>
+    );
+
+    const sections = groupContentBySection(visibleContent);
+    const [firstSection] = sections;
+    if (sections.length === 1 && firstSection && !firstSection.heading) {
+        return renderRows(firstSection.fields);
+    }
+
+    return (
+        <View style={styles.formContent}>
+            {sections.map(({heading, fields}) =>
+                heading ? (
+                    // A heading can share its key with a field, so its section is keyed apart from the rows
+                    <DynamicFormSection
+                        key={`heading-${heading.key}`}
+                        heading={heading}
+                    >
+                        {fields.length > 0 && renderRows(fields)}
+                    </DynamicFormSection>
+                ) : (
+                    renderRows(fields, 'leading-fields')
+                ),
+            )}
+        </View>
     );
 }
 

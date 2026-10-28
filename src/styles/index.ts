@@ -27,6 +27,7 @@ import {interpolate} from 'react-native-reanimated';
 
 import type {ThemeColors} from './theme/types';
 
+import formSpacing from './formSpacing';
 import layoutSpacing, {menuItemHorizontalPadding} from './layoutSpacing';
 import colors from './theme/colors';
 import {fontFamilyScale, fontScale, lineHeightScale, textVariants} from './typography';
@@ -5011,6 +5012,30 @@ const staticStyles = (theme: ThemeColors) =>
         contextMenuItemPopoverMaxWidth: {
             minWidth: variables.compactPopoverMenuWidth,
             maxWidth: variables.compactPopoverMenuWidth,
+        },
+
+        formContent: {
+            gap: formSpacing.blockGap,
+        },
+
+        formFields: {
+            gap: formSpacing.fieldGap,
+        },
+
+        formHeader: {
+            gap: formSpacing.headerGap,
+        },
+
+        formFieldGroup: {
+            gap: formSpacing.groupGap,
+        },
+
+        formMenuRows: {
+            marginVertical: -formSpacing.menuRowInset,
+        },
+
+        formMenuRowsBelowLabel: {
+            marginBottom: -formSpacing.menuRowInset,
         },
 
         formSpaceVertical: {

@@ -1,5 +1,7 @@
 import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
 
@@ -117,14 +119,13 @@ function AddressFormFields({
     };
 
     return (
-        <View style={containerStyles}>
+        <FormFields style={containerStyles}>
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
                     inputID={inputKeys?.street}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
-                    containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
@@ -146,13 +147,12 @@ function AddressFormFields({
                 value={values?.city}
                 defaultValue={defaultValues?.city}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
-                containerStyles={styles.mt6}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="address-line2"
             />
 
             {shouldDisplayStateSelector && (
-                <View style={[styles.mt3, styles.mhn5]}>
+                <FormMenuRows style={styles.mhn5}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
                         optionsList={shouldDisplayCountrySelector && currentlySelectedCountry === CONST.COUNTRY.CA ? PROVINCES_LIST_OPTIONS : STATES_LIST_OPTIONS}
@@ -166,7 +166,7 @@ function AddressFormFields({
                         errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
                         forwardedFSClass={forwardedFSClass}
                     />
-                </View>
+                </FormMenuRows>
             )}
             <InputWrapper
                 InputComponent={TextInput}
@@ -180,12 +180,11 @@ function AddressFormFields({
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
                 hint={translate('common.zipCodeExampleFormat', zipSampleFormat)}
-                containerStyles={styles.mt3}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="postal-code"
             />
             {shouldDisplayCountrySelector && (
-                <View style={[styles.mt3, styles.mhn5]}>
+                <FormMenuRows style={styles.mhn5}>
                     <InputWrapper
                         InputComponent={PushRowWithModal}
                         inputID={inputKeys?.country ?? 'country'}
@@ -201,9 +200,9 @@ function AddressFormFields({
                         shouldAllowChange={shouldAllowCountryChange}
                         forwardedFSClass={forwardedFSClass}
                     />
-                </View>
+                </FormMenuRows>
             )}
-        </View>
+        </FormFields>
     );
 }
 

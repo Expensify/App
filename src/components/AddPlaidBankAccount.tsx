@@ -22,6 +22,8 @@ import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
 import FullPageOfflineBlockingView from './BlockingViews/FullPageOfflineBlockingView';
+import FormFieldGroup from './Form/Layout/FormFieldGroup';
+import FormHeader from './Form/Layout/FormHeader';
 import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
@@ -251,34 +253,41 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
-            </Text>
-            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
-                <Icon
-                    src={icon}
-                    height={iconSize}
-                    width={iconSize}
-                    additionalStyles={iconStyles}
+            <View style={styles.formContent}>
+                <FormHeader
+                    title={translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
+                    description={text || undefined}
+                    style={styles.mh5}
                 />
-                <View>
-                    <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
-                    {selectedPlaidAccountMask.length > 0 && (
-                        <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
-                    )}
+                <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter]}>
+                    <Icon
+                        src={icon}
+                        height={iconSize}
+                        width={iconSize}
+                        additionalStyles={iconStyles}
+                    />
+                    <View>
+                        <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                        {selectedPlaidAccountMask.length > 0 && (
+                            <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                        )}
+                    </View>
                 </View>
+                <FormFieldGroup>
+                    <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+                    <View>
+                        <RadioButtons
+                            items={options}
+                            defaultCheckedValue={defaultSelectedPlaidAccountID}
+                            onSelect={handleSelectingPlaidAccount}
+                        />
+                        <FormHelpMessage
+                            style={styles.mh5}
+                            message={errorText}
+                        />
+                    </View>
+                </FormFieldGroup>
             </View>
-            <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
-            <RadioButtons
-                items={options}
-                defaultCheckedValue={defaultSelectedPlaidAccountID}
-                onSelect={handleSelectingPlaidAccount}
-            />
-            <FormHelpMessage
-                style={styles.mh5}
-                message={errorText}
-            />
         </FullPageOfflineBlockingView>
     );
 }

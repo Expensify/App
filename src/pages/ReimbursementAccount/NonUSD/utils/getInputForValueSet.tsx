@@ -1,4 +1,5 @@
 import InputWrapper from '@components/Form/InputWrapper';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import PushRowWithModal from '@components/PushRowWithModal';
 
 import type {ThemeStyles} from '@src/styles';
@@ -6,7 +7,6 @@ import type {CorpayFormField} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
 import React from 'react';
-import {View} from 'react-native';
 
 type ValueToMap = {
     code?: string;
@@ -28,8 +28,8 @@ function mapToPushRowWithModalListOptions(values: ValueToMap[]): Record<string, 
 
 function getInputForValueSet(field: CorpayFormField, defaultValue: string, isEditing: boolean, styles: ThemeStyles) {
     return (
-        <View
-            style={[styles.mb6, styles.mhn5]}
+        <FormMenuRows
+            style={styles.mhn5}
             key={field.id}
         >
             <InputWrapper
@@ -42,7 +42,7 @@ function getInputForValueSet(field: CorpayFormField, defaultValue: string, isEdi
                 searchInputTitle={field.label}
                 inputID={field.id}
             />
-        </View>
+        </FormMenuRows>
     );
 }
 

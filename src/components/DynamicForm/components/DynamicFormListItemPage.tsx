@@ -7,7 +7,7 @@ import {getListItems, getListItemSensitiveAnswers, parseListItemPageName} from '
 import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
-import Text from '@components/Text';
+import FormHeader from '@components/Form/Layout/FormHeader';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,19 +77,15 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
             validate={(inputValues) => getDynamicFieldErrors(listField.itemFields, withInputValues(inputValues), translate)}
             onSubmit={(inputValues) => onListItemSave(listField.key, item?.id, withInputValues(inputValues))}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={styles.mb0}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             enabledWhenOffline
         >
             {({inputValues}) => (
                 <>
-                    <Text
-                        style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
-                        accessibilityRole={CONST.ROLE.HEADER}
-                        aria-level={2}
-                    >
-                        {title}
-                    </Text>
+                    <FormHeader
+                        title={title}
+                        titleAriaLevel={2}
+                    />
                     <DynamicFormFields
                         content={listField.itemFields}
                         values={withInputValues(inputValues)}

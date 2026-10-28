@@ -5,6 +5,8 @@ import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/Dynami
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems} from '@components/DynamicForm/utils/listItems';
 import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -61,14 +63,13 @@ function DynamicFormFieldRow({
                       .join(', ')
                 : formatDynamicFieldValue(field, values, translate);
         return (
-            <View
-                style={[styles.mhn5, styles.pv1]}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                <MenuItemField
-                    name={label}
-                    value={readonlyValue}
-                />
+            <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
+                <FormMenuRows style={styles.mhn5}>
+                    <MenuItemField
+                        name={label}
+                        value={readonlyValue}
+                    />
+                </FormMenuRows>
             </View>
         );
     }
@@ -95,24 +96,39 @@ function DynamicFormFieldRow({
         },
     );
     const description = showsDescription ? undefined : getLocalizedText(translate, field.descriptionKey, field.description);
-
-    // Some inputs, such as CountryPicker, do not pass the FullStory class on, so the whole row is masked
-    return (
-        <View
-            style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
-            fsClass={CONST.FULLSTORY.CLASS.MASK}
-        >
-            {!!labelAbove && !shouldHideLabel && (
+    const shouldShowLabel = !!labelAbove && !shouldHideLabel;
+    const hasTextAbove = shouldShowLabel || !!description;
+    const content = hasTextAbove ? (
+        <FormFieldGroup>
+            {shouldShowLabel && (
                 <Text
-                    style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
+                    style={[labelAbove === 'heading' && styles.textStrong, isMenuRow && styles.ph5]}
                     role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}
                     aria-level={labelAbove === 'heading' ? 3 : undefined}
                 >
                     {getInputLabel(field, translate)}
                 </Text>
             )}
-            {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
+            {!!description && <Text style={[styles.textSupporting, isMenuRow && styles.ph5]}>{description}</Text>}
             {input}
+        </FormFieldGroup>
+    ) : (
+        input
+    );
+
+    // Some inputs, such as CountryPicker, do not pass the FullStory class on, so the whole row is masked
+    return (
+        <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
+            {isMenuRow ? (
+                <FormMenuRows
+                    hasLabelAbove={hasTextAbove}
+                    style={styles.mhn5}
+                >
+                    {content}
+                </FormMenuRows>
+            ) : (
+                content
+            )}
         </View>
     );
 }

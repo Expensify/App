@@ -1,3 +1,4 @@
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -50,9 +51,9 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
     };
 
     return (
-        <View>
-            <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('workspace.common.displayedAs')}</Text>
-            <View style={[styles.mhn5, styles.pb5, styles.mb0]}>
+        <FormFieldGroup>
+            <Text style={styles.textLabelSupporting}>{translate('workspace.common.displayedAs')}</Text>
+            <View style={styles.mhn5}>
                 {selectionOptions.map((option) => (
                     <SingleSelectListItem
                         key={option.value}
@@ -70,7 +71,7 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
                     />
                 )}
             </View>
-        </View>
+        </FormFieldGroup>
     );
 }
 

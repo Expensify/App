@@ -208,9 +208,10 @@ function FormWrapper({
             onSubmit={onSubmit}
             footerContent={footerContent}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
+            // Inside the form content the content's block gap already spaces the button from the fields
             containerStyles={[
                 styles.mh0,
-                styles.mt5,
+                shouldSubmitButtonStickToBottom && styles.mt5,
                 submitFlexEnabled && styles.flex1,
                 submitButtonStylesWithBottomSafeAreaPadding,
                 shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
@@ -231,7 +232,7 @@ function FormWrapper({
         <FormElement
             key={formID}
             ref={formContentRef}
-            style={[style, styles.pb5]}
+            style={[styles.formContent, style, styles.pb5]}
             onLayout={() => {
                 if (!shouldScrollToEnd) {
                     return;

@@ -40,7 +40,7 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The question the buttons answer, read out by screen readers as the name of the group */
     accessibilityLabel?: string;
 
-    /** Style of the group, used instead of its default top margin */
+    /** Style of the group */
     containerStyle?: StyleProp<ViewStyle>;
 
     ref?: ForwardedRef<ComponentRef<typeof View>>;
@@ -54,7 +54,7 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
     return (
         <>
             <View
-                style={containerStyle ?? styles.mt6}
+                style={containerStyle}
                 ref={ref}
                 role={accessibilityLabel ? CONST.ROLE.RADIOGROUP : undefined}
                 accessibilityLabel={accessibilityLabel}
