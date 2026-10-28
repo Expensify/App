@@ -31,6 +31,7 @@ let mockSearchState: {
     selectedReports: [],
 };
 let mockRouteParams: {sourceReportID?: string} = {};
+let mockFocusedWorkspacePolicyID: string | undefined;
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
     __esModule: true,
@@ -40,6 +41,11 @@ jest.mock('@hooks/useIsInSidePanel', () => ({
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useRoute: () => ({params: mockRouteParams}),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => ({
+    __esModule: true,
+    default: () => mockFocusedWorkspacePolicyID,
 }));
 
 jest.mock('@hooks/useCurrentReportID', () => ({
@@ -65,6 +71,7 @@ function resetMocks() {
         selectedReports: [],
     };
     mockRouteParams = {};
+    mockFocusedWorkspacePolicyID = undefined;
 }
 
 describe('useSidePanelContext', () => {
@@ -203,6 +210,38 @@ describe('useSidePanelContext', () => {
             const {result} = await renderWithConciergeReport();
             await waitForBatchedUpdates();
             expect(result.current).toMatchObject({reportID: 'main_report'});
+        });
+    });
+
+    describe('workspace pages', () => {
+        beforeEach(() => {
+            mockIsInSidePanel = true;
+        });
+
+        it('sends only the workspace when a workspace page is focused, ignoring the last report the user left', async () => {
+            // Given a focused workspace page while currentReportID still holds the report the user left
+            mockFocusedWorkspacePolicyID = 'policy_123';
+            mockCurrentReportIDState = {currentRHPReportID: undefined, currentReportID: 'main_report'};
+
+            // When the side panel context is built
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+
+            // Then only the workspace is sent
+            expect(result.current).toEqual({policyID: 'policy_123'});
+        });
+
+        it('sends the report when no workspace page is focused', async () => {
+            // Given a report on screen and no focused workspace page
+            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: 'main_report'};
+
+            // When the side panel context is built
+            const {result} = await renderWithConciergeReport();
+            await waitForBatchedUpdates();
+
+            // Then the report is sent without a workspace
+            expect(result.current).toMatchObject({reportID: 'rhp_report'});
+            expect(result.current?.policyID).toBeUndefined();
         });
     });
 

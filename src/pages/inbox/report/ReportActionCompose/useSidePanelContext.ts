@@ -3,7 +3,9 @@ import {useSearchQueryContext, useSearchSelectionContext} from '@components/Sear
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 
+import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -22,6 +24,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
+    const focusedWorkspacePolicyID = useRootNavigationState(getFocusedWorkspacePolicyID);
 
     // On native there is no side panel: the source report is threaded onto this Concierge screen's route params
     // (see SidePanelButton/index.native.tsx). Reading it here keeps it scoped to this navigation entry, so a second
@@ -39,6 +42,12 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     // it is not, so guard here as well (reportID is the Concierge report by the check above).
     if (!isInSidePanel) {
         return sourceReportID && sourceReportID !== reportID ? {reportID: sourceReportID} : undefined;
+    }
+
+    // On a workspace page currentReportID still holds the last report the user left, which is no longer on screen,
+    // so send only the workspace. A report opened in the RHP makes the focused screen a report screen instead.
+    if (focusedWorkspacePolicyID) {
+        return {policyID: focusedWorkspacePolicyID};
     }
 
     const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
