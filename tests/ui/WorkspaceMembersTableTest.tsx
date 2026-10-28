@@ -57,6 +57,7 @@ function renderTable(members: WorkspaceMemberRowData[], tableRef: React.RefObjec
                             selectedKeys={[]}
                             shouldShowCustomField1Column={false}
                             shouldShowCustomField2Column={false}
+                            shouldShowOfficeLocationColumn={false}
                             shouldShowBankAccountColumn
                             onRowSelectionChange={jest.fn()}
                         />

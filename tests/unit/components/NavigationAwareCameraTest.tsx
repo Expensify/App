@@ -48,7 +48,7 @@ describe('NavigationAwareCamera', () => {
     });
 
     it('keeps the session running once a capture navigates away and the screen blurs', () => {
-        // Closing it here cancels an in-flight `takePhoto` with "Camera is closed.", which is the whole
+        // Closing it here cancels an in-flight `capturePhoto` with "Camera is closed.", which is the whole
         // reason a full-resolution capture can outlive the shutter.
         expect(renderIsActive({isFocused: false, shouldStayActiveWhenBlurred: true})).toBe(true);
     });

@@ -12,7 +12,7 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 
 import type {LayoutRectangle} from 'react-native';
 
-import React, {memo, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 
 import type {GenericTooltipProps} from './types';
@@ -206,4 +206,4 @@ function GenericTooltip({
     );
 }
 
-export default memo(GenericTooltip);
+export default GenericTooltip;

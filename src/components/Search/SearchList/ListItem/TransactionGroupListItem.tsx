@@ -1,6 +1,7 @@
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
@@ -83,7 +84,6 @@ import YearListItemHeader from './YearListItemHeader';
  */
 function TransactionGroupListItemImpl({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -105,6 +105,7 @@ function TransactionGroupListItemImpl({
     ownerBillingGracePeriodEnd,
     onUndelete,
 }: TransactionGroupListItemProps<ListItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const groupItem = item as unknown as TransactionGroupListItemType;
 
     const theme = useTheme();
