@@ -27,8 +27,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import type {GestureResponderEvent} from 'react-native';
-
 import {SafeString} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
@@ -131,14 +129,18 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
     const shouldShowErrorMessage = areOptionsInitialized && selectedOptions.length < 1 && (!shouldDeferEmptySelectionError || hasAttemptedSave);
 
-    const confirmSelection = (_keyEvent?: GestureResponderEvent | KeyboardEvent, option?: OptionData) => {
-        if (!selectedOptions.length && !option) {
+    const confirmSelection = () => {
+        if (!selectedOptions.length) {
             if (shouldDeferEmptySelectionError) {
                 setHasAttemptedSave(true);
             }
             return;
         }
 
+        onFinish(CONST.IOU.TYPE.SUBMIT);
+    };
+
+    const confirmFocusedOption = () => {
         onFinish(CONST.IOU.TYPE.SUBMIT);
     };
 
@@ -238,6 +240,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             textInputOptions={textInputOptions}
             confirmButtonOptions={{
                 onConfirm: confirmSelection,
+                onConfirmFocusedOption: confirmFocusedOption,
                 isFooterConfirmEnabled: selectedOptions.length > 0,
             }}
             footerContent={footerContent}

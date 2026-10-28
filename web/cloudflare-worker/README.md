@@ -18,6 +18,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | A request with a matching `If-None-Match` | `304`, answered by the Worker for every non-HTML file |
 | A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, also when the bucket can't be read, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
+| A `POST`, such as a form submit the app didn't cancel | `303` to the same URL, so the browser loads that page with a `GET` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
 [`.assetsignore`](.assetsignore) keeps source maps (`*.map`) out of the upload. Wrangler's `build` command (`scripts/prepareDist.sh`) copies it into `dist/` before every `wrangler dev` and `wrangler deploy`, so always run wrangler from this directory.
@@ -141,11 +142,11 @@ The script diffs status, caching and security headers for a fixed set of paths. 
 | `staging` | `staging-new-expensify-assets` | `staging.new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Staging |
 | `production` | `new-expensify-assets` | None until switchover, then `new.expensify.com/*` (managed in Cloudflare, not in `wrangler.jsonc`) | Production |
 
-Every staging and production deploy also deploys the same build to that environment's Worker (the `webDeploy` job in `.github/workflows/deploy.yml`). Staging deploys also deploy it to the `test-staging` Worker (`webDeployTestStaging`). They use `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit these three Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
+Every staging and production deploy also deploys the same build to that environment's Worker (the `webDeploy` job in `.github/workflows/deploy.yml`). It uses `CLOUDFLARE_WORKERS_DEPLOY_TOKEN`, which can only edit these three Workers. That token can't read zones, so routes aren't in `wrangler.jsonc`: wrangler would try to sync them and fail.
 
-The Worker deploy is required: if it fails, or `WEB_STAGING_HOST` or `WEB_PRODUCTION_HOST` doesn't report the new version in `/version.json`, the deploy fails. A new Worker version takes effect immediately, so no cache needs purging. The `test-staging` deploy is a trial, so its failures don't affect the staging deploy.
+The Worker deploy is required: if it fails, or `WEB_STAGING_HOST` or `WEB_PRODUCTION_HOST` doesn't report the new version in `/version.json`, the deploy fails. A new Worker version takes effect immediately, so no cache needs purging.
 
-`test-staging` serves a staging build on a hostname nobody else uses.
+`test-staging` is for trying Worker changes on a hostname nobody else uses. CI doesn't deploy it, so it serves whatever was last deployed there by hand.
 
 To deploy one by hand, put a staging build in `dist/` and run:
 

@@ -1035,6 +1035,10 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -1460,14 +1464,16 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
+        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
+        RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
     },
     BUTTON_STATES: {
@@ -5322,6 +5328,7 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
+            IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
         },
         EXPENSE_REPORT_RULES: {
@@ -7404,6 +7411,7 @@ const CONST = {
         NEW_ROOM: 'room',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        DISTANCE_CREATE_TYPE: 'distanceCreateType',
         DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         RULES_TAB_TYPE: 'rulesTabType',
@@ -8229,6 +8237,11 @@ const CONST = {
                     search: true,
                     reportView: false,
                 },
+                PAID: {
+                    column: this.TABLE_COLUMNS.PAID,
+                    search: true,
+                    reportView: false,
+                },
                 POSTED: {
                     column: this.TABLE_COLUMNS.POSTED,
                     search: true,
@@ -8414,6 +8427,7 @@ const CONST = {
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
                     FIRST_APPROVER: this.TABLE_COLUMNS.FIRST_APPROVER,
                     FIRST_APPROVED: this.TABLE_COLUMNS.FIRST_APPROVED,
+                    PAID: this.TABLE_COLUMNS.PAID,
                     PAID_BY: this.TABLE_COLUMNS.PAID_BY,
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
@@ -8618,6 +8632,7 @@ const CONST = {
             APPROVED: 'approved',
             FIRST_APPROVER: 'firstapprover',
             FIRST_APPROVED: 'firstapproved',
+            PAID: 'paid',
             PAID_BY: 'paidBy',
             POSTED: 'posted',
             EXPORTED: 'exported',
@@ -8995,6 +9010,15 @@ const CONST = {
             YEAR_TO_DATE: 'year-to-date',
             LAST_12_MONTHS: 'last-12-months',
             LAST_STATEMENT: 'last-statement',
+            THIS_WEEK: 'this-week',
+            LAST_WEEK: 'last-week',
+            THIS_QUARTER: 'this-quarter',
+            LAST_QUARTER: 'last-quarter',
+            THIS_YEAR: 'this-year',
+            LAST_YEAR: 'last-year',
+            LAST_30_DAYS: 'last-30-days',
+            LAST_90_DAYS: 'last-90-days',
+            LAST_6_MONTHS: 'last-6-months',
         },
         SNAPSHOT_ONYX_KEYS: CONST_RUNTIME.SEARCH_SNAPSHOT_ONYX_KEYS,
         SEARCH_KEYS: {
@@ -9622,6 +9646,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
@@ -9965,6 +9990,26 @@ const CONST = {
         },
     },
 
+    /** A draggable edge that resizes a pane or a column horizontally. */
+    RESIZE_HANDLE: {
+        /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
+        INDICATOR_WIDTH: 2,
+    },
+
+    RHP_RESIZE: {
+        /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
+        HANDLE_HIT_WIDTH: 12,
+
+        /** Narrowest the single RHP can be dragged, in px. */
+        MIN_WIDTH: 380,
+
+        /** How much narrower, in px, the widest single RHP stays than a wide RHP, so a single RHP stacked on one never covers it. */
+        WIDE_RHP_INSET: 40,
+
+        /** Room, in px, the widest RHP still leaves for the content to its left. */
+        CONTENT_RESERVE_WIDTH: 360,
+    },
+
     TABLES: {
         FILTER_TYPE: {
             SINGLE_SELECT: 'singleSelect',
@@ -10011,9 +10056,6 @@ const CONST = {
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
-
-            /** Width of the line shown while a column's edge is dragged, and of the grip shown while its heading is hovered. */
-            INDICATOR_WIDTH: 2,
 
             /** Share of the heading's height the grip spans, centred vertically. */
             GRIP_HEIGHT_RATIO: 0.8,
@@ -10240,6 +10282,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10956,6 +10999,7 @@ const CONST = {
             AUTHENTICATE_PAYMENT: 'SettingsSubscription-AuthenticatePayment',
             VIEW_PAYMENT_HISTORY: 'SettingsSubscription-ViewPaymentHistory',
             PAYMENT_HISTORY_ROW: 'SettingsSubscription-PaymentHistoryRow',
+            PAYMENT_ACTIVITY_ROW: 'SettingsSubscription-PaymentActivityRow',
             VIEW_BILLING_RECEIPT: 'SettingsSubscription-ViewBillingReceipt',
             REQUEST_REFUND: 'SettingsSubscription-RequestRefund',
             CANCEL_SUBSCRIPTION: 'SettingsSubscription-CancelSubscription',
@@ -11100,12 +11144,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
