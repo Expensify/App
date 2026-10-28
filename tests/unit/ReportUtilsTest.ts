@@ -154,6 +154,7 @@ import {
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
     getReportPreviewReportActionMessage,
+    getReportStatusColorStyle,
     getReportStatusTranslation,
     getReportSubtitlePrefix,
     getTaskAssigneeChatOnyxData,
@@ -247,6 +248,8 @@ import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+
+import type {ThemeColors} from '@styles/theme/types';
 
 import {createDraftTransactionAndNavigateToParticipantSelector, getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
@@ -17342,6 +17345,18 @@ describe('ReportUtils', () => {
             expect(result).toBe(mockTranslate('common.done'));
         });
 
+        it('should return "Done" for a submitted and closed report', () => {
+            // Given a payment cancellation closes the report without an approval step
+            const stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+            const statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+
+            // When App translates the report status
+            const result = getReportStatusTranslation({stateNum, statusNum, translate: mockTranslate});
+
+            // Then App labels the closed workflow Done, not Paid
+            expect(result).toBe(mockTranslate('common.done'));
+        });
+
         it('should return "Approved" for state 2, status 3', () => {
             const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, translate: mockTranslate});
             expect(result).toBe(mockTranslate('iou.approved'));
@@ -17381,6 +17396,20 @@ describe('ReportUtils', () => {
                 mockTranslate('iou.deleted'),
             );
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
+        });
+    });
+
+    describe('getReportStatusColorStyle', () => {
+        it('uses the closed badge style for a submitted and closed report', () => {
+            // Given the report is closed without an approval step
+            const closedStyle = {backgroundColor: 'closed-background', textColor: 'closed-text'};
+            const theme = createMock<ThemeColors>({reportStatusBadge: {closed: closedStyle}});
+
+            // When the status badge style is resolved
+            const style = getReportStatusColorStyle(theme, CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.CLOSED);
+
+            // Then the badge looks like other closed reports
+            expect(style).toBe(closedStyle);
         });
     });
 

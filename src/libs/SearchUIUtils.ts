@@ -822,6 +822,9 @@ function getSuggestedSearchesVisibility(
         visibility: {
             [CONST.SEARCH.SEARCH_KEYS.EXPENSES]: true,
             [CONST.SEARCH.SEARCH_KEYS.REPORTS]: true,
+            [CONST.SEARCH.SEARCH_KEYS.BILLS]: false,
+            [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: false,
+            [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: false,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: shouldShowSubmitSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: shouldShowPaySuggestion,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: shouldShowApproveSuggestion,
@@ -2912,7 +2915,14 @@ function getReportSections({
     const mergedPersonalDetails = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     for (const key of orderedKeys) {
-        if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
+        if (
+            isReportEntry(key) &&
+            !data[key].isHiddenForBillReceiver &&
+            (data[key].type === CONST.REPORT.TYPE.IOU ||
+                data[key].type === CONST.REPORT.TYPE.EXPENSE ||
+                data[key].type === CONST.REPORT.TYPE.INVOICE ||
+                data[key].type === CONST.REPORT.TYPE.BILL)
+        ) {
             const reportItem = {...data[key]} as OnyxTypes.Report;
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
@@ -2945,10 +2955,9 @@ function getReportSections({
                     allReportTransactions,
                 );
 
+                const fromAccountID = reportItem.billSenderAccountID ?? reportItem.ownerAccountID;
                 const fromDetails =
-                    mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
-                    getPersonalDetailsForAccountID(reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ??
-                    emptyPersonalDetails;
+                    mergedPersonalDetails?.[fromAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? getPersonalDetailsForAccountID(fromAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
@@ -2956,8 +2965,12 @@ function getReportSections({
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
                 const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
-                const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: fromDetails, translate, formatPhoneNumber});
-                const formattedTo = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
+                const formattedFrom =
+                    currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.BILL
+                        ? (fromDetails?.login ?? '')
+                        : temporaryGetDisplayNameOrDefault({passedPersonalDetails: fromDetails, translate, formatPhoneNumber});
+                const toDisplayName = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
+                const formattedTo = currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.BILL ? (toDetails?.login ?? '') : toDisplayName;
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
                 // The paid-by user is the actor on the latest payment action. It stays blank until the report is paid.
@@ -3862,7 +3875,7 @@ function getSections({
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
     }
 
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL) {
         return getReportSections({
             data,
             currentSearch,
@@ -4003,7 +4016,7 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getSortedTaskData(data as TaskListItemType[], localeCompare, sortBy, sortOrder);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL) {
         return getSortedReportData(data as TransactionReportGroupListItemType[], localeCompare, translate, sortBy, sortOrder);
     }
 
@@ -4475,7 +4488,7 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
         return !Object.keys(searchResults?.data).some((key) => isGroupEntry(key));
     }
 
-    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || searchResults?.search?.type === CONST.SEARCH.DATA_TYPES.BILL) {
         return !Object.keys(searchResults?.data).some(
             (key) => isReportEntry(key) && (searchResults?.data[key as keyof typeof searchResults.data] as OnyxTypes.Report)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
@@ -4514,6 +4527,7 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
@@ -4555,6 +4569,7 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.INVOICE;
@@ -4591,9 +4606,9 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-/** Expense reports and tasks show a non-editable created timestamp in their date column, so it's labelled "Created"/"Created date" instead of "Date". */
+/** Expense reports, bills and tasks show a non-editable created timestamp in their date column, so it's labelled "Created"/"Created date" instead of "Date". */
 function isCreatedDateType(type?: SearchDataTypes): boolean {
-    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK;
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL || type === CONST.SEARCH.DATA_TYPES.TASK;
 }
 
 function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
@@ -4918,6 +4933,7 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    hasBills?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
 };
 
@@ -4935,6 +4951,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        hasBills = false,
         policyCategories,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
@@ -5008,6 +5025,17 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         if (expenseReportsSection.menuItems.length > 0) {
             typeMenuSections.push(expenseReportsSection);
         }
+    }
+
+    if (hasBills) {
+        const billMenuItems = [suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS], suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]];
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
+            billMenuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]);
+        }
+        typeMenuSections.push({
+            translationPath: 'billPay.bills',
+            menuItems: billMenuItems,
+        });
     }
 
     // Travel section
@@ -5159,6 +5187,7 @@ function omitTravelApprovalMenuItems(sections: SearchTypeMenuSection[]): SearchT
 const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
     [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.BILL]: 'InvoiceBookmark',
     [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
     [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
     [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
@@ -5261,6 +5290,7 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
         case CONST.SEARCH.DATA_TYPES.TASK:
             return getTaskStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return getExpenseReportedStatusOptions(translate);
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
@@ -5500,19 +5530,30 @@ function getViolationsForTransaction(
     return formatTransactionViolationNames(violationNames, translate);
 }
 
-function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
+function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string, hasBills = false) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {text: translate('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
         {text: translate('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
         {text: translate('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
         {text: translate('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translate('billPay.bill'), value: CONST.SEARCH.DATA_TYPES.BILL},
         {text: translate('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
         {text: translate('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
-    // Remove the invoice option if the user is not allowed to send invoices
-    return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
+    return typeOptions.filter((typeOption) => {
+        // Remove the invoice option if the user is not allowed to send invoices
+        if (typeOption.value === CONST.SEARCH.DATA_TYPES.INVOICE) {
+            return !shouldHideInvoiceOption;
+        }
+
+        // Show the bill option only to users who see Spend > Bills
+        if (typeOption.value === CONST.SEARCH.DATA_TYPES.BILL) {
+            return hasBills;
+        }
+        return true;
+    });
 }
 
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate, type?: SearchDataTypes) {
@@ -6161,6 +6202,9 @@ function getDisplayValue(
         if (filterValue === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             return translate('common.expenseReport');
         }
+        if (filterValue === CONST.SEARCH.DATA_TYPES.BILL) {
+            return translate('billPay.bill');
+        }
         return filterValue ? translate(`common.${filterValue}`) : undefined;
     }
 
@@ -6751,7 +6795,7 @@ function getColumnsToShow({
         return !!getReportCustomColumnValue(column, reportToCheck);
     };
 
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL) {
         const defaultReportColumns: SearchColumnType[] = [
             CONST.SEARCH.TABLE_COLUMNS.AVATAR,
             CONST.SEARCH.TABLE_COLUMNS.DATE,

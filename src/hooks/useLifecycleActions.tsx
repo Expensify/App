@@ -6,6 +6,7 @@ import {useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnc
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 
+import {isBillPayReport} from '@libs/BillPayUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
@@ -193,7 +194,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             showDelegateNoAccessModal();
             return;
         }
-        if (!skipAnimation && !isSubmitPolicy(policy)) {
+
+        // Bills show BillPaymentButton, which never ends the approved animation, so Pay would stay on the bill after it is paid.
+        const shouldAnimateApproval = !skipAnimation && !isBillPayReport(moneyRequestReport, accountID);
+        if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
@@ -210,7 +214,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             ownerLogin: submitterLogin,
             amountOwed,
             onApproved: () => {
-                if (skipAnimation) {
+                if (!shouldAnimateApproval) {
                     return;
                 }
                 startApprovedAnimation();
@@ -480,7 +484,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
 
-                if (result.action !== ModalActions.CONFIRM || !chatReport) {
+                if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
 

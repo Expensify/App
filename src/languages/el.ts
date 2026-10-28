@@ -32,6 +32,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bill: 'Λογαριασμός',
+        bills: 'Λογαριασμοί',
+        createBill: 'Δημιουργία λογαριασμού',
+        vendorEmail: 'Email προμηθευτή',
+        attachPDF: 'Επισύναψη PDF',
+        payByACH: 'Πληρωμή μέσω ACH',
+        markAsPaid: 'Σήμανση ως πληρωμένο',
+        paymentFailed: 'Δεν μπορέσαμε να πληρώσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        createFailed: 'Δεν μπορέσαμε να δημιουργήσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        payBills: ({count}) => ({one: 'Πληρωμή 1 λογαριασμού', other: `Πληρωμή ${count} λογαριασμών`}),
+        approveBills: ({count}) => ({one: 'Έγκριση 1 λογαριασμού', other: `Έγκριση ${count} λογαριασμών`}),
+        primaryContactHint: (domain) =>
+            `Η κύρια επαφή είναι το βασικό σημείο επικοινωνίας για το ${domain} και θα λαμβάνει λογαριασμούς που αποστέλλονται στη διεύθυνση πληρωμών του τομέα ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
@@ -1634,6 +1649,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         rejectedThisReport: 'απορρίφθηκε',
         waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${vendorDisplayName} να προσθέσει έναν τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ακύρωσε την πληρωμή των ${amount}, επειδή ο/η ${submitterDisplayName} δεν ενεργοποίησε το Expensify Wallet του/της μέσα σε 30 ημέρες`,

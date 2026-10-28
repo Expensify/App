@@ -5,6 +5,7 @@ import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, Repo
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {canPayBill, isBillReport} from './BillPayUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
@@ -219,6 +220,14 @@ function isPrimaryPayAction({
     isSecondaryAction,
     canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
+    if (report.isHiddenForBillReceiver) {
+        return false;
+    }
+
+    if (isBillReport(report) || report.isBillPayReport) {
+        return canPayBill(report, policy, currentUserAccountID, currentUserLogin ?? '');
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (isPayBlocked(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {

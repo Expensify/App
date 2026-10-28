@@ -8,6 +8,7 @@ import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
+import {isBillPayReport} from '@libs/BillPayUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -45,12 +46,16 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(Object.values(reportTransactions));
 
+    // The approved animation keeps Pay as the primary action until AnimatedSettlementButton ends it. Bills show
+    // BillPaymentButton instead, which never ends it, so Pay would stay on the bill after it is paid.
+    const shouldAnimateApproval = !isBillPayReport(moneyRequestReport, accountID);
+
     const onApprove = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
-        if (!isSubmitPolicy(policy)) {
+        if (shouldAnimateApproval && !isSubmitPolicy(policy)) {
             startApprovedAnimation();
         }
         approveMoneyRequest({
@@ -67,7 +72,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             ownerBillingGracePeriodEnd,
             ownerLogin,
             full,
-            onApproved: startApprovedAnimation,
+            onApproved: shouldAnimateApproval ? startApprovedAnimation : undefined,
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,

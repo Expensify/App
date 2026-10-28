@@ -35,6 +35,20 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bill: 'Rachunek',
+        bills: 'Rachunki',
+        createBill: 'Utwórz rachunek',
+        vendorEmail: 'E-mail dostawcy',
+        attachPDF: 'Załącz PDF',
+        payByACH: 'Zapłać przez ACH',
+        markAsPaid: 'Oznacz jako opłacone',
+        paymentFailed: 'Nie udało się opłacić tego rachunku. Spróbuj ponownie.',
+        createFailed: 'Nie udało się utworzyć tego rachunku. Spróbuj ponownie.',
+        payBills: ({count}) => ({one: 'Opłać 1 rachunek', few: `Opłać ${count} rachunki`, many: `Opłać ${count} rachunków`, other: `Opłać ${count} rachunku`}),
+        approveBills: ({count}) => ({one: 'Zatwierdź 1 rachunek', few: `Zatwierdź ${count} rachunki`, many: `Zatwierdź ${count} rachunków`, other: `Zatwierdź ${count} rachunku`}),
+        primaryContactHint: (domain) => `Główna osoba kontaktowa odpowiada za kontakt w domenie ${domain} i otrzyma rachunki wysłane na adres płatności tej domeny ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dzień`,
@@ -1612,6 +1626,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `zatwierdzono${memo ? `, wpisując ${memo}` : ''}`,
         rejectedThisReport: 'odrzucono',
         waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${submitterDisplayName} doda osobiste konto bankowe.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${vendorDisplayName} doda konto bankowe.`,
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `anulowano płatność ${amount}, ponieważ ${submitterDisplayName} nie aktywował(-a) swojego portfela Expensify w ciągu 30 dni`,

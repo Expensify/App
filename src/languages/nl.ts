@@ -35,6 +35,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bill: 'Te betalen factuur',
+        bills: 'Te betalen facturen',
+        createBill: 'Te betalen factuur maken',
+        vendorEmail: 'E-mailadres leverancier',
+        attachPDF: 'PDF bijvoegen',
+        payByACH: 'Betalen via ACH',
+        markAsPaid: 'Markeren als betaald',
+        paymentFailed: 'We konden deze factuur niet betalen. Probeer het opnieuw.',
+        createFailed: 'We konden deze factuur niet maken. Probeer het opnieuw.',
+        payBills: ({count}) => ({one: '1 factuur betalen', other: `${count} facturen betalen`}),
+        approveBills: ({count}) => ({one: '1 factuur goedkeuren', other: `${count} facturen goedkeuren`}),
+        primaryContactHint: (domain) =>
+            `De primaire contactpersoon is het aanspreekpunt voor ${domain} en ontvangt facturen die naar het factuuradres van dit domein ${domain}@expensify.cash worden gestuurd.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 dag`,
@@ -1576,6 +1591,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `goedgekeurd${memo ? `, met de omschrijving ${memo}` : ''}`,
         rejectedThisReport: 'afgekeurd',
         waitingOnBankAccount: (submitterDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${submitterDisplayName} een persoonlijke bankrekening toevoegt.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${vendorDisplayName} een bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd`,

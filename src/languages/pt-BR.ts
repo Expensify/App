@@ -35,6 +35,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bill: 'Conta a pagar',
+        bills: 'Contas a pagar',
+        createBill: 'Criar conta a pagar',
+        vendorEmail: 'E-mail do fornecedor',
+        attachPDF: 'Anexar PDF',
+        payByACH: 'Pagar por ACH',
+        markAsPaid: 'Marcar como paga',
+        paymentFailed: 'Não foi possível pagar esta conta. Tente novamente.',
+        createFailed: 'Não foi possível criar esta conta. Tente novamente.',
+        payBills: ({count}) => ({one: 'Pagar 1 conta', other: `Pagar ${count} contas`}),
+        approveBills: ({count}) => ({one: 'Aprovar 1 conta', other: `Aprovar ${count} contas`}),
+        primaryContactHint: (domain) =>
+            `O contato principal é o ponto de contato de ${domain} e receberá as contas enviadas ao endereço de pagamento de contas deste domínio ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} dia`,
@@ -1575,6 +1590,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `aprovado${memo ? `, dizendo ${memo}` : ''}`,
         rejectedThisReport: 'rejeitou',
         waitingOnBankAccount: (submitterDisplayName: string) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária pessoal.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `iniciou o pagamento, mas está aguardando ${vendorDisplayName} adicionar uma conta bancária.`,
         adminCanceledRequest: 'cancelou o pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) => `cancelou o pagamento de ${amount} porque ${submitterDisplayName} não ativou a Carteira Expensify em 30 dias`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi efetuado.`,

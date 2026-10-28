@@ -26,7 +26,9 @@ const expenseStatusActionMapping: Record<string, ExpenseStatusPredicate> = {
     [CONST.SEARCH.STATUS.EXPENSE.APPROVED]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
     [CONST.SEARCH.STATUS.EXPENSE.PAID]: (expenseReport) =>
         (expenseReport?.stateNum ?? 0) >= CONST.REPORT.STATE_NUM.APPROVED && expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED,
-    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) => expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && expenseReport.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
+    [CONST.SEARCH.STATUS.EXPENSE.DONE]: (expenseReport) =>
+        (expenseReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED || expenseReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED) &&
+        expenseReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED,
     [CONST.SEARCH.STATUS.EXPENSE.UNREPORTED]: (expenseReport, transactionReportID) => !expenseReport && transactionReportID !== CONST.REPORT.TRASH_REPORT_ID,
     [CONST.SEARCH.STATUS.EXPENSE.DELETED]: (_expenseReport, transactionReportID) => transactionReportID === CONST.REPORT.TRASH_REPORT_ID,
 };
@@ -52,6 +54,7 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'ThumbsUp',
     'CheckCircle',
     'Plane',
+    'Paycheck',
 ] as const satisfies readonly ExpensifyIconName[];
 
 type SearchTypeMenuItem = {
@@ -176,6 +179,63 @@ function getSuggestedSearches(
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
             icon: 'Document',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.BILLS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.BILLS,
+            translationPath: 'billPay.bills',
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            icon: 'Paycheck',
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.BILL}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: {
+            key: CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE,
+            translationPath: 'search.tabs.approve',
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            icon: 'ThumbsUp',
+            searchQuery: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.BILL, action: CONST.SEARCH.ACTION_FILTERS.APPROVE, to: [`${accountID}`]}),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: {
+            key: CONST.SEARCH.SEARCH_KEYS.BILLS_PAY,
+            translationPath: 'search.tabs.pay',
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            icon: 'MoneyBag',
+            searchQuery: buildQueryStringFromFilterFormValues({type: CONST.SEARCH.DATA_TYPES.BILL, action: CONST.SEARCH.ACTION_FILTERS.PAY, payer: accountID?.toString()}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },

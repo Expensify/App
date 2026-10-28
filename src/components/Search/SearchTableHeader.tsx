@@ -556,6 +556,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+        case CONST.SEARCH.DATA_TYPES.BILL:
             return getExpenseReportHeaders(icons.Profile);
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
@@ -616,7 +617,9 @@ function SearchTableHeader({
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
-    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
+    const icons = useMemoizedLazyExpensifyIcons(
+        type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : [],
+    ) satisfies SearchHeaderIcons;
 
     const shouldShowColumn = (columnName: SearchColumnType) => {
         return columns.includes(columnName);

@@ -35,6 +35,21 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        bill: 'Facture à payer',
+        bills: 'Factures à payer',
+        createBill: 'Créer une facture à payer',
+        vendorEmail: 'E-mail du fournisseur',
+        attachPDF: 'Joindre un PDF',
+        payByACH: 'Payer par ACH',
+        markAsPaid: 'Marquer comme payée',
+        paymentFailed: 'Nous n’avons pas pu payer cette facture. Veuillez réessayer.',
+        createFailed: 'Nous n’avons pas pu créer cette facture. Veuillez réessayer.',
+        payBills: ({count}) => ({one: 'Payer 1 facture', other: `Payer ${count} factures`}),
+        approveBills: ({count}) => ({one: 'Approuver 1 facture', other: `Approuver ${count} factures`}),
+        primaryContactHint: (domain) =>
+            `Le contact principal est l’interlocuteur de ${domain} et recevra les factures envoyées à l’adresse de paiement des factures du domaine ${domain}@expensify.cash.`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
@@ -1584,6 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `a commencé le paiement, mais attend que ${vendorDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,

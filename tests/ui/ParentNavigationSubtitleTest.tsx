@@ -2,15 +2,20 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import type {RouteProp} from '@react-navigation/native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type Report from '../../src/types/onyx/Report';
+
 import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubtitle';
+import CONST from '../../src/CONST';
 import NAVIGATORS from '../../src/NAVIGATORS';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import ROUTES from '../../src/ROUTES';
 import SCREENS from '../../src/SCREENS';
 import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,6 +40,14 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     getReportAction: jest.fn(() => undefined),
     isReportActionVisible: jest.fn(() => false),
 }));
+
+jest.mock('@libs/ReportUtils', () => {
+    const actualReportUtils = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
+    return {
+        ...actualReportUtils,
+        getPolicyExpenseChat: jest.fn(),
+    };
+});
 
 const mockUseRootNavigationState = jest.fn();
 jest.mock('@hooks/useRootNavigationState', () => ({
@@ -303,6 +316,66 @@ describe('ParentNavigationSubtitle', () => {
 
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalled();
+    });
+
+    describe('parentless bill subtitle', () => {
+        const billReportID = 'bill-report';
+        const subtitleData = {reportName: "bob's expenses", workspaceName: "Receiver's Workspace"};
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+        });
+
+        it('opens the policy expense chat from a parentless bill subtitle', async () => {
+            // Given a bill with no parent report, and its owner's workspace chat
+            const policyExpenseChatID = 'policy-expense-chat';
+            const ownerAccountID = 123;
+            const policyID = 'policy-id';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL, ownerAccountID, policyID}));
+            jest.mocked(getPolicyExpenseChat).mockReturnValue(createMock<Report>({reportID: policyExpenseChatID}));
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={subtitleData}
+                    reportID={billReportID}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // When the subtitle link is pressed
+            fireEvent(screen.getByTestId('parent-navigation-subtitle-link'), 'press', {
+                preventDefault: jest.fn(),
+                stopPropagation: jest.fn(),
+                nativeEvent: {},
+            });
+
+            // Then it opens the workspace chat of the bill's owner
+            expect(getPolicyExpenseChat).toHaveBeenCalledWith(ownerAccountID, policyID);
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatID));
+        });
+
+        it('renders the parentless bill subtitle as text when its policy expense chat is unavailable', async () => {
+            // Given a bill with no parent report, and no workspace chat for its owner
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL}));
+            jest.mocked(getPolicyExpenseChat).mockReturnValue(undefined);
+
+            // When the subtitle renders
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={subtitleData}
+                    reportID={billReportID}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then the report name shows as plain text
+            expect(screen.queryByTestId('parent-navigation-subtitle-link')).toBeNull();
+            expect(screen.getByText(subtitleData.reportName)).toBeTruthy();
+        });
     });
 
     describe('visible report actions subscription', () => {
