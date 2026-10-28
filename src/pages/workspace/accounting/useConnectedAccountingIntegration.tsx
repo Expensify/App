@@ -267,6 +267,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
         const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
         const zohoBooksOrganizationList = policy?.connections?.zohoBooks?.data?.organizations;
+        const currentZohoBooksOrganization = zohoBooksOrganizationList?.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID);
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -440,12 +441,23 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                     ? {}
                     : {
                           description: translate('workspace.zohoBooks.organization'),
-                          title: zohoBooksOrganizationList.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID)?.name ?? '',
+                          iconRight: icons.ArrowRight,
+                          title: currentZohoBooksOrganization?.name ?? '',
                           titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           shouldShowDescriptionOnTop: true,
-                          interactive: false,
+                          interactive: canWriteAccounting && zohoBooksOrganizationList.length > 1,
+                          // Multi-location organizations are not supported yet, so explain why the connection doesn't work.
+                          errorText: currentZohoBooksOrganization?.isMultiLocation ? translate('workspace.zohoBooks.multiLocationNotSupported') : undefined,
                           pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
-                          brickRoadIndicator: policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          brickRoadIndicator:
+                              !!policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID || !!currentZohoBooksOrganization?.isMultiLocation
+                                  ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                  : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && zohoBooksOrganizationList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR.getRoute(policyID))
+                                  : undefined,
                       };
 
             default:

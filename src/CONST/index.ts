@@ -1035,6 +1035,10 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -2349,6 +2353,7 @@ const CONST = {
             AUTOSCROLL_TO_TOP_THRESHOLD: 250,
             LINKED_MESSAGE_OFFSET: 40,
             MAX_GROUPING_TIME: 300000,
+            MAX_SYSTEM_MESSAGE_COLLAPSE_TIME: 24 * 60 * 60 * 1000,
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
@@ -5140,6 +5145,28 @@ const CONST = {
         AUTO_REPORTING_OFFSET: {
             LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_MONDAY_OF_MONTH: 'lastMondayOfMonth',
+            LAST_TUESDAY_OF_MONTH: 'lastTuesdayOfMonth',
+            LAST_WEDNESDAY_OF_MONTH: 'lastWednesdayOfMonth',
+            LAST_THURSDAY_OF_MONTH: 'lastThursdayOfMonth',
+            LAST_FRIDAY_OF_MONTH: 'lastFridayOfMonth',
+            LAST_SATURDAY_OF_MONTH: 'lastSaturdayOfMonth',
+            LAST_SUNDAY_OF_MONTH: 'lastSundayOfMonth',
+        },
+        AUTO_REPORTING_WEEKDAYS: {
+            MONDAY: 1,
+            TUESDAY: 2,
+            WEDNESDAY: 3,
+            THURSDAY: 4,
+            FRIDAY: 5,
+            SATURDAY: 6,
+            SUNDAY: 7,
+        },
+        AUTO_REPORTING_MAX_DAY_OF_MONTH: 28,
+        AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET: 15,
+        SEMI_MONTHLY_SUBMISSIONS: {
+            FIRST: 'first',
+            SECOND: 'second',
         },
         APPROVAL_MODE: {
             OPTIONAL: 'OPTIONAL',
@@ -5325,6 +5352,7 @@ const CONST = {
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
+            TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -5610,6 +5638,7 @@ const CONST = {
                 DIGITS_SYNC_PAYMENTS: 'digitsSyncPayments',
                 DIGITS_SYNC_CARD_SETTLEMENTS: 'digitsSyncCardSettlements',
                 DIGITS_SYNC_TRAVEL_SETTLEMENTS: 'digitsSyncTravelSettlements',
+                ZOHO_BOOKS_SYNC_TITLE: 'zohoBooksSyncTitle',
                 ZOHO_BOOKS_SYNC_CONNECTION: 'zohoBooksSyncConnection',
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
@@ -8153,7 +8182,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8344,6 +8373,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                DECLINED: {
+                    column: this.TABLE_COLUMNS.DECLINED,
+                    search: true,
+                    reportView: false,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8427,6 +8461,7 @@ const CONST = {
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
+                    DECLINED: this.TABLE_COLUMNS.DECLINED,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -8447,7 +8482,15 @@ const CONST = {
                 },
                 INVOICE: {},
                 TASK: {},
-                TRIP: {},
+                TRIP: {
+                    START_DATE: this.TABLE_COLUMNS.START_DATE,
+                    END_DATE: this.TABLE_COLUMNS.END_DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TRIP_NAME: this.TABLE_COLUMNS.TRIP_NAME,
+                    TRAVELER: this.TABLE_COLUMNS.TRAVELER,
+                    TOTAL: this.TABLE_COLUMNS.TOTAL,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
                 CHAT: {},
             };
         },
@@ -8551,7 +8594,15 @@ const CONST = {
                 ],
                 INVOICE: [],
                 TASK: [],
-                TRIP: [],
+                TRIP: [
+                    this.TABLE_COLUMNS.START_DATE,
+                    this.TABLE_COLUMNS.END_DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TRIP_NAME,
+                    this.TABLE_COLUMNS.TRAVELER,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 CHAT: [],
             };
         },
@@ -8620,6 +8671,12 @@ const CONST = {
             },
         },
         GROUP_COLUMN_PREFIX: 'group',
+        // Status the backend works out for each trip row, from the trip's dates and Spotnana status
+        TRIP_STATUS: {
+            UPCOMING: 'upcoming',
+            DONE: 'done',
+            CANCELED: 'canceled',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -8643,6 +8700,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
+            DECLINED: 'declined',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8699,6 +8757,10 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            START_DATE: 'startDate',
+            END_DATE: 'endDate',
+            TRIP_NAME: 'tripName',
+            TRAVELER: 'traveler',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -8930,6 +8992,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
+                [this.TABLE_COLUMNS.DECLINED]: 'declined',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
@@ -10030,7 +10093,10 @@ const CONST = {
             /** How narrow a free-text column may be squeezed before the table scrolls instead. Around 17 characters, so a typical merchant name or full name still reads, and a column is never squeezed below its header regardless. */
             MIN_FREE_TEXT_COLUMN_WIDTH: 120,
 
-            /** How wide a free-text column may be sized for its content once the table scrolls, so one unusually long value doesn't push every column after it out of view. A table that still fits its columns caps nothing: the spare room is there to be used. */
+            /** The width a free-text column is laid out at once the table scrolls, when horizontal room is no longer scarce. */
+            SCROLLED_FREE_TEXT_COLUMN_WIDTH: 180,
+
+            /** The cap a column opts into through `dynamicSizing.maxWidth`, so one unusually long value doesn't take room the columns after it need. */
             MAX_FREE_TEXT_COLUMN_WIDTH: 180,
         },
 
@@ -10126,6 +10192,9 @@ const CONST = {
         ODOMETER_EXPENSE: {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
+        },
+        PILL_SELECTOR: {
+            PILL: 'PillSelector-Pill',
         },
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
@@ -10311,6 +10380,7 @@ const CONST = {
             REPORT_ACTION_ITEM_THREAD: 'Report-ReportActionItemThread',
             THREAD_DIVIDER: 'Report-ThreadDivider',
             REPORT_ACTION_ITEM: 'Report-ReportActionItem',
+            COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
@@ -10506,6 +10576,9 @@ const CONST = {
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
         },
+        TAX_PICKER_MODAL: {
+            BACK_BUTTON: 'TaxPickerModal-BackButton',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',
@@ -10676,6 +10749,7 @@ const CONST = {
                 NAME: 'WorkspaceOverview-Name',
                 DESCRIPTION: 'WorkspaceOverview-Description',
                 CURRENCY: 'WorkspaceOverview-Currency',
+                TIMEZONE: 'WorkspaceOverview-Timezone',
                 ADDRESS: 'WorkspaceOverview-Address',
                 OFFICE_LOCATION: 'WorkspaceOverview-OfficeLocation',
                 COMPANY_ADDRESS_OFFICE_LOCATION: 'WorkspaceOverview-CompanyAddressOfficeLocation',
@@ -10725,6 +10799,8 @@ const CONST = {
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                AUTO_REPORTING_OFFSET: 'WorkspaceWorkflows-AutoReportingOffset',
+                AUTO_REPORTING_SECOND_OFFSET: 'WorkspaceWorkflows-AutoReportingSecondOffset',
                 CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
                 MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
