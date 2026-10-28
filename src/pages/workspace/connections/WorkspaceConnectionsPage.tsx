@@ -4,6 +4,7 @@
  */
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -31,6 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -45,7 +47,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 
 import variables from '@styles/variables';
 
-import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -294,6 +296,17 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 addBottomSafeAreaPadding
                 keyboardShouldPersistTaps="handled"
             >
+                {/* Connecting turns these features on without a toggle, so errors from turning them on show here */}
+                <ErrorMessageRow
+                    errors={getLatestErrorField(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
+                    errorRowStyles={styles.mb4}
+                    onDismiss={() => clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
+                />
+                <ErrorMessageRow
+                    errors={getLatestErrorField(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
+                    errorRowStyles={styles.mb4}
+                    onDismiss={() => clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
+                />
                 {connectedListings.length > 0 && (
                     <View style={styles.mb4}>
                         <ConnectionsGrid

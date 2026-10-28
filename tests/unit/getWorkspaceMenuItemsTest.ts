@@ -586,4 +586,24 @@ describe('getWorkspaceMenuItems Connections row', () => {
         // Then the error shows on Connections, since the Receipt partners row it used to show on is gone
         expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
+
+    it.each([CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED])(
+        'shows an error indicator on Connections when turning on %s failed',
+        (featureName) => {
+            // Given connecting an integration failed to turn its feature on
+            const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), errorFields: {[featureName]: {error: 'Whoops'}}});
+
+            // When the Workspace menu is built
+            const items = getWorkspaceMenuItems({
+                policy,
+                policyID: policy.id,
+                currentUserLogin,
+                icons,
+                convertToDisplayString: () => '',
+            });
+
+            // Then Connections points the admin to the page where the error can be read and dismissed
+            expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        },
+    );
 });

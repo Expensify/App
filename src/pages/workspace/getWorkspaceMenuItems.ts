@@ -162,8 +162,11 @@ function getWorkspaceMenuItems({
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress, accountingConnectionNames);
     const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy));
+    const hasConnectionFeatureError =
+        !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] ?? {});
     const getConnectionsBrickRoadIndicator = () => {
-        if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError) {
+        if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {
