@@ -1,4 +1,4 @@
-import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import type {ChartDataPoint, ChartValueFormatter, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
 import {canFontRenderText} from '@components/Charts/utils';
 import {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
 
@@ -10,13 +10,26 @@ type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
     unit?: UnitWithFallback | string;
     unitPosition?: UnitPosition;
+
+    /** Formats plotted values instead of the unit-carrying number format, for charts plotting something other than money */
+    formatValue?: ChartValueFormatter;
+
     labelSkipInterval?: number;
     labelRotation?: LabelRotation;
     truncatedLabels?: string[];
     fontManager?: SkTypefaceFontProvider | null;
 };
 
-export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontManager}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({
+    data,
+    unit,
+    unitPosition = 'left',
+    formatValue: formatValueOverride,
+    labelSkipInterval = 1,
+    labelRotation = 0,
+    truncatedLabels,
+    fontManager,
+}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
     const displayUnit = typeof unit === 'string' ? unit : unit?.value;
@@ -33,8 +46,8 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
         const sign = /^[-\u2212]/.exec(formatted)?.[0] ?? '';
         return `${sign}${unitToDisplay}${separator}${formatted.slice(sign.length)}`;
     };
-    const formatValue = (value: number) => withUnit(numberFormat(value));
-    const formatCompactValue = (value: number) => withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
+    const formatValue = (value: number) => formatValueOverride?.(value) ?? withUnit(numberFormat(value));
+    const formatCompactValue = (value: number) => formatValueOverride?.(value, {shouldUseCompactNotation: true}) ?? withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
 
     const formatLabel = (value: number) => {
         const index = Math.round(value);

@@ -15,7 +15,7 @@ import type {NonEmptyTuple} from 'type-fest';
 
 import type {ChartBucketRange} from './chartGroupByConfig';
 import type {ChartComparisonPeriods, TimeGroupBy} from './comparisonBuckets';
-import type {ChartView, GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
+import type {ChartView, GroupedItem, SearchChartDataRow, SearchChartMetric, SearchGroupBy} from './types';
 
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
@@ -52,6 +52,9 @@ type BuildChartSeriesParams = {
 
     /** The chart type the rows are plotted on, which decides how groups are colored */
     view: ChartView;
+
+    /** What each group contributes to the chart: the money it totals, or how many expenses it holds. Defaults to the amount. */
+    metric?: SearchChartMetric;
 
     /** Returns the full label of a group */
     getLabel: (item: GroupedItem) => string;
@@ -102,12 +105,13 @@ function getSliceColorsByDataIndex(data: ChartDataPoint[]): Array<string | undef
     return colors;
 }
 
-/** This is the single place group totals are turned into plotted values. */
+/** This is the single place group totals and counts are turned into plotted values. */
 function buildChartSeries({
     data,
     comparison,
     groupBy,
     view,
+    metric = CONST.SEARCH.CHART_METRIC.AMOUNT,
     getLabel,
     getShortLabel,
     getCurrencyDecimals,
@@ -119,7 +123,10 @@ function buildChartSeries({
 }: BuildChartSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const periods = comparison?.periods;
-    const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
+    const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
+    const getValue = (item: GroupedItem) => (isCountMetric ? item.count : convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD)));
+    // The share the search reports is a share of total spend, so it says nothing about a group's place among the counts.
+    const getShare = (item: GroupedItem) => (isCountMetric ? undefined : item.percentOfTotal);
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
     const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
 
@@ -130,8 +137,8 @@ function buildChartSeries({
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, groupBy);
             const comparedItem = counterpartRange && comparedByKey.get(counterpartRange.start);
             return {
-                value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
-                percentOfTotal: comparedItem?.percentOfTotal,
+                value: counterpartRange && (comparedItem ? getValue(comparedItem) : 0),
+                percentOfTotal: comparedItem && getShare(comparedItem),
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
                 counterpartStart: counterpartRange?.start,
                 sortDate: bucketRange.start,
@@ -141,7 +148,7 @@ function buildChartSeries({
         const comparedItem = comparedByKey.get(item.keyForList);
         // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
         const missingValue = getDateRange ? undefined : 0;
-        return {value: comparedItem ? getAmount(comparedItem) : missingValue, percentOfTotal: comparedItem?.percentOfTotal};
+        return {value: comparedItem ? getValue(comparedItem) : missingValue, percentOfTotal: comparedItem && getShare(comparedItem)};
     };
 
     const pairedRows = data.map((item) => {
@@ -157,18 +164,19 @@ function buildChartSeries({
             label: bucketLabels?.label ?? inProgressLabel ?? label,
             shortLabel: bucketLabels?.shortLabel ?? (isInProgress ? (shortLabel ?? label) : shortLabel),
             values: {
-                [CHART_SERIES_KEY.PRIMARY]: getAmount(item),
+                [CHART_SERIES_KEY.PRIMARY]: getValue(item),
                 ...(compared?.value !== undefined && {[CHART_SERIES_KEY.COMPARISON]: compared.value}),
             },
-            percentOfTotal: item.percentOfTotal,
-            count: item.count,
+            percentOfTotal: getShare(item),
+            // A chart plotting counts writes the count out as its value, so the point carries nothing for the tooltip to repeat.
+            count: isCountMetric ? undefined : item.count,
             ...(bucketLabels && {
                 seriesLabels: {
                     [CHART_SERIES_KEY.PRIMARY]: isInProgress && primarySeriesLabel ? translate('search.periodSoFar', {period: primarySeriesLabel}) : primarySeriesLabel,
                     [CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabels.comparison,
                 },
             }),
-            ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal, [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
+            ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: getShare(item), [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
             isInProgress: isInProgress || !!isLaterPeriod?.(item),
         };
 
@@ -181,9 +189,9 @@ function buildChartSeries({
         const point: ChartDataPoint = {
             label: bucketLabels.label,
             shortLabel: bucketLabels.shortLabel,
-            values: {[CHART_SERIES_KEY.COMPARISON]: getAmount(comparedItem)},
+            values: {[CHART_SERIES_KEY.COMPARISON]: getValue(comparedItem)},
             seriesLabels: {[CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabel},
-            seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: comparedItem.percentOfTotal},
+            seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: getShare(comparedItem)},
             isInProgress: false,
         };
         return {row: {point}, sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};

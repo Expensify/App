@@ -52,7 +52,7 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', formatValue: formatValueOverride, onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -92,6 +92,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
+        formatValue: formatValueOverride,
     });
 
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VictoryTheme.line.domainPadding);

@@ -42,6 +42,7 @@ function VerticalBarChartCanvas({
     series,
     yAxisUnit,
     yAxisUnitPosition = 'left',
+    formatValue: formatValueOverride,
     onBarPress,
     shouldShowLabels = true,
     shouldWrapLabels = false,
@@ -78,6 +79,7 @@ function VerticalBarChartCanvas({
         data,
         unit: yAxisUnit,
         unitPosition: yAxisUnitPosition,
+        formatValue: formatValueOverride,
     });
 
     const yAxisLabelWidth = getYAxisLabelWidth(data, formatCompactValue, fontManager, variables.iconSizeExtraSmall, VERTICAL_BAR_DOMAIN_PADDING);

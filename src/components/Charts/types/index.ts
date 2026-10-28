@@ -56,11 +56,17 @@ type UnitWithFallback = {value: string; fallback: string};
 /** Position of the unit symbol relative to the formatted value. */
 type UnitPosition = 'left' | 'right';
 
+/** Formats a plotted value for display, in place of the chart's own number-and-unit formatting */
+type ChartValueFormatter = (value: number, options?: {shouldUseCompactNotation?: boolean}) => string;
+
 type ChartProps = {
     data: ChartDataPoint[];
 
     /** The datasets plotted, in drawing order. The first one is the chart's primary series. */
     series: NonEmptyTuple<ChartSeries>;
+
+    /** Formats every plotted value the chart writes out. Left out, values are numbers carrying the chart's unit. */
+    formatValue?: ChartValueFormatter;
 
     isLoading?: boolean;
 };
@@ -124,4 +130,16 @@ type WrappedLabelConfig = {
     canvasWidth: number;
 };
 
-export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback, WrappedLabelConfig};
+export type {
+    CartesianChartProps,
+    ChartDataPoint,
+    ChartProps,
+    ChartSeries,
+    ChartValueFormatter,
+    LabelRotation,
+    ParagraphWithWidth,
+    PieSlice,
+    UnitPosition,
+    UnitWithFallback,
+    WrappedLabelConfig,
+};

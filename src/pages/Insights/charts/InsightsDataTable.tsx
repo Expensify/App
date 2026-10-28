@@ -1,9 +1,10 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
+import type {ChartValueFormatter} from '@components/Charts/types';
 import {formatChangePercentage} from '@components/Charts/utils/formatTooltipComparison';
 import Icon from '@components/Icon';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 import type {TransactionCardGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {GroupedItem, SearchChartDataRow} from '@components/Search/types';
+import type {GroupedItem, SearchChartDataRow, SearchChartMetric} from '@components/Search/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -30,6 +31,12 @@ type InsightsDataTableProps = {
     /** The plotted groups, prepared by `SearchChartView` */
     rows: SearchChartDataRow[];
 
+    /** The metric the chart plotted, which the table lists the same way */
+    metric: SearchChartMetric;
+
+    /** Formats a plotted value the way the chart labelled it, left out while the chart labels amounts */
+    formatValue?: ChartValueFormatter;
+
     isLoading?: boolean;
 };
 
@@ -38,14 +45,23 @@ function isMemberGroup(item: GroupedItem): item is TransactionMemberGroupListIte
     return item.groupedBy === CONST.SEARCH.GROUP_BY.FROM || item.groupedBy === CONST.SEARCH.GROUP_BY.CARD;
 }
 
-function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
+function InsightsDataTable({rows, metric, formatValue, isLoading}: InsightsDataTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const {preferredLocale, translate} = useLocalize();
+    const {preferredLocale, translate, numberFormat} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {cardPaddingHorizontal} = useLayoutSpacing();
+
+    /** Writes a group's value the way the chart labelled it */
+    const formatGroupValue = (item: GroupedItem, value: number) => {
+        if (metric !== CONST.SEARCH.CHART_METRIC.COUNT) {
+            // An amount is written in its own group's currency, which the chart's single unit cannot carry.
+            return convertToDisplayString(item.total ?? 0, item.currency);
+        }
+        return formatValue?.(value) ?? numberFormat(value);
+    };
 
     if (isLoading) {
         return <InsightsDataTableSkeleton fixedNumItems={SKELETON_ROW_COUNT} />;
@@ -90,7 +106,7 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
                             <Text style={[styles.flex1, styles.mnw0, styles.breakWord]}>{point.label}</Text>
                         </View>
                         <View style={[styles.flexShrink0, styles.alignItemsEnd]}>
-                            <Text style={styles.textAlignRight}>{convertToDisplayString(item.total ?? 0, item.currency)}</Text>
+                            <Text style={styles.textAlignRight}>{formatGroupValue(item, primaryValue ?? 0)}</Text>
                             {!!changePercentage && isNewSpend && (
                                 <Text
                                     style={[styles.textLabel, StyleUtils.getColorStyle(theme.icon)]}
