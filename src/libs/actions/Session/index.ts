@@ -1045,6 +1045,7 @@ function signIn(
             email: login,
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
+            ...getAdvertisingConsentParams(),
         };
 
         // Conditionally pass a password or validateCode to command since we temporarily allow both flows
