@@ -302,7 +302,7 @@ index 5d3a675..a92904d 100644
  
  RCT_EXPORT_SHADOW_PROPERTY(text, NSString)
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
-diff --git b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.h
 new file mode 100644
 index 0000000..1391961
 --- /dev/null
@@ -374,7 +374,7 @@ index 0000000..1391961
 + NS_ASSUME_NONNULL_END
 + 
 \ No newline at end of file
-diff --git b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
+diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTPasteHandlerUtil.mm
 new file mode 100644
 index 0000000..992e0aa
 --- /dev/null
@@ -743,7 +743,7 @@ index e9f33a7..4bf519f 100644
  #pragma mark - RCTBackedTextInputDelegate (UIScrollViewDelegate)
  
  - (void)scrollViewDidScroll:(UIScrollView *)scrollView
-diff --git b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/PasteWatcher.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/PasteWatcher.java
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/PasteWatcher.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/PasteWatcher.java
 new file mode 100644
 index 0000000..a2475b3
 --- /dev/null
@@ -989,7 +989,7 @@ index 9e548c0..b0ecb30 100644
    override fun getExportedViewConstants(): Map<String, Any> =
        mapOf(
            "AutoCapitalizationType" to
-diff --git b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteEvent.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteEvent.kt
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteEvent.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteEvent.kt
 new file mode 100644
 index 0000000..d8cd80b
 --- /dev/null
