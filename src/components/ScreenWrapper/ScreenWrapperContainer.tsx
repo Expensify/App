@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 
@@ -126,39 +126,25 @@ function ScreenWrapperContainer({
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
 
-    const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
-        if (!includePaddingTop) {
-            return {};
-        }
-        if (isUsingEdgeToEdgeMode) {
-            return {paddingTop};
-        }
-        if (ignoreInsetsConsumption) {
-            return {paddingTop: unmodifiedPaddings.top};
-        }
-        return {paddingTop};
-    }, [isUsingEdgeToEdgeMode, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
+    const paddingTopStyle: StyleProp<ViewStyle> = !includePaddingTop
+        ? {}
+        : {
+              paddingTop: !isUsingEdgeToEdgeMode && ignoreInsetsConsumption ? unmodifiedPaddings.top : paddingTop,
+          };
 
     const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
     const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
-    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
-        const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
-        if (shouldUseUnmodifiedPaddings) {
-            return {
-                paddingBottom: unmodifiedPaddings.bottom,
-            };
-        }
+    const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = shouldUseUnmodifiedPaddings
+        ? {
+              paddingBottom: unmodifiedPaddings.bottom,
+          }
+        : {
+              // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+              paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
+          };
 
-        return {
-            // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-            paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
-        };
-    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
-
-    const bottomContentStyle = useMemo(
-        () => [isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle, bottomContentStyleProp],
-        [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyleProp],
-    );
+    const bottomContentStyle = [isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle, bottomContentStyleProp];
 
     const testToolsTapResponder = useTestToolsTapResponder();
 
@@ -236,5 +222,5 @@ function ScreenWrapperContainer({
 
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';
 
-export default React.memo(ScreenWrapperContainer);
+export default ScreenWrapperContainer;
 export type {ScreenWrapperContainerProps};

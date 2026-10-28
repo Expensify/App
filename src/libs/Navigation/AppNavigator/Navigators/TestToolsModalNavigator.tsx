@@ -27,7 +27,7 @@ import type {ComponentRef, ComponentType, MouseEvent, ReactNode} from 'react';
 import {Portal} from '@gorhom/portal';
 import {NavigationContext, NavigationRouteContext, useIsFocused} from '@react-navigation/native';
 import {CardAnimationContext} from '@react-navigation/stack';
-import React, {useContext, useMemo, useRef} from 'react';
+import {useContext, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import Overlay from './Overlay';
@@ -68,7 +68,7 @@ function TestToolsModalFrame({children, isPassThrough = false, isPortaled = fals
         e.stopPropagation();
     };
 
-    const portaledInsetStyle = useMemo(() => (isPortaled ? {paddingLeft: left, paddingRight: right} : undefined), [isPortaled, left, right]);
+    const portaledInsetStyle = isPortaled ? {paddingLeft: left, paddingRight: right} : undefined;
 
     return (
         <View style={[styles.flex1, portaledInsetStyle]}>
@@ -155,7 +155,7 @@ function TestToolsModalNavigator() {
     const {isRequire2FAOverlayVisible} = useRequire2FAOverlayVisibility();
     const shouldLift = shouldLiftTestToolsAboveRequire2FA(isRequire2FAOverlayVisible);
     const cardAnimation = useContext(CardAnimationContext);
-    const lift = useMemo(() => ({shouldLift, cardAnimation}), [shouldLift, cardAnimation]);
+    const lift = {shouldLift, cardAnimation};
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => toggleTestToolsModal(), {shouldBubble: false});
 
