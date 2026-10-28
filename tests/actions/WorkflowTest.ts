@@ -474,10 +474,12 @@ describe('actions/Workflow', () => {
 
             // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
 
+            // Resume before asserting so a failed assertion can't leave the request queued and block later tests
             await mockFetch.resume();
             await waitForBatchedUpdates();
+
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
         });
 
         it('should auto-complete the addExpenseApprovals task when creating an approval workflow', async () => {
@@ -1016,10 +1018,12 @@ describe('actions/Workflow', () => {
 
             // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
 
+            // Resume before asserting so a failed assertion can't leave the request queued and block later tests
             await mockFetch.resume();
             await waitForBatchedUpdates();
+
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
         });
 
         it('should restore the previous approval mode when the request fails', async () => {
@@ -1307,10 +1311,12 @@ describe('actions/Workflow', () => {
 
             // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
-            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
 
+            // Resume before asserting so a failed assertion can't leave the request queued and block later tests
             await mockFetch.resume();
             await waitForBatchedUpdates();
+
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
         });
     });
 
