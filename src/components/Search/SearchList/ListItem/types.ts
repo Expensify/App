@@ -30,8 +30,10 @@ import type {
     SearchMerchantGroup,
     SearchMonthGroup,
     SearchQuarterGroup,
+    SearchReport,
     SearchTagGroup,
     SearchTask,
+    SearchTransaction,
     SearchTransactionAction,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
@@ -71,7 +73,7 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     };
 
 type TransactionListItemType = ListItem &
-    Transaction & {
+    SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
@@ -235,7 +237,7 @@ type TransactionGroupListItemType = ListItem & {
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
