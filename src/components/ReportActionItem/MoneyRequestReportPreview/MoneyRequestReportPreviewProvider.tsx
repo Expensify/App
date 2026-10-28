@@ -200,7 +200,7 @@ function MoneyRequestReportPreviewProvider({
         onOrderedTransactionsChange,
     });
 
-    const openReportFromPreview = useCallback(() => {
+    const openReportFromPreview = () => {
         if (!iouReportID) {
             return;
         }
@@ -225,7 +225,7 @@ function MoneyRequestReportPreviewProvider({
         } else {
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
+    };
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
     const buttonMaxWidth =

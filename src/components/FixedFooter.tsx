@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FixedFooterProps = {
@@ -31,10 +31,7 @@ function FixedFooter({style, children, addBottomSafeAreaPadding, addOfflineIndic
         styleProperty: shouldStickToBottom ? 'bottom' : 'paddingBottom',
     });
 
-    const footerStyle = useMemo<StyleProp<ViewStyle>>(
-        () => [shouldStickToBottom && styles.stickToBottom, bottomSafeAreaPaddingStyle],
-        [bottomSafeAreaPaddingStyle, shouldStickToBottom, styles.stickToBottom],
-    );
+    const footerStyle: StyleProp<ViewStyle> = [shouldStickToBottom && styles.stickToBottom, bottomSafeAreaPaddingStyle];
 
     if (!children) {
         return null;

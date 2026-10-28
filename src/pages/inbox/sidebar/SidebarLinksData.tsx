@@ -26,7 +26,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
     const {translate} = useLocalize();
     const [priorityMode = CONST.PRIORITY_MODE.DEFAULT] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
-    const {filteredReports, orderedReportIDs} = useSidebarOrderedReportsState();
+    const {filteredReportIDs, orderedReportIDs} = useSidebarOrderedReportsState();
 
     const onLayout = useInboxTabSpanLifecycle();
 
@@ -43,7 +43,7 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
                 insets={insets}
                 priorityMode={priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}
                 // Data props:
-                optionListItems={filteredReports}
+                reportIDs={filteredReportIDs}
                 hasReportData={orderedReportIDs.length > 0}
             />
         </View>
