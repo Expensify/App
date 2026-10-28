@@ -11,7 +11,6 @@ import {useEffect, useRef} from 'react';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
-// Only whether the collection exists is read, so an edit to any category doesn't re-render the caller.
 const hasPolicyCategoriesSelector = (policyCategories: OnyxEntry<PolicyCategories>) => policyCategories !== undefined;
 
 /**
