@@ -15,7 +15,7 @@ import {
     getPreferredPolicyFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
 } from './CardUtils';
-import {getDescriptionForPolicyDomainCard, isPolicyAdmin} from './PolicyUtils';
+import {getDescriptionForPolicyDomainCard, isArchivedPolicy, isPolicyAdmin} from './PolicyUtils';
 import {getIsTravelBillingPayByInvoice, hasTravelBillingSettlementAccount} from './TravelBillingUtils';
 
 type ExpensifyCardFeedEntry = {
@@ -100,6 +100,14 @@ function isFeedPrimaryForPolicy(entry: ExpensifyCardFeedEntry, policyID: string)
     return isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(entry.settings), policyID);
 }
 
+/**
+ * Whether the feed's fund backs an archived workspace's account. The backend rejects issuing cards on such a feed, so it
+ * can't be linked to another workspace. Domain feeds are backed by the domain, so they are never matched here.
+ */
+function isExpensifyCardFeedBackedByArchivedPolicy(fundID: number, policies: OnyxCollection<Policy>): boolean {
+    return Object.values(policies ?? {}).some((policy) => policy?.policyAccountID === fundID && isArchivedPolicy(policy));
+}
+
 function getAdminExpensifyCardFeedEntries(
     cardSettingsCollection: OnyxCollection<ExpensifyCardSettings>,
     policies: OnyxCollection<Policy>,
@@ -166,4 +174,11 @@ function getExpensifyCardFeedDescription(
     return policyOwner ? getDescriptionForPolicyDomainCard(Str.extractEmailDomain(policyOwner), policies) : '';
 }
 
-export {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, partitionExpensifyCardFeedsForSelector, type ExpensifyCardFeedEntry, type ExpensifyCardFeedProgram};
+export {
+    getAdminExpensifyCardFeedEntries,
+    getExpensifyCardFeedDescription,
+    isExpensifyCardFeedBackedByArchivedPolicy,
+    partitionExpensifyCardFeedsForSelector,
+    type ExpensifyCardFeedEntry,
+    type ExpensifyCardFeedProgram,
+};
