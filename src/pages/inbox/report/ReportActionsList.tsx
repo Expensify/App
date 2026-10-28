@@ -348,7 +348,9 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         }
 
         // An off-window revealed message must mount before it can hand off focus.
-        const frame = requestAnimationFrame(() => void listRef.current?.scrollToIndex({index: expandedFocusIndex, animated: false, viewPosition: 0.5}));
+        const frame = requestAnimationFrame(() => {
+            listRef.current?.scrollToIndex({index: expandedFocusIndex, animated: false, viewPosition: 0.5});
+        });
         return () => cancelAnimationFrame(frame);
     }, [expandedFocusIndex, focusRequestedReportActionID, listRef]);
 
