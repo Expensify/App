@@ -113,7 +113,7 @@ import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
 import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
-import {canPayBill, isBillReport} from './BillPayUtils';
+import {canApproveBill, canPayBill, isBillReport} from './BillPayUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
 import {getCategoryGLCode} from './CategoryUtils';
@@ -5208,6 +5208,14 @@ function getReasonAndReportActionThatRequiresAttention({
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
             actionBadge: CONST.REPORT.ACTION_BADGE.PAY,
+        };
+    }
+
+    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
+    if (canApproveBill(optionOrReport, currentUserAccountID)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
         };
     }
 
