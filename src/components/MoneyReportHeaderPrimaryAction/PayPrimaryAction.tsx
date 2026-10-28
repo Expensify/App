@@ -141,6 +141,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -165,8 +166,8 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 rules,
             });
         } else {
-            startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,
@@ -184,6 +185,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,

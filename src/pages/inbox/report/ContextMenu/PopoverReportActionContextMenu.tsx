@@ -253,7 +253,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             typeRef.current = type;
             reportIDRef.current = reportID;
             reportActionIDRef.current = reportActionID;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);

@@ -145,7 +145,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             type: 'menuitem',
             title: translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`),
-            description: translate('workspace.common.travelInvoicing'),
+            description: translate('workspace.common.travelBilling'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE],
             shouldHide: !isTravelBillingEnabled,

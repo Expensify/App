@@ -158,7 +158,7 @@ const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorCont
 
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
-        (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.accountID && option1.accountID === option2.accountID) ||
         (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
         (option1.login && option1.login === option2.login)
     );
@@ -234,6 +234,7 @@ function useSearchSelectorBase({
         isSearching: isSearchingOptions,
         includeP2P,
         batchSize: maxResultsPerPage,
+        activePolicyID: appliesGetValidOptionsConfig ? getValidOptionsConfig.activePolicyID : undefined,
     });
     const areOptionsInitialized = !isLoadingOptions;
     const defaultOptions = filteredOptions ?? emptyOptionList;
@@ -363,7 +364,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
@@ -409,7 +410,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
@@ -452,7 +453,7 @@ function useSearchSelectorBase({
                         getReportByID,
                         ...appliedGetValidOptionsConfig,
                     },
-                    translate,
+                    {translate, formatPhoneNumber},
                     rules,
                 );
             default:
