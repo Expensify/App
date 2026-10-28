@@ -11,7 +11,7 @@ import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 import React, {useState} from 'react';
 // This provider is the source of the snapshot data that `@hooks/useOnyx` later routes consumers onto,
 // so going through that wrapper here would be self-referential. The wrapper also short-circuits its own
-// logic for snapshot keys (see the `!key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT)` guard in useOnyx.ts),
+// logic for snapshot keys (see the snapshot collection guard in `isSnapshotCompatibleKey` in @libs/SnapshotUtils),
 // so it would add nothing for this read. Use the raw react-native-onyx hook directly.
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx} from 'react-native-onyx';

@@ -1,7 +1,8 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
-import CategoryPickerModal, {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
+import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -256,7 +257,7 @@ describe('CategoryPickerModal', () => {
 
             // Then the list drops its own 16px top padding under the header, since the sheet's padding plus the header's 4px already make 20px
             const {result: styles} = renderHook(() => useThemeStyles());
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM);
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SELECTION_LIST_POPOVER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM);
         });
 
         it('keeps the list top padding above the header in the wide pop-over', async () => {
@@ -268,7 +269,7 @@ describe('CategoryPickerModal', () => {
             await waitForBatchedUpdates();
 
             // Then the pop-over is one row plus the header, whose 20px from the top comes from the list's padding
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT);
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SELECTION_LIST_POPOVER_HEADER_HEIGHT);
         });
 
         it('fits the pop-over to the list without any bottom safe area', async () => {
