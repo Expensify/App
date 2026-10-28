@@ -10,6 +10,7 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import YesNoCell from '@components/Search/SearchList/ListItem/YesNoCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
@@ -61,7 +62,7 @@ function ExpenseReportListItemRowWide({
     const submitterUserID = item.submitterUserID;
     const submitterPayrollID = item.submitterPayrollID;
     const orderDealNumbers = item.orderDealNumbers;
-    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency, paid: paidDate = ''} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
@@ -115,6 +116,16 @@ function ExpenseReportListItemRowWide({
                 />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.PAID]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID, {isPaidColumnWide: item.shouldShowYearPaid})]}>
+                <DateCell
+                    date={paidDate}
+                    showTooltip
+                    isLargeScreenWidth
+                    shouldUseLocalTimeZone
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: (
             <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PAID_BY)]}>
                 {!!item.paidByAccountID && (
@@ -157,6 +168,11 @@ function ExpenseReportListItemRowWide({
                     text={item.formattedPaidStatus ?? ''}
                     isLargeScreenWidth
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DECLINED)]}>
+                <YesNoCell value={!!item.declined} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
