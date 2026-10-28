@@ -33,6 +33,9 @@ type MockedReportActionItemSingleProps = {
     /** All the data of the action */
     reportAction: ReportAction;
 
+    /** The report a report preview points at */
+    iouReport?: Report;
+
     /** Optional children rendered inside the wrapping View (used to probe styling around children). */
     children?: ReactElement;
 };
@@ -340,14 +343,14 @@ function internalRender(component: ReactElement) {
     }
 }
 
-function MockedReportActionItemSingle({report, reportAction, children}: MockedReportActionItemSingleProps) {
+function MockedReportActionItemSingle({report, reportAction, iouReport, children}: MockedReportActionItemSingleProps) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
             <ReportActionItemSingle
                 action={reportAction}
                 report={report}
                 showHeader
-                iouReport={undefined}
+                iouReport={iouReport}
                 isHovered={false}
             >
                 {children}
@@ -356,7 +359,7 @@ function MockedReportActionItemSingle({report, reportAction, children}: MockedRe
     );
 }
 
-function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction, children?: ReactElement) {
+function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?: ReportAction, children?: ReactElement, iouReport?: Report) {
     const currentReport = report ?? getFakeReport();
     const currentReportAction = reportAction ?? getFakeAdvancedReportAction();
 
@@ -364,6 +367,7 @@ function getDefaultRenderedReportActionItemSingle(report?: Report, reportAction?
         <MockedReportActionItemSingle
             report={currentReport}
             reportAction={currentReportAction}
+            iouReport={iouReport}
         >
             {children}
         </MockedReportActionItemSingle>,
