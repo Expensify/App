@@ -10795,6 +10795,7 @@ const CONST = {
                 EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+                RECONNECT_BUTTON: 'WorkspaceAccounting-ReconnectButton',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',

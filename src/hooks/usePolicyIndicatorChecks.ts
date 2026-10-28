@@ -71,6 +71,16 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
             ),
         ],
         [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR, cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError)],
+        [
+            CONST.INDICATOR_STATUS.HAS_FAILED_EXPORTS_TO_RETRY,
+            cleanPolicies.find(
+                (policy) =>
+                    !!policy &&
+                    isPolicyAdmin(policy) &&
+                    getFailedExportsToRetry(failedExportReportsByPolicyID?.[policy.id], getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS)).length >
+                        0,
+            ),
+        ],
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR, cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy)],
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS, isAdminOfPolicyWithCardFeedErrors ? policiesWithCardFeedErrors.at(0) : undefined],
         [
@@ -98,16 +108,6 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     ];
     const policyInfoChecks: Array<[IndicatorStatus, Policy | undefined]> = [
         [CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED, cleanPolicies.find((policy) => isPolicyAdmin(policy) && isMergeHRCompleteSetupNeeded(policy))],
-        [
-            CONST.INDICATOR_STATUS.HAS_FAILED_EXPORTS_TO_RETRY,
-            cleanPolicies.find(
-                (policy) =>
-                    !!policy &&
-                    isPolicyAdmin(policy) &&
-                    getFailedExportsToRetry(failedExportReportsByPolicyID?.[policy.id], getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS)).length >
-                        0,
-            ),
-        ],
     ];
     const domainChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_DOMAIN_ERRORS, getDomainsWithErrors(allDomainErrors, allDomains).length > 0]];
     const domainInfoChecks: Array<[IndicatorStatus, boolean]> = [[CONST.INDICATOR_STATUS.HAS_PENDING_DOMAIN_ADMIN_REQUESTS, hasPendingDomainAdminRequests]];

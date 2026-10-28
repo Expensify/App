@@ -69,11 +69,11 @@ function WorkspaceRowBrickRoadIndicator({policyID}: WorkspaceRowBrickRoadIndicat
     const [retryWindow] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: getRetryWindowSelector});
     const [hasFailedExportsToRetry] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: createHasFailedExportsToRetrySelector(policyID, retryWindow)});
 
-    // All of the error sources resolve to ERROR or undefined. The INFO sources are the HR setup check, the QBO token
-    // expiry warning and the failed exports to retry. Every error takes precedence over them.
-    const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors || hasApprovalWorkflowWithNonMemberApprover;
+    // All of the error sources resolve to ERROR or undefined. The HR setup check and the QBO token expiry
+    // warning are the only INFO sources, and every error takes precedence over them.
+    const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors || hasApprovalWorkflowWithNonMemberApprover || !!hasFailedExportsToRetry;
 
-    if (!hasError && !isHRCompleteSetupNeeded && !isQBORefreshTokenExpiringSoon && !hasFailedExportsToRetry) {
+    if (!hasError && !isHRCompleteSetupNeeded && !isQBORefreshTokenExpiringSoon) {
         return null;
     }
 

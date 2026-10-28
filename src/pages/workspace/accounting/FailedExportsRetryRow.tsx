@@ -26,37 +26,33 @@ type FailedExportsRetryRowProps = {
     /** Name of the connected integration, for example "QuickBooks Online" */
     integrationName: string;
 
-    /** Color of the dot, the text and the button. The default is green, because the row offers an action and does not report an error. */
-    tone?: typeof CONST.BUTTON_VARIANT.SUCCESS | typeof CONST.BUTTON_VARIANT.DANGER;
-
     style?: StyleProp<ViewStyle>;
 };
 
 /**
  * Offers to export again the reports whose export failed before the accounting connection worked again.
  */
-function FailedExportsRetryRow({policyID, count, integrationName, tone = CONST.BUTTON_VARIANT.SUCCESS, style}: FailedExportsRetryRowProps) {
+function FailedExportsRetryRow({policyID, count, integrationName, style}: FailedExportsRetryRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
-    const isDanger = tone === CONST.BUTTON_VARIANT.DANGER;
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, style]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
                 <Icon
                     src={icons.DotIndicator}
-                    fill={isDanger ? theme.danger : theme.success}
+                    fill={theme.danger}
                     additionalStyles={[styles.mr2]}
                 />
-                <Text style={[styles.mutedNormalTextLabel, styles.label, isDanger ? styles.textLabelError : styles.textSuccess, styles.flexShrink1]}>
+                <Text style={[styles.mutedNormalTextLabel, styles.label, styles.textLabelError, styles.flexShrink1]}>
                     {translate('workspace.accounting.failedExportsToRetry.message', {count, integrationName})}
                 </Text>
             </View>
             <Button
                 size={CONST.BUTTON_SIZE.SMALL}
-                variant={tone}
+                variant={CONST.BUTTON_VARIANT.DANGER}
                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RETRY_FAILED_EXPORTS.getRoute(policyID))}
             >
                 <Button.Text>{translate('common.review')}</Button.Text>

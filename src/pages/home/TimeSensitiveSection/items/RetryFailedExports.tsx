@@ -33,7 +33,7 @@ function RetryFailedExports({policyID, policyName, count, integrationName}: Retr
             ctaText={translate('common.review')}
             // Open the review page over Home, and do not switch the background to the workspace Accounting page.
             onCtaPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RETRY_FAILED_EXPORTS.getRoute(policyID), {skipMatchingFullScreenRoute: true})}
-            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

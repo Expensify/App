@@ -190,6 +190,17 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
     }
 
+    const openCredentialsFlow = () => {
+        if (isSageIntacct && policyID) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
+            return;
+        }
+        if (!connectedIntegration) {
+            return;
+        }
+        startIntegrationFlow({name: connectedIntegration, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite});
+    };
+
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
         ...(shouldShowReinstallConnectorMenuItem
             ? [
@@ -208,13 +219,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                   {
                       icon: icons.Key,
                       text: translate(credentialsMenuTextKey),
-                      onSelected: () => {
-                          if (isSageIntacct && policyID) {
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
-                              return;
-                          }
-                          startIntegrationFlow({name: connectedIntegration, isIntuitEnterpriseSuite: isConnectedToIntuitEnterpriseSuite});
-                      },
+                      onSelected: openCredentialsFlow,
                       shouldCallAfterModalHide: true,
                       disabled: isOffline,
                       iconRight: icons.NewWindow,
@@ -604,6 +609,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         canWriteAccounting,
         showReadOnlyModal,
         overflowMenu,
+        hasAuthError,
+        credentialsActionText: translate(credentialsMenuTextKey),
+        openCredentialsFlow,
         connectionDetails,
         qboTokenExpiryHint,
         oldDotPolicyConnectionsURL,

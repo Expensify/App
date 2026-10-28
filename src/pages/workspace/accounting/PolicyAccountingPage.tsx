@@ -91,6 +91,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         canWriteAccounting,
         showReadOnlyModal,
         overflowMenu,
+        hasAuthError,
+        credentialsActionText,
+        openCredentialsFlow,
         connectionDetails,
         qboTokenExpiryHint,
         oldDotPolicyConnectionsURL,
@@ -217,15 +220,27 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             rightComponent = <ActivityIndicator style={[styles.popoverMenuIcon]} />;
         } else if (canWriteAccounting) {
             rightComponent = (
-                <ThreeDotsMenu
-                    shouldSelfPosition
-                    menuItems={overflowMenu}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
-                />
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    {hasAuthError && (
+                        <ButtonDisabledWhenOffline
+                            size={CONST.BUTTON_SIZE.SMALL}
+                            variant={CONST.BUTTON_VARIANT.DANGER}
+                            onPress={openCredentialsFlow}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RECONNECT_BUTTON}
+                        >
+                            <Button.Text>{credentialsActionText}</Button.Text>
+                        </ButtonDisabledWhenOffline>
+                    )}
+                    <ThreeDotsMenu
+                        shouldSelfPosition
+                        menuItems={overflowMenu}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
+                    />
+                </View>
             );
         }
 

@@ -138,7 +138,7 @@ function RetryFailedExportsPage({policy, route}: RetryFailedExportsPageProps) {
                     value={translate('common.durationDays', {count: lookbackDays})}
                     onPress={() => setIsLookbackPickerVisible(true)}
                 />
-                <View style={styles.flex1}>
+                <View style={[styles.flex1, styles.mt3]}>
                     <SelectionList
                         data={listItems}
                         ListItem={MultiSelectListItem}
