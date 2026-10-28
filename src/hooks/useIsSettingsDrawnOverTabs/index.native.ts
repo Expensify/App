@@ -1,8 +1,8 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 /**
- * The native tab bar has no Account item, so on narrow layouts Account is drawn over the other tabs
- * with the bar hidden and needs its own way back.
+ * On narrow layouts, Account is drawn inside another tab without its own history,
+ * so the Android back button needs its own way back.
  */
 function useIsSettingsDrawnOverTabs() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();

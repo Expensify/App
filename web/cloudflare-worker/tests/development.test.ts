@@ -14,7 +14,7 @@ import {WebSocket, WebSocketServer} from 'ws';
 describe('live development worker', () => {
     const tempDir = mkdtempSync(path.join(tmpdir(), 'live-worker-'));
     const upstream = http.createServer(async (request, response) => {
-        if (request.url?.startsWith('/echo')) {
+        if (request.url?.startsWith('/echo') || request.url?.startsWith('/api/echo')) {
             const chunks = [];
             for await (const chunk of request) {
                 chunks.push(chunk);
@@ -120,11 +120,21 @@ describe('live development worker', () => {
 
     test('forwards POST bodies, queries, and HEAD without consuming the response twice', async () => {
         // Given a real HTTP upstream
-        // When a POST with a query passes through the Worker
-        const response = await server.fetch('/echo?q=reserved%40value', {method: 'POST', body: 'posted payload'});
+        // When an API POST with a query passes through the Worker
+        const response = await server.fetch('/api/echo?q=reserved%40value', {method: 'POST', body: 'posted payload'});
         // Then the request reaches the upstream unchanged and HEAD has no body
-        assert.deepEqual(await response.json(), {method: 'POST', url: '/echo?q=reserved%40value', body: 'posted payload', validator: null});
+        assert.deepEqual(await response.json(), {method: 'POST', url: '/api/echo?q=reserved%40value', body: 'posted payload', validator: null});
         assert.equal(await (await server.fetch('/echo', {method: 'HEAD'})).text(), '');
+    });
+
+    test('sends a form POST to the same page as a GET, like the deployed Worker', async () => {
+        // Given a form submit the app didn't cancel, which Rsbuild can't serve
+        // When the browser POSTs it as a page load
+        const response = await server.fetch('/home?x=1', {method: 'POST', body: 'login=a%40b.com', redirect: 'manual'});
+        // Then it is redirected to load the same page, instead of reaching the upstream
+        assert.equal(response.status, 303);
+        assert.equal(response.headers.get('Location'), `${origin}/home?x=1`);
+        assert.equal(await response.text(), '');
     });
 
     test('transforms HTML and removes validators, including on conditional requests', async () => {
