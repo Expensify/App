@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -35,6 +36,7 @@ const IMPOSSIBLE_TITLE_BY_REASON: Partial<Record<string, TranslationPaths>> = {
 function ImpossibleRuleNotice({refusal, onTrySuggestion}: ImpossibleRuleNoticeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const suggestedPrompt = refusal.suggestedPrompt;
 
     return (
@@ -47,6 +49,8 @@ function ImpossibleRuleNotice({refusal, onTrySuggestion}: ImpossibleRuleNoticePr
                     <Button
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={() => onTrySuggestion(suggestedPrompt)}
+                        // Like the form's submit button, this button sends GenerateRule, which needs a connection
+                        isDisabled={isOffline}
                         style={[styles.mt2, styles.alignSelfStart]}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
                     >

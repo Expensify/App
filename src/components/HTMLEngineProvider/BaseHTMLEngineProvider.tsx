@@ -65,6 +65,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagName: 'edited',
             contentModel: HTMLContentModel.textual,
         }),
+        'attachment-block': HTMLElementModel.fromCustomModel({
+            tagName: 'attachment-block',
+            contentModel: HTMLContentModel.block,
+        }),
         'task-title': HTMLElementModel.fromCustomModel({
             tagName: 'task-title',
             contentModel: HTMLContentModel.block,
