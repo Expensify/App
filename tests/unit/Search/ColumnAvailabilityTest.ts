@@ -118,6 +118,7 @@ describe('Column availability single source of truth', () => {
             TABLE_COLUMNS.PAID_STATUS,
             TABLE_COLUMNS.SUBMITTED,
             TABLE_COLUMNS.APPROVED,
+            TABLE_COLUMNS.PAID,
             TABLE_COLUMNS.EXPORTED,
             TABLE_COLUMNS.EXPORTED_TO,
             TABLE_COLUMNS.FROM,

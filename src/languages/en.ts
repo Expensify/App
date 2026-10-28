@@ -632,7 +632,7 @@ const translations = {
             cta: 'Notify',
         },
         feedback: {
-            prompt: 'Was that response useful?',
+            prompt: 'Was this helpful?',
             useful: 'Useful response',
             notUseful: 'Not useful response',
             thanks: 'Thanks for the feedback!',
@@ -1319,6 +1319,8 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        compliance: 'Compliance',
+        runningTotal: 'Running total',
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -2671,7 +2673,8 @@ const translations = {
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
-            lossOfUnsubmittedData: (login: string) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Merging your accounts is irreversible. All expenses and reports from <strong>${login}</strong>, including drafts and unreported expenses, will be moved to the account you’re keeping.`,
             enterSecurityCode: (login: string) => `To continue, please enter the security code sent to <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Incorrect or invalid security code. Please try again or request a new code.',
@@ -2936,6 +2939,7 @@ const translations = {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
+            payingReportSubtitle: 'The company and employee bank accounts use different currencies.',
             getStarted: 'Get started',
         },
         wiseGlobalReimbursementsBanner: {
@@ -3169,6 +3173,8 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
+        collectEmployeeBankDetails: 'Collect employee bank details',
+        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -7202,6 +7208,7 @@ const translations = {
                             settlementFrequencyDescription: 'How often Expensify will pull from your business bank account to settle recent Expensify Travel transactions.',
                             monthlySpendLimitLabel: 'Monthly spend limit per member',
                             monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) => `The monthly spend limit per member can't exceed the current travel limit of ${travelLimit}.`,
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                             provisioningError:
@@ -7924,6 +7931,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
@@ -7949,6 +7957,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -8199,6 +8209,18 @@ const translations = {
                         case 'campfireSyncCardSettlements':
                             return 'Syncing card settlements';
                         case 'campfireSyncTravelSettlements':
+                            return 'Syncing travel settlements';
+                        case 'digitsSyncTitle':
+                            return 'Syncing Digits data';
+                        case 'digitsSyncConnection':
+                            return 'Initializing connection to Digits';
+                        case 'digitsSyncImportData':
+                            return 'Loading data';
+                        case 'digitsSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'digitsSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'digitsSyncTravelSettlements':
                             return 'Syncing travel settlements';
                         case 'businessCentralSyncTitle':
                             return 'Syncing Dynamics 365 Business Central data';
@@ -9277,13 +9299,10 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify when your conditions are met',
-                requireFields: 'Set field requirements',
-                requireFieldsShort: 'Require fields',
+                requireFields: 'Require fields',
                 requireFieldsDescription: 'Receipts, categories, etc.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields automatically',
-                createAgentRule: 'Describe agent rule',
-                createAgentRuleDescription: 'Create flexible rules that run when you need.',
                 describeItBelow: 'Or just describe it below',
                 describeRulePlaceholder: 'Block all spend above $2,000',
                 selectTemplateOrDescribe: 'Select a template or describe a rule to continue',
@@ -10624,6 +10643,15 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'This week',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Last week',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'This quarter',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Last quarter',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'This year',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Last year',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Last 30 days',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Last 90 days',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Last 6 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -10693,6 +10721,8 @@ const translations = {
             billable: 'Billable',
             rejected: 'Rejected',
             held: 'Held',
+            searchFilters: 'Search filters',
+            noFiltersSelected: 'No filters selected',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {
@@ -10784,6 +10814,7 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
+        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -11952,6 +11983,10 @@ const translations = {
                 one: '1 active user',
                 other: `${count} active users`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
             state: {
                 paid: 'Paid',
                 cleared: 'Cleared',
@@ -11973,6 +12008,7 @@ const translations = {
             billedTo: 'Billed to',
             activity: 'Activity',
             findActiveUser: 'Find an active user',
+            findMember: 'Find a member',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },
@@ -12172,6 +12208,7 @@ const translations = {
             aBankAccountIsLocked: 'A bank account is locked',
             completeHrSetup: 'Complete HR setup',
             theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
+            theresAProblemWithYourAgent: "There's a problem with your agent(s)",
         },
     },
     emptySearchView: {
@@ -12264,6 +12301,7 @@ const translations = {
         downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
+        currentViewGroupsOnly: 'Current view (groups only)',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         multipleTaxExport: 'Canadian Multiple Tax Export',

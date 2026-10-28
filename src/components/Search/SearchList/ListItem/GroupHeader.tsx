@@ -39,7 +39,7 @@ import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
@@ -129,15 +129,12 @@ function GroupHeader({
     const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
     });
-    const transactionPreviewData: TransactionPreviewData = useMemo(
-        () => ({
-            hasParentReport: !!parentReport,
-            hasTransaction: !!oneTransaction,
-            hasParentReportAction: !!parentReportAction,
-            hasTransactionThreadReport: !!oneTransactionThreadReport,
-        }),
-        [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
-    );
+    const transactionPreviewData: TransactionPreviewData = {
+        hasParentReport: !!parentReport,
+        hasTransaction: !!oneTransaction,
+        hasParentReportAction: !!parentReportAction,
+        hasTransactionThreadReport: !!oneTransactionThreadReport,
+    };
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const snapshotData = transactionsSnapshot?.data;

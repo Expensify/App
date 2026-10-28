@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
         enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
-        feedback: {prompt: 'Questa risposta è stata utile?', useful: 'Risposta utile', notUseful: 'Risposta non utile', thanks: 'Grazie per il tuo feedback!'},
+        feedback: {prompt: 'È stato utile?', useful: 'Risposta utile', notUseful: 'Risposta non utile', thanks: 'Grazie per il tuo feedback!'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1193,6 +1193,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `In aumento del ${percentage}`,
             decrease: (percentage: string) => `In calo del ${percentage}`,
         },
+        compliance: 'Conformità',
+        runningTotal: 'Totale progressivo',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -2505,7 +2507,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Sei sicuro di voler unire gli account?',
-            lossOfUnsubmittedData: (login: string) => `L’unione dei tuoi account è irreversibile e comporterà la perdita di tutte le spese non inviate per <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Unire i tuoi account è irreversibile. Tutte le spese e i report di <strong>${login}</strong>, incluse le bozze e le spese non riportate, verranno spostati sull’account che manterrai.`,
             enterSecurityCode: (login: string) => `Per continuare, inserisci il codice di sicurezza inviato a <strong>${login}</strong>.`,
             errors: {incorrectSecurityCode: 'Codice di sicurezza errato o non valido. Riprova oppure richiedi un nuovo codice.', fallback: 'Si è verificato un errore. Riprova più tardi.'},
         },
@@ -2849,6 +2852,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',
             getStarted: 'Inizia',
             headerTitle: 'Rimborsi globali',
+            payingReportSubtitle: 'I conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
     },
@@ -3005,6 +3009,8 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
+        collectEmployeeBankDetails: 'Raccogli i dati bancari dei dipendenti',
+        collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei dipendenti per poterli rimborsare al di fuori di Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>In questo spazio di lavoro è attivato un processo di approvazione personalizzato. Per rivedere o modificare questo processo, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6743,6 +6749,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             provisioningError:
                                 'Non siamo riusciti a effettuare il provisioning di alcuni membri del tuo workspace per la Fatturazione Viaggi Consolidata. Riprova più tardi oppure contatta Concierge per assistenza.',
                             sendInvoiceNowCta: 'Invia fattura ora',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Il limite di spesa mensile per membro non può superare l’attuale limite di viaggio di ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Configura un nuovo feed di viaggio',
                         feedSelectorIntro:
@@ -7473,6 +7481,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7718,6 +7728,18 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione delle chiusure carta';
                         case 'campfireSyncTravelSettlements':
                             return 'Sincronizzazione dei conguagli di viaggio';
+                        case 'digitsSyncTitle':
+                            return 'Sincronizzazione dei dati Digits';
+                        case 'digitsSyncConnection':
+                            return 'Inizializzazione della connessione a Digits';
+                        case 'digitsSyncImportData':
+                            return 'Caricamento dei dati';
+                        case 'digitsSyncPayments':
+                            return 'Sincronizzazione dei pagamenti ai fornitori';
+                        case 'digitsSyncCardSettlements':
+                            return 'Sincronizzazione delle chiusure carta';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Sincronizzazione dei conguagli di viaggio';
                         case 'businessCentralSyncTitle':
                             return 'Sincronizzazione dei dati Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7767,6 +7789,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             syncTravelBillingSettlementsNoAccountTooltip: 'Per sbloccare, imposta un conto per le tue esportazioni.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Per sbloccare, abilita la sincronizzazione automatica.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>La Riconciliazione continua è configurata per ogni flusso di carte. Seleziona un flusso per cambiare quello che stai configurando.</muted-text-label>',
@@ -8868,11 +8891,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 applyExpenseDefaultsDescription: 'Aggiorna i campi automaticamente',
                 flagForReview: 'Contrassegna per revisione',
                 flagForReviewDescription: 'Avvisa quando le tue condizioni sono soddisfatte',
-                requireFields: 'Imposta i requisiti del campo',
-                requireFieldsShort: 'Richiedi campi',
+                requireFields: 'Richiedi campi',
                 requireFieldsDescription: 'Ricevute, categorie, ecc.',
-                createAgentRule: 'Descrivi regola agente',
-                createAgentRuleDescription: 'Crea regole flessibili che vengono eseguite quando ne hai bisogno.',
                 describeItBelow: 'Oppure descrivila qui sotto',
                 describeRulePlaceholder: 'Blocca tutte le spese superiori a 2.000 $',
                 selectTemplateOrDescribe: 'Seleziona un modello o descrivi una regola per continuare',
@@ -10332,6 +10352,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ultimi 12 mesi',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Questa settimana',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'La settimana scorsa',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Questo trimestre',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Il trimestre scorso',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Quest’anno',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'L’anno scorso',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Ultimi 30 giorni',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Ultimi 90 giorni',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Ultimi 6 mesi',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Ultimo estratto conto',
                 },
                 customDay: 'Giorno personalizzato',
@@ -10436,6 +10465,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Registrato',
                 hint: 'Si applica solo alle transazioni con carta.',
             },
+            searchFilters: 'Filtri di ricerca',
+            noFiltersSelected: 'Nessun filtro selezionato',
         },
         display: {
             label: 'Visualizza',
@@ -10470,6 +10501,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noCategory: 'Nessuna categoria',
         noMerchant: 'Nessun esercente',
         noTag: 'Nessun tag',
+        noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
         receiptTypeValues: {
@@ -11643,6 +11675,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 one: '1 utente attivo',
                 other: `${count} utenti attivi`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 membro',
+                other: `${count} membri`,
+            }),
             state: {paid: 'Pagato', cleared: 'Compensato', failed: 'Non riuscito', refunded: 'Rimborsato', disputed: 'Contestata', balanceTransfer: 'Trasferimento di saldo'},
             details: 'Dettagli del pagamento',
             badge: {
@@ -11657,6 +11693,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             billedTo: 'Fatturato a',
             activity: 'Attività',
             findActiveUser: 'Trova un utente attivo',
+            findMember: 'Trova un membro',
             viewReceipt: 'Visualizza ricevuta',
             viewInvoice: 'Visualizza fattura',
         },
@@ -11856,6 +11893,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             aBankAccountIsLocked: 'Un conto bancario è bloccato',
             completeHrSetup: 'Completa la configurazione HR',
             theresAProblemWithAnHRConnection: 'C’è un problema con una connessione HR',
+            theresAProblemWithYourAgent: "C'è un problema con il tuo agente/i tuoi agenti",
         },
     },
     emptySearchView: {
@@ -11954,6 +11992,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         exportInProgress: 'Esportazione in corso',
         conciergeWillSend: 'Concierge ti invierà il file a breve.',
         currentView: 'Vista corrente',
+        currentViewGroupsOnly: 'Vista corrente (solo gruppi)',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

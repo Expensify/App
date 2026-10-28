@@ -28,7 +28,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import DebugReportActionPreview from './DebugReportActionPreview';
@@ -48,61 +48,52 @@ function DebugReportActionPage({
     });
     const transactionID = getLinkedTransactionID(reportAction);
 
-    const DebugDetailsTab = useCallback(
-        () => (
-            <DebugDetails
-                formType={CONST.DEBUG.FORMS.REPORT_ACTION}
-                data={reportAction}
-                onSave={(data) => {
-                    Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
-                }}
-                onDelete={() => {
-                    Navigation.goBack(undefined, {
-                        // We need to wait for navigation animations to finish before deleting an action,
-                        // otherwise the user will see a not found page briefly.
-                        afterTransition: () => {
-                            Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
-                        },
-                    });
-                }}
-                validate={DebugUtils.validateReportActionDraftProperty}
-            >
-                {!!transactionID && (
-                    <View style={[styles.mh5, styles.mb5]}>
-                        <Button
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
-                            }}
-                        >
-                            <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
-                        </Button>
-                    </View>
-                )}
-            </DebugDetails>
-        ),
-        [reportAction, reportActionID, reportID, styles.mb5, styles.mh5, transactionID, translate],
+    const detailsTab = (
+        <DebugDetails
+            formType={CONST.DEBUG.FORMS.REPORT_ACTION}
+            data={reportAction}
+            onSave={(data) => {
+                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+            }}
+            onDelete={() => {
+                Navigation.goBack(undefined, {
+                    // We need to wait for navigation animations to finish before deleting an action,
+                    // otherwise the user will see a not found page briefly.
+                    afterTransition: () => {
+                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                    },
+                });
+            }}
+            validate={DebugUtils.validateReportActionDraftProperty}
+        >
+            {!!transactionID && (
+                <View style={[styles.mh5, styles.mb5]}>
+                    <Button
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
+                        }}
+                    >
+                        <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                    </Button>
+                </View>
+            )}
+        </DebugDetails>
     );
 
-    const DebugJSONTab = useCallback(() => <DebugJSON data={reportAction ?? {}} />, [reportAction]);
+    const jsonTab = <DebugJSON data={reportAction ?? {}} />;
 
-    const DebugReportActionPreviewTab = useCallback(
-        () => (
-            <DebugReportActionPreview
-                reportAction={reportAction}
-                reportID={reportID}
-            />
-        ),
-        [reportAction, reportID],
+    const reportActionPreviewTab = (
+        <DebugReportActionPreview
+            reportAction={reportAction}
+            reportID={reportID}
+        />
     );
 
-    const routes = useMemo<DebugTabNavigatorRoutes>(
-        () => [
-            {name: CONST.DEBUG.DETAILS, component: DebugDetailsTab},
-            {name: CONST.DEBUG.JSON, component: DebugJSONTab},
-            {name: CONST.DEBUG.REPORT_ACTION_PREVIEW, component: DebugReportActionPreviewTab},
-        ],
-        [DebugDetailsTab, DebugJSONTab, DebugReportActionPreviewTab],
-    );
+    const routes: DebugTabNavigatorRoutes = [
+        {name: CONST.DEBUG.DETAILS, content: detailsTab},
+        {name: CONST.DEBUG.JSON, content: jsonTab},
+        {name: CONST.DEBUG.REPORT_ACTION_PREVIEW, content: reportActionPreviewTab},
+    ];
 
     return (
         <ScreenWrapper
