@@ -38,7 +38,7 @@ import type {NavigationState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
@@ -103,6 +103,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.completeHrSetup';
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return 'debug.indicatorStatus.theresAProblemWithYourAgent';
         default:
             return undefined;
     }
@@ -139,6 +141,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return ROUTES.SETTINGS_AGENTS;
         default:
             return undefined;
     }
@@ -178,37 +182,22 @@ function DebugTabView({selectedTab}: Props) {
         return FULL_WIDTH_TAB_ROOT_SCREENS.has(focusedLeaf);
     });
 
-    const message = useMemo((): TranslationPaths | undefined => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                return 'debug.indicatorStatus.theresAReportAwaitingAction';
-            }
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                return 'debug.indicatorStatus.theresAReportWithErrors';
-            }
+    let message: TranslationPaths | undefined;
+    let indicator;
+    if (selectedTab === NAVIGATION_TABS.INBOX) {
+        if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
+            message = 'debug.indicatorStatus.theresAReportAwaitingAction';
+            indicator = theme.success;
+        } else if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            message = 'debug.indicatorStatus.theresAReportWithErrors';
+            indicator = theme.danger;
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
-            return getSettingsMessage(status);
-        }
-    }, [selectedTab, chatTabBrickRoad, status]);
+    } else if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
+        message = getSettingsMessage(status);
+        indicator = status ? indicatorColor : undefined;
+    }
 
-    const indicator = useMemo(() => {
-        if (selectedTab === NAVIGATION_TABS.INBOX) {
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-                return theme.success;
-            }
-            if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
-                return theme.danger;
-            }
-        }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
-            if (status) {
-                return indicatorColor;
-            }
-        }
-    }, [selectedTab, chatTabBrickRoad, theme.success, theme.danger, status, indicatorColor]);
-
-    const navigateTo = useCallback(() => {
+    const navigateTo = () => {
         if (selectedTab === NAVIGATION_TABS.INBOX && !!chatTabBrickRoad) {
             const reportID = getChatTabBrickRoadReportID(orderedReportIDs, reportAttributes);
 
@@ -223,7 +212,7 @@ function DebugTabView({selectedTab}: Props) {
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, indicatorPolicyID]);
+    };
 
     if (
         (shouldUseNarrowLayout && !isAtRoot) ||

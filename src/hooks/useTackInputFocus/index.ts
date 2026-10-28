@@ -5,40 +5,35 @@ import isHTMLElement from '@libs/isHTMLElement';
 
 import CONST from '@src/CONST';
 
-import {useCallback, useEffect} from 'react';
+import {useEffect} from 'react';
 
 /**
  * Detects input or text area focus on browsers, to avoid scrolling on virtual viewports
  */
+
 export default function useTackInputFocus(enable = false): boolean {
     const [, isInputFocusDebounced, setIsInputFocus] = useDebouncedState(false);
     const {shouldHideSidePanel} = useSidePanelState();
 
-    const handleFocusIn = useCallback(
-        (event: FocusEvent) => {
-            const targetElement = event.target;
-            if (!isHTMLElement(targetElement)) {
-                return;
-            }
-            if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
-                setIsInputFocus(true);
-            }
-        },
-        [setIsInputFocus],
-    );
+    const handleFocusIn = (event: FocusEvent) => {
+        const targetElement = event.target;
+        if (!isHTMLElement(targetElement)) {
+            return;
+        }
+        if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
+            setIsInputFocus(true);
+        }
+    };
 
-    const handleFocusOut = useCallback(
-        (event: FocusEvent) => {
-            const targetElement = event.target;
-            if (!isHTMLElement(targetElement)) {
-                return;
-            }
-            if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
-                setIsInputFocus(false);
-            }
-        },
-        [setIsInputFocus],
-    );
+    const handleFocusOut = (event: FocusEvent) => {
+        const targetElement = event.target;
+        if (!isHTMLElement(targetElement)) {
+            return;
+        }
+        if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
+            setIsInputFocus(false);
+        }
+    };
 
     useEffect(() => {
         if (!enable || !shouldHideSidePanel) {
