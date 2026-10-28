@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, CardList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -78,6 +78,9 @@ type GetReportPrimaryActionParams = {
     reportTransactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
     bankAccountList: OnyxEntry<BankAccountList>;
+    /** Optional so the existing callers that cannot see a broken feed keep today's behaviour: with no card we cannot
+     *  tell how long a connection has been broken, so the violation stays visible. */
+    cardList?: OnyxEntry<CardList>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
@@ -390,6 +393,7 @@ function isMarkAsCashAction(
     reportOwnerLogin: string | undefined,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
+    cardList: OnyxEntry<CardList>,
     policy?: Policy,
 ) {
     const isOneExpenseReport = isExpenseReportUtils(report) && reportTransactions.length === 1;
@@ -416,6 +420,7 @@ function isMarkAsCashAction(
         violations,
         currentUserEmail,
         currentUserAccountID,
+        cardList,
     );
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation && !isReportApprovedUtils({report}) && !isSettled(report);
@@ -484,6 +489,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         reportTransactions,
         violations,
         bankAccountList,
+        cardList,
         policy,
         reportNameValuePairs,
         reportActions,
@@ -522,7 +528,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         }) && allExpensesHeld;
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy, currentUserAccountID, rules);
 
-    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, policy)) {
+    if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, ownerLogin, reportTransactions, violations, cardList, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
@@ -592,14 +598,14 @@ function isSubmitViaPDFAction(report: Report, currentUserAccountID: number, poli
     return isSubmitPolicy(policy) && isCurrentUserSubmitter(report, currentUserAccountID);
 }
 
-function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], policy?: Policy): boolean {
+function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport: Report, violations: TransactionViolation[], cardList: OnyxEntry<CardList>, policy?: Policy): boolean {
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(violations);
 
     if (hasPendingRTERViolation) {
         return true;
     }
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, violations, cardList);
 
     if (!shouldShowBrokenConnectionViolation) {
         return false;
@@ -624,6 +630,7 @@ function getTransactionThreadPrimaryAction(
     parentOwnerLogin: string | undefined,
     reportTransaction: Transaction,
     violations: TransactionViolation[],
+    cardList: OnyxEntry<CardList>,
     policy: OnyxEntry<Policy>,
     isFromReviewDuplicates: boolean,
 ): ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '' {
@@ -643,7 +650,7 @@ function getTransactionThreadPrimaryAction(
         return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy)) {
+    if (isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, cardList, policy)) {
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 

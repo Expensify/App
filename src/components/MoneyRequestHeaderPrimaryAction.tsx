@@ -84,10 +84,22 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const {duplicateTransactions} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const primaryAction =
         report && parentReport && transaction
-            ? getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, parentOwnerLogin, transaction, transactionViolations, policy, isFromReviewDuplicates)
+            ? getTransactionThreadPrimaryAction(
+                  currentUserLogin ?? '',
+                  accountID,
+                  report,
+                  parentReport,
+                  parentOwnerLogin,
+                  transaction,
+                  transactionViolations,
+                  cardList,
+                  policy,
+                  isFromReviewDuplicates,
+              )
             : '';
 
     const renderButton = () => {

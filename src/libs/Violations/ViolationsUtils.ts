@@ -1275,6 +1275,13 @@ const ViolationsUtils = {
             case 'ruleViolation':
                 return buildRuleViolationMessage(violation.data?.filters, transactionCurrency ?? currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {
+                // Past the grace period the feed is not going to be reconnected and the submitter cannot do it
+                // themselves, so the expense stands on its own. Same predicate as shouldShowBrokenConnectionViolation,
+                // which drops the matching report header status and Mark as cash, so the two cannot disagree.
+                if (TransactionUtils.isBrokenConnectionViolationPastDismissThreshold(violation, card)) {
+                    return '';
+                }
+
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
                     isPersonalCardViolation = !!isPersonalCard(card);

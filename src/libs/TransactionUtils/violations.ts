@@ -2,14 +2,14 @@
  * Helpers that read, filter, and check transaction violations (RTER, broken connection, duplicates,
  * notice/warning types, and submission-blocking violations).
  */
-import {isPersonalCard} from '@libs/CardUtils';
+import {isBrokenConnectionPastDismissThreshold, isPersonalCard} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy, isInstantSubmitEnabled, isPolicyAdmin, isPolicyMember as isPolicyMemberPolicyUtils} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter, isIOUReport, isOpenExpenseReport, isProcessingReport, isReportManager, isSettled} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy, Report, Transaction, TransactionViolation, TransactionViolations, ViolationName} from '@src/types/onyx';
+import type {Card, CardList, Policy, Report, Transaction, TransactionViolation, TransactionViolations, ViolationName} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -127,8 +127,34 @@ function getUnsuppressibleBrokenConnectionTransactionID(
     })?.transactionID;
 }
 
-function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    if (brokenConnectionViolations.length === 0) {
+/**
+ * Whether a broken connection violation has gone unresolved long enough that we stop showing it at all.
+ *
+ * The violation asks the submitter to hold the expense until an admin reconnects the feed, which is worth saying
+ * while that is still likely to happen. Past the grace period it asks them to wait for something nobody is going to
+ * do, and the submitter cannot fix the feed themselves, so the expense is left to stand on its own.
+ *
+ * The threshold is crossed by time passing rather than by any data change, so it has to be re-evaluated on read -
+ * the same reason the card feed errors derived value depends on CURRENT_DATE.
+ */
+function isBrokenConnectionViolationPastDismissThreshold(violation: TransactionViolation, card: OnyxEntry<Card>): boolean {
+    return isBrokenConnectionViolation(violation) && !!card && isBrokenConnectionPastDismissThreshold(card);
+}
+
+/** Looks the violation's card up before applying {@link isBrokenConnectionViolationPastDismissThreshold}. */
+function isBrokenConnectionViolationPastDismissThresholdInList(violation: TransactionViolation, cardList: OnyxEntry<CardList>): boolean {
+    const cardID = violation.data?.cardID;
+
+    return isBrokenConnectionViolationPastDismissThreshold(violation, cardID ? cardList?.[cardID] : undefined);
+}
+
+function shouldShowBrokenConnectionViolationInternal(
+    brokenConnectionViolations: TransactionViolation[],
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    cardList: OnyxEntry<CardList>,
+) {
+    if (brokenConnectionViolations.every((violation) => isBrokenConnectionViolationPastDismissThresholdInList(violation, cardList))) {
         return false;
     }
 
@@ -146,10 +172,10 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
 /**
  * Check if user should see broken connection violation warning based on violations list.
  */
-function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[]): boolean {
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[], cardList: OnyxEntry<CardList>): boolean {
     const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
 
-    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy, cardList);
 }
 
 /**
@@ -163,6 +189,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
     currentUserAccountID: number,
+    cardList: OnyxEntry<CardList>,
 ): boolean {
     const brokenConnectionViolations = transactions.flatMap((transaction) => {
         const violations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
@@ -184,7 +211,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
         });
     });
 
-    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy, cardList);
 }
 
 /**
@@ -639,6 +666,7 @@ export {
     hasViolation,
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
+    isBrokenConnectionViolationPastDismissThreshold,
     isDuplicate,
     isPendingRTERViolation,
     isTransactionSubmittable,
