@@ -86,6 +86,7 @@ const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadTalkToHumanPage = () => require<ReactComponentModule>('../../../pages/TalkToHumanPage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadPreMountBufferPage = () => require<ReactComponentModule>('../../../pages/PreMountBufferPage').default;
@@ -225,6 +226,11 @@ function AuthScreens() {
                             name={SCREENS.CONCIERGE}
                             options={defaultScreenOptions}
                             getComponent={loadConciergePage}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.TALK_TO_HUMAN}
+                            options={defaultScreenOptions}
+                            getComponent={loadTalkToHumanPage}
                         />
                         <RootStack.Screen
                             name={SCREENS.TRACK_EXPENSE}
