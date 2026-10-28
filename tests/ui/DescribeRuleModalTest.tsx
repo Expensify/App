@@ -282,8 +282,8 @@ describe('DescribeRuleModal', () => {
         // Then the modal stays open with the reason, the explanation and the suggestion, and nothing reaches the editor form
         expect(onRuleGenerated).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
-        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
         expect(screen.getByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeOnTheScreen();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.noCapability')).toBeNull();
         expect(screen.getByText(`workspace.rules.newRule.impossible.quotedSuggestion ${IMPOSSIBLE_ANSWER.suggestedPrompt}`)).toBeOnTheScreen();
 
         // And Use suggestion is the suggested action, so Next turns neutral
@@ -347,21 +347,22 @@ describe('DescribeRuleModal', () => {
         expect(screen.getByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeOnTheScreen();
     });
 
-    it('shows the general title and no suggestion when the reason is unknown and nothing is suggested', async () => {
+    it('shows the general text and no suggestion when the reason is unknown and nothing is explained or suggested', async () => {
         // Given the flag for review editor asked for a rule
         await renderFlagForReviewModal(jest.fn(), jest.fn());
         const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
 
-        // When Concierge answers with a reason that this app version does not know, and with no suggestion
+        // When Concierge answers with a reason that this app version does not know, with no explanation and no suggestion
         await answerGeneration({
             ...IMPOSSIBLE_ANSWER,
             generationID,
+            explanation: '',
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- simulates an answer from a server that knows more reasons than this app version
             reason: 'futureReason' as GeneratedRuleImpossibleReason,
             suggestedPrompt: '',
         });
 
-        // Then the modal shows the general title and no Use suggestion button, because there is nothing to try
+        // Then the modal still says why with the general text, and shows no Use suggestion button, because there is nothing to try
         expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
         expect(screen.queryByText('workspace.rules.newRule.impossible.useSuggestion')).toBeNull();
 

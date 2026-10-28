@@ -166,12 +166,10 @@ function DescribeRuleForm({
     const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
     const refusalSuggestedPrompt = refusal?.suggestedPrompt;
     const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
-    let refusalDetail = refusal?.explanation;
-    if (refusalSuggestedPrompt) {
-        refusalDetail = refusal?.explanation
-            ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', refusal.explanation)
-            : translate('workspace.rules.newRule.impossible.trySuggestionBelow');
-    }
+    // An answer without an explanation still says why, with the general text for its reason
+    const refusalExplanation =
+        refusal && (refusal.explanation ? refusal.explanation : translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability'));
+    const refusalDetail = refusalExplanation && refusalSuggestedPrompt ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', refusalExplanation) : refusalExplanation;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const finish = () => {
@@ -372,8 +370,7 @@ function DescribeRuleForm({
             </View>
             {!!refusal && (
                 <View style={styles.mt4}>
-                    <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
-                    {!!refusalDetail && <Text style={[styles.textSupporting, styles.mt1]}>{refusalDetail}</Text>}
+                    {!!refusalDetail && <Text style={styles.textSupporting}>{refusalDetail}</Text>}
                     {!!refusalSuggestedPrompt && <Text style={styles.mt3}>{translate('workspace.rules.newRule.impossible.quotedSuggestion', refusalSuggestedPrompt)}</Text>}
                 </View>
             )}

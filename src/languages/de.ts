@@ -8953,7 +8953,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     retroactive: 'Regeln gelten nur für neue Aktivitäten.',
                     historyLimit: 'Regeln können nicht so weit zurückblicken.',
                     useSuggestion: 'Vorschlag verwenden',
-                    trySuggestionBelow: 'Probieren Sie stattdessen den Vorschlag unten aus:',
                     explanationWithSuggestion: (explanation: string) => `${explanation} Probieren Sie stattdessen den Vorschlag unten aus:`,
                     quotedSuggestion: (suggestedPrompt: string) => `„${suggestedPrompt}“`,
                     createAnyway: 'Trotzdem erstellen',

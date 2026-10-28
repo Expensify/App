@@ -9317,7 +9317,6 @@ const translations = {
                     retroactive: 'Rules only apply to new activity.',
                     historyLimit: "Rules can't look back that far.",
                     useSuggestion: 'Use suggestion',
-                    trySuggestionBelow: 'Try the suggestion below instead:',
                     explanationWithSuggestion: (explanation: string) => `${explanation} Try the suggestion below instead:`,
                     quotedSuggestion: (suggestedPrompt: string) => `"${suggestedPrompt}"`,
                     createAnyway: 'Create anyway',

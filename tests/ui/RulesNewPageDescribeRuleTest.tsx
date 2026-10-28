@@ -463,7 +463,7 @@ describe('New rule describe section', () => {
         });
 
         // Then New rule shows the reason and the suggestion, and nothing opens, because no rule can be drafted
-        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.impossible.explanationWithSuggestion Rules cannot send text messages.')).toBeOnTheScreen();
         expect(screen.getByText('workspace.rules.newRule.impossible.quotedSuggestion Comment on the report when it is submitted')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
