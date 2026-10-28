@@ -10,6 +10,7 @@ import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
+import {showEnableGlobalReimbursementsModal} from '@libs/actions/App';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -44,6 +45,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -57,6 +59,7 @@ import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {getConnectedIntegration, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -129,7 +132,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
-import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    BankAccount,
+    BillingGraceEndPeriod,
+    ExportTemplate,
+    Policy,
+    Report,
+    ReportAction,
+    ReportNameValuePairs,
+    SearchResults,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -169,6 +183,7 @@ import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
+import {useDerivedReportNamesByReportIDs} from './useReportAttributes';
 import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -807,6 +822,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
+    // Names of the selected reports, so bulk pay can list the reports it skipped the same way Search shows them
+    const selectedReportNames = useDerivedReportNamesByReportIDs(selectedReports.length > 0 ? payableSelectedReports.map((report) => report.reportID) : selectedTransactionReportIDs);
+
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
@@ -1791,6 +1809,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                       });
 
             let paidReportCount = 0;
+            // Reports skipped because their bank account needs global reimbursements, grouped by that bank account
+            const reportsNeedingGlobalReimbursementsByBankAccount = new Map<number, {bankAccount: BankAccount; reportNames: Map<string, string>}>();
             for (const item of itemsToPay) {
                 if (!item.reportID) {
                     Log.info('[BulkPay] Skipping report: item has no reportID');
@@ -1898,6 +1918,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const methodID =
                     paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
+
+                // The backend rejects this payment until the account is set up for global reimbursements, so keep the report unpaid and list it in the modal after the loop
+                const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({
+                    paymentType: paymentItem.paymentType as PaymentMethodType,
+                    methodID,
+                    bankAccountList,
+                    isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
+                });
+                if (methodID && bankAccountToSetUp) {
+                    const skippedReports = reportsNeedingGlobalReimbursementsByBankAccount.get(methodID) ?? {bankAccount: bankAccountToSetUp, reportNames: new Map<string, string>()};
+                    // Keyed by reportID because selecting several expenses of one report yields one item per expense
+                    skippedReports.reportNames.set(item.reportID, getReportName(iouReport, selectedReportNames?.[item.reportID]) || translate('common.report'));
+                    reportsNeedingGlobalReimbursementsByBankAccount.set(methodID, skippedReports);
+                    continue;
+                }
+
                 payMoneyRequest({
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -1929,17 +1965,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     rules,
                 });
 
-                // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
-                if (
-                    getBankAccountToSetUpBeforePaying({
-                        paymentType: paymentItem.paymentType as PaymentMethodType,
-                        methodID,
-                        bankAccountList,
-                        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
-                    })
-                ) {
-                    continue;
-                }
                 paidReportCount += 1;
             }
 
@@ -1950,6 +1975,36 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
+            }
+
+            // The modal sets up one bank account, so it lists only the reports paid from that account
+            const [firstSkippedBankAccount, ...otherSkippedBankAccounts] = reportsNeedingGlobalReimbursementsByBankAccount.entries();
+            if (otherSkippedBankAccounts.length > 0) {
+                Log.info('[BulkPay] Reports from more than one bank account need global reimbursements, prompting for the first one only', false, {
+                    bankAccountIDs: [...reportsNeedingGlobalReimbursementsByBankAccount.keys()],
+                });
+            }
+            if (firstSkippedBankAccount) {
+                const [bankAccountID, {bankAccount, reportNames}] = firstSkippedBankAccount;
+                deferModalPresentationAfterPopoverDismiss(() => {
+                    showConfirmModal({
+                        title: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.title', getLastFourDigits(bankAccount.accountData?.accountNumber ?? '')),
+                        subtitle: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.description'),
+                        prompt: [...reportNames.values()].map((reportName) => `${CONST.DOT_SEPARATOR} ${reportName}`).join('\n'),
+                        confirmText: translate('walletPage.wiseGlobalReimbursementsIntro.getStarted'),
+                        cancelText: translate('common.notNow'),
+                        shouldEnablePromptScroll: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        showEnableGlobalReimbursementsModal({
+                            bankAccountID,
+                            bankCountry: bankAccount.bankCountry,
+                            bankCurrency: bankAccount.bankCurrency,
+                        });
+                    });
+                });
             }
         },
         [
@@ -1997,6 +2052,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             conciergeChat,
             getCurrencyDecimals,
             rules,
+            showConfirmModal,
+            translate,
+            selectedReportNames,
         ],
     );
 

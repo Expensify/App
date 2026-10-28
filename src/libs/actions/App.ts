@@ -699,6 +699,13 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
 }
 
 /**
+ * Opens the global reimbursements onboarding for the given bank account, the same way a rejected pay attempt does.
+ */
+function showEnableGlobalReimbursementsModal(modalData: OnyxTypes.EnableGlobalReimbursementsModal) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, modalData);
+}
+
+/**
  * Clears the enable global reimbursements modal signal for the current session.
  */
 function clearEnableGlobalReimbursementsModal() {
@@ -723,6 +730,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
+    showEnableGlobalReimbursementsModal,
     clearEnableGlobalReimbursementsModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
