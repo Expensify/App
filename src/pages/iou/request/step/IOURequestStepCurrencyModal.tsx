@@ -1,5 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
+import type FocusTrapForModalProps from '@components/FocusTrap/FocusTrapForModal/FocusTrapForModalProps';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,9 +13,6 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-import type {ComponentRef, RefObject} from 'react';
-import type {View} from 'react-native';
 
 import React from 'react';
 
@@ -29,12 +27,8 @@ type CurrencyPickerProps = {
 
     excludeCurrencies?: string[];
 
-    /**
-     * The button that opens the picker. Passing it returns focus to that button when the picker closes. The picker's
-     * own ScreenWrapper focus trap blurs the button before the modal's trap can capture it, and the new focus
-     * management only restores text inputs, so without this a keyboard user is dropped back at the top of the form.
-     */
-    launcherRef?: RefObject<ComponentRef<typeof View> | null>;
+    /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
+    launcherRef?: FocusTrapForModalProps['launcherRef'];
 };
 
 function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, launcherRef, onInputChange = () => {}}: CurrencyPickerProps) {

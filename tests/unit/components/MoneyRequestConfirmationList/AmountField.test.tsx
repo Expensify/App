@@ -9,38 +9,46 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
+let mockCurrencyButtonRef: unknown;
+let mockLauncherRef: unknown;
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, errorText}: {onInputChange: (amount: string) => void; errorText?: string}) => (
-        <>
-            {!!errorText && <Text>{errorText}</Text>}
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('0')}
-            >
-                <Text>Enter zero</Text>
-            </Pressable>
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('1')}
-            >
-                <Text>Enter one</Text>
-            </Pressable>
-        </>
-    );
+    return ({onInputChange, errorText, currencyButtonRef}: {onInputChange: (amount: string) => void; errorText?: string; currencyButtonRef?: unknown}) => {
+        mockCurrencyButtonRef = currencyButtonRef;
+        return (
+            <>
+                {!!errorText && <Text>{errorText}</Text>}
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('0')}
+                >
+                    <Text>Enter zero</Text>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('1')}
+                >
+                    <Text>Enter one</Text>
+                </Pressable>
+            </>
+        );
+    };
 });
 jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange}: {onInputChange: (currency: string) => void}) => (
-        <Pressable
-            accessibilityRole="button"
-            onPress={() => onInputChange('EUR')}
-        >
-            <Text>Pick EUR</Text>
-        </Pressable>
-    );
+    return ({onInputChange, launcherRef}: {onInputChange: (currency: string) => void; launcherRef?: unknown}) => {
+        mockLauncherRef = launcherRef;
+        return (
+            <Pressable
+                accessibilityRole="button"
+                onPress={() => onInputChange('EUR')}
+            >
+                <Text>Pick EUR</Text>
+            </Pressable>
+        );
+    };
 });
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
@@ -249,6 +257,34 @@ describe('AmountField currency change', () => {
         // Then the entered amount is saved together with the new currency, since the amount is the user's own
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
+    });
+});
+
+describe('AmountField currency picker focus return', () => {
+    beforeEach(() => {
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockCurrencyButtonRef = undefined;
+        mockLauncherRef = undefined;
+    });
+
+    it('hands the currency button ref to the picker so focus returns to the button on close', () => {
+        // Given a manual expense whose amount field shows the currency button
+        // When the amount field renders
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the picker gets the same ref the currency button is attached to, so closing the picker returns keyboard
+        // focus to that button instead of dropping the user at the top of the form
+        expect(mockLauncherRef).toBeDefined();
+        expect(mockLauncherRef).toBe(mockCurrencyButtonRef);
     });
 });
 
