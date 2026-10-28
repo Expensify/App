@@ -8,10 +8,15 @@ import localFileDownload from '@libs/localFileDownload';
 
 import React from 'react';
 
+type MockDropdownOption = {
+    value: string;
+    onSelected: () => void;
+};
+
 type MockButtonProps = {
     customText: string;
     isDisabled?: boolean;
-    options?: Array<{value: string; onSelected?: () => void | Promise<void>}>;
+    options: MockDropdownOption[];
 };
 
 const mockButtonProps: {current?: MockButtonProps} = {};
@@ -87,18 +92,22 @@ jest.mock('@libs/actions/CompanyCards', () => ({unassignWorkspaceCompanyCard: je
 jest.mock('@libs/CardNavigationUtils', () => jest.fn());
 jest.mock('@libs/CardUtils', () => ({formatMaskedCardName: jest.fn()}));
 jest.mock('@libs/localFileDownload', () => jest.fn());
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 function renderControls(isSelectionModeEnabled: boolean) {
-    return render(
+    const clearCardSelection = jest.fn();
+    const renderResult = render(
         <WorkspaceCompanyCardsTableControls
             policyID="policy123"
             domainOrWorkspaceAccountID={123}
             bankName={undefined}
+            feedName="oauth.chase.com#123"
             canWriteCompanyCards
-            clearCardSelection={jest.fn()}
+            clearCardSelection={clearCardSelection}
             isSelectionModeEnabled={isSelectionModeEnabled}
         />,
     );
+    return {clearCardSelection, ...renderResult};
 }
 
 describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () => {
@@ -140,7 +149,7 @@ describe('WorkspaceCompanyCardsTableControls narrow-layout selection mode', () =
         renderControls(true);
 
         // When the CSV export action is selected
-        await mockButtonProps.current?.options?.find((option) => option.value === 'exportCSV')?.onSelected?.();
+        mockButtonProps.current?.options?.find((option) => option.value === 'exportCSV')?.onSelected?.();
 
         // Then the existing export still uses one safe text cell for the card name
         expect(localFileDownload).toHaveBeenCalledWith('CompanyCards_policy123.csv', expect.stringContaining('\r\nalex@example.com,"\'=SUM(1,2)",1234,'), expect.any(Function));

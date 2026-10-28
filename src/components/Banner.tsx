@@ -11,7 +11,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Hoverable from './Hoverable';
@@ -140,6 +140,6 @@ function Banner({
     );
 }
 
-export default memo(Banner);
+export default Banner;
 
 export type {BannerProps};
