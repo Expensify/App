@@ -18,8 +18,8 @@ import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import React, {useEffect, useRef, useState} from 'react';
+import Animated, {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
@@ -67,6 +67,7 @@ function AnimatedSubmitButton({
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
+    const buttonProgress = useSharedValue(1);
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
     const [isShowingLoading, setIsShowingLoading] = useState(false);
@@ -79,32 +80,30 @@ function AnimatedSubmitButton({
         justifyContent: 'center',
     }));
 
-    const stretchOutY = useCallback(() => {
-        'worklet';
+    const buttonStyles = useAnimatedStyle(() => ({
+        opacity: buttonProgress.get(),
+        transform: [{scale: buttonProgress.get()}],
+    }));
 
-        if (canShow) {
-            scheduleOnRN(onAnimationFinish);
+    useEffect(() => {
+        if (canShow || !isAnimationRunning) {
+            buttonProgress.set(1);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
-    }, [buttonDuration, height, onAnimationFinish, canShow]);
 
-    const buttonAnimation = useMemo(
-        () =>
-            new Keyframe({
-                from: {
-                    opacity: 1,
-                    transform: [{scale: 1}],
-                },
-                to: {
-                    opacity: 0,
-                    transform: [{scale: 0}],
-                },
-            })
-                .duration(buttonDuration)
-                .withCallback(stretchOutY),
-        [buttonDuration, stretchOutY],
-    );
+        // Animate a completed submission explicitly. An exiting animation also survives cancellation/unmount,
+        // leaving the loading button beside the restored Submit dropdown after the PDF modal disappears.
+        buttonProgress.set(
+            withTiming(0, {duration: buttonDuration}, (finished) => {
+                if (!finished) {
+                    return;
+                }
+                scheduleOnRN(onAnimationFinish);
+            }),
+        );
+
+        return () => cancelAnimation(buttonProgress);
+    }, [buttonDuration, buttonProgress, canShow, isAnimationRunning, onAnimationFinish]);
     const icons = useMemoizedLazyExpensifyIcons(['Send']);
 
     useEffect(() => {
@@ -158,12 +157,12 @@ function AnimatedSubmitButton({
 
     return (
         <Animated.View style={[containerStyles, {minWidth}]}>
-            {isAnimationRunning && canShow && (
+            {isAnimationRunning && (
                 <Animated.View
                     ref={(el: ComponentRef<typeof View> | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
-                    exiting={buttonAnimation}
+                    style={buttonStyles}
                 >
                     <Button
                         variant={variant}

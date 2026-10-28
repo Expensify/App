@@ -62,7 +62,7 @@ jest.mock('@components/Button', () => ({
     ),
 }));
 
-function CancellableSubmission() {
+function CancellableSubmission({onAnimationFinish = () => undefined}: {onAnimationFinish?: () => void}) {
     const [isSubmitting, setIsSubmitting] = useState(true);
 
     return (
@@ -72,7 +72,10 @@ function CancellableSubmission() {
                     text="Submit"
                     onPress={() => undefined}
                     isSubmittingAnimationRunning
-                    onAnimationFinish={() => setIsSubmitting(false)}
+                    onAnimationFinish={() => {
+                        onAnimationFinish();
+                        setIsSubmitting(false);
+                    }}
                 />
             ) : (
                 <button type="button">Submit via PDF</button>
@@ -101,6 +104,7 @@ describe('AnimatedSubmitButton web animations', () => {
 
     afterEach(() => {
         act(() => root.unmount());
+        act(() => jest.runOnlyPendingTimers());
         container.remove();
         jest.restoreAllMocks();
     });
@@ -117,6 +121,50 @@ describe('AnimatedSubmitButton web animations', () => {
         expect(screen.getByRole('button', {name: 'Submit via PDF'})).toBeTruthy();
         expect(screen.queryByRole('button', {name: 'Submitting'})).toBeNull();
         act(() => jest.advanceTimersByTime(CONST.ANIMATION_SUBMIT_DURATION));
+        expect(screen.queryByRole('button', {name: 'Submitting'})).toBeNull();
+    });
+
+    it('does not finish an animation after cancellation during a slow submission', async () => {
+        // Given a PDF that takes longer than the initial loading phase
+        const onAnimationFinish = jest.fn();
+        act(() => root.render(<CancellableSubmission onAnimationFinish={onAnimationFinish} />));
+        await act(async () => jest.advanceTimersByTimeAsync(CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION));
+
+        // When the modal is cancelled while PDF generation is still pending
+        await act(async () => fireEvent.click(screen.getByRole('button', {name: 'Cancel'})));
+
+        // Then neither the completed-looking button nor its finish callback can survive cancellation
+        expect(screen.getByRole('button', {name: 'Submit via PDF'})).toBeTruthy();
+        expect(screen.queryByRole('button', {name: 'Submitting'})).toBeNull();
+        act(() => jest.runOnlyPendingTimers());
+        expect(onAnimationFinish).not.toHaveBeenCalled();
+    });
+
+    it('also removes the loader when its animation is stopped without unmounting the component', async () => {
+        // Given a caller that keeps the same AnimatedSubmitButton mounted when it stops submitting
+        const props = {text: 'Submit', onPress: jest.fn(), onAnimationFinish: jest.fn()};
+        act(() =>
+            root.render(
+                <AnimatedSubmitButton
+                    {...props}
+                    isSubmittingAnimationRunning
+                />,
+            ),
+        );
+        expect(screen.getByRole('button', {name: 'Submitting'})).toBeTruthy();
+
+        // When the caller stops the animation instead of replacing the entire component
+        await act(async () =>
+            root.render(
+                <AnimatedSubmitButton
+                    {...props}
+                    isSubmittingAnimationRunning={false}
+                />,
+            ),
+        );
+
+        // Then the enabled Submit button is the only submission button left in the DOM
+        expect(screen.getByRole('button', {name: 'Submit'})).toBeTruthy();
         expect(screen.queryByRole('button', {name: 'Submitting'})).toBeNull();
     });
 });
