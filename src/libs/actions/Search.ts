@@ -2574,7 +2574,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (!isUserValidated && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && item.key !== CONST.PAYMENT_METHODS.ABA) {
+    if (!isUserValidated && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         Log.info('[BulkPay] Blocking bulk pay: user is not validated, redirecting to account verification');
         // Store the pending bulk pay so it resumes after the user validates, instead of being dropped on the way to the magic-code screen.
         verifyAccountAndResume(() => handleBulkPayItemSelected({...params, isUserValidated: true}));

@@ -1,3 +1,7 @@
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
+
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,9 +16,11 @@ import useDecisionModal from './useDecisionModal';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 
 /**
- * Returns a function that pays reports by downloading their ABA file, and tells the user when the download fails
+ * Returns a function that pays reports by downloading their ABA file, and tells the user when the download fails.
+ * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
  */
 function usePayViaABA() {
     const {translate} = useLocalize();
@@ -28,8 +34,11 @@ function usePayViaABA() {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume) => resume?.());
 
-    return (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) =>
+    const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) =>
         payViaABA({
             reportIDs,
             policy,
@@ -51,6 +60,19 @@ function usePayViaABA() {
                 });
             },
         });
+
+    // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed
+    return (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
+        if (isAccountLocked) {
+            deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
+            return;
+        }
+        if (!isUserValidated) {
+            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reportIDs, policy, shouldReimburseHeldTransactions)));
+            return;
+        }
+        downloadABAFile(reportIDs, policy, shouldReimburseHeldTransactions);
+    };
 }
 
 export default usePayViaABA;

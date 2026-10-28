@@ -27,6 +27,25 @@ jest.mock('@hooks/useDecisionModal', () => ({
     default: () => ({showDecisionModal: mockShowDecisionModal}),
 }));
 
+let mockIsAccountLocked = false;
+const mockShowLockedAccountModal = jest.fn();
+jest.mock('@components/LockedAccountModalProvider', () => ({
+    useLockedAccountState: () => ({isAccountLocked: mockIsAccountLocked}),
+    useLockedAccountActions: () => ({showLockedAccountModal: mockShowLockedAccountModal}),
+}));
+
+let mockIsUserValidated = true;
+const mockVerifyAccountAndResume = jest.fn<void, [(() => void) | undefined]>();
+jest.mock('@hooks/useVerifyAccountAndResume', () => ({
+    __esModule: true,
+    default: () => ({isUserValidated: mockIsUserValidated, verifyAccountAndResume: mockVerifyAccountAndResume}),
+}));
+
+jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
+    __esModule: true,
+    default: (presentModal: () => void) => presentModal(),
+}));
+
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
     payViaABA: jest.fn(),
@@ -47,6 +66,8 @@ describe('usePayViaABA', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsAccountLocked = false;
+        mockIsUserValidated = true;
         await act(async () => {
             await Onyx.clear();
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'admin@test.com'});
@@ -92,5 +113,38 @@ describe('usePayViaABA', () => {
                 prompt: translateLocal('common.downloadFailedDescription'),
             }),
         );
+    });
+
+    it('shows the locked account modal instead of downloading the ABA file', async () => {
+        // Given a locked account
+        mockIsAccountLocked = true;
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        result.current(['123'], policy);
+
+        // Then the user is told their account is locked, since the backend rejects payments from locked accounts
+        expect(mockShowLockedAccountModal).toHaveBeenCalled();
+        expect(payViaABA).not.toHaveBeenCalled();
+    });
+
+    it('downloads the ABA file once an unvalidated user has verified their account', async () => {
+        // Given a user who hasn't validated their account
+        mockIsUserValidated = false;
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        result.current(['123'], policy);
+
+        // Then they're asked to verify their account first, because the file pays out of the workspace's bank account
+        expect(payViaABA).not.toHaveBeenCalled();
+
+        // When they've verified it
+        mockVerifyAccountAndResume.mock.calls.at(0)?.at(0)?.();
+
+        // Then the file they asked for is downloaded
+        expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123'], policy}));
     });
 });

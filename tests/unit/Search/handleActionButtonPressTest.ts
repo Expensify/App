@@ -636,7 +636,7 @@ describe('handleBulkPayItemSelected', () => {
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
-    it('should not trigger account verification and should pay via ABA when user is unvalidated and item is Pay via ABA', async () => {
+    it('should defer to verifyAccountAndResume when user is unvalidated and item is Pay via ABA', async () => {
         // Given an unvalidated user on a workspace
         const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
@@ -654,9 +654,9 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.PAYMENT_METHODS.ABA, text: 'Pay via ABA', icon: () => null, additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA}},
         });
 
-        // Then the reports are paid as Elsewhere via ABA without verifying the account first, like Mark as paid, since the ABA file pays from outside Expensify
-        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        // Then they verify their account before anything is paid, because unlike Mark as paid, the ABA file pays out of the workspace's bank account
+        expect(baseParams.verifyAccountAndResume).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
     });
 
     it('should defer to verifyAccountAndResume when user is unvalidated and item is a bank-funded payment type (VBBA), then resume the payment after validation', async () => {
