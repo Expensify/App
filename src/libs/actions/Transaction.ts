@@ -2152,17 +2152,14 @@ function getChangeTransactionsReportOnyxData({
     };
 }
 
-/**
- * Drops moved expenses from a carousel seeded from the report they left. Every move goes through
- * `changeTransactionsReport`, so doing it here covers all entry points at once.
- */
+/** Drops moved expenses from a carousel seeded from the report they left. Called by every move entry point. */
 function removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID: Record<string, string[]> | undefined) {
     for (const [oldReportID, transactionIDs] of Object.entries(movedTransactionIDsByOldReportID ?? {})) {
         removeActiveTransactionIDsForReport(transactionIDs, oldReportID);
     }
 }
 
-function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+function changeTransactionsReport(props: Omit<ChangeTransactionsReportProps, 'isUndelete'>) {
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Without a hash the move falls back to the explicit list and only the loaded page moves, so surface that
@@ -2266,7 +2263,7 @@ function undeleteTransactions(props: Omit<ChangeTransactionsReportProps, 'isUnde
     if (!undeleteOnyxData) {
         return;
     }
-    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs} = undeleteOnyxData;
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs, movedTransactionIDsByOldReportID} = undeleteOnyxData;
 
     if (movedTransactionIDs.length === 0) {
         return;
@@ -2282,6 +2279,7 @@ function undeleteTransactions(props: Omit<ChangeTransactionsReportProps, 'isUnde
         successData,
         failureData,
     });
+    removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID);
 }
 
 /**

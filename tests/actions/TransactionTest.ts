@@ -33,7 +33,7 @@ import Onyx from 'react-native-onyx';
 import {createCashCard} from 'tests/utils/collections/card';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
-import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, clearError, undeleteTransactions as undeleteTransactionsAction} from '../../src/libs/actions/Transaction';
 import {CAROUSEL_SOURCE, clearActiveTransactionIDs, setActiveTransactionIDs} from '../../src/libs/actions/TransactionThreadNavigation';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
@@ -1993,6 +1993,130 @@ describe('actions/Transaction', () => {
                     expect(split2CommentActions.length).toBeGreaterThanOrEqual(1);
                 }
             });
+        });
+    });
+
+    describe('undeleteTransactions', () => {
+        const ADMIN_ACCOUNT_ID = CARLOS_ACCOUNT_ID;
+        const ADMIN_EMAIL = CARLOS_EMAIL;
+        const MEMBER_ACCOUNT_ID = RORY_ACCOUNT_ID;
+        const MEMBER_EMAIL = RORY_EMAIL;
+        const trashedExpenseID = 'trashed-member-expense';
+        const transactionThreadReportID = '601';
+        const memberChatReportID = '602';
+
+        const buildTrashedMemberExpense = async () => {
+            const memberChat: Report = {...createRandomReport(602, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: memberChatReportID, ownerAccountID: MEMBER_ACCOUNT_ID};
+            const transactionThread: Report = {
+                ...createRandomReport(601),
+                reportID: transactionThreadReportID,
+                parentReportID: memberChatReportID,
+                parentReportActionID: 'iou-action-for-trashed',
+                ownerAccountID: MEMBER_ACCOUNT_ID,
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 2584,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: MEMBER_ACCOUNT_ID, login: MEMBER_EMAIL}],
+                    transactionID: trashedExpenseID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                reportID: memberChatReportID,
+                childReportID: transactionThreadReportID,
+                actorAccountID: MEMBER_ACCOUNT_ID,
+                reportActionID: 'iou-action-for-trashed',
+            };
+            const trashedExpense: Transaction = {
+                transactionID: trashedExpenseID,
+                amount: -2584,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Third Party Merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: '', liabilityType: 'corporate'},
+                reportID: CONST.REPORT.TRASH_REPORT_ID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${memberChatReportID}`, memberChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberChatReportID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${trashedExpenseID}`, trashedExpense);
+            await waitForBatchedUpdates();
+        };
+
+        const triggerUndelete = async () => {
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+            const transactions = Object.values(allTransactions ?? {}).filter((t): t is Transaction => t?.transactionID === trashedExpenseID);
+
+            undeleteTransactionsAction({
+                transactionIDs: [trashedExpenseID],
+                transactions,
+                isASAPSubmitBetaEnabled: false,
+                accountID: ADMIN_ACCOUNT_ID,
+                email: ADMIN_EMAIL,
+                policy: undefined,
+                policyTagList: {},
+                allTransactionViolation: {},
+                reports: allReports,
+                rules: undefined,
+                cardList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
+            });
+            await waitForBatchedUpdates();
+        };
+
+        it('writes an UNDELETED_TRANSACTION action attributed to the admin on the transaction thread', async () => {
+            // Given an expense owned by a member that is sitting in the trash
+            await buildTrashedMemberExpense();
+
+            // When the admin undeletes it
+            await triggerUndelete();
+
+            // Then the transaction thread shows an UNDELETED_TRANSACTION action with the admin, not the member, as the actor
+            const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const undeletedAction = Object.values(threadActions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION);
+            expect(undeletedAction).toBeDefined();
+            expect(undeletedAction?.actorAccountID).toBe(ADMIN_ACCOUNT_ID);
+        });
+
+        it('restores the transaction optimistically from trash to unreported', async () => {
+            // Given a trashed member expense
+            await buildTrashedMemberExpense();
+
+            // When the admin undeletes it
+            await triggerUndelete();
+
+            // Then the transaction is immediately out of trash
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${trashedExpenseID}`);
+            expect(transaction?.reportID).not.toBe(CONST.REPORT.TRASH_REPORT_ID);
+        });
+
+        it('sends UndeleteTransactions, not ChangeTransactionsReport', async () => {
+            // Given a trashed member expense and a fetch mock that records every API command the client fires
+            const mockFetch = getGlobalFetchMock();
+            global.fetch = mockFetch;
+            await buildTrashedMemberExpense();
+
+            // When the admin undeletes it
+            await triggerUndelete();
+
+            // Then the backend is called with the dedicated UndeleteTransactions command, not the generic move command that would attribute the action to the owner on the corporate card path
+            const calls = (mockFetch as jest.Mock).mock.calls as unknown[][];
+            const commandURLs = calls.map((call) => String(call[0] ?? ''));
+            expect(commandURLs.some((url) => url.includes('command=UndeleteTransactions'))).toBe(true);
+            expect(commandURLs.some((url) => url.includes('command=ChangeTransactionsReport'))).toBe(false);
         });
     });
 });
