@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: Account;
@@ -43,60 +43,51 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.path);
 
-    const data: CardListItem[] = useMemo(() => {
-        let accounts: Account[];
-        switch (qboConfig?.nonReimbursableExpensesExportDestination) {
-            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
-                accounts = creditCards ?? [];
-                break;
-            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
-                accounts = bankAccounts ?? [];
-                break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                accounts = accountPayable ?? [];
-                break;
-            default:
-                accounts = [];
-        }
+    let accounts: Account[];
+    switch (qboConfig?.nonReimbursableExpensesExportDestination) {
+        case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
+            accounts = creditCards ?? [];
+            break;
+        case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
+            accounts = bankAccounts ?? [];
+            break;
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            accounts = accountPayable ?? [];
+            break;
+        default:
+            accounts = [];
+    }
+    const data: CardListItem[] = accounts.map((card) => ({
+        value: card,
+        text: card.name,
+        keyForList: card.name,
+        isSelected: card.name === qboConfig?.nonReimbursableExpensesAccount?.name,
+    }));
 
-        return accounts.map((card) => ({
-            value: card,
-            text: card.name,
-            keyForList: card.name,
-            isSelected: card.name === qboConfig?.nonReimbursableExpensesAccount?.name,
-        }));
-    }, [qboConfig?.nonReimbursableExpensesAccount, creditCards, bankAccounts, qboConfig?.nonReimbursableExpensesExportDestination, accountPayable]);
-
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(
             backPath ||
                 (policyID &&
                     `${ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.path}`),
         );
-    }, [policyID, backPath]);
+    };
 
-    const selectExportAccount = useCallback(
-        (row: CardListItem) => {
-            if (row.value.id !== qboConfig?.nonReimbursableExpensesAccount?.id && policyID) {
-                updateQuickbooksOnlineNonReimbursableExpensesAccount(policyID, row.value, qboConfig?.nonReimbursableExpensesAccount);
-            }
-            goBack();
-        },
-        [qboConfig?.nonReimbursableExpensesAccount, policyID, goBack],
-    );
+    const selectExportAccount = (row: CardListItem) => {
+        if (row.value.id !== qboConfig?.nonReimbursableExpensesAccount?.id && policyID) {
+            updateQuickbooksOnlineNonReimbursableExpensesAccount(policyID, row.value, qboConfig?.nonReimbursableExpensesAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope, integrationName],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbo.noAccountsFound')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+            containerStyle={styles.pb10}
+        />
     );
     return (
         <SelectionScreen

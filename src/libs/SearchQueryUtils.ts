@@ -1533,6 +1533,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
@@ -1604,12 +1605,7 @@ function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is Onyx
     return !!data;
 }
 
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]> {
+function getAllPolicyValues<TValue>(policyID: Filter | undefined, key: OnyxCollectionKey, policyData: OnyxCollection<TValue>, policies?: OnyxCollection<OnyxTypes.Policy>): TValue[] {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1618,16 +1614,13 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
-        return Object.keys(policyData).reduce(
-            (acc, curr) => {
-                const id = curr.replace(key, '');
-                if (!resolvedValues.includes(id) && policyData[curr]) {
-                    acc.push(policyData[curr]);
-                }
-                return acc;
-            },
-            [] as Array<OnyxCollectionValuesMapping[T]>,
-        );
+        return Object.keys(policyData).reduce<TValue[]>((acc, curr) => {
+            const id = curr.replace(key, '');
+            if (!resolvedValues.includes(id) && policyData[curr]) {
+                acc.push(policyData[curr]);
+            }
+            return acc;
+        }, []);
     }
 
     return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
@@ -1863,7 +1856,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -2025,6 +2018,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[addNegation(filterKey, isNegated)] = filterValues
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues

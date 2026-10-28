@@ -1,4 +1,5 @@
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getFittingGroupBy, getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
@@ -82,6 +83,16 @@ describe('insightsGroupByUtils', () => {
             // Then Week is picked, the closest grouping to Day that the range offers
             expect(groupBy).toBe(WEEK);
         });
+
+        it('fits running total to the default bucket, since it has no bucket of its own', () => {
+            // Given running total selected over the last 12 months, which offers Month
+
+            // When it is fitted to the range for display
+            const groupBy = getFittingGroupBy(INSIGHTS_RUNNING_TOTAL_GROUP_BY, getInsightsGroupByOptions({preset: LAST_12_MONTHS}));
+
+            // Then it resolves to a real bucket rather than staying the running total value
+            expect(groupBy).toBe(MONTH);
+        });
     });
 
     describe('getQueryGroupBy', () => {
@@ -105,6 +116,28 @@ describe('insightsGroupByUtils', () => {
 
             // Then its one point is grouped by day
             expect(groupBy).toBe(DAY);
+        });
+
+        it('queries running total by day when the range offers daily points', () => {
+            // Given a running total dashboard over a range of 62 days, which offers Day
+            const filters: InsightsFilters = {date: {from: '2026-03-01', to: '2026-05-01'}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then the line accumulates from daily buckets, and the backend never sees the running total value itself
+            expect(groupBy).toBe(DAY);
+        });
+
+        it('queries running total by month when the range is too long for daily points', () => {
+            // Given a running total dashboard over the last 12 months, which does not offer Day
+            const filters: InsightsFilters = {date: {preset: LAST_12_MONTHS}, policyIDs: [], groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY, groupCurrency: 'USD'};
+
+            // When the Group by to query with is picked
+            const groupBy = getQueryGroupBy(filters);
+
+            // Then it accumulates from monthly buckets instead
+            expect(groupBy).toBe(MONTH);
         });
     });
 });

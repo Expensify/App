@@ -38,6 +38,22 @@ describe('resolveComparisonPeriods', () => {
         expect(periods).toEqual({primary: {start: '2025-10-01', end: '2026-09-30'}, comparison: {start: '2024-10-01', end: '2025-09-30'}, monthsApart: 12});
     });
 
+    it('compares this week against the week before it', () => {
+        // When the page reports on this week, which runs Sunday to Saturday
+        const periods = resolveComparisonPeriods({preset: CONST.SEARCH.DATE_PRESETS.THIS_WEEK});
+
+        // Then the compared period is the previous Sunday to Saturday, paired day by day rather than a month apart
+        expect(periods).toEqual({primary: {start: '2026-09-20', end: '2026-09-26'}, comparison: {start: '2026-09-13', end: '2026-09-19'}});
+    });
+
+    it('compares the last 30 days against the 30 days before them', () => {
+        // When the page reports on the last 30 days, which span two months
+        const periods = resolveComparisonPeriods({preset: CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS});
+
+        // Then the compared period is the 30 days just before, not whole months
+        expect(periods).toEqual({primary: {start: '2026-08-24', end: '2026-09-22'}, comparison: {start: '2026-07-25', end: '2026-08-23'}});
+    });
+
     it('compares a custom range against the range of the same length before it', () => {
         // When the page reports on ten days in March
         const periods = resolveComparisonPeriods({from: '2026-03-11', to: '2026-03-20'});

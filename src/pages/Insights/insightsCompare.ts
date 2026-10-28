@@ -8,6 +8,14 @@ import {differenceInCalendarDays, differenceInCalendarMonths, format, parseISO, 
 
 import type {InsightsFilters} from './insightsFilters';
 
+/** Presets that span a fixed number of days rather than whole months */
+const DAY_LENGTH_PRESETS = new Set<string>([
+    CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
+    CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
+    CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS,
+    CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
+]);
+
 /** Formats a period's first and last day */
 function formatPeriod(start: Date, end: Date): ChartPeriod {
     return {
@@ -30,13 +38,13 @@ function resolveComparisonPeriods(dateFilter: InsightsFilters['date']): ChartCom
     const start = parseISO(primary.start);
     const end = parseISO(primary.end);
 
-    // Presets compare month for month, so year to date compares whole years like this year.
-    if ('preset' in dateFilter) {
+    // Month, quarter, and year presets cover whole months and compare month for month.
+    if ('preset' in dateFilter && !DAY_LENGTH_PRESETS.has(dateFilter.preset)) {
         const monthsApart = differenceInCalendarMonths(end, start) + 1;
         return {primary, comparison: formatPeriod(subMonths(start, monthsApart), subDays(start, 1)), monthsApart};
     }
 
-    // A custom range compares against the same number of days just before.
+    // Weeks, rolling day ranges, and custom ranges compare against the same number of days just before.
     return {primary, comparison: formatPeriod(subDays(start, differenceInCalendarDays(end, start) + 1), subDays(start, 1))};
 }
 
