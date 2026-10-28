@@ -36,7 +36,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbursementAccountID?: string): string | undefined {
     return bankAccounts.find((bankAccount) => bankAccount.id === reimbursementAccountID)?.name ?? reimbursementAccountID;
@@ -55,50 +55,47 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!sync?.syncReimbursedReports);
 
-    const toggleSections = useMemo(
-        () => [
-            {
-                label: translate('workspace.sageIntacct.inviteEmployees'),
-                description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
-                isActive: !!importEmployees,
-                onToggle: (enabled: boolean) => {
-                    if (!policyID) {
-                        return;
-                    }
-                    updateSageIntacctImportEmployees(policyID, enabled);
-                    updateSageIntacctApprovalMode(policyID, enabled);
-                },
-                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE],
-                error: getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES) ?? getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE),
-                onCloseError: () => {
-                    clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES);
-                    clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE);
-                },
+    const toggleSections = [
+        {
+            label: translate('workspace.sageIntacct.inviteEmployees'),
+            description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
+            isActive: !!importEmployees,
+            onToggle: (enabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                updateSageIntacctImportEmployees(policyID, enabled);
+                updateSageIntacctApprovalMode(policyID, enabled);
             },
-            {
-                label: translate('workspace.sageIntacct.syncReimbursedReports'),
-                description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
-                isActive: !!sync?.syncReimbursedReports,
-                onToggle: (enabled: boolean) => {
-                    if (!policyID) {
-                        return;
-                    }
-                    updateSageIntacctSyncReimbursedReports(policyID, enabled);
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE],
+            error: getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES) ?? getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE),
+            onCloseError: () => {
+                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES);
+                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE);
+            },
+        },
+        {
+            label: translate('workspace.sageIntacct.syncReimbursedReports'),
+            description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
+            isActive: !!sync?.syncReimbursedReports,
+            onToggle: (enabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                updateSageIntacctSyncReimbursedReports(policyID, enabled);
 
-                    if (enabled && !sync?.reimbursementAccountID) {
-                        const reimbursementAccountID = data?.bankAccounts[0]?.id;
-                        updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
-                    }
-                },
-                subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS],
-                error: getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS),
-                onCloseError: () => {
-                    clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS);
-                },
+                if (enabled && !sync?.reimbursementAccountID) {
+                    const reimbursementAccountID = data?.bankAccounts[0]?.id;
+                    updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
+                }
             },
-        ],
-        [translate, config, importEmployees, sync?.syncReimbursedReports, sync?.reimbursementAccountID, policyID, data?.bankAccounts],
-    );
+            subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS],
+            error: getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS),
+            onCloseError: () => {
+                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS);
+            },
+        },
+    ];
 
     return (
         <ConnectionLayout

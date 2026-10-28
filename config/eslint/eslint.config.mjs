@@ -316,6 +316,8 @@ const config = defineConfig([
             'rulesdir/no-direct-personal-details-list': 'error',
             'rulesdir/no-onyx-loading-status': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
+            'rulesdir/no-unsafe-onyx-read': 'error',
+            'rulesdir/no-onyx-get-snapshot-key': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -552,6 +554,8 @@ const config = defineConfig([
     {
         files: ['src/**/*.ts', 'src/**/*.tsx'],
         rules: {
+            // The lint pipeline keeps this diagnostic only when React Compiler memoizes the file.
+            'rulesdir/no-manual-memoization': 'error',
             'rulesdir/prefer-locale-compare-from-context': 'error',
             'rulesdir/no-object-keys-includes': 'error',
         },
