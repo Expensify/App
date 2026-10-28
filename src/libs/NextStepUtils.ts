@@ -324,7 +324,7 @@ function shouldKeepAutoExportTiming(report: OnyxEntry<Report>, predictedNextStat
     }
 
     if (predictedNextStatus === CONST.REPORT.STATUS_NUM.APPROVED) {
-        return report?.nextStep?.autoExport?.messageKey === CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID && reimbursableSpend !== 0;
+        return report?.nextStep?.autoExport?.messageKey === CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID && reimbursableSpend !== 0;
     }
 
     return false;

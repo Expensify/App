@@ -2393,7 +2393,7 @@ const translations = {
         },
         autoExport: {
             [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL]: 'This report will be exported after final approval.',
-            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID]: 'Reimbursable expenses will be exported when this report is paid.',
+            [CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID]: 'Reimbursable expenses will be exported when this report is paid.',
         },
     },
     profilePage: {

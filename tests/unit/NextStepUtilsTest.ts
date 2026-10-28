@@ -1246,7 +1246,7 @@ describe('libs/NextStepUtils', () => {
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
         });
 
-        it.each([CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL, CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID])(
+        it.each([CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL, CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID])(
             'appends the %s timing after the next step message',
             (autoExportMessageKey) => {
                 // Given a next step from a workspace that auto-exports
@@ -1459,21 +1459,21 @@ describe('libs/NextStepUtils', () => {
             },
             {
                 description: 'keeps the when-paid export timing on final approval',
-                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID,
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
                 total: -500,
                 shouldKeepAutoExport: true,
             },
             {
                 description: 'clears the when-paid export timing on final approval when there is no reimbursable spend',
-                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID,
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
                 total: 0,
                 shouldKeepAutoExport: false,
             },
             {
                 description: 'clears the when-paid export timing on payment',
-                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.OUT_OF_POCKET_EXPORTS_WHEN_PAID,
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 total: -500,
                 shouldKeepAutoExport: false,
