@@ -10733,6 +10733,7 @@ const CONST = {
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
                 APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
                 APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
                 APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',

@@ -52,6 +52,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -289,6 +290,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     };
     const bankAccountMenuItem = <MenuItem {...bankAccountMenuItemProps} />;
 
+    const reimbursementCountryNames = Object.keys(policy?.reimbursement?.countries ?? {})
+        .filter((countryISO): countryISO is Country => countryISO in CONST.ALL_COUNTRIES)
+        .map((countryISO) => translate(`allCountries.${countryISO}`))
+        .join(', ');
+
     return (
         <WorkflowsSectionCard
             title={translate('workflowsPage.makeOrTrackPaymentsTitle')}
@@ -446,6 +452,20 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             disabled={!canWritePayments}
                             disabledAction={withPaymentsReadOnlyFallback()}
                             showLockIcon={!canWritePayments}
+                            subMenuItems={
+                                <View style={[styles.mt3, styles.mbn3]}>
+                                    <MenuItemSectionRoot sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}>
+                                        <MenuItemField.Row
+                                            name={translate('workflowsPage.businessBankAccountCountries')}
+                                            value={reimbursementCountryNames}
+                                            numberOfLinesValue={0}
+                                        >
+                                            {canWritePayments && <MenuItem.Chevron />}
+                                        </MenuItemField.Row>
+                                        <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
+                                    </MenuItemSectionRoot>
+                                </View>
+                            }
                         />
                     )}
                 </>

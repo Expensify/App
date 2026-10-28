@@ -2986,6 +2986,8 @@ ${date} の ${merchant} への ${amount}`,
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
         collectEmployeeBankDetails: '従業員の銀行口座情報を収集',
         collectEmployeeBankDetailsDescription: '従業員の銀行口座情報を収集して、Expensify以外で精算できるようにします。',
+        businessBankAccountCountries: 'ビジネス銀行口座の国',
+        businessBankAccountCountriesDescription: 'これらの国の従業員は国内送金の情報を入力します。それ以外の従業員は国際送金の情報を入力します。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>このワークスペースではカスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>Concierge</concierge-link>までご連絡ください。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
