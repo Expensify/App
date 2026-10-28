@@ -5051,6 +5051,61 @@ describe('actions/IOU/ReportWorkflow', () => {
                     expect(previewAction).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
                 });
         });
+
+        it.each([
+            {
+                description: "keeps the server's when-paid export timing on final approval",
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                expectedAutoExport: {messageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID},
+            },
+            {
+                description: "clears the server's after-final-approval export timing on final approval",
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                expectedAutoExport: undefined,
+            },
+        ])('$description', async ({autoExportMessageKey, expectedAutoExport}) => {
+            // Given a report waiting for its final approver, whose next step from the server includes an export timing
+            const reportWithAutoExport: Report = {
+                ...expenseReport,
+                managerID: adminAccountID,
+                nextStep: {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: adminAccountID,
+                    autoExport: {messageKey: autoExportMessageKey},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportWithAutoExport.reportID}`, reportWithAutoExport);
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            // When the admin approves it
+            approveMoneyRequest({
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport: reportWithAutoExport,
+                expenseReportPolicy: policy,
+                currentUserAccountIDParam: adminAccountID,
+                currentUserEmailParam: adminEmail,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic merge keeps the timing while reimbursable spend waits for payment, and clears it otherwise
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportWithAutoExport.reportID}`);
+            expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            expect(updatedReport?.nextStep?.autoExport).toEqual(expectedAutoExport);
+        });
     });
 
     describe('approveMoneyRequest partially', () => {

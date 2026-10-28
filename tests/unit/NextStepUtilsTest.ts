@@ -1479,6 +1479,20 @@ describe('libs/NextStepUtils', () => {
                 shouldKeepAutoExport: false,
             },
             {
+                description: 'clears the export timing when the report goes back to open, like on retract or reject',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
+                description: 'clears the export timing when the report is closed',
+                autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
+                predictedNextStatus: CONST.REPORT.STATUS_NUM.CLOSED,
+                total: -500,
+                shouldKeepAutoExport: false,
+            },
+            {
                 description: 'keeps the after-final-approval export timing when the report moves to its next approver',
                 autoExportMessageKey: CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.EXPORTS_AFTER_FINAL_APPROVAL,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
