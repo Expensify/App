@@ -2067,6 +2067,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 };
                 break;
             }
+            case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+                columnWidth = {...getWidthStyle(variables.w102)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -2127,6 +2131,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             case CONST.SEARCH.TABLE_COLUMNS.HELD:
+            case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
                 columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MCC:

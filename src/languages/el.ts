@@ -10675,6 +10675,15 @@ ${reportName}`,
         screenShareRequest: 'Η Expensify σάς προσκαλεί σε κοινή χρήση οθόνης',
     },
     search: {
+        trip: {
+            tripName: 'Όνομα ταξιδιού',
+            traveler: 'Ταξιδιώτης',
+            status: {
+                upcoming: 'Επερχόμενο',
+                done: 'Ολοκληρώθηκε',
+                canceled: 'Ακυρώθηκε',
+            },
+        },
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',

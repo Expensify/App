@@ -10310,6 +10310,15 @@ ${reportName}`,
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
+        trip: {
+            tripName: 'Nombre del viaje',
+            traveler: 'Viajero',
+            status: {
+                upcoming: 'Próximo',
+                done: 'Finalizado',
+                canceled: 'Cancelado',
+            },
+        },
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',

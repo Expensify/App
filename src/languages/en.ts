@@ -10701,6 +10701,15 @@ const translations = {
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
     search: {
+        trip: {
+            tripName: 'Trip name',
+            traveler: 'Traveler',
+            status: {
+                upcoming: 'Upcoming',
+                done: 'Done',
+                canceled: 'Canceled',
+            },
+        },
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',

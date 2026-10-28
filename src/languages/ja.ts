@@ -10590,6 +10590,15 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
         spendOverTime: '時間経過による支出',
+        trip: {
+            tripName: '出張名',
+            traveler: '出張者',
+            status: {
+                upcoming: '予定',
+                done: '完了',
+                canceled: 'キャンセル済み',
+            },
+        },
         tabs: {
             expenseReports: '経費精算書',
             reports: 'レポート',

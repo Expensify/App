@@ -8159,7 +8159,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8350,6 +8350,11 @@ const CONST = {
                     search: true,
                     reportView: true,
                 },
+                DECLINED: {
+                    column: this.TABLE_COLUMNS.DECLINED,
+                    search: true,
+                    reportView: false,
+                },
                 MCC: {column: this.TABLE_COLUMNS.MCC, search: true, reportView: true},
                 TAX_CODE: {
                     column: this.TABLE_COLUMNS.TAX_CODE,
@@ -8433,6 +8438,7 @@ const CONST = {
                     EXPORTED: this.TABLE_COLUMNS.EXPORTED,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     PAID_STATUS: this.TABLE_COLUMNS.PAID_STATUS,
+                    DECLINED: this.TABLE_COLUMNS.DECLINED,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     FROM: this.TABLE_COLUMNS.FROM,
                     TO: this.TABLE_COLUMNS.TO,
@@ -8453,7 +8459,15 @@ const CONST = {
                 },
                 INVOICE: {},
                 TASK: {},
-                TRIP: {},
+                TRIP: {
+                    START_DATE: this.TABLE_COLUMNS.START_DATE,
+                    END_DATE: this.TABLE_COLUMNS.END_DATE,
+                    STATUS: this.TABLE_COLUMNS.STATUS,
+                    TRIP_NAME: this.TABLE_COLUMNS.TRIP_NAME,
+                    TRAVELER: this.TABLE_COLUMNS.TRAVELER,
+                    TOTAL: this.TABLE_COLUMNS.TOTAL,
+                    ACTION: this.TABLE_COLUMNS.ACTION,
+                },
                 CHAT: {},
             };
         },
@@ -8557,7 +8571,15 @@ const CONST = {
                 ],
                 INVOICE: [],
                 TASK: [],
-                TRIP: [],
+                TRIP: [
+                    this.TABLE_COLUMNS.START_DATE,
+                    this.TABLE_COLUMNS.END_DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TRIP_NAME,
+                    this.TABLE_COLUMNS.TRAVELER,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 CHAT: [],
             };
         },
@@ -8626,6 +8648,12 @@ const CONST = {
             },
         },
         GROUP_COLUMN_PREFIX: 'group',
+        // Status the backend works out for each trip row, from the trip's dates and Spotnana status
+        TRIP_STATUS: {
+            UPCOMING: 'upcoming',
+            DONE: 'done',
+            CANCELED: 'canceled',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -8649,6 +8677,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             HELD: 'held',
+            DECLINED: 'declined',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
             ATTENDEES: 'attendees',
@@ -8705,6 +8734,10 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            START_DATE: 'startDate',
+            END_DATE: 'endDate',
+            TRIP_NAME: 'tripName',
+            TRAVELER: 'traveler',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -8936,6 +8969,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
                 [this.TABLE_COLUMNS.HELD]: 'held',
+                [this.TABLE_COLUMNS.DECLINED]: 'declined',
                 [this.TABLE_COLUMNS.TAX_RATE]: 'tax-rate',
                 [this.TABLE_COLUMNS.TOTAL_AMOUNT]: 'amount',
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
