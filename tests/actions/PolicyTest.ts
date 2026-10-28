@@ -7420,6 +7420,62 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('toggleCollectDepositAccounts', () => {
+        it('should enable collecting deposit accounts optimistically without changing the reimbursement countries', async () => {
+            // Given a policy that isn't collecting deposit accounts but already has a reimbursement country
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: false,
+                reimbursement: {countries: {GB: {}}},
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle on
+            mockFetch.pause();
+            Policy.toggleCollectDepositAccounts(policyID, true, false);
+            await waitForBatchedUpdates();
+
+            // Then the flag flips optimistically with a pending update, and the countries stay as they were, because
+            // the toggle only controls the flag, like Classic
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.reimbursement?.countries).toEqual({GB: {}});
+
+            // When the request succeeds
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the pending update is cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+        });
+
+        it('should revert the flag and show an error when the request fails', async () => {
+            // Given a policy that is collecting deposit accounts
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle off and the request fails
+            mockFetch.fail();
+            Policy.toggleCollectDepositAccounts(policyID, false, true);
+            await waitForBatchedUpdates();
+
+            // Then the flag goes back to its previous value so the toggle reflects the saved setting, with an error to explain why
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+            expect(updatedPolicy?.errorFields?.isCollectDepositAccountsEnabled).toBeDefined();
+        });
+    });
+
     describe('updateMemberCustomField', () => {
         it('should update member custom field optimistically and succeed', async () => {
             // Given a policy with an employee and a custom field value
