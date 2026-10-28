@@ -6,8 +6,6 @@ import type {BankAccountList, Policy, ReimbursementAccount} from '@src/types/ony
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useCallback} from 'react';
-
 import useOnyx from './useOnyx';
 
 const reimbursementAccountAchStateSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.state;
@@ -17,10 +15,7 @@ const policyAchStateSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount
 function useShouldBlockCurrencyChange(policyID: string | undefined): boolean {
     const [policyAchState] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyAchStateSelector});
     const [reimbursementAccountAchState] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: reimbursementAccountAchStateSelector});
-    const bankAccountListSelector = useCallback(
-        (bankAccountList: OnyxEntry<BankAccountList>) => !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID),
-        [policyID],
-    );
+    const bankAccountListSelector = (bankAccountList: OnyxEntry<BankAccountList>) => !!policyID && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policyID);
     const [hasPartiallySetupBankAccount = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
         selector: bankAccountListSelector,
     });

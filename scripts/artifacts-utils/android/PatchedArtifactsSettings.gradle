@@ -25,7 +25,11 @@ settings.extensions.configure(PatchedArtifactsConfig) { config ->
     config.packageName = getProperty('patchedArtifacts.packageName')
 
     def isHybrid = config.packageName == 'react-hybrid'
-    def resolution = ExpensiUtils.resolveArtifacts(getNewDotRootDir().toString(), isHybrid)
+    // Same default as the react-native Gradle plugin: Hermes V1 unless `hermesV1Enabled` (gradle.properties) opts out.
+    // The resolver only accepts an artifact compiled against the Hermes this flag makes the build link.
+    def hermesV1Enabled = hasProperty('hermesV1Enabled') ? getProperty('hermesV1Enabled').toString().toBoolean() : true
+    def newDotRootDir = getNewDotRootDir().toString()
+    def resolution = ExpensiUtils.resolveArtifacts(newDotRootDir, isHybrid, ExpensiUtils.hermesVersionFile(newDotRootDir, hermesV1Enabled))
     config.version = resolution.version
     config.buildFromSource = resolution.buildFromSource
 

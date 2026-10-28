@@ -50,7 +50,6 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const preferredExporterRow: ExportRow = {
         description: translate('workspace.accounting.preferredExporter'),
         // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         title: exportConfig?.exporter || policyOwner,
         onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path)),
         subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORTER],
