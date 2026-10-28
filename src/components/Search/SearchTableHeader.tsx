@@ -65,6 +65,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'search.filters.approved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID,
+        translationKey: 'search.filters.paid',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
         canEdit: true,
@@ -279,6 +283,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED,
         translationKey: 'search.filters.firstApproved',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID,
+        translationKey: 'search.filters.paid',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
@@ -558,6 +566,7 @@ type SearchTableHeaderProps = {
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
     shouldShowYearExported?: boolean;
+    shouldShowYearPaid?: boolean;
     shouldShowYearWithdrawn?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
@@ -583,6 +592,7 @@ function SearchTableHeader({
     shouldShowYearApproved,
     shouldShowYearPosted,
     shouldShowYearExported,
+    shouldShowYearPaid,
     shouldShowYearWithdrawn,
     shouldShowSorting,
     canSelectMultiple,
@@ -650,6 +660,7 @@ function SearchTableHeader({
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            paidColumnSize={shouldShowYearPaid ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
