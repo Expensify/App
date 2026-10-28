@@ -5,21 +5,24 @@ import {
     getDefaultCompanyWebsite,
     getLastFourDigits,
     getRequiredKYBDocuments,
+    getWiseGlobalReimbursementsBannerBankAccountID,
+    getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
-    isEligibleForWiseGlobalReimbursements,
+    isBankAccountEligibleForGlobalReimbursements,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
+    shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {Account, BankAccountList, Session} from '@src/types/onyx';
+import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
 import createMock from '../utils/createMock';
@@ -223,7 +226,7 @@ describe('BankAccountUtils', () => {
         });
     });
 
-    describe('isEligibleForWiseGlobalReimbursements', () => {
+    describe('isBankAccountEligibleForGlobalReimbursements', () => {
         const eligibleAccountData: AccountData = {
             type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
             state: CONST.BANK_ACCOUNT.STATE.OPEN,
@@ -234,42 +237,49 @@ describe('BankAccountUtils', () => {
             // Given a verified USD business bank account
             // When checking whether it can start the Wise global reimbursements flow
             // Then it is eligible, since that is the only kind of account Wise onboarding supports
-            expect(isEligibleForWiseGlobalReimbursements(eligibleAccountData)).toBe(true);
+            expect(isBankAccountEligibleForGlobalReimbursements(eligibleAccountData)).toBe(true);
         });
 
         it('returns false when the account data is missing', () => {
             // Given no account data, e.g. an unknown bankAccountID in the URL
             // When checking eligibility
             // Then it is not eligible, so the intro page shows not-found instead of crashing
-            expect(isEligibleForWiseGlobalReimbursements(undefined)).toBe(false);
+            expect(isBankAccountEligibleForGlobalReimbursements(undefined)).toBe(false);
         });
 
         it('returns false for a personal account', () => {
             // Given a personal account that is otherwise eligible
             // When checking eligibility
             // Then it is not eligible, because global reimbursements are paid from business accounts only
-            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL})).toBe(false);
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, type: CONST.BANK_ACCOUNT.TYPE.PERSONAL})).toBe(false);
         });
 
         it('returns false for a non-USD account', () => {
             // Given a business account in a currency other than USD
             // When checking eligibility
             // Then it is not eligible, because Release 1 only supports U.S. accounts
-            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.EUR}})).toBe(false);
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.EUR}})).toBe(false);
         });
 
         it('returns false when the currency is missing', () => {
             // Given a business account without a currency
             // When checking eligibility
             // Then it is not eligible, matching the existing Corpay condition that requires an explicit USD currency
-            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {}})).toBe(false);
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {}})).toBe(false);
+        });
+
+        it('returns true when only the top-level bank currency is USD', () => {
+            // Given a business account whose nested currency is missing but whose record carries bankCurrency USD
+            // When checking eligibility with that bankCurrency
+            // Then it is eligible, because bankCurrency is the required field and the nested currency is optional
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {}}, CONST.CURRENCY.USD)).toBe(true);
         });
 
         it('returns false when the account is already set up with Corpay', () => {
             // Given a verified USD business account that already has a Corpay verification
             // When checking eligibility
             // Then it is not eligible, because global reimbursements are already enabled for it, matching the Wallet menu condition
-            expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}})).toBe(false);
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}})).toBe(false);
         });
 
         it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
@@ -278,9 +288,36 @@ describe('BankAccountUtils', () => {
                 // Given a USD business account that is not verified yet or is locked
                 // When checking eligibility
                 // Then it is not eligible, because only OPEN accounts can send reimbursements
-                expect(isEligibleForWiseGlobalReimbursements({...eligibleAccountData, state})).toBe(false);
+                expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, state})).toBe(false);
             },
         );
+    });
+
+    describe('shouldSetUpGlobalReimbursementsBeforePaying', () => {
+        const buildBankAccount = (additionalData: AccountData['additionalData'], type: string = CONST.BANK_ACCOUNT.TYPE.BUSINESS): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {type, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {currency: CONST.CURRENCY.USD, ...additionalData}},
+        });
+
+        it('returns true when a USD business account has global reimbursements disabled', () => {
+            // Given a USD business account the backend marks as not set up for global reimbursements
+            // When checking it before paying
+            // Then onboarding should open, because the backend rejects every payment from this account
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(buildBankAccount({isGlobalReimbursementEnabled: false}))).toBe(true);
+        });
+
+        it.each([
+            ['global reimbursements are already enabled', buildBankAccount({isGlobalReimbursementEnabled: true})],
+            ['the backend did not send the flag', buildBankAccount({})],
+            ['the account is personal', buildBankAccount({isGlobalReimbursementEnabled: false}, CONST.BANK_ACCOUNT.TYPE.PERSONAL)],
+            ['the account is unknown', undefined],
+        ])('returns false when %s', (_label, bankAccount) => {
+            // Given an account the client can't prove will be rejected
+            // When checking it before paying
+            // Then the payment goes ahead and the backend makes the final call
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(bankAccount)).toBe(false);
+        });
     });
 
     describe('getLastFourDigits', () => {
@@ -812,6 +849,142 @@ describe('BankAccountUtils', () => {
                 INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION,
                 INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION,
             ]);
+        });
+    });
+
+    describe('getWiseGlobalReimbursementsBannerBankAccountID', () => {
+        const buildBankAccount = (bankAccountID: number, created: string, overrides: Partial<AccountData> = {}) => ({
+            accountData: {
+                bankAccountID,
+                created,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {currency: CONST.CURRENCY.USD},
+                ...overrides,
+            },
+        });
+
+        it('returns the most recently added eligible account', () => {
+            // Given two eligible accounts where the lower ID was added later
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-03-01 10:00:00'),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the newest one by creation date wins, since the spec defaults the banner to the most recently added account
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
+        it('skips accounts that are not eligible', () => {
+            // Given a newer personal account and an older eligible business account
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-03-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-05-01 10:00:00', {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL}),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then only the eligible account is considered, so the banner never opens an intro page that would show not-found
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
+        it('skips accounts pending deletion', () => {
+            // Given a newer eligible account deleted offline and an older eligible account
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-03-01 10:00:00'),
+                accountTwo: {...buildBankAccount(2, '2026-05-01 10:00:00'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the pending-delete account is ignored, so the banner never points to an account queued for removal
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
+        it('falls back to the higher ID when creation dates match', () => {
+            // Given two eligible accounts created at the same time
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00'),
+                accountTwo: buildBankAccount(2, '2026-05-01 10:00:00'),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the higher ID wins, since IDs grow with each newly added account
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(2);
+        });
+
+        it('returns undefined when no account is eligible', () => {
+            // Given only an account already set up for global reimbursements
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00', {additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}}),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then nothing is returned, so the banner stays hidden
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBeUndefined();
+        });
+    });
+
+    describe('getWorkspaceWiseGlobalReimbursementsBannerBankAccountID', () => {
+        const bankAccountID = 1;
+        const eligibleAccountData: AccountData = {
+            bankAccountID,
+            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+            additionalData: {currency: CONST.CURRENCY.USD},
+        };
+        const policy = createMock<Policy>({
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            achAccount: {bankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+        });
+
+        it('returns the connected account when it is eligible', () => {
+            // Given a workspace reimbursing via Expensify from an eligible account the admin holds a copy of
+            const bankAccountList = createMock<BankAccountList>({[bankAccountID]: {accountData: eligibleAccountData}});
+
+            // When picking the account for the Workspace banner
+            // Then the connected account is returned, so the banner opens the intro page for it
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBe(bankAccountID);
+        });
+
+        it('returns undefined when the workspace does not reimburse via Expensify', () => {
+            // Given a workspace that tracks payments made elsewhere
+            const manualPolicy = createMock<Policy>({...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+            const bankAccountList = createMock<BankAccountList>({[bankAccountID]: {accountData: eligibleAccountData}});
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, since the connected account is not used to pay anyone
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(manualPolicy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined when the admin does not hold a copy of the account', () => {
+            // Given an eligible connected account that is missing from the admin's bank account list
+            const bankAccountList = createMock<BankAccountList>({});
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, since eligibility can't be checked without the account data
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined when the connected account is not eligible', () => {
+            // Given a connected account that is already set up with Corpay
+            const bankAccountList = createMock<BankAccountList>({
+                [bankAccountID]: {accountData: {...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}}},
+            });
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, so the banner never opens an intro page that would show not-found
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined when the connected account is pending deletion', () => {
+            // Given an eligible connected account deleted while offline
+            const bankAccountList = createMock<BankAccountList>({
+                [bankAccountID]: {accountData: eligibleAccountData, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, so the banner never points to an account queued for removal
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
         });
     });
 });

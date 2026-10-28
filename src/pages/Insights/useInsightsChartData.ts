@@ -45,10 +45,9 @@ const BLOCKING_STATES = new Set<InsightsChartState>([INSIGHTS_CHART_STATE.LOADIN
 
 /** Returns what the chart is compared against for the page's Compare mode, or nothing when it doesn't compare */
 function getComparedChart(chart: InsightsDashboardChart, filters: InsightsFilters, translate: LocaleContextProps['translate']): ComparedChart | undefined {
-    const isLineChart = chart.chart.view === CONST.SEARCH.VIEW.LINE;
     switch (filters.compare) {
         case CONST.SEARCH.COMPARE.PREVIOUS_PERIOD: {
-            const periods = isLineChart ? undefined : resolveComparisonPeriods(filters.date);
+            const periods = resolveComparisonPeriods(filters.date);
             return periods && {queryJSON: chart.previousPeriodQueryJSON, snapshot: chart.previousPeriodSnapshot, periods};
         }
         case CONST.SEARCH.COMPARE.AVERAGE:

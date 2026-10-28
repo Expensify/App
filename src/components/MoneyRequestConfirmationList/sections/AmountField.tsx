@@ -75,7 +75,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -109,7 +109,7 @@ function AmountField({
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
     // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
     // blank) can't show a phantom required error under a field that is deliberately empty.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually, isPolicyExpenseChat);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
     const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 

@@ -20,7 +20,6 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
     SearchCardGroup,
@@ -81,6 +80,9 @@ type TransactionListItemType = ListItem &
 
         /** The date the report was approved */
         approved?: string;
+
+        /** The date the report was paid */
+        paid?: string;
 
         /** The date the report was posted */
         posted?: string;
@@ -145,6 +147,11 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYearApproved: boolean;
 
+        /** Whether we should show the year for the paid date.
+         * This is true if at least one transaction in the dataset belongs to a report paid in past years
+         */
+        shouldShowYearPaid?: boolean;
+
         /** Whether we should show the year for the posted date.
          * This is true if at least one transaction in the dataset was posted in past years
          */
@@ -172,9 +179,6 @@ type TransactionListItemType = ListItem &
 
         /** The name of the file used for a receipt */
         filename?: string;
-
-        /** Attendees in the transaction */
-        attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
@@ -259,6 +263,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
 
+        /** The date the report was paid (created date of the latest payment report action that was not cancelled) */
+        paid?: string;
+
         firstApproverAvatar?: AvatarSource;
 
         /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
@@ -301,6 +308,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was exported in past years
          */
         shouldShowYearExported: boolean;
+
+        /**
+         * Whether we should show the year for the paid date.
+         * This is true if at least one report in the dataset was paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;

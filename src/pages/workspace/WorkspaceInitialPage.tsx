@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
@@ -27,10 +28,12 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {getRules} from '@libs/actions/Policy/Rules';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
@@ -83,6 +86,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isFocused = useIsFocused();
     const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
@@ -190,13 +194,19 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const canReadVendors = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.VENDORS);
     usePolicyConnectionsPrefetch(policy, canReadVendors);
 
+    // Agents errors can only exist on manageable agents
+    const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
+    const hasAgentErrors = hasAgentErrorsSelector(manageableWorkspaceAgents);
+
     const workspaceMenuItems = getWorkspaceMenuItems({
         policy,
         policyID,
         currentUserLogin: currentUserLogin ?? undefined,
+        currentUserPersonalDetails,
         icons: expensifyIcons,
         isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
+        hasAgentErrors,
         hasMerchantRuleErrors,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,
@@ -204,7 +214,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isCompanyAgentsBetaEnabled: isBetaEnabled(CONST.BETAS.COMPANY_AGENTS),
         isUnifiedConnectionsBetaEnabled,
         convertToDisplayString,
     }).map((item) => ({
@@ -326,7 +335,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         highlighted={!!item?.highlighted}
                                         focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
                                         role={CONST.ROLE.TAB}
-                                        badgeText={item.badgeText}
+                                        badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
                                         shouldIconUseAutoWidthStyle
                                         sentryLabel={item.sentryLabel}
                                         shouldGreyOutWhenDisabled={hasPolicyCreationError}

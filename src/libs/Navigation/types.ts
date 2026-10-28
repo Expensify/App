@@ -293,6 +293,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
+        backToReport?: string;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: {
         action: IOUAction;
@@ -649,7 +650,6 @@ type NewTaskNavigatorParamList = {
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
-    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
     [SCREENS.I_AM_A_TEACHER]: undefined;
 };
@@ -728,7 +728,7 @@ type ReimbursementAccountNavigatorParamList = {
 };
 
 type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
-    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
+    [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
         policyID: string;
         bankAccountID: string;
         isCompleted: string;
@@ -1570,6 +1570,7 @@ type SearchAdvancedFiltersParamList = {
         filterKey: string;
         applyDirectly?: string;
     };
+    [SCREENS.SEARCH.NL_FILTER_RHP]: Record<string, never>;
 };
 
 type SearchSavedSearchParamList = {

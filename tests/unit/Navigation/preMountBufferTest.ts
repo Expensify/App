@@ -1,3 +1,4 @@
+import {setIsRevealingPreMountedFullscreen} from '@libs/Navigation/helpers/preMountBuffer';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -508,5 +509,37 @@ describe('Navigation pre-mount buffer', () => {
         expect(restoredTabRoute).toEqual(mockOriginalTabRoute);
         expect(resetAction?.payload?.routes?.some((r) => r.key === BUFFER_KEY)).toBe(false);
         expect(mockClearPreInsertedOriginalTabRoute).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets the revealing flag after a safety timeout when the reveal never ends it', () => {
+        jest.useFakeTimers();
+
+        // Given a reveal that set the revealing flag but never got to reset it (e.g. its callback threw)
+        setIsRevealingPreMountedFullscreen(true);
+
+        // When the safety timeout passes
+        jest.advanceTimersByTime(5 * CONST.MAX_TRANSITION_DURATION_MS);
+
+        // Then the flag is reset, so a later Search focus shows its overlay again
+        expect(Navigation.getIsRevealingPreMountedFullscreen()).toBe(false);
+        jest.useRealTimers();
+    });
+
+    it('does not let the safety timeout of an earlier reveal reset the flag of a later one', () => {
+        jest.useFakeTimers();
+
+        // Given a reveal that ended normally, followed by a new reveal shortly after
+        setIsRevealingPreMountedFullscreen(true);
+        setIsRevealingPreMountedFullscreen(false);
+        jest.advanceTimersByTime(4 * CONST.MAX_TRANSITION_DURATION_MS);
+        setIsRevealingPreMountedFullscreen(true);
+
+        // When the first reveal's timeout would have fired
+        jest.advanceTimersByTime(2 * CONST.MAX_TRANSITION_DURATION_MS);
+
+        // Then the later reveal still holds the flag, because each set clears the previous timeout
+        expect(Navigation.getIsRevealingPreMountedFullscreen()).toBe(true);
+        setIsRevealingPreMountedFullscreen(false);
+        jest.useRealTimers();
     });
 });
