@@ -554,7 +554,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
         enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
-        feedback: {prompt: 'Czy ta odpowiedź była pomocna?', useful: 'Przydatna odpowiedź', notUseful: 'Nieprzydatna odpowiedź', thanks: 'Dzięki za opinię!'},
+        feedback: {prompt: 'Czy to było pomocne?', useful: 'Przydatna odpowiedź', notUseful: 'Nieprzydatna odpowiedź', thanks: 'Dzięki za opinię!'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1216,6 +1216,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Wzrost o ${percentage}`,
             decrease: (percentage: string) => `Spadek o ${percentage}`,
         },
+        compliance: 'Zgodność',
+        runningTotal: 'Suma narastająco',
     },
     allSettingsScreen: {
         subscription: 'Subskrypcja',
@@ -3242,6 +3244,8 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsDescription: 'Wymagaj dodatkowej akceptacji przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
+        collectEmployeeBankDetails: 'Zbieraj dane bankowe pracowników',
+        collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe pracowników, aby móc zwracać im wydatki poza Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym jest włączony niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>opiekunem klienta</account-manager-link> lub z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5089,6 +5093,11 @@ ${amount} dla ${merchant} - ${date}`,
             archived: 'Zarchiwizowana',
             workspaceStatus: 'Status przestrzeni roboczej',
             findRoom: 'Znajdź pokój',
+            emptyRoomsTitle: 'Brak pokoi do wyświetlenia',
+            emptyRoomsSubtitle: 'Pokoje w tym obszarze roboczym pojawią się tutaj.',
+            emptyRoomsArchivedTitle: 'Te pokoje są zarchiwizowane',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Przywróć to miejsce pracy z archiwum</a>, żeby używać ich ponownie.</centered-text></muted-text>`,
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
             disabled: 'Wyłączone',
@@ -7922,6 +7931,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                             return 'Synchronizowanie danych Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicjowanie połączenia z Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Synchronizowanie danych Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicjowanie połączenia z Zoho Books';
                         case 'campfireSyncImportData':
@@ -9005,7 +9016,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Aby egzekwować Twoje reguły agenta, utworzyliśmy dla Ciebie agenta i dodaliśmy go jako administratora do Twojego obszaru roboczego.<br><br>Edytuj dane swojego agenta w sekcji <a href="${agentsRoute}">Konto &gt; Agenci</a>.</muted-text>`,
                 suggestionsTab: 'Propozycje',
-                writeTab: 'Edytuj',
+                writeTab: 'Niestandardowe',
                 findSuggestion: 'Znajdź regułę',
                 emptySuggestionsTitle: 'Brak dostępnych propozycji',
                 emptySuggestionsSubtitle: 'Spróbuj napisać własną regułę.',
@@ -9471,6 +9482,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
+            organizationSelectDescription: 'Wybierz organizację w Zoho Books, z której chcesz importować dane.',
+            noOrganizationsFound: 'Nie znaleziono organizacji',
+            noOrganizationsFoundDescription: 'Dodaj organizację w Zoho Books i ponownie zsynchronizuj połączenie',
+            multiLocationNotSupported: 'Organizacje z wieloma lokalizacjami nie są jeszcze obsługiwane',
         },
         businessCentral: {
             businessCentralSetup: 'Konfiguracja Dynamics 365 Business Central',
@@ -10650,6 +10665,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Zaksięgowane',
                 hint: 'Dotyczy tylko transakcji kartą.',
             },
+            searchFilters: 'Filtry wyszukiwania',
+            noFiltersSelected: 'Nie wybrano filtrów',
         },
         display: {
             label: 'Wyświetl',
@@ -10725,6 +10742,15 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',
         },
         spendOverTime: 'Wydatki w czasie',
+        trip: {
+            tripName: 'Nazwa podróży',
+            traveler: 'Podróżny',
+            status: {
+                upcoming: 'Nadchodząca',
+                done: 'Zakończona',
+                canceled: 'Anulowana',
+            },
+        },
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
@@ -10818,6 +10844,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         genericUpdateReportFieldFailureMessage: 'Nieoczekiwany błąd podczas aktualizowania pola. Spróbuj ponownie później.',
         genericUpdateReportNameEditFailureMessage: 'Nieoczekiwany błąd podczas zmiany nazwy raportu. Spróbuj ponownie później.',
         noActivityYet: 'Brak aktywności',
+        collapsedSystemMessages: () => ({
+            one: 'pokaż 1 aktualizację',
+            few: (count: number) => `pokaż ${count} aktualizacje`,
+            many: (count: number) => `pokaż ${count} aktualizacji`,
+            other: (count: number) => `pokaż ${count} aktualizacji`,
+        }),
         connectionSettings: 'Ustawienia połączenia',
         actions: {
             type: {
@@ -12077,6 +12109,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             aBankAccountIsLocked: 'Konto bankowe jest zablokowane',
             completeHrSetup: 'Dokończ konfigurację HR',
             theresAProblemWithAnHRConnection: 'Wystąpił problem z połączeniem HR',
+            theresAProblemWithYourAgent: 'Wystąpił problem z twoim(i) agentem(ami)',
         },
     },
     emptySearchView: {

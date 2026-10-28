@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
-        feedback: {prompt: 'Cette réponse était-elle utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
+        feedback: {prompt: 'Cela vous a-t-il été utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1197,6 +1197,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
         },
+        compliance: 'Conformité',
+        runningTotal: 'Total cumulé',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -3225,6 +3227,8 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: 'Exiger une approbation supplémentaire avant d’autoriser un paiement.',
         makeOrTrackPaymentsTitle: 'Paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
+        collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
+        collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5093,6 +5097,11 @@ ${amount} pour ${merchant} - ${date}`,
             archived: 'Archivé',
             workspaceStatus: "Statut de l'espace de travail",
             findRoom: 'Trouver un salon',
+            emptyRoomsTitle: 'Aucune salle à afficher',
+            emptyRoomsSubtitle: 'Les salons de cet espace de travail apparaîtront ici.',
+            emptyRoomsArchivedTitle: 'Ces salons sont archivés',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Désarchivez cet espace de travail</a> pour les utiliser à nouveau.</centered-text></muted-text>`,
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
             disabled: 'Désactivé',
@@ -7974,6 +7983,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Synchronisation des données Campfire';
                         case 'campfireSyncConnection':
                             return 'Initialisation de la connexion à Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Synchronisation des données Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Initialisation de la connexion à Zoho Books';
                         case 'campfireSyncImportData':
@@ -9075,7 +9086,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggestions',
-                writeTab: 'Modifier',
+                writeTab: 'Personnalisé',
                 findSuggestion: 'Trouver une règle',
                 emptySuggestionsTitle: 'Aucune suggestion disponible',
                 emptySuggestionsSubtitle: 'Essayez d’écrire votre propre règle.',
@@ -9554,6 +9565,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
+            organizationSelectDescription: 'Choisissez l’organisation dans Zoho Books à partir de laquelle vous souhaitez importer des données.',
+            noOrganizationsFound: 'Aucune organisation trouvée',
+            noOrganizationsFoundDescription: 'Veuillez ajouter une organisation dans Zoho Books et synchroniser à nouveau la connexion',
+            multiLocationNotSupported: 'Les organisations multi-sites ne sont pas encore prises en charge',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -10731,6 +10746,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
                 hint: 'S’applique uniquement aux transactions par carte.',
             },
+            searchFilters: 'Filtres de recherche',
+            noFiltersSelected: 'Aucun filtre sélectionné',
         },
         display: {
             label: 'Affichage',
@@ -10806,6 +10823,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
+        trip: {
+            tripName: 'Nom du voyage',
+            traveler: 'Voyageur',
+            status: {
+                upcoming: 'À venir',
+                done: 'Terminé',
+                canceled: 'Annulé',
+            },
+        },
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
@@ -10900,6 +10926,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage de la note de frais. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
+        collapsedSystemMessages: () => ({
+            one: 'afficher 1 mise à jour',
+            other: (count: number) => `afficher ${count} mises à jour`,
+        }),
         connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {
@@ -12158,6 +12188,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
             completeHrSetup: 'Terminer la configuration RH',
             theresAProblemWithAnHRConnection: 'Un problème est survenu avec une connexion RH',
+            theresAProblemWithYourAgent: 'Il y a un problème avec votre/vos agent(s)',
         },
     },
     emptySearchView: {

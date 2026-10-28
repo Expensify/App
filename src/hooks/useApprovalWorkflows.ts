@@ -2,15 +2,23 @@
  * Hook that derives a workspace's approval workflows from the source of truth and reports whether the workspace
  * actually has a custom (advanced) approval workflow, so callers don't trust the stale `policy.approvalMode` flag.
  */
-import {isHRAdvancedMode} from '@libs/merge/HRUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
-import {convertApprovalWorkflowRulesToWorkflows, convertPolicyEmployeesToApprovalWorkflows, filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
+import {
+    convertApprovalWorkflowRulesToWorkflows,
+    convertPolicyEmployeesToApprovalWorkflows,
+    filterRulesForPolicy,
+    getApprovalWorkflowRulesForPolicy,
+    getApproverPendingActionByMemberEmail,
+    getEnforcedApprovalWorkflows,
+    getEnforcedApprovalWorkflowsForMembers,
+} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy} from '@src/types/onyx';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -28,6 +36,13 @@ type UseApprovalWorkflowsResult = {
     /** The subset of `approvalWorkflows` the Workflows tab displays: only the default workflow unless the workspace uses advanced approvals */
     filteredApprovalWorkflows: ApprovalWorkflow[];
 
+    /**
+     * The workflows the workspace's approval mode actually enforces, with every member on the workflow that governs
+     * them. Read this wherever a member's approver is surfaced, so a workflow the workspace has stopped enforcing
+     * isn't presented as if it still applied.
+     */
+    enforcedApprovalWorkflows: ApprovalWorkflow[];
+
     /** List of available members that can be selected in a workflow */
     availableMembers: Member[];
 
@@ -36,6 +51,12 @@ type UseApprovalWorkflowsResult = {
 
     /** Whether the workspace has a custom (advanced) approval workflow on top of the plain default one */
     isAdvanceApproval: boolean;
+
+    /**
+     * The pending state of each member's approver while a change to it is in flight, keyed by member email. Read this
+     * alongside the approver itself, since the change lands in a different place depending on the beta.
+     */
+    approverPendingActionByMemberEmail: Record<string, PendingAction>;
 
     /** The workspace's approval-workflow rules, exposed so consumers don't need a second `RULE` subscription */
     rulesCollection: OnyxCollection<Rule>;
@@ -71,15 +92,20 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsRe
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
 
-    const filteredApprovalWorkflows =
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedMode(policy)
-            ? approvalWorkflows
-            : approvalWorkflows.filter((workflow) => workflow.isDefault);
+    const filteredApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflowsForMembers(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
 
-    return {approvalWorkflows, filteredApprovalWorkflows, availableMembers, usedApproverEmails, isAdvanceApproval, rulesCollection, personalDetails};
+    return {
+        approvalWorkflows,
+        filteredApprovalWorkflows,
+        enforcedApprovalWorkflows,
+        availableMembers,
+        usedApproverEmails,
+        isAdvanceApproval,
+        approverPendingActionByMemberEmail: getApproverPendingActionByMemberEmail(policy, enforcedApprovalWorkflows, isMultipleApproversBetaEnabled ? rulesCollection : undefined),
+        rulesCollection,
+        personalDetails,
+    };
 }
 
 export default useApprovalWorkflows;

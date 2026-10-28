@@ -548,7 +548,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
         enableNotifications: {prompt: 'Quer ser avisado quando o Concierge responder?', cta: 'Notificar'},
-        feedback: {prompt: 'Essa resposta foi útil?', useful: 'Resposta útil', notUseful: 'Resposta inútil', thanks: 'Obrigado pelo feedback!'},
+        feedback: {prompt: 'Isso foi útil?', useful: 'Resposta útil', notUseful: 'Resposta inútil', thanks: 'Obrigado pelo feedback!'},
     },
     supportalNoAccess: {
         title: 'Calma aí',
@@ -1192,6 +1192,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Alta de ${percentage}`,
             decrease: (percentage: string) => `Queda de ${percentage}`,
         },
+        compliance: 'Conformidade',
+        runningTotal: 'Total acumulado',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -3199,6 +3201,8 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
+        collectEmployeeBankDetails: 'Coletar dados bancários dos funcionários',
+        collectEmployeeBankDetailsDescription: 'Colete os dados bancários dos funcionários para poder reembolsá-los fora do Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Um fluxo de aprovação personalizado está ativado neste workspace. Para revisar ou alterar esse fluxo de trabalho, entre em contato com o(a) seu(sua) <account-manager-link>Gerente de Conta</account-manager-link> ou com o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5048,6 +5052,11 @@ ${amount} para ${merchant} - ${date}`,
             archived: 'Arquivado',
             workspaceStatus: 'Status do espaço de trabalho',
             findRoom: 'Encontrar sala',
+            emptyRoomsTitle: 'Nenhuma sala para mostrar',
+            emptyRoomsSubtitle: 'As salas neste workspace vão aparecer aqui.',
+            emptyRoomsArchivedTitle: 'Essas salas estão arquivadas',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Desarquive este workspace</a> para usá-los novamente.</centered-text></muted-text>`,
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
             disabled: 'Desativado',
@@ -7895,6 +7904,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                             return 'Sincronizando dados do Campfire';
                         case 'campfireSyncConnection':
                             return 'Inicializando conexão com o Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando dados do Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inicializando conexão com o Zoho Books';
                         case 'campfireSyncImportData':
@@ -8984,7 +8995,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
                 suggestionsTab: 'Sugestões',
-                writeTab: 'Editar',
+                writeTab: 'Personalizado',
                 findSuggestion: 'Encontrar uma regra',
                 emptySuggestionsTitle: 'Nenhuma sugestão disponível',
                 emptySuggestionsSubtitle: 'Tente escrever sua própria regra.',
@@ -9455,6 +9466,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         zohoBooks: {
             organization: 'Organização Zoho Books',
+            organizationSelectDescription: 'Escolha a organização no Zoho Books da qual você deseja importar dados.',
+            noOrganizationsFound: 'Nenhuma organização encontrada',
+            noOrganizationsFoundDescription: 'Adicione uma organização no Zoho Books e sincronize a conexão novamente',
+            multiLocationNotSupported: 'Organizações com vários locais ainda não são compatíveis',
         },
         businessCentral: {
             businessCentralSetup: 'Configuração do Dynamics 365 Business Central',
@@ -10621,6 +10636,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Postado',
                 hint: 'Aplica-se apenas a transações com cartão.',
             },
+            searchFilters: 'Filtros de busca',
+            noFiltersSelected: 'Nenhum filtro selecionado',
         },
         display: {
             label: 'Exibir',
@@ -10696,6 +10713,15 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             pleaseSelectDatesForBothFromAndTo: 'Selecione datas para De e Até',
         },
         spendOverTime: 'Gastos ao longo do tempo',
+        trip: {
+            tripName: 'Nome da viagem',
+            traveler: 'Viajante',
+            status: {
+                upcoming: 'Próxima',
+                done: 'Concluída',
+                canceled: 'Cancelada',
+            },
+        },
         tabs: {
             expenseReports: 'Relatórios de despesas',
             reports: 'Relatórios',
@@ -10790,6 +10816,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         genericUpdateReportFieldFailureMessage: 'Erro inesperado ao atualizar o campo. Tente novamente mais tarde.',
         genericUpdateReportNameEditFailureMessage: 'Erro inesperado ao renomear o relatório. Tente novamente mais tarde.',
         noActivityYet: 'Ainda não há atividade',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 atualização',
+            other: (count: number) => `mostrar ${count} atualizações`,
+        }),
         connectionSettings: 'Configurações de conexão',
         actions: {
             type: {
@@ -12036,6 +12066,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
             completeHrSetup: 'Concluir configuração de RH',
             theresAProblemWithAnHRConnection: 'Há um problema com uma conexão de RH',
+            theresAProblemWithYourAgent: 'Há um problema com seu(s) agente(s)',
         },
     },
     emptySearchView: {

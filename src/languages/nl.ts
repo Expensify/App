@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
         enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
-        feedback: {prompt: 'Was dit antwoord nuttig?', useful: 'Nuttig antwoord', notUseful: 'Niet nuttig antwoord', thanks: 'Bedankt voor je feedback!'},
+        feedback: {prompt: 'Was dit nuttig?', useful: 'Nuttig antwoord', notUseful: 'Niet nuttig antwoord', thanks: 'Bedankt voor je feedback!'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1192,6 +1192,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Gestegen met ${percentage}`,
             decrease: (percentage: string) => `Gedaald met ${percentage}`,
         },
+        compliance: 'Naleving',
+        runningTotal: 'Doorlopend totaal',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -3209,6 +3211,8 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Extra goedkeuring vereisen voordat je een betaling autoriseert.',
         makeOrTrackPaymentsTitle: 'Betalingen',
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
+        collectEmployeeBankDetails: 'Bankgegevens van medewerkers verzamelen',
+        collectEmployeeBankDetailsDescription: 'Verzamel de bankgegevens van medewerkers, zodat je ze buiten Expensify kunt terugbetalen.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5055,6 +5059,11 @@ ${amount} voor ${merchant} - ${date}`,
             archived: 'Gearchiveerd',
             workspaceStatus: 'Werkruimtestatus',
             findRoom: 'Kamer zoeken',
+            emptyRoomsTitle: 'Geen kamers om weer te geven',
+            emptyRoomsSubtitle: 'Ruimtes in deze werkruimte verschijnen hier.',
+            emptyRoomsArchivedTitle: 'Deze rooms zijn gearchiveerd',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Haal deze werkruimte uit het archief</a> om ze opnieuw te gebruiken.</centered-text></muted-text>`,
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
@@ -7894,6 +7903,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Campfire-gegevens synchroniseren';
                         case 'campfireSyncConnection':
                             return 'Verbinding met Campfire initialiseren';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-gegevens synchroniseren';
                         case 'zohoBooksSyncConnection':
                             return 'Verbinding met Zoho Books initialiseren';
                         case 'campfireSyncImportData':
@@ -8978,7 +8989,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Om je agentregels af te dwingen, hebben we een agent voor je gemaakt en deze als beheerder aan je werkruimte toegevoegd.<br><br>Bewerk de gegevens van je agent in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggesties',
-                writeTab: 'Bewerken',
+                writeTab: 'Aangepast',
                 findSuggestion: 'Zoek een regel',
                 emptySuggestionsTitle: 'Geen suggesties beschikbaar',
                 emptySuggestionsSubtitle: 'Probeer je eigen regel te schrijven.',
@@ -9453,6 +9464,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
+            organizationSelectDescription: 'Kies de organisatie in Zoho Books waaruit je gegevens wilt importeren.',
+            noOrganizationsFound: 'Geen organisaties gevonden',
+            noOrganizationsFoundDescription: 'Voeg een organisatie toe in Zoho Books en synchroniseer de verbinding opnieuw',
+            multiLocationNotSupported: 'Organisaties met meerdere locaties worden nog niet ondersteund',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
@@ -10628,6 +10643,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Geboekt',
                 hint: 'Alleen van toepassing op kaarttransacties.',
             },
+            searchFilters: 'Zoekfilters',
+            noFiltersSelected: 'Geen filters geselecteerd',
         },
         display: {
             label: 'Weergave',
@@ -10703,6 +10720,15 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
         },
         spendOverTime: 'Uitgaven in de tijd',
+        trip: {
+            tripName: 'Reisnaam',
+            traveler: 'Reiziger',
+            status: {
+                upcoming: 'Gepland',
+                done: 'Afgerond',
+                canceled: 'Geannuleerd',
+            },
+        },
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',
@@ -10797,6 +10823,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         genericUpdateReportFieldFailureMessage: 'Onverwachte fout bij het bijwerken van het veld. Probeer het later opnieuw.',
         genericUpdateReportNameEditFailureMessage: 'Onverwachte fout bij het hernoemen van het rapport. Probeer het later opnieuw.',
         noActivityYet: 'Nog geen activiteit',
+        collapsedSystemMessages: () => ({
+            one: '1 update tonen',
+            other: (count: number) => `${count} updates tonen`,
+        }),
         connectionSettings: 'Verbindingsinstellingen',
         actions: {
             type: {
@@ -12048,6 +12078,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
             completeHrSetup: 'HR-configuratie voltooien',
             theresAProblemWithAnHRConnection: 'Er is een probleem met een HR-verbinding',
+            theresAProblemWithYourAgent: 'Er is een probleem met je agent(en)',
         },
     },
     emptySearchView: {

@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Comprimi ragionamento',
         expandReasoning: 'Espandi ragionamento',
         enableNotifications: {prompt: 'Vuoi ricevere una notifica quando Concierge risponde?', cta: 'Notifica'},
-        feedback: {prompt: 'Questa risposta è stata utile?', useful: 'Risposta utile', notUseful: 'Risposta non utile', thanks: 'Grazie per il tuo feedback!'},
+        feedback: {prompt: 'È stato utile?', useful: 'Risposta utile', notUseful: 'Risposta non utile', thanks: 'Grazie per il tuo feedback!'},
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1193,6 +1193,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `In aumento del ${percentage}`,
             decrease: (percentage: string) => `In calo del ${percentage}`,
         },
+        compliance: 'Conformità',
+        runningTotal: 'Totale progressivo',
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -3206,6 +3208,8 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsDescription: 'Richiedi un’approvazione aggiuntiva prima di autorizzare un pagamento.',
         makeOrTrackPaymentsTitle: 'Pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
+        collectEmployeeBankDetails: 'Raccogli i dati bancari dei dipendenti',
+        collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei dipendenti per poterli rimborsare al di fuori di Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>In questo spazio di lavoro è attivato un processo di approvazione personalizzato. Per rivedere o modificare questo processo, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5055,6 +5059,11 @@ ${amount} per ${merchant} - ${date}`,
             archived: 'Archiviato',
             workspaceStatus: 'Stato dello spazio di lavoro',
             findRoom: 'Trova stanza',
+            emptyRoomsTitle: 'Nessuna stanza da mostrare',
+            emptyRoomsSubtitle: 'Le stanze di questo spazio di lavoro verranno visualizzate qui.',
+            emptyRoomsArchivedTitle: 'Queste stanze sono archiviate',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Annulla l’archiviazione di questo workspace</a> per usarle di nuovo.</centered-text></muted-text>`,
             edit: 'Modifica spazio di lavoro',
             enabled: 'Abilitato',
             disabled: 'Disattivato',
@@ -7913,6 +7922,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione dei dati Campfire';
                         case 'campfireSyncConnection':
                             return 'Inizializzazione della connessione a Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizzazione dei dati Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inizializzazione della connessione a Zoho Books';
                         case 'campfireSyncImportData':
@@ -9006,7 +9017,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Per applicare le tue regole dell’agente, abbiamo creato un agente per te e lo abbiamo aggiunto come amministratore del tuo spazio di lavoro.<br><br>Modifica i dettagli del tuo agente in <a href="${agentsRoute}">Account &gt; Agenti</a>.</muted-text>`,
                 suggestionsTab: 'Suggerimenti',
-                writeTab: 'Modifica',
+                writeTab: 'Personalizzato',
                 findSuggestion: 'Trova una regola',
                 emptySuggestionsTitle: 'Nessun suggerimento disponibile',
                 emptySuggestionsSubtitle: 'Prova a scrivere la tua regola.',
@@ -9480,6 +9491,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         zohoBooks: {
             organization: 'Organizzazione Zoho Books',
+            organizationSelectDescription: 'Scegli l’organizzazione in Zoho Books da cui desideri importare i dati.',
+            noOrganizationsFound: 'Nessuna organizzazione trovata',
+            noOrganizationsFoundDescription: 'Aggiungi un’organizzazione in Zoho Books e sincronizza di nuovo la connessione',
+            multiLocationNotSupported: 'Le organizzazioni con più sedi non sono ancora supportate',
         },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
@@ -10659,6 +10674,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Registrato',
                 hint: 'Si applica solo alle transazioni con carta.',
             },
+            searchFilters: 'Filtri di ricerca',
+            noFiltersSelected: 'Nessun filtro selezionato',
         },
         display: {
             label: 'Visualizza',
@@ -10734,6 +10751,15 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             pleaseSelectDatesForBothFromAndTo: 'Seleziona le date per Da e A',
         },
         spendOverTime: 'Spesa nel tempo',
+        trip: {
+            tripName: 'Nome del viaggio',
+            traveler: 'Viaggiatore',
+            status: {
+                upcoming: 'In arrivo',
+                done: 'Completato',
+                canceled: 'Annullato',
+            },
+        },
         tabs: {
             expenseReports: 'Note spese',
             reports: 'Report',
@@ -10828,6 +10854,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         genericUpdateReportFieldFailureMessage: "Errore imprevisto durante l'aggiornamento del campo. Riprova più tardi.",
         genericUpdateReportNameEditFailureMessage: 'Errore imprevisto durante la rinomina del report. Riprova più tardi.',
         noActivityYet: 'Ancuna nessuna attività',
+        collapsedSystemMessages: () => ({
+            one: 'mostra 1 aggiornamento',
+            other: (count: number) => `mostra ${count} aggiornamenti`,
+        }),
         connectionSettings: 'Impostazioni di connessione',
         actions: {
             type: {
@@ -12084,6 +12114,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             aBankAccountIsLocked: 'Un conto bancario è bloccato',
             completeHrSetup: 'Completa la configurazione HR',
             theresAProblemWithAnHRConnection: 'C’è un problema con una connessione HR',
+            theresAProblemWithYourAgent: "C'è un problema con il tuo agente/i tuoi agenti",
         },
     },
     emptySearchView: {

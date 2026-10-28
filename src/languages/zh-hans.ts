@@ -547,7 +547,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '希望在Concierge回复时收到通知吗？',
             cta: '通知',
         },
-        feedback: {prompt: '这个回复有用吗？', useful: '有用回复', notUseful: '无用回复', thanks: '感谢你的反馈！'},
+        feedback: {prompt: '这有帮助吗？', useful: '有用回复', notUseful: '无用回复', thanks: '感谢你的反馈！'},
     },
     supportalNoAccess: {
         title: '先别急',
@@ -1146,6 +1146,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `上升 ${percentage}`,
             decrease: (percentage: string) => `下降 ${percentage}`,
         },
+        compliance: '合规',
+        runningTotal: '累计总额',
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -3106,6 +3108,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         addApprovalsDescription: '在付款前需要额外审批。',
         makeOrTrackPaymentsTitle: '付款',
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
+        collectEmployeeBankDetails: '收集员工银行账户信息',
+        collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批流程。若要查看或更改此流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>Concierge</concierge-link>。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -4909,6 +4913,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             archived: '已归档',
             workspaceStatus: '工作区状态',
             findRoom: '查找房间',
+            emptyRoomsTitle: '没有可显示的房间',
+            emptyRoomsSubtitle: '此工作区中的聊天室将显示在此处。',
+            emptyRoomsArchivedTitle: '这些聊天室已被归档',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">取消归档此工作区</a>以再次使用它们。</centered-text></muted-text>`,
             edit: '编辑工作区',
             enabled: '已启用',
             disabled: '已禁用',
@@ -7639,6 +7648,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步 Campfire 数据';
                         case 'campfireSyncConnection':
                             return '正在初始化与 Campfire 的连接';
+                        case 'zohoBooksSyncTitle':
+                            return '正在同步 Zoho Books 数据';
                         case 'zohoBooksSyncConnection':
                             return '正在初始化与 Zoho Books 的连接';
                         case 'campfireSyncImportData':
@@ -8682,7 +8693,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
                 suggestionsTab: '建议',
-                writeTab: '编辑',
+                writeTab: '自定义',
                 findSuggestion: '查找规则',
                 emptySuggestionsTitle: '暂无可用建议',
                 emptySuggestionsSubtitle: '尝试编写您自己的规则。',
@@ -9109,6 +9120,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
+            organizationSelectDescription: '选择您要从中导入数据的 Zoho Books 组织。',
+            noOrganizationsFound: '未找到组织',
+            noOrganizationsFoundDescription: '请在 Zoho Books 中添加一个组织，然后重新同步连接',
+            multiLocationNotSupported: '尚不支持多地点组织',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',
@@ -10243,6 +10258,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: '已入账',
                 hint: '仅适用于银行卡交易。',
             },
+            searchFilters: '搜索筛选条件',
+            noFiltersSelected: '未选择任何筛选器',
         },
         display: {
             label: '显示',
@@ -10308,6 +10325,15 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
+        trip: {
+            tripName: '行程名称',
+            traveler: '出行人',
+            status: {
+                upcoming: '即将开始',
+                done: '已完成',
+                canceled: '已取消',
+            },
+        },
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
@@ -10395,6 +10421,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: '更新该字段时发生未知错误。请稍后重试。',
         genericUpdateReportNameEditFailureMessage: '重命名报表时发生意外错误。请稍后重试。',
         noActivityYet: '暂无活动',
+        collapsedSystemMessages: () => ({
+            one: '显示 1 条更新',
+            other: (count: number) => `显示 ${count} 条更新`,
+        }),
         connectionSettings: '连接设置',
         actions: {
             type: {
@@ -11616,6 +11646,7 @@ ${reportName}`,
             aBankAccountIsLocked: '银行账户已锁定',
             completeHrSetup: '完成人力资源设置',
             theresAProblemWithAnHRConnection: 'HR 连接出现问题',
+            theresAProblemWithYourAgent: '您的代理存在问题',
         },
     },
     emptySearchView: {

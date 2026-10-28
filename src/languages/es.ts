@@ -540,7 +540,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '¿Quieres que te avisemos cuando Concierge responda?',
             cta: 'Notificar',
         },
-        feedback: {prompt: '¿Te ha sido útil esta respuesta?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
+        feedback: {prompt: '¿Te ha sido útil?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1188,6 +1188,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Sube ${percentage}`,
             decrease: (percentage: string) => `Baja ${percentage}`,
         },
+        compliance: 'Cumplimiento',
+        runningTotal: 'Total acumulado',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -3117,6 +3119,8 @@ ${amount} para ${merchant} - ${date}`,
         manager: 'Responsable',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
+        collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
+        collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -4997,6 +5001,11 @@ ${amount} para ${merchant} - ${date}`,
             archived: 'Archivado',
             workspaceStatus: 'Estado del espacio de trabajo',
             findRoom: 'Encontrar sala',
+            emptyRoomsTitle: 'No hay salas que mostrar',
+            emptyRoomsSubtitle: 'Las salas de este espacio de trabajo aparecerán aquí.',
+            emptyRoomsArchivedTitle: 'Estas salas están archivadas',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Desarchiva este espacio de trabajo</a> para volver a utilizarlos.</centered-text></muted-text>`,
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -7750,6 +7759,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando datos de Campfire';
                         case 'campfireSyncConnection':
                             return 'Iniciando conexión con Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando datos de Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Iniciando conexión con Zoho Books';
                         case 'campfireSyncImportData':
@@ -9060,7 +9071,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
                 suggestionsTab: 'Sugerencias',
-                writeTab: 'Editar',
+                writeTab: 'Personalizado',
                 findSuggestion: 'Buscar una regla',
                 emptySuggestionsTitle: 'No hay sugerencias disponibles',
                 emptySuggestionsSubtitle: 'Prueba a escribir tu propia regla.',
@@ -9351,6 +9362,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',
+            organizationSelectDescription: 'Elige la organización de Zoho Books desde la que deseas importar datos.',
+            noOrganizationsFound: 'No se encontraron organizaciones',
+            noOrganizationsFoundDescription: 'Añade una organización en Zoho Books y vuelve a sincronizar la conexión',
+            multiLocationNotSupported: 'Las organizaciones con varias ubicaciones aún no son compatibles',
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
@@ -10294,6 +10309,15 @@ ${reportName}`,
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
+        trip: {
+            tripName: 'Nombre del viaje',
+            traveler: 'Viajero',
+            status: {
+                upcoming: 'Próximo',
+                done: 'Finalizado',
+                canceled: 'Cancelado',
+            },
+        },
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',
@@ -10551,6 +10575,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publicado',
                 hint: 'Solo se aplica a las transacciones con tarjeta.',
             },
+            searchFilters: 'Filtros de búsqueda',
+            noFiltersSelected: 'No se han seleccionado filtros',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -10683,6 +10709,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
@@ -12315,6 +12345,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Una cuenta bancaria está bloqueada',
             completeHrSetup: 'Completa la configuración de RR. HH.',
             theresAProblemWithAnHRConnection: 'Hay un problema con una conexión de RR. HH.',
+            theresAProblemWithYourAgent: 'Hay un problema con tu(s) agente(s)',
         },
     },
     emptySearchView: {

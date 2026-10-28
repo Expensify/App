@@ -553,7 +553,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
-        feedback: {prompt: 'Ήταν χρήσιμη αυτή η απάντηση;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
+        feedback: {prompt: 'Ήταν χρήσιμο αυτό;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',
@@ -1240,6 +1240,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
         },
+        compliance: 'Συμμόρφωση',
+        runningTotal: 'Τρέχον σύνολο',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -3280,6 +3282,8 @@ ${amount} για ${merchant} - ${date}`,
         manager: 'Διαχειριστής',
         makeOrTrackPaymentsTitle: 'Πληρωμές',
         makeOrTrackPaymentsDescription: 'Προσθέστε ένα εξουσιοδοτημένο πρόσωπο πληρωμής για πληρωμές που γίνονται στο Expensify ή παρακολουθήστε πληρωμές που έγιναν αλλού.',
+        collectEmployeeBankDetails: 'Συλλογή τραπεζικών στοιχείων υπαλλήλων',
+        collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των υπαλλήλων, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -5152,6 +5156,11 @@ ${amount} για ${merchant} - ${date}`,
             workspaceStatus: 'Κατάσταση χώρου εργασίας',
             findDomain: 'Εύρεση τομέα',
             findRoom: 'Βρείτε δωμάτιο',
+            emptyRoomsTitle: 'Δεν υπάρχουν δωμάτια προς εμφάνιση',
+            emptyRoomsSubtitle: 'Τα δωμάτια σε αυτόν τον χώρο εργασίας θα εμφανίζονται εδώ.',
+            emptyRoomsArchivedTitle: 'Αυτά τα δωμάτια έχουν αρχειοθετηθεί',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Ανακτήστε αυτόν τον χώρο εργασίας από το αρχείο</a> για να τα χρησιμοποιήσετε ξανά.</centered-text></muted-text>`,
             edit: 'Επεξεργασία χώρου εργασίας',
             enabled: 'Ενεργοποιημένο',
             disabled: 'Απενεργοποιημένο',
@@ -8081,6 +8090,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Campfire';
                         case 'campfireSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
                         case 'campfireSyncImportData':
@@ -9529,7 +9540,7 @@ ${reportName}`,
                     'Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον διαμορφώσαμε ως κανόνα πράκτορα. Οι κανόνες πράκτορα εφαρμόζονται αφού αλλάξει μια δαπάνη ή μια αναφορά, για παράδειγμα κρατώντας τη δαπάνη ή απορρίπτοντας την αναφορά.',
                 fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον συντάξαμε ως κανόνα εκπροσώπου. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
-                writeTab: 'Επεξεργασία',
+                writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
                 emptySuggestionsTitle: 'Δεν υπάρχουν διαθέσιμες προτάσεις',
                 emptySuggestionsSubtitle: 'Δοκιμάστε να γράψετε τον δικό σας κανόνα.',
@@ -9694,6 +9705,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
+            organizationSelectDescription: 'Επιλέξτε τον οργανισμό στο Zoho Books από τον οποίο θέλετε να εισαγάγετε δεδομένα.',
+            noOrganizationsFound: 'Δεν βρέθηκαν οργανισμοί',
+            noOrganizationsFoundDescription: 'Προσθέστε έναν οργανισμό στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            multiLocationNotSupported: 'Οι οργανισμοί με πολλές τοποθεσίες δεν υποστηρίζονται ακόμη',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10659,6 +10674,15 @@ ${reportName}`,
         screenShareRequest: 'Η Expensify σάς προσκαλεί σε κοινή χρήση οθόνης',
     },
     search: {
+        trip: {
+            tripName: 'Όνομα ταξιδιού',
+            traveler: 'Ταξιδιώτης',
+            status: {
+                upcoming: 'Επερχόμενο',
+                done: 'Ολοκληρώθηκε',
+                canceled: 'Ακυρώθηκε',
+            },
+        },
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
@@ -10914,6 +10938,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
                 hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
             },
+            searchFilters: 'Φίλτρα αναζήτησης',
+            noFiltersSelected: 'Δεν έχουν επιλεγεί φίλτρα',
         },
         display: {
             label: 'Εμφάνιση',
@@ -11073,6 +11099,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την ενημέρωση του πεδίου. Προσπαθήστε ξανά αργότερα.',
         genericUpdateReportNameEditFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη μετονομασία της αναφοράς. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         noActivityYet: 'Καμία δραστηριότητα ακόμα',
+        collapsedSystemMessages: () => ({
+            one: 'εμφάνιση 1 ενημέρωσης',
+            other: (count: number) => `εμφάνιση ${count} ενημερώσεων`,
+        }),
         connectionSettings: 'Ρυθμίσεις σύνδεσης',
         actions: {
             type: {
@@ -12348,6 +12378,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Ένας τραπεζικός λογαριασμός είναι κλειδωμένος',
             completeHrSetup: 'Ολοκληρώστε τη ρύθμιση HR',
             theresAProblemWithAnHRConnection: 'Υπάρχει πρόβλημα με μια σύνδεση HR',
+            theresAProblemWithYourAgent: 'Υπάρχει πρόβλημα με τον/τους εκπρόσωπό σας',
         },
     },
     emptySearchView: {
