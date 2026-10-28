@@ -255,9 +255,12 @@ Onyx.connectWithoutView({
 });
 
 function resetAllChecks() {
+    const resolvePreviousPromise = resolveIsReadyPromise;
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
+    // Callers already waiting on the previous promise would otherwise never resolve, so they now wait for the next load instead
+    resolvePreviousPromise?.(isServerDataReadyPromise);
     isLoadingReportData = true;
     hasStartedLoading = false;
 }

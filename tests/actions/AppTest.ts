@@ -21,6 +21,7 @@ import type {MockFetch} from '../utils/TestHelper';
 
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import {onServerDataReady} from '../../src/libs/actions/Welcome';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
@@ -237,6 +238,37 @@ describe('actions/App', () => {
             );
             expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
         });
+    });
+
+    test('clearOnyxAndResetApp makes onServerDataReady wait for the next OpenApp', async () => {
+        // Given server data that already finished loading once, so onServerDataReady() is resolved
+        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        await waitForBatchedUpdates();
+        await expect(onServerDataReady()).resolves.toBeUndefined();
+
+        // When the cache is cleared while offline, so the follow-up OpenApp cannot finish
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await App.clearOnyxAndResetApp();
+        await waitForBatchedUpdates();
+
+        // Then onServerDataReady() stays pending, because the cleared state has no Concierge reportID yet and
+        // resolving early would let navigateToConciergeChat create a duplicate optimistic Concierge chat
+        let isServerDataReady = false;
+        onServerDataReady().then(() => {
+            isServerDataReady = true;
+        });
+        await waitForBatchedUpdates();
+        expect(isServerDataReady).toBe(false);
+
+        // When the app goes back online and the queued OpenApp finishes
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        // Then onServerDataReady() resolves, so callers waiting to open Concierge are not stuck forever
+        await waitFor(() => expect(isServerDataReady).toBe(true));
     });
 
     describe('getNonOptimisticPolicyIDs', () => {
