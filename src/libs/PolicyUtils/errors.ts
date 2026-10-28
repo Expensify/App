@@ -4,7 +4,6 @@
  */
 import {isQBORefreshTokenExpiringSoon} from '@libs/AccountingUtils';
 import {hasSynchronizationErrorMessage} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 
 import CONST from '@src/CONST';
@@ -80,6 +79,11 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
+function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
+    const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
+}
+
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
@@ -136,6 +140,7 @@ export {
     shouldShowSyncError,
     shouldShowPolicyError,
     shouldShowCustomUnitsError,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     getPolicyBrickRoadIndicatorStatus,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,

@@ -24,6 +24,9 @@ let lastSeenTransactions: Record<string, SeenTransaction> = {};
 
 let hasBaseline = false;
 
+/** A first-seen expense the server stored this recently is new, like a Pusher push or a statement import. */
+const NEW_EXPENSE_WINDOW_MS = 10 * 60 * 1000;
+
 /** Fields the card totals read. Edits land in the `modified` versions, so both are read. */
 function getCardFingerprint(transaction: Transaction | undefined): string {
     if (!transaction) {
@@ -41,17 +44,29 @@ function getCardFingerprint(transaction: Transaction | undefined): string {
     ].join('|');
 }
 
+/** A local write the server has not accepted yet: a new expense sets `pendingAction`, an edit only sets `pendingFields`. */
+function hasPendingWrite(transaction: Transaction): boolean {
+    return !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
+}
+
+/** `inserted` is UTC in the DB format. A device clock behind the server reads as recent, which is the safe side. */
+function isRecentlyInserted(transaction: Transaction): boolean {
+    if (!transaction.inserted) {
+        return false;
+    }
+    const insertedTime = Date.parse(`${transaction.inserted.replace(' ', 'T')}Z`);
+    return !Number.isNaN(insertedTime) && Date.now() - insertedTime < NEW_EXPENSE_WINDOW_MS;
+}
+
 /**
  * The card fields, plus what the other cards filter or group by: reimbursable, merchant and category.
  * The pending flag moves it again once the server accepts a write, since a refetch sent before that can miss it.
- * A new expense sets `pendingAction`, an edit only sets `pendingFields`.
  */
 function getFingerprint(transaction: Transaction | undefined, cardFingerprint: string): string {
     if (!transaction) {
         return '';
     }
-    const hasPendingWrite = !!transaction.pendingAction || Object.values(transaction.pendingFields ?? {}).some((pendingField) => !!pendingField);
-    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, hasPendingWrite].join('|');
+    return [cardFingerprint, transaction.reimbursable, transaction.merchant, transaction.modifiedMerchant, transaction.category, hasPendingWrite(transaction)].join('|');
 }
 
 function getSeenTransaction(transaction: Transaction | undefined): SeenTransaction {
@@ -95,6 +110,13 @@ export default createOnyxDerivedValueConfig({
             }
 
             const seen = getSeenTransaction(transaction);
+
+            // A key seen for the first time is usually a load, like opening an expense the cards only know from their
+            // snapshot, so only a local create or a just-stored expense counts. Recording it lets a later edit count.
+            if (!lastSeen && transaction && !hasPendingWrite(transaction) && !isRecentlyInserted(transaction)) {
+                lastSeenTransactions[key] = seen;
+                continue;
+            }
             if (seen.fingerprint === lastSeen?.fingerprint) {
                 continue;
             }

@@ -192,6 +192,24 @@ describe('AddPersonalBankAccountPage', () => {
         expect(closeRHPFlowSpy).not.toHaveBeenCalled();
     });
 
+    it("sends the exit report policy's full policy snapshot marker when fetching the exit report", async () => {
+        // Given the exit report belongs to a workspace whose full policy snapshot is already cached
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', policyID: 'policy1'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 456});
+            await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123'});
+        });
+        await renderPageOverTab(TAB_ROUTES.findIndex((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+
+        // When the bank account is added and the exit report is fetched again
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {shouldShowSuccess: true});
+        });
+
+        // Then the fetch carries the marker so Auth can skip the policy collections it already sent
+        expect(openReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '123', fullPolicySnapshot: {policyID: 'policy1', lastModified: 456}}));
+    });
+
     it('fetches the exit report only once and keeps the existing navigation when the flow is closed', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID: '123', shouldShowSuccess: true});
