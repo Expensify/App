@@ -24,6 +24,7 @@ type UseReportActionsPaginationResult = {
     reportActions: ReportAction[];
     allReportActions: ReportAction[];
     allReportActionIDs: string[];
+    persistedReportActionIDs: string[];
     hasOlderActions: boolean;
     hasNewerActions: boolean;
     sortedAllReportActions: ReportAction[] | undefined;
@@ -96,11 +97,13 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         : [];
 
     const allReportActionIDs = allReportActions.map((action) => action.reportActionID);
+    const persistedReportActionIDs = [...allReportActionIDs, ...(thread.transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
 
     return {
         reportActions,
         allReportActions,
         allReportActionIDs,
+        persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
         sortedAllReportActions,
