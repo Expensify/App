@@ -48,7 +48,7 @@ describe('SearchAutocompleteUtils', () => {
             const input = 'in:123456';
 
             // When the query is parsed for live markdown
-            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
 
             // Then the in: value is highlighted as valid
             expect(result).toEqual([{start: 3, type: 'mention-user', length: 6}]);
@@ -59,7 +59,7 @@ describe('SearchAutocompleteUtils', () => {
             const input = 'type:chat in:123456';
 
             // When the query is parsed for live markdown
-            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
 
             // Then both the type and the in: value are highlighted as valid
             expect(result).toEqual([
@@ -73,7 +73,7 @@ describe('SearchAutocompleteUtils', () => {
             const input = 'type:expense in:123456';
 
             // When the query is parsed for live markdown
-            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
 
             // Then only the type is highlighted, so the user can see in: is not valid for expenses
             expect(result).toEqual([{start: 5, type: 'mention-user', length: 7}]);
@@ -84,7 +84,7 @@ describe('SearchAutocompleteUtils', () => {
             const input = 'type:expense type:chat in:123456';
 
             // When the query is parsed for live markdown
-            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
 
             // Then both types and the in: value are highlighted as valid
             expect(result).toEqual([
@@ -99,7 +99,7 @@ describe('SearchAutocompleteUtils', () => {
             const input = 'type:chat type:expense in:123456';
 
             // When the query is parsed for live markdown
-            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockKnownValues);
 
             // Then only the types are highlighted, so the user can see in: is not valid for expenses
             expect(result).toEqual([
