@@ -7923,8 +7923,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             preferredExporter: '優先エクスポーター',
-            exportPreferredExporterNote:
-                '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
+            exportPreferredExporterNote: '優先するエクスポーターは、どのワークスペース管理者でも設定できます。',
             exportPreferredExporterSubNote: '一度設定すると、優先エクスポーターは自分のアカウントでエクスポート対象のレポートを確認できるようになります。',
             exportAs: 'エクスポート形式',
             exportOutOfPocket: '立替経費のエクスポート形式',

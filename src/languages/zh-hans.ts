@@ -7742,7 +7742,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             preferredExporter: '首选导出方',
-            exportPreferredExporterNote: '首选导出人可以是任意工作区管理员，但如果你在“域设置”中为各个公司卡设置了不同的导出账户，则该导出人还必须是域管理员。',
+            exportPreferredExporterNote: '首选导出人可以是任意工作区管理员。',
             exportPreferredExporterSubNote: '设置完成后，首选导出人将在其账户中看到可供导出的报表。',
             exportAs: '导出为',
             exportOutOfPocket: '导出报销支出为',
