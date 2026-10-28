@@ -443,4 +443,3 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
 }
 
 export default useActionAvatar;
-export type {ActionAvatarData, ActionAvatarLayout};

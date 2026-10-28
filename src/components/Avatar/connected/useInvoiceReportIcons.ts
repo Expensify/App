@@ -87,4 +87,3 @@ function useInvoiceReportIcons(reportID: string | undefined): InvoiceReportIcons
 }
 
 export default useInvoiceReportIcons;
-export type {InvoiceReportIcons, InvoiceReportLayout};
