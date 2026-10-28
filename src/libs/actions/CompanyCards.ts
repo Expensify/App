@@ -985,6 +985,12 @@ function clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID: n
     });
 }
 
+function clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`, {
+        bulkTransactionStartDateUpdateSuccessID: null,
+    });
+}
+
 function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: CompanyCardFeedWithNumber) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
@@ -1568,6 +1574,7 @@ export {
     updateCardTransactionStartDate,
     bulkUpdateCardTransactionStartDate,
     clearBulkUpdateTransactionStartDateUpdate,
+    clearBulkUpdateTransactionStartDateSuccess,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
