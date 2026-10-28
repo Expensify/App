@@ -94,7 +94,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 type ExpensifyCardPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD>
     | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL>;
 
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
@@ -425,7 +425,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     variant={CONST.BUTTON_VARIANT.DANGER}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID))));
                                     }}
                                 >
                                     <Button.Text>{translate('cardPage.unblock')}</Button.Text>
@@ -502,7 +502,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(String(card.cardID)));
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.path));
                                             }}
                                             // The top-level "Limit type" row already shows the current card's limit. On combo card pages the
                                             // revealed virtual card differs from the current (physical) card, so render its own limit here to
@@ -556,7 +556,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))));
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
@@ -587,7 +587,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
-                                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)))}
+                                                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))))}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
                                                     >
@@ -614,9 +614,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         onPress={() => {
                                             const physicalCardID = String(currentPhysicalCard?.cardID);
                                             if (isOfflinePINMarket(countryByIp)) {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN_ATM.path));
                                             } else {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID)));
                                             }
                                         }}
                                     />
@@ -638,7 +638,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                             Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
                                                             return;
                                                         }
-                                                        Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.getRoute(String(card.cardID))));
                                                     }}
                                                 />
                                             ))}
@@ -648,7 +648,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     key={`travel-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportTravelFraud')}
                                                     icon={expensifyIcons.Flag}
-                                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.getRoute(String(card.cardID))))}
                                                 />
                                             ))}
                                         {shouldShowReportLostCardButton && (
@@ -660,12 +660,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         showLockedAccountModal();
                                                         return;
                                                     }
-                                                    Navigation.navigate(
-                                                        ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(
-                                                            String(currentPhysicalCard?.cardID),
-                                                            route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
-                                                        ),
-                                                    );
+                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID))));
                                                 }}
                                             />
                                         )}
@@ -689,9 +684,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.p5]}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
-                    }
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard.cardID))))}
                 >
                     <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
                 </Button>
