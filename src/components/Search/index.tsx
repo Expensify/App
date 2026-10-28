@@ -1301,6 +1301,7 @@ function Search({
                       shouldShowYearApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
+                      shouldShowYearPaid: false,
                       shouldShowYearWithdrawn: false,
                   },
         [searchResults?.data, isExpenseReportType, type],
@@ -1329,6 +1330,7 @@ function Search({
             isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
             isPostedColumnWide: yearIndicators.shouldShowYearPosted,
             isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isPaidColumnWide: yearIndicators.shouldShowYearPaid,
             isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
             isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
@@ -1340,6 +1342,7 @@ function Search({
             yearIndicators.shouldShowYearApproved,
             yearIndicators.shouldShowYearPosted,
             yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearPaid,
             yearIndicators.shouldShowYearWithdrawn,
             amountIndicators.shouldShowAmountInWideColumn,
             amountIndicators.shouldShowTaxAmountInWideColumn,
@@ -1488,7 +1491,8 @@ function Search({
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearPaid, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1564,6 +1568,7 @@ function Search({
                 shouldShowYearApproved={shouldShowYearApproved}
                 shouldShowYearPosted={shouldShowYearPosted}
                 shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearPaid={shouldShowYearPaid}
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}

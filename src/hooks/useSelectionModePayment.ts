@@ -235,6 +235,7 @@ function useSelectionModePayment({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,

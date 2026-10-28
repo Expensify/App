@@ -632,7 +632,7 @@ const translations = {
             cta: 'Notify',
         },
         feedback: {
-            prompt: 'Was that response useful?',
+            prompt: 'Was this helpful?',
             useful: 'Useful response',
             notUseful: 'Not useful response',
             thanks: 'Thanks for the feedback!',
@@ -1319,6 +1319,8 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        compliance: 'Compliance',
+        runningTotal: 'Running total',
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -2937,6 +2939,7 @@ const translations = {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
+            payingReportSubtitle: 'The company and employee bank accounts use different currencies.',
             getStarted: 'Get started',
         },
         wiseGlobalReimbursementsBanner: {
@@ -3170,6 +3173,8 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
+        collectEmployeeBankDetails: 'Collect employee bank details',
+        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -10647,6 +10652,15 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'This week',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Last week',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'This quarter',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Last quarter',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'This year',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Last year',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Last 30 days',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Last 90 days',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Last 6 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -10716,6 +10730,8 @@ const translations = {
             billable: 'Billable',
             rejected: 'Rejected',
             held: 'Held',
+            searchFilters: 'Search filters',
+            noFiltersSelected: 'No filters selected',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {
@@ -12199,6 +12215,7 @@ const translations = {
             aBankAccountIsLocked: 'A bank account is locked',
             completeHrSetup: 'Complete HR setup',
             theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
+            theresAProblemWithYourAgent: "There's a problem with your agent(s)",
         },
     },
     emptySearchView: {
