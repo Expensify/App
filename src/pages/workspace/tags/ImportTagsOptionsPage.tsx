@@ -40,7 +40,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
@@ -64,51 +64,23 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const workspaceTagsImportPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
-        [policy, policyTags],
-    );
+    const [policyTagLists, isMultiLevelTags, hasDependentTags] = [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)];
     // If required tags was enabled before clearing tags for a level switch, the next first tag should restore that setting.
     const shouldRestoreRequiresTagAfterTagCreate = (policy?.requiresTag ?? false) || policyTagLists.some((policyTagList) => policyTagList.required);
 
-    const hasVisibleTags = useMemo(() => {
-        if (isMultiLevelTags) {
-            return policyTagLists.some((policyTagList) => Object.values(policyTagList.tags ?? {}).some((tag) => tag.enabled));
-        }
-
+    let hasVisibleTags;
+    if (isMultiLevelTags) {
+        hasVisibleTags = policyTagLists.some((policyTagList) => Object.values(policyTagList.tags ?? {}).some((tag) => tag.enabled));
+    } else {
         const singleLevelTags = policyTagLists.at(0)?.tags ?? {};
-        return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    }, [isMultiLevelTags, policyTagLists]);
+        hasVisibleTags = Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    }
 
-    const overrideMultiTagPrompt = useMemo(
-        () => (
-            <Text>
-                {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
-                <>
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
-                    <TextLink
-                        onPress={() => {
-                            if (isMultiLevelTags) {
-                                downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
-                            } else {
-                                downloadTagsCSV(policyID, showDownloadErrorModalAfterClose, translate);
-                            }
-                        }}
-                    >
-                        {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
-                    </TextLink>
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
-                </>
-            </Text>
-        ),
-        [translate, isMultiLevelTags, policyID, hasDependentTags, showDownloadErrorModalAfterClose],
-    );
-
-    const switchSingleToMultiLevelTagPrompt = useMemo(
-        () => (
-            <Text>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+    const overrideMultiTagPrompt = (
+        <Text>
+            {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
+            <>
+                {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
                 <TextLink
                     onPress={() => {
                         if (isMultiLevelTags) {
@@ -118,17 +90,35 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         }
                     }}
                 >
-                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
                 </TextLink>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
-            </Text>
-        ),
-        [translate, policyID, hasDependentTags, isMultiLevelTags, showDownloadErrorModalAfterClose],
+                {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
+            </>
+        </Text>
     );
 
-    const startMultiLevelTagImportFlow = useCallback(async () => {
+    const switchSingleToMultiLevelTagPrompt = (
+        <Text>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+            <TextLink
+                onPress={() => {
+                    if (isMultiLevelTags) {
+                        downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
+                    } else {
+                        downloadTagsCSV(policyID, showDownloadErrorModalAfterClose, translate);
+                    }
+                }}
+            >
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+            </TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
+            <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
+        </Text>
+    );
+
+    const startMultiLevelTagImportFlow = async () => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
             if (isMultiLevelTags) {
@@ -166,19 +156,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         } else {
             Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath);
         }
-    }, [
-        hasVisibleTags,
-        isMultiLevelTags,
-        showConfirmModal,
-        translate,
-        overrideMultiTagPrompt,
-        isQuickSettingsFlow,
-        policyID,
-        shouldRestoreRequiresTagAfterTagCreate,
-        backTo,
-        switchSingleToMultiLevelTagPrompt,
-        workspaceTagsImportPath,
-    ]);
+    };
 
     useFocusEffect(
         useCallback(() => {

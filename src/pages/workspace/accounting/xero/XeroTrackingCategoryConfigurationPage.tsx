@@ -27,7 +27,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
@@ -39,22 +39,24 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!xeroConfig?.importTrackingCategories);
 
-    const menuItems = useMemo(() => {
-        const trackingCategories = getTrackingCategories(policy);
-        return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => {
+    const trackingCategories = getTrackingCategories(policy);
+    const menuItems = trackingCategories.map(
+        (
+            category: XeroTrackingCategory & {
+                value: string;
+            },
+        ) => {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {
                 id: category.id,
                 description: translate('workspace.xero.mapTrackingCategoryTo', decodedCategoryName) as TranslationPaths,
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
                 title: translate(
-                    `workspace.xero.trackingCategoriesOptions.${
-                        !StringUtils.isEmptyString(category.value) ? category.value.toUpperCase() : CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT
-                    }` as TranslationPaths,
+                    `workspace.xero.trackingCategoriesOptions.${!StringUtils.isEmptyString(category.value) ? category.value.toUpperCase() : CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.DEFAULT}` as TranslationPaths,
                 ),
             };
-        });
-    }, [translate, policy, policyID]);
+        },
+    );
 
     return (
         <ConnectionLayout
