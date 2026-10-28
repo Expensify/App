@@ -16,7 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
-import {getHoldMenuAmounts, openAfterTouchFrame} from '@libs/HoldMenuUtils';
+import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -83,7 +83,8 @@ function PayActionButton() {
         if (!iouReport) {
             return;
         }
-        openAfterTouchFrame(() =>
+        // Wait one frame so the current touch animation finishes before the modal opens
+        requestAnimationFrame(() => {
             showHoldMenu({
                 reportID: iouReportID,
                 chatReportID,
@@ -91,8 +92,8 @@ function PayActionButton() {
                 methodID,
                 ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm: startAnimation,
-            }),
-        );
+            });
+        });
     };
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {

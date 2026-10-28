@@ -175,11 +175,11 @@ jest.mock('@hooks/useHoldMenuModal', () => ({
     default: jest.fn(() => ({showHoldMenu: mockShowHoldMenu})),
 }));
 
-// Jest runs as iOS, where the hold menu waits one animation frame; use web so it opens synchronously.
-jest.mock('@libs/getPlatform', () => ({
-    __esModule: true,
-    default: jest.fn(() => 'web'),
-}));
+// The hold menu waits one animation frame before opening; run the frame right away so it opens synchronously.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+    callback(0);
+    return 0;
+});
 
 jest.mock('@hooks/useLazyAsset', () => ({
     __esModule: true,

@@ -9,7 +9,7 @@ import useReportPDFDownloadModal from '@hooks/useReportPDFDownloadModal';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getHoldMenuAmounts, openAfterTouchFrame} from '@libs/HoldMenuUtils';
+import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,8 +64,9 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
     const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const {openHoldEducational, openRejectModal} = useMoneyReportHeaderEducationalModals(moneyRequestReport?.reportID);
 
-    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> =>
-        openAfterTouchFrame(() =>
+    // Wait one frame so the current touch animation finishes before the modal opens
+    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
+        requestAnimationFrame(() => {
             showHoldMenu({
                 reportID: moneyRequestReport?.reportID,
                 chatReportID: chatReport?.reportID,
@@ -74,8 +75,9 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
                 methodID,
                 ...getHoldMenuAmounts(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm,
-            }),
-        ).then(() => {});
+            });
+        });
+    };
 
     const contextValue = {
         openHoldMenu,

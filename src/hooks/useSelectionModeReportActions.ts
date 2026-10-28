@@ -3,7 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getHoldMenuAmounts, openAfterTouchFrame} from '@libs/HoldMenuUtils';
+import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
@@ -109,7 +109,8 @@ function useSelectionModeReportActions({
     const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
 
     const openHoldMenu = (requestType: ActionHandledType, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: () => void) => {
-        openAfterTouchFrame(() =>
+        // Wait one frame so the current touch animation finishes before the modal opens
+        requestAnimationFrame(() => {
             showHoldMenu({
                 reportID: report?.reportID,
                 chatReportID: chatReport?.reportID,
@@ -122,8 +123,8 @@ function useSelectionModeReportActions({
                     clearSelectedTransactions(true);
                     turnOffMobileSelectionMode();
                 },
-            }),
-        );
+            });
+        });
     };
 
     // Submit/approve via shared useLifecycleActions (no animations on mobile, skipAnimation=true)
