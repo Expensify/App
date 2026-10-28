@@ -11,7 +11,7 @@ import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext'
 import type {NavigationAction} from '@react-navigation/native';
 
 import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
@@ -163,22 +163,19 @@ function useDiscardChangesConfirmation({
         showDiscardModal();
     });
 
-    const confirmNavigation = useCallback(
-        (navigationCallback: () => void) => {
-            if (!hasUnsavedChanges()) {
-                navigationCallback();
-                return;
-            }
+    const confirmNavigation = (navigationCallback: () => void) => {
+        if (!hasUnsavedChanges()) {
+            navigationCallback();
+            return;
+        }
 
-            if (isDiscardModalOpen.current) {
-                return;
-            }
+        if (isDiscardModalOpen.current) {
+            return;
+        }
 
-            navigationCallbackRef.current = navigationCallback;
-            showDiscardModal();
-        },
-        [hasUnsavedChanges, showDiscardModal],
-    );
+        navigationCallbackRef.current = navigationCallback;
+        showDiscardModal();
+    };
 
     // `closeModal` changes every render, so the once-registered popstate listener reads it through a ref
     const closeModalRef = useRef(closeModal);

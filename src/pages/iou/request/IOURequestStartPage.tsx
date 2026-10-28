@@ -47,7 +47,7 @@ import type {NavigationAction, NavigationState, PartialState} from '@react-navig
 import type {TupleToUnion} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -127,10 +127,7 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const iouRequestStartPoliciesSelector = useMemo(
-        () => createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
-        [currentUserPersonalDetails.login, iouType],
-    );
+    const iouRequestStartPoliciesSelector = createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE);
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: iouRequestStartPoliciesSelector,
     });
@@ -300,18 +297,15 @@ function IOURequestStartPage({
     const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !isSubmittedRef.current && (isSignDirty || isAmountChanged);
     const isEmbeddedDirty = isEmbeddedConfirmationActive && !isSubmitted && (isSignDirty || isAmountChanged);
 
-    const shouldPromptForEmbeddedNavigationAction = useCallback(
-        (action: NavigationAction) => {
-            // After a refresh, browser Back and Forward restore the navigator state as a RESET. It is still internal
-            // navigation when the restored state contains the current draft's Create route.
-            if (action.type !== 'RESET' || !isNavigationStatePayload(action.payload)) {
-                return true;
-            }
+    const shouldPromptForEmbeddedNavigationAction = (action: NavigationAction) => {
+        // After a refresh, browser Back and Forward restore the navigator state as a RESET. It is still internal
+        // navigation when the restored state contains the current draft's Create route.
+        if (action.type !== 'RESET' || !isNavigationStatePayload(action.payload)) {
+            return true;
+        }
 
-            return !navigationStateContainsCreateDraft(action.payload, route.params.transactionID);
-        },
-        [route.params.transactionID],
-    );
+        return !navigationStateContainsCreateDraft(action.payload, route.params.transactionID);
+    };
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
