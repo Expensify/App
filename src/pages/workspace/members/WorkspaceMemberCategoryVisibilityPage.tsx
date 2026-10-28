@@ -1,3 +1,7 @@
+/**
+ * Lets a workspace admin choose which of the workspace's enabled categories a member can use, from that member's
+ * details page. Saving replaces the member's allowed categories with the checked ones.
+ */
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -12,6 +16,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
@@ -29,7 +34,6 @@ import {canMemberWrite, getMemberAccountIDsForWorkspace, isControlPolicy} from '
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -63,7 +67,11 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const {showConfirmModal} = useConfirmModal();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
-    const {categories, policyCategories, areCategoriesEnabled, isLoading} = usePolicyCategoryPickerCategories({policyID});
+    const memberLogin = Object.keys(policy?.employeeList ?? {}).find((login) => employeePersonalDetails[login]?.accountID === accountID);
+
+    const {categories, policyCategories, areCategoriesEnabled, isLoading: isLoadingPickerCategories} = usePolicyCategoryPickerCategories({policyID});
+    const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(policyID);
+    const isLoading = isLoadingPickerCategories || isLoadingCompletePolicyCategories;
 
     // An unrestricted member sees every enabled category, so every row starts checked.
     const memberVisibleCategories = getMemberVisibleCategoryNames(policyCategories, accountID);
@@ -133,8 +141,9 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
         const hasChanges = categoriesToSave.length !== memberVisibleCategories.length || categoriesToSave.some((categoryName) => !memberVisibleCategories.includes(categoryName));
         if (hasChanges) {
             const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false));
-            const memberLogin =
-                Object.keys(policy?.employeeList ?? {}).find((login) => employeePersonalDetails[login]?.accountID === accountID) ?? getMemberLoginByAccountID(policy, accountID);
+            if (!memberLogin) {
+                return;
+            }
             setPolicyMemberCategoryVisibility(policyID, [accountID], categoriesToSave, policyCategories ?? {}, policyMemberAccountIDs, [memberLogin]);
         }
         Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
@@ -145,7 +154,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) || !isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.CATEGORY_VISIBILITY) || !isControlPolicy(policy) || !areCategoriesEnabled || !canWriteCategories || !memberLogin}
         >
             <ScreenWrapper
                 testID="WorkspaceMemberCategoryVisibilityPage"
