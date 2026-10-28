@@ -29,12 +29,12 @@ jest.mock('@components/Modal/ReanimatedModal', () => ({
     },
 }));
 
-async function renderWrapper(closeModal: jest.Mock) {
+async function renderWrapper(closeModal: jest.Mock, resolveModal: jest.Mock = jest.fn()) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <MobileSelectionMenuModalWrapper
                 closeModal={closeModal}
-                resolveModal={jest.fn()}
+                resolveModal={resolveModal}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
             />
         </ComposeProviders>,
@@ -64,23 +64,26 @@ describe('MobileSelectionMenuModalWrapper', () => {
         mockReanimatedModalProps = undefined;
     });
 
-    it('waits for the menu to hide before taking its entry off the stack with CONFIRM when the user picks "Select"', async () => {
+    it('resolves CONFIRM as soon as the user picks "Select", and takes its entry off the stack only after the menu hides', async () => {
         // Given the menu on the global stack
         const closeModal = jest.fn();
-        await renderWrapper(closeModal);
+        const resolveModal = jest.fn();
+        await renderWrapper(closeModal, resolveModal);
         expect(mockReanimatedModalProps?.isVisible).toBe(true);
 
         // When the user picks "Select"
         await pressSelect();
 
-        // Then the menu starts hiding, but the entry stays on the stack while it animates out
+        // Then the caller is told right away, so selection mode turns on while the menu fades out, but the entry stays on the stack while it animates out
+        expect(resolveModal).toHaveBeenCalledTimes(1);
+        expect(resolveModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
         expect(mockReanimatedModalProps?.isVisible).toBe(false);
         expect(closeModal).not.toHaveBeenCalled();
 
         // When the hide animation ends
         finishHideAnimation();
 
-        // Then the entry leaves the stack with CONFIRM, so the caller knows to run its selection follow-up
+        // Then the entry leaves the stack
         expect(closeModal).toHaveBeenCalledTimes(1);
         expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CONFIRM});
     });
@@ -88,7 +91,8 @@ describe('MobileSelectionMenuModalWrapper', () => {
     it('takes its entry off the stack with CLOSE when the user dismisses the menu without picking "Select"', async () => {
         // Given the menu on the global stack
         const closeModal = jest.fn();
-        await renderWrapper(closeModal);
+        const resolveModal = jest.fn();
+        await renderWrapper(closeModal, resolveModal);
 
         // When the user dismisses it, for example with a backdrop tap, and the hide animation ends
         act(() => {
@@ -98,7 +102,8 @@ describe('MobileSelectionMenuModalWrapper', () => {
         expect(mockReanimatedModalProps?.isVisible).toBe(false);
         finishHideAnimation();
 
-        // Then the entry leaves the stack with CLOSE, so the caller does not enter selection mode
+        // Then the promise is not settled early, and the entry leaves the stack with CLOSE, so the caller does not enter selection mode
+        expect(resolveModal).not.toHaveBeenCalled();
         expect(closeModal).toHaveBeenCalledTimes(1);
         expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CLOSE});
     });

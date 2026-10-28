@@ -101,6 +101,29 @@ describe('useRowLongPressMenu', () => {
         expect(mockToggle).toHaveBeenCalledWith(ITEM, ITEM_TRANSACTIONS);
     });
 
+    it('selects the row once when the menu resolves on "Select" and then leaves the stack after hiding', async () => {
+        // Given a narrow Search list with the menu open after a long press
+        const {result} = renderLongPressMenu();
+        await longPress(result.current.onLongPressRow);
+
+        // When the menu resolves CONFIRM as soon as "Select" is pressed
+        await act(async () => {
+            mockMenuProps?.resolveModal({action: ModalActions.CONFIRM});
+            await waitForBatchedUpdates();
+        });
+
+        // Then selection mode turns on right away, while the menu is still hiding
+        expect(turnOnMobileSelectionMode).toHaveBeenCalledTimes(1);
+        expect(mockToggle).toHaveBeenCalledWith(ITEM, ITEM_TRANSACTIONS);
+
+        // When the menu finishes hiding and takes its entry off the stack
+        await answerMenu(ModalActions.CONFIRM);
+
+        // Then the follow-up does not run a second time, so the row is not toggled back off
+        expect(turnOnMobileSelectionMode).toHaveBeenCalledTimes(1);
+        expect(mockToggle).toHaveBeenCalledTimes(1);
+    });
+
     it('leaves selection untouched when the user dismisses the menu', async () => {
         // Given an open menu for a long-pressed row
         const {result} = renderLongPressMenu();

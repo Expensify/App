@@ -19,7 +19,7 @@ type MobileSelectionMenuModalWrapperProps = ModalProps & WithSentryLabel;
 
 // Renders the bottom-docked "Select" menu a row long press opens on narrow layouts, and resolves the caller's promise with CONFIRM when the user picks
 // "Select" or CLOSE otherwise. What selecting does is up to the caller, which chains it off that promise.
-function MobileSelectionMenuModalWrapper({closeModal, sentryLabel}: MobileSelectionMenuModalWrapperProps) {
+function MobileSelectionMenuModalWrapper({closeModal, resolveModal, sentryLabel}: MobileSelectionMenuModalWrapperProps) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
@@ -32,8 +32,12 @@ function MobileSelectionMenuModalWrapper({closeModal, sentryLabel}: MobileSelect
     const handleSelect = () => {
         closeActionRef.current = ModalActions.CONFIRM;
         setIsVisible(false);
+
+        // Settle the promise right away so the caller turns on selection mode while the menu fades out, instead of after it has hidden
+        resolveModal({action: ModalActions.CONFIRM});
     };
 
+    // Remove the menu from the stack only once it has finished hiding (on "Select" the promise was already settled above)
     const handleModalHide = () => {
         if (isVisible || hasClosedRef.current) {
             return;
