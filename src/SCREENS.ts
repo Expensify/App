@@ -8,6 +8,7 @@ const PROTECTED_SCREENS = {
     HOME: 'Home',
     INBOX: 'Inbox',
     CONCIERGE: 'Concierge',
+    TALK_TO_HUMAN: 'TalkToHuman',
     REPORT_ATTACHMENTS: 'ReportAttachments',
     REPORT_ADD_ATTACHMENT: 'ReportAddAttachment',
     TRACK_EXPENSE: 'TrackExpense',

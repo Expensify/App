@@ -1478,6 +1478,7 @@ type AttachmentModalScreensParamList = {
 type AuthScreensParamList = SharedScreensParamList &
     AttachmentModalScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TALK_TO_HUMAN]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.WORKSPACE_JOIN_USER]: {

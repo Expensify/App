@@ -369,7 +369,6 @@
 "../../src/components/SAMLLoadingIndicator.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/components/ScaledDistanceEReceipt.tsx"	"import/no-cycle"	1
 "../../src/components/ScreenWrapper/index.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/components/ScreenWrapper/ScreenWrapperContainer.tsx"	"react-hooks/refs"	2
 "../../src/components/Search/chartGroupByConfig.ts"	"@typescript-eslint/no-unsafe-type-assertion"	20
 "../../src/components/Search/FilterComponents/AdvancedFilters/DateFilterContent.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterComponents/BankAccountSelector.tsx"	"rulesdir/no-onyx-loading-status"	1
@@ -816,7 +815,7 @@
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-misused-promises"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	16
+"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
 "../../src/libs/actions/Search.ts"	"import/no-cycle"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
@@ -959,7 +958,6 @@
 "../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/SearchFullscreenNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/SettingsSplitNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/WorkspaceSplitNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/PublicScreens.tsx"	"import/no-named-as-default"	1
 "../../src/libs/Navigation/AppNavigator/routerExtensions/addPushParamsRouterExtension.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -1120,7 +1118,6 @@
 "../../src/pages/AddExistingExpense.tsx"	"no-restricted-imports"	1
 "../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/AddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/AddressPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/AddressPage.tsx"	"react-hooks/set-state-in-effect"	1
@@ -2433,6 +2430,7 @@
 "../../tests/ui/SubmitDetailsPageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/TableTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/ui/TagSelectorTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	5
+"../../tests/ui/TalkToHumanPageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/ui/TransactionPreviewContentTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/TransactionReceiptOdometerReplaceTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/UnreadIndicatorsTest.tsx"	"no-restricted-imports"	1

@@ -5278,6 +5278,11 @@ const translations = {
             workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
+            emptyRoomsTitle: 'No rooms to show',
+            emptyRoomsSubtitle: 'Rooms in this workspace will appear here.',
+            emptyRoomsArchivedTitle: 'These rooms are archived',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Unarchive this workspace</a> to use them again.</centered-text></muted-text>`,
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
