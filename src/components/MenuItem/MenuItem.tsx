@@ -65,7 +65,7 @@ import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleP
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
@@ -642,8 +642,12 @@ function MenuItem({
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
     const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
-    // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
-    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || hasIcon ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+    let iconLeftPadding;
+    if (shouldPutLeftPaddingWhenNoIcon || hasIcon) {
+        iconLeftPadding = avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3;
+    } else {
+        iconLeftPadding = {};
+    }
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -699,50 +703,46 @@ function MenuItem({
         );
     };
 
-    const html = useMemo(() => {
-        if (!title || !shouldParseTitle) {
-            return '';
-        }
-        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
-    }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
+    const html =
+        !title || !shouldParseTitle
+            ? ''
+            : Parser.replace(title, {
+                  shouldEscapeText,
+                  disabledRules: excludedMarkdownRules,
+              });
 
-    const helperHtml = useMemo(() => {
-        if (!helperText || !shouldParseHelperText) {
-            return '';
-        }
-        return Parser.replace(helperText, {shouldEscapeText});
-    }, [helperText, shouldParseHelperText, shouldEscapeText]);
+    const helperHtml =
+        !helperText || !shouldParseHelperText
+            ? ''
+            : Parser.replace(helperText, {
+                  shouldEscapeText,
+              });
 
     const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
     const shouldEnableTextSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
 
-    const processedTitle = useMemo(() => {
-        let titleToWrap = '';
-        if (shouldRenderAsHTML) {
-            titleToWrap = title ?? '';
-        }
+    let processedTitle;
+    let titleToWrap = '';
+    if (shouldRenderAsHTML) {
+        titleToWrap = title ?? '';
+    }
+    if (shouldParseTitle) {
+        titleToWrap = html;
+    }
+    if (shouldTruncateTitle) {
+        titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {
+            ellipsis: '...',
+        });
+        processedTitle = titleToWrap;
+    } else {
+        processedTitle = titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
+    }
 
-        if (shouldParseTitle) {
-            titleToWrap = html;
-        }
-
-        if (shouldTruncateTitle) {
-            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
-            return titleToWrap;
-        }
-
-        return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
-
-    const processedHelperText = useMemo(() => {
-        let textToWrap = '';
-
-        if (shouldParseHelperText) {
-            textToWrap = helperHtml;
-        }
-
-        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
-    }, [shouldParseHelperText, helperHtml]);
+    let textToWrap = '';
+    if (shouldParseHelperText) {
+        textToWrap = helperHtml;
+    }
+    const processedHelperText = textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
 
     const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 

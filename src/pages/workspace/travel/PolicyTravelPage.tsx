@@ -58,9 +58,9 @@ function WorkspaceTravelPage({
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {canWrite: canWriteMoreFeatures, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
 
-    const fetchTravelData = useCallback(() => {
+    const fetchTravelData = () => {
         openPolicyTravelPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+    };
 
     const isFocused = useIsFocused();
 

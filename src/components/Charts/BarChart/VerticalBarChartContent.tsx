@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import {BAR_CORNER_RADIUS, BAR_GROUP_INNER_GAP, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
@@ -17,7 +16,8 @@ import {
 } from '@components/Charts/hooks';
 import type {ChartSeries, WrappedLabelConfig} from '@components/Charts/types';
 import {getBarLayout, getCartesianPlotBounds, getXAxisLabel, getYAxisLabelWidth} from '@components/Charts/utils';
-import VictoryTheme, {CARTESIAN_Y_AXIS, CHART_CONTENT_MIN_HEIGHT, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
+import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {CARTESIAN_Y_AXIS, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -28,7 +28,6 @@ import variables from '@styles/variables';
 import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {Bar, CartesianChart} from 'victory-native';
@@ -115,6 +114,7 @@ function VerticalBarChartCanvas({
                   canvasWidth: chartWidth,
               }
             : undefined;
+    // `getBarChartLoadingHeight` reserves the same lines while the chart loads, so update the two together.
     const wrapLabelHeight = wrapConfig ? wrapConfig.maxLines * wrapConfig.lineHeight : 0;
     // When wrapping, labelAreaWidth is 0 above so the hook returns EMPTY_LAYOUT (horizontal, skip 1).
     // xAxisLabelHeight is 0 there too, so the wrap height has to be substituted explicitly.
@@ -242,8 +242,8 @@ function VerticalBarChartCanvas({
         );
     };
 
-    const labelSpace = shouldShowLabels ? VictoryTheme.axis.xAxisLabelGap + resolvedLabelHeight : 0;
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const labelSpace = shouldShowLabels ? getXAxisLabelSpace(resolvedLabelHeight) : 0;
+    const chartHeight = getBarChartHeight(shouldShowLabels, resolvedLabelHeight);
     const chartPadding = {...VictoryTheme.axis.padding, bottom: labelSpace + VictoryTheme.axis.padding.bottom, right: chartPaddingRight};
 
     return (
@@ -306,19 +306,10 @@ function VerticalBarChartCanvas({
 }
 
 function VerticalBarChartContentBody({isLoading = false, chartWidth, ...canvasProps}: BarChartContentProps) {
-    const styles = useThemeStyles();
     const readyCanvas = useReadyCartesianCanvas(isLoading, chartWidth);
 
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
-
     if (!readyCanvas) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

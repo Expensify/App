@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import {openPolicyAccountingPage, openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceConnectionsPage from '@pages/workspace/connections/WorkspaceConnectionsPage';
@@ -101,14 +102,15 @@ jest.mock('@pages/workspace/connections/useAccountingConnectionListings', () => 
 jest.mock('@pages/workspace/connections/useMergeConnectionListings', () => ({__esModule: true, default: () => []}));
 jest.mock('@pages/workspace/connections/useReceiptPartnerConnectionListings', () => ({__esModule: true, default: () => []}));
 jest.mock('@pages/workspace/connections/useMCPConnectionListings', () => ({__esModule: true, default: () => []}));
-jest.mock('@libs/actions/PolicyConnections', () => ({openPolicyHRPage: jest.fn(), openPolicyRecruitingPage: jest.fn()}));
+jest.mock('@libs/actions/PolicyConnections', () => ({openPolicyAccountingPage: jest.fn(), openPolicyHRPage: jest.fn(), openPolicyRecruitingPage: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({openPolicyReceiptPartnersPage: jest.fn()}));
 
+let mockIsControlPolicy = true;
 jest.mock('@libs/PolicyUtils', () => {
     const actual = jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils');
     return {
         ...actual,
-        isControlPolicy: () => true,
+        isControlPolicy: () => mockIsControlPolicy,
     };
 });
 
@@ -182,5 +184,37 @@ describe('WorkspaceConnectionsPage auto-started connect flow', () => {
         // Then it is honoured rather than swallowed as a repeat of the first run, or the connect flow would silently
         // do nothing the second time round
         expect(mockStartIntegrationFlow).toHaveBeenCalledTimes(2);
+    });
+});
+describe('WorkspaceConnectionsPage data fetched on open', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockRouteParams = {};
+        mockIsControlPolicy = true;
+    });
+
+    it('should fetch the accounting data for a workspace that is not on Control', async () => {
+        // Given a Collect workspace, which has no HR request to set the connections fetched flag
+        mockIsControlPolicy = false;
+
+        // When the page opens
+        render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then the accounting data is fetched up front, so connecting an integration later doesn't swap the page for a loader
+        expect(openPolicyAccountingPage).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyHRPage).not.toHaveBeenCalled();
+    });
+
+    it('should fetch the HR data instead for a Control workspace', async () => {
+        // Given a Control workspace, whose HR request already sets the connections fetched flag
+
+        // When the page opens
+        render(<WorkspaceConnectionsPageUnderTest policy={buildPolicy()} />);
+        await waitForBatchedUpdates();
+
+        // Then only the HR data is fetched, so the page doesn't send a second request for the same flag
+        expect(openPolicyHRPage).toHaveBeenCalledWith(POLICY_ID);
+        expect(openPolicyAccountingPage).not.toHaveBeenCalled();
     });
 });

@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type IndustryCodeSelectorProps = {
@@ -39,30 +39,9 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
         }, []),
     );
 
-    const codeOptions = useMemo(() => {
-        if (!searchValue) {
-            return NAICS.map((item) => {
-                return {
-                    value: `${item.id}`,
-                    text: `${item.id} - ${item.value}`,
-                    keyForList: `${item.id}`,
-                    isSelected: `${item.id}` === value,
-                };
-            });
-        }
-
-        if (shouldDisplayChildItems) {
-            return (NAICS_MAPPING_WITH_ID[searchValue] ?? []).map((item) => {
-                return {
-                    value: `${item.id}`,
-                    text: `${item.id} - ${item.value}`,
-                    keyForList: `${item.id}`,
-                    isSelected: `${item.id}` === value,
-                };
-            });
-        }
-
-        return ALL_NAICS.filter((item) => item.id.toString().toLowerCase().startsWith(searchValue.toLowerCase())).map((item) => {
+    let codeOptions;
+    if (!searchValue) {
+        codeOptions = NAICS.map((item) => {
             return {
                 value: `${item.id}`,
                 text: `${item.id} - ${item.value}`,
@@ -70,26 +49,41 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
                 isSelected: `${item.id}` === value,
             };
         });
-    }, [searchValue, shouldDisplayChildItems, value]);
+    } else if (shouldDisplayChildItems) {
+        codeOptions = (NAICS_MAPPING_WITH_ID[searchValue] ?? []).map((item) => {
+            return {
+                value: `${item.id}`,
+                text: `${item.id} - ${item.value}`,
+                keyForList: `${item.id}`,
+                isSelected: `${item.id}` === value,
+            };
+        });
+    } else {
+        codeOptions = ALL_NAICS.filter((item) => item.id.toString().toLowerCase().startsWith(searchValue.toLowerCase())).map((item) => {
+            return {
+                value: `${item.id}`,
+                text: `${item.id} - ${item.value}`,
+                keyForList: `${item.id}`,
+                isSelected: `${item.id}` === value,
+            };
+        });
+    }
 
     useEffect(() => {
         setSearchValue(value);
     }, [value]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('companyStep.industryClassificationCodePlaceholder'),
-            onChangeText: (val: string | undefined) => {
-                setSearchValue(val);
-                setShouldDisplayChildItems(false);
-                onInputChange?.(val);
-            },
-            value: searchValue,
-            disableAutoFocus: true,
-            errorText,
-        }),
-        [errorText, onInputChange, searchValue, translate],
-    );
+    const textInputOptions = {
+        label: translate('companyStep.industryClassificationCodePlaceholder'),
+        onChangeText: (val: string | undefined) => {
+            setSearchValue(val);
+            setShouldDisplayChildItems(false);
+            onInputChange?.(val);
+        },
+        value: searchValue,
+        disableAutoFocus: true,
+        errorText,
+    };
 
     return (
         <View style={styles.flexGrow1}>

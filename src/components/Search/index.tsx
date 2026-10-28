@@ -9,7 +9,7 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
+import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +18,9 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,7 +45,7 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
@@ -56,6 +58,7 @@ import {
     isSearchPending,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTripListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
@@ -90,7 +93,6 @@ import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -105,7 +107,7 @@ import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
@@ -119,10 +121,12 @@ import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
 import TaskSearchView from './TaskSearchView';
+import TripSearchView from './TripSearchView';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -139,8 +143,6 @@ type SearchProps = {
      *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
-
-type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
 function Search({
     queryJSON,
@@ -160,8 +162,11 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!hasFilterBars);
     const styles = useThemeStyles();
     const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
+    const chartScrollLockStyle = useSearchListScrollLockStyle();
+    const chartScrollViewRef = useRegisterSearchScrollView();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -192,7 +197,9 @@ function Search({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {
+        selector: fullPolicySnapshotLastModifiedByPolicyIDSelector,
+    });
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -201,6 +208,7 @@ function Search({
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -326,6 +334,15 @@ function Search({
         selectedTransactions,
     });
 
+    // Deleted expenses have no report owner, so their From column falls back to the cardholder. Search opens with only
+    // some cards, so load the rest whenever a deleted expense can be on screen. Grouped searches never set
+    // hasDeletedTransaction, so check the status filter too. A negated filter such as status!:drafts still admits
+    // deleted expenses unless it excludes them.
+    const statusFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS);
+    const hasDeletedStatus = !!statusFilter.value?.includes(CONST.SEARCH.STATUS.EXPENSE.DELETED);
+    const isDeletedStatusQuery = statusFilter.isNegated ? !hasDeletedStatus : hasDeletedStatus;
+    useLoadSearchCardData(hasDeletedTransaction || isDeletedStatusQuery);
+
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
@@ -439,6 +456,7 @@ function Search({
     }, [lastSearchType, setShouldShowFiltersBarLoading, shouldShowLoadingState, type]);
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
+    const autoSearchedHashRef = useRef<number | undefined>(undefined);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
@@ -469,7 +487,10 @@ function Search({
             return;
         }
 
-        if (hasErrors && !shouldRefreshOnReconnect) {
+        // A stale error an earlier visit left on this hash must not block this instance's first request,
+        // except when the server judged the query itself malformed, because re-sending it cannot succeed.
+        const isInvalidQuery = responseStatusCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+        if (hasErrors && !shouldRefreshOnReconnect && (isInvalidQuery || autoSearchedHashRef.current === queryJSON.hash)) {
             return;
         }
 
@@ -493,9 +514,12 @@ function Search({
 
         // The page already fetched this first page, and that request finished before Search mounts, so search() no longer sees it.
         if (!shouldRefreshOnReconnect && searchRequestOffset === 0 && isDataLoaded && consumePageRequestedSearch(queryJSON.hash, shouldCalculateTotals)) {
+            // That request was made for this mount, so an error it leaves behind is this instance's own.
+            autoSearchedHashRef.current = queryJSON.hash;
             return;
         }
 
+        autoSearchedHashRef.current = queryJSON.hash;
         handleSearch({
             queryJSON,
             searchKey: currentSearchKey,
@@ -661,6 +685,15 @@ function Search({
                 return;
             }
 
+            if (isTripListItemType(item)) {
+                const tripRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: Navigation.getActiveRoute()});
+                if (openInternalRouteInNewTab(tripRoute, event)) {
+                    return;
+                }
+                requestAnimationFrame(() => Navigation.navigate(tripRoute));
+                return;
+            }
+
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
 
@@ -691,7 +724,14 @@ function Search({
                     fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: item.transactionID}), event);
+                    openInternalRouteInNewTab(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: targetReportID,
+                            backTo,
+                            anchorTransactionID: item.transactionID,
+                        }),
+                        event,
+                    );
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -828,7 +868,11 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined});
+            const route = ROUTES.SEARCH_REPORT.getRoute({
+                reportID,
+                backTo,
+                anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined,
+            });
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
@@ -958,7 +1002,7 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
+    const canSelectMultiple = !isChat && !isTask && !shouldReturnTripRooms && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
 
     useSaveSortedReportIDs(type, sortedData);
 
@@ -1271,6 +1315,7 @@ function Search({
                       shouldShowYearApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
+                      shouldShowYearPaid: false,
                       shouldShowYearWithdrawn: false,
                   },
         [searchResults?.data, isExpenseReportType, type],
@@ -1299,6 +1344,7 @@ function Search({
             isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
             isPostedColumnWide: yearIndicators.shouldShowYearPosted,
             isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isPaidColumnWide: yearIndicators.shouldShowYearPaid,
             isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
             isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
@@ -1310,6 +1356,7 @@ function Search({
             yearIndicators.shouldShowYearApproved,
             yearIndicators.shouldShowYearPosted,
             yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearPaid,
             yearIndicators.shouldShowYearWithdrawn,
             amountIndicators.shouldShowAmountInWideColumn,
             amountIndicators.shouldShowTaxAmountInWideColumn,
@@ -1341,7 +1388,7 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
-    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+    const listContainerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : styles.mt3;
 
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
@@ -1452,13 +1499,14 @@ function Search({
                     queryJSON={queryJSON}
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
-                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                    contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
                 />
             </View>
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearPaid, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1485,7 +1533,8 @@ function Search({
         return (
             <SearchScopeProvider>
                 <Animated.ScrollView
-                    style={styles.flex1}
+                    ref={chartScrollViewRef}
+                    style={[styles.flex1, chartScrollLockStyle]}
                     {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
@@ -1510,10 +1559,10 @@ function Search({
         );
     }
 
-    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
-    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
-    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // Transaction lists (expense, invoice, and trip without the TravelApproval beta) render through the flat or grouped view
+    // depending on groupBy; chat, expense-report, task and trip rooms each have their own dedicated view. Every view composes
+    // BaseSearchList directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !shouldReturnTripRooms;
 
     let searchTablePaddingRightStyle;
     if (!isTask) {
@@ -1534,12 +1583,14 @@ function Search({
                 shouldShowYearApproved={shouldShowYearApproved}
                 shouldShowYearPosted={shouldShowYearPosted}
                 shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearPaid={shouldShowYearPaid}
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                 shouldShowSorting
                 groupBy={validGroupBy}
-                isExpenseReportView={isExpenseReportType}
+                // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
+                isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             />
         </View>
@@ -1601,6 +1652,8 @@ function Search({
         searchListContent = <ChatSearchView {...commonViewProps} />;
     } else if (isExpenseReportType) {
         searchListContent = <ExpenseReportSearchView {...commonViewProps} />;
+    } else if (shouldReturnTripRooms) {
+        searchListContent = <TripSearchView {...commonViewProps} />;
     } else {
         // TASK is the only remaining data type.
         searchListContent = <TaskSearchView {...commonViewProps} />;
@@ -1629,7 +1682,6 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 

@@ -28,8 +28,8 @@ type UseMergeProviderCardDetailsParams = {
     canWriteMoreFeatures: boolean;
     showReadOnlyModal: () => void;
 
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnect?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnect?: (disconnect: () => void) => void;
 };
 
 /** The status text, sync error and overflow menu of a Merge provider, shared by the HR and Recruiting cards and their Connections panel */
@@ -148,8 +148,12 @@ function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreF
                     if (result?.action !== ModalActions.CONFIRM || !policy) {
                         return;
                     }
-                    onDisconnect?.();
-                    removePolicyConnection(policy, card.connectionName);
+                    const disconnect = () => removePolicyConnection(policy, card.connectionName);
+                    if (onDisconnect) {
+                        onDisconnect(disconnect);
+                        return;
+                    }
+                    disconnect();
                 });
             },
             shouldCallAfterModalHide: true,

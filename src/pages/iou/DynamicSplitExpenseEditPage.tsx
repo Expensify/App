@@ -83,7 +83,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {policyTypeSelector} from '@selectors/Policy';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type DynamicSplitExpenseEditPageProps = PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT>;
@@ -122,7 +122,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
 
-    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
+    const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
     const allTransactions = useAllTransactions();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -152,14 +152,14 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${effectivePolicyID}`);
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const fetchData = useCallback(() => {
+    const fetchData = () => {
         if (!policyCategories) {
             openPolicyCategoriesPage(effectivePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
         if (!policyTags) {
             openPolicyTagsPage(effectivePolicyID ?? String(CONST.DEFAULT_NUMBER_ID));
         }
-    }, [effectivePolicyID, policyCategories, policyTags]);
+    };
 
     // Fetch categories and tags on mount to ensure the screen has the latest data,
     // especially when the edit-split flow is opened from the search screen where these
@@ -217,7 +217,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
-    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policyTagLists = getTagLists(policyTags);
 
     const isSplitAvailable =
         report &&
@@ -234,16 +234,12 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
     // deletion leaves the gate flags false, but the preserved tag should still be re-selectable.
     const shouldShowTags = !!originalTransactionTag || ((isPolicyExpenseChat || isExpenseUnreported) && !!(transactionTag || hasEnabledTags(policyTagLists)));
-    const tagVisibility = useMemo(
-        () =>
-            getTagVisibility({
-                shouldShowTags,
-                policy: effectivePolicy,
-                policyTags,
-                transaction: splitExpenseDraftTransaction,
-            }),
-        [shouldShowTags, effectivePolicy, policyTags, splitExpenseDraftTransaction],
-    );
+    const tagVisibility = getTagVisibility({
+        shouldShowTags,
+        policy: effectivePolicy,
+        policyTags,
+        transaction: splitExpenseDraftTransaction,
+    });
 
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 

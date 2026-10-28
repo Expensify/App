@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {WalletStatementMessage, WalletStatementProps} from './types';
@@ -32,14 +32,11 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     /**
      * Handles in-app navigation for iframe links
      */
-    const navigate = useCallback(
-        (event: MessageEvent<WalletStatementMessage>) => {
-            const {data} = event;
-            const {type, url} = data || {};
-            handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, type, url);
-        },
-        [conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails],
-    );
+    const navigate = (event: MessageEvent<WalletStatementMessage>) => {
+        const {data} = event;
+        const {type, url} = data || {};
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, type, url);
+    };
 
     useEffect(() => {
         navigateRef.current = navigate;

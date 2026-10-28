@@ -42,7 +42,15 @@ jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
         </Pressable>
     );
 });
-let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean} = {
+jest.mock('@components/MenuItemWithTopDescription', () => {
+    const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
+    return ({title}: {title?: string}) => <Text>{`Read-only amount: ${title ?? ''}`}</Text>;
+});
+jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
+    const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
+    return ({value}: {value?: string}) => <Text>{`Read-only amount: ${value ?? ''}`}</Text>;
+});
+let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean} = {
     transactionID: '1',
     amount: 0,
     currency: 'USD',
@@ -241,5 +249,58 @@ describe('AmountField currency change', () => {
         // Then the entered amount is saved together with the new currency, since the amount is the user's own
         expect(setMoneyRequestAmount).toHaveBeenCalledWith('1', 1000, 'EUR');
         expect(setMoneyRequestCurrency).not.toHaveBeenCalled();
+    });
+});
+
+describe('AmountField while the receipt is scanning', () => {
+    beforeEach(() => {
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false, isAmountSet: true, isScanning: true};
+    });
+
+    it('shows the scanning status instead of a zero amount when a tracked scan is moved to someone', () => {
+        // Given a tracked scan expense moved to someone, whose receipt is still scanning and whose scan fields can't be entered inline
+        // When the confirmation page renders its amount field
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.SUBMIT}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    formattedAmount="Scanning…"
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the amount shows as the read-only row with the scanning status, since the editable input would show the receipt's placeholder zero amount
+        expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
+        expect(screen.queryByText('Enter zero')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the editable input on a fresh scan where the user can enter the amount instead of waiting for SmartScan', () => {
+        // Given a fresh scan expense whose receipt is scanning and whose scan fields the user can enter themselves
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false, isScanning: true};
+
+        // When the confirmation page renders its amount field
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                canEnterScanFieldsManually
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    formattedAmount="Scanning…"
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the editable amount input stays, so the user can still type an amount inline
+        expect(screen.getByText('Enter zero')).toBeOnTheScreen();
+        expect(screen.queryByText('Read-only amount: Scanning…')).not.toBeOnTheScreen();
     });
 });

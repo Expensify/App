@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
 
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, useContext, useRef, useState} from 'react';
 
 type ConciergeSessionStateContextType = {
     sessionStartTime: string | null;
@@ -73,7 +73,7 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
         }
     }
 
-    const startSession = useCallback((unreadBoundary?: string | null) => {
+    const startSession = (unreadBoundary?: string | null) => {
         let sessionExpired = false;
         setSessionStartTime((prev) => {
             if (prev && sessionCreatedAtRef.current) {
@@ -103,10 +103,10 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
             setShowFullHistory(false);
             setHadMessagesAtSessionStart(false);
         }
-    }, []);
+    };
 
-    const stateValue = useMemo(() => ({sessionStartTime, showFullHistory, hadMessagesAtSessionStart}), [sessionStartTime, showFullHistory, hadMessagesAtSessionStart]);
-    const actionsValue = useMemo(() => ({startSession, setShowFullHistory, setHadMessagesAtSessionStart}), [startSession]);
+    const stateValue = {sessionStartTime, showFullHistory, hadMessagesAtSessionStart};
+    const actionsValue = {startSession, setShowFullHistory, setHadMessagesAtSessionStart};
 
     return (
         <ConciergeSessionStateContext.Provider value={stateValue}>

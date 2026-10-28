@@ -12,7 +12,10 @@
 - Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
   1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/46247
+- Upstream PR/issue: https://github.com/react/react-native/pull/57959 merged on 2026-10-28 as [9bc1a28a9623419d62eb350acd0c172644e2c022](https://github.com/react/react-native/commit/9bc1a28a9623419d62eb350acd0c172644e2c022). It ports the original Android MVCP proposal and includes z-index anchor selection and support for LegendList's positioned, zero-sized anchor.
+- Expected release: React Native 0.89.0, [currently scheduled for 2026-12-07](https://reactnative.dev/releases/overview), unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the scheduled 0.89 branch cut on 2026-11-03.
+- Earlier proposal: https://github.com/react/react-native/pull/46247 closed without merging.
+- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify Android scroll-position preservation during bidirectional pagination and row-height changes with the patch disabled. Keep it on React Native 0.86 unless the upstream fix is backported.
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
@@ -144,10 +147,10 @@
 
 ### [react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch](react-native+0.86.0+019+fix-modal-transparent-navigation-bar.patch)
 
-- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android
+- Reason: This patch fixes an issue where it is not possible to enable a transparent navigation bar on Android, and keeps the modal's system bar icons in sync with the activity. The `dialog === newDialog` check in the call that `showOrUpdate()` posts fixes the fatal `IllegalStateException: dialog must exist when we call updateProperties` behind `APP-M66`, which happens when the modal is dismissed before that call runs. Keep this check when regenerating the patch.
 - Upstream PR/issue: 🛑
-- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005)
-- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004)
+- E/App issue: [#69005](https://github.com/Expensify/App/issues/69005), [#103778](https://github.com/Expensify/App/issues/103778)
+- PR introducing patch: [#69004](https://github.com/Expensify/App/pull/69004) (introduced), [#104689](https://github.com/Expensify/App/pull/104689) (`APP-M66` guard)
 
 ### [react-native+0.86.0+021+perf-increase-initial-heap-size.patch](react-native+0.86.0+021+perf-increase-initial-heap-size.patch)
 
