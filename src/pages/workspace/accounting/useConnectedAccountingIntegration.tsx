@@ -492,22 +492,26 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Zoho Books import, export, and advanced screens are added in a later release, so hide their entry points until then.
-        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
-        const configurationOptions = shouldShowConfigurationOptions
+        // Zoho Books import and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowImportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        const configurationOptions = canWriteAccounting
             ? [
-                  {
-                      icon: icons.Pencil,
-                      iconRight: icons.ArrowRight,
-                      shouldShowRightIcon: true,
-                      title: translate('workspace.accounting.import'),
-                      wrapperStyle: menuItemWrapperStyle,
-                      onPress: integrationData?.onImportPagePress,
-                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
-                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                          : undefined,
-                      pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
-                  },
+                  ...(shouldShowImportAndAdvancedOptions
+                      ? [
+                            {
+                                icon: icons.Pencil,
+                                iconRight: icons.ArrowRight,
+                                shouldShowRightIcon: true,
+                                title: translate('workspace.accounting.import'),
+                                wrapperStyle: menuItemWrapperStyle,
+                                onPress: integrationData?.onImportPagePress,
+                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined,
+                                pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+                            },
+                        ]
+                      : []),
                   {
                       icon: icons.Send,
                       iconRight: icons.ArrowRight,
@@ -536,18 +540,22 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                             },
                         ]
                       : []),
-                  {
-                      icon: icons.Gear,
-                      iconRight: icons.ArrowRight,
-                      shouldShowRightIcon: true,
-                      title: translate('workspace.accounting.advanced'),
-                      wrapperStyle: menuItemWrapperStyle,
-                      onPress: integrationData?.onAdvancedPagePress,
-                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                          : undefined,
-                      pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                  },
+                  ...(shouldShowImportAndAdvancedOptions
+                      ? [
+                            {
+                                icon: icons.Gear,
+                                iconRight: icons.ArrowRight,
+                                shouldShowRightIcon: true,
+                                title: translate('workspace.accounting.advanced'),
+                                wrapperStyle: menuItemWrapperStyle,
+                                onPress: integrationData?.onAdvancedPagePress,
+                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined,
+                                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+                            },
+                        ]
+                      : []),
               ]
             : [];
 

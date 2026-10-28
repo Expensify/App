@@ -694,11 +694,18 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
+                // Import and advanced screens are added in later releases.
                 onImportPagePress: () => null,
                 subscribedImportSettings: [],
-                onExportPagePress: () => null,
-                subscribedExportSettings: [],
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT.getRoute(policyID)),
+                subscribedExportSettings: [
+                    CONST.ZOHO_BOOKS_CONFIG.EXPORTER,
+                    CONST.ZOHO_BOOKS_CONFIG.EXPORT_DATE,
+                    CONST.ZOHO_BOOKS_CONFIG.REIMBURSABLE,
+                    CONST.ZOHO_BOOKS_CONFIG.NON_REIMBURSABLE,
+                    CONST.ZOHO_BOOKS_CONFIG.DEFAULT_VENDORID,
+                    CONST.ZOHO_BOOKS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                ],
                 onAdvancedPagePress: () => null,
                 subscribedAdvancedSettings: [],
                 pendingFields: policy?.connections?.zohoBooks?.config?.pendingFields,
