@@ -41,7 +41,7 @@ import type {ComponentProps} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
@@ -198,47 +198,44 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     }
 
     // Card state pills (below title, next to description)
-    const descriptionAddon = useMemo(() => {
-        if (isNeedingAction && shouldShowDefaultBadge) {
-            return (
-                <Badge
-                    text={translate('paymentMethodList.defaultPaymentMethod')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        if (item.isCardFrozen) {
-            return (
-                <Badge
-                    text={translate('cardPage.frozen')}
-                    icon={icons.FreezeCard}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                    iconStyles={[styles.mr1]}
-                />
-            );
-        }
-        if (item.connectionStatus) {
-            return (
-                <ConnectionStatusBadge
-                    text={item.connectionStatus.statusText}
-                    tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
-                    tooltipText={item.connectionStatus.tooltipText}
-                />
-            );
-        }
-        if (item.isInactive) {
-            return (
-                <Badge
-                    text={translate('walletPage.cardInactive')}
-                    isCondensed
-                    badgeStyles={[styles.ml0]}
-                />
-            );
-        }
-        return undefined;
-    }, [isNeedingAction, shouldShowDefaultBadge, item.connectionStatus, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    let descriptionAddon;
+    if (isNeedingAction && shouldShowDefaultBadge) {
+        descriptionAddon = (
+            <Badge
+                text={translate('paymentMethodList.defaultPaymentMethod')}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+            />
+        );
+    } else if (item.isCardFrozen) {
+        descriptionAddon = (
+            <Badge
+                text={translate('cardPage.frozen')}
+                icon={icons.FreezeCard}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+                iconStyles={[styles.mr1]}
+            />
+        );
+    } else if (item.connectionStatus) {
+        descriptionAddon = (
+            <ConnectionStatusBadge
+                text={item.connectionStatus.statusText}
+                tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
+                tooltipText={item.connectionStatus.tooltipText}
+            />
+        );
+    } else if (item.isInactive) {
+        descriptionAddon = (
+            <Badge
+                text={translate('walletPage.cardInactive')}
+                isCondensed
+                badgeStyles={[styles.ml0]}
+            />
+        );
+    } else {
+        descriptionAddon = undefined;
+    }
 
     const rightComponent = showThreeDotsMenu ? (
         <View style={styles.alignSelfCenter}>

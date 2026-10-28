@@ -34,7 +34,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {differenceInCalendarDays} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ReservationViewProps = {
@@ -82,25 +82,22 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
 
     const formattedDate = getFormattedDate();
 
-    const bottomDescription = useMemo(() => {
-        const code = getTripReservationCode(reservation);
-        if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
-            const longName = reservation.company?.longName ? `${reservation.company?.longName} • ` : '';
-            const shortName = reservation?.company?.shortName ? `${reservation?.company?.shortName} ` : '';
-            return `${code}${longName}${shortName}${reservation.route?.number}`;
-        }
-        if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
-            return `${code}${StringUtils.removeDoubleQuotes(reservation.start.address)}`;
-        }
-        if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
-            const vendor = reservation.vendor ? `${reservation.vendor} • ` : '';
-            return `${vendor}${reservation.start.location}`;
-        }
-        if (reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
-            return reservation.route?.name;
-        }
-        return StringUtils.removeDoubleQuotes(reservation.start.address) ?? reservation.start.location;
-    }, [reservation]);
+    let bottomDescription;
+    const code = getTripReservationCode(reservation);
+    if (reservation.type === CONST.RESERVATION_TYPE.FLIGHT) {
+        const longName = reservation.company?.longName ? `${reservation.company?.longName} • ` : '';
+        const shortName = reservation?.company?.shortName ? `${reservation?.company?.shortName} ` : '';
+        bottomDescription = `${code}${longName}${shortName}${reservation.route?.number}`;
+    } else if (reservation.type === CONST.RESERVATION_TYPE.HOTEL) {
+        bottomDescription = `${code}${StringUtils.removeDoubleQuotes(reservation.start.address)}`;
+    } else if (reservation.type === CONST.RESERVATION_TYPE.CAR) {
+        const vendor = reservation.vendor ? `${reservation.vendor} • ` : '';
+        bottomDescription = `${vendor}${reservation.start.location}`;
+    } else if (reservation.type === CONST.RESERVATION_TYPE.TRAIN) {
+        bottomDescription = reservation.route?.name;
+    } else {
+        bottomDescription = StringUtils.removeDoubleQuotes(reservation.start.address) ?? reservation.start.location;
+    }
 
     const titleTextStyle = isCancelled ? [styles.textStrong, styles.textSupporting] : styles.textStrong;
 
@@ -193,59 +190,53 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const getTripDescription = useCallback(
-        (amount: number, currency: string, reservations: ReservationData[]) => {
-            const trips = `${reservations.length} ${reservations.length === 1 ? translate('travel.trip') : translate('travel.trips')}`;
-            return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
-        },
-        [convertToDisplayString, translate],
-    );
+    const getTripDescription = (amount: number, currency: string, reservations: ReservationData[]) => {
+        const trips = `${reservations.length} ${reservations.length === 1 ? translate('travel.trip') : translate('travel.trips')}`;
+        return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
+    };
 
-    const getTripTitle = useCallback(
-        (reservations: ReservationData[]) => {
-            if (reservations.length === 0) {
-                return '';
-            }
+    const getTripTitle = (reservations: ReservationData[]) => {
+        if (reservations.length === 0) {
+            return '';
+        }
 
-            const firstReservation = reservations.at(0)?.reservation;
-            const lastReservation = reservations.at(reservations.length - 1)?.reservation;
+        const firstReservation = reservations.at(0)?.reservation;
+        const lastReservation = reservations.at(reservations.length - 1)?.reservation;
 
-            if (!lastReservation || !firstReservation) {
-                return '';
-            }
+        if (!lastReservation || !firstReservation) {
+            return '';
+        }
 
-            switch (firstReservation?.type) {
-                case CONST.RESERVATION_TYPE.FLIGHT: {
-                    const destinationReservation = reservations.findLast((reservation) => reservation.reservation.legId === firstReservation.legId);
-                    if (!destinationReservation) {
-                        return '';
-                    }
-                    return `${translate('travel.flightTo')} ${formatTransitLocationLabel(destinationReservation.reservation.end, true)}`;
-                }
-                case CONST.RESERVATION_TYPE.TRAIN:
-                    if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
-                        return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.start.longName ?? '')}`;
-                    }
-                    return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
-                case CONST.RESERVATION_TYPE.HOTEL: {
-                    const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
-                    return `${nights} ${nights > 1 ? translate('travel.nightsIn') : translate('travel.nightIn')} ${Str.recapitalize(firstReservation.start.longName ?? '')}`;
-                }
-                case CONST.RESERVATION_TYPE.CAR: {
-                    const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
-
-                    if (days > 0) {
-                        return `${days} ${days > 1 ? translate('common.days') : translate('common.day')}${translate('travel.carRental')}`;
-                    }
-
-                    return `${DateUtils.getFormattedDurationBetweenDates(translate, new Date(firstReservation.start.date), new Date(lastReservation.end.date))}${translate('travel.carRental')}`;
-                }
-                default:
+        switch (firstReservation?.type) {
+            case CONST.RESERVATION_TYPE.FLIGHT: {
+                const destinationReservation = reservations.findLast((reservation) => reservation.reservation.legId === firstReservation.legId);
+                if (!destinationReservation) {
                     return '';
+                }
+                return `${translate('travel.flightTo')} ${formatTransitLocationLabel(destinationReservation.reservation.end, true)}`;
             }
-        },
-        [translate],
-    );
+            case CONST.RESERVATION_TYPE.TRAIN:
+                if (reservations.length === 2 && firstReservation.start.shortName === lastReservation.end.shortName) {
+                    return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.start.longName ?? '')}`;
+                }
+                return `${translate('travel.trainTo')} ${Str.recapitalize(lastReservation.end.longName ?? '')}`;
+            case CONST.RESERVATION_TYPE.HOTEL: {
+                const nights = differenceInCalendarDays(new Date(lastReservation?.end.date), new Date(firstReservation.start.date));
+                return `${nights} ${nights > 1 ? translate('travel.nightsIn') : translate('travel.nightIn')} ${Str.recapitalize(firstReservation.start.longName ?? '')}`;
+            }
+            case CONST.RESERVATION_TYPE.CAR: {
+                const days = differenceInCalendarDays(new Date(lastReservation.end.date), new Date(firstReservation.start.date));
+
+                if (days > 0) {
+                    return `${days} ${days > 1 ? translate('common.days') : translate('common.day')}${translate('travel.carRental')}`;
+                }
+
+                return `${DateUtils.getFormattedDurationBetweenDates(translate, new Date(firstReservation.start.date), new Date(lastReservation.end.date))}${translate('travel.carRental')}`;
+            }
+            default:
+                return '';
+        }
+    };
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${tripRoomReport?.reportID}`);
 

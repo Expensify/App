@@ -17,12 +17,13 @@ import {
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
+    shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {Account, BankAccountList, Policy, Session} from '@src/types/onyx';
+import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
 import createMock from '../utils/createMock';
@@ -291,6 +292,33 @@ describe('BankAccountUtils', () => {
                 expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, state})).toBe(false);
             },
         );
+    });
+
+    describe('shouldSetUpGlobalReimbursementsBeforePaying', () => {
+        const buildBankAccount = (additionalData: AccountData['additionalData'], type: string = CONST.BANK_ACCOUNT.TYPE.BUSINESS): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {type, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {currency: CONST.CURRENCY.USD, ...additionalData}},
+        });
+
+        it('returns true when a USD business account has global reimbursements disabled', () => {
+            // Given a USD business account the backend marks as not set up for global reimbursements
+            // When checking it before paying
+            // Then onboarding should open, because the backend rejects every payment from this account
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(buildBankAccount({isGlobalReimbursementEnabled: false}))).toBe(true);
+        });
+
+        it.each([
+            ['global reimbursements are already enabled', buildBankAccount({isGlobalReimbursementEnabled: true})],
+            ['the backend did not send the flag', buildBankAccount({})],
+            ['the account is personal', buildBankAccount({isGlobalReimbursementEnabled: false}, CONST.BANK_ACCOUNT.TYPE.PERSONAL)],
+            ['the account is unknown', undefined],
+        ])('returns false when %s', (_label, bankAccount) => {
+            // Given an account the client can't prove will be rejected
+            // When checking it before paying
+            // Then the payment goes ahead and the backend makes the final call
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(bankAccount)).toBe(false);
+        });
     });
 
     describe('getLastFourDigits', () => {
