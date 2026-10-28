@@ -754,9 +754,10 @@ type ApprovalWorkflowOnyxValidated = Omit<ApprovalWorkflowOnyx, 'approvers'> & {
 /**
  * Validates the approval workflow and sets the errors on the approval workflow
  * @param approvalWorkflow the approval workflow to validate
+ * @param isMultipleApproversBetaEnabled whether the workflow is saved as approval workflow rules
  * @returns true if the approval workflow is valid, false otherwise
  */
-function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): approvalWorkflow is ApprovalWorkflowOnyxValidated {
+function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx, isMultipleApproversBetaEnabled: boolean): approvalWorkflow is ApprovalWorkflowOnyxValidated {
     const errors: Record<string, TranslationPaths> = {};
 
     for (const [approverIndex, approver] of approvalWorkflow.approvers.entries()) {
@@ -774,7 +775,11 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         }
 
         // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
-        if (approver?.overLimitForwardsTo && approvalWorkflow.approvers.some((workflowApprover) => workflowApprover?.email === approver.overLimitForwardsTo)) {
+        if (
+            isMultipleApproversBetaEnabled &&
+            approver?.overLimitForwardsTo &&
+            approvalWorkflow.approvers.some((workflowApprover) => workflowApprover?.email === approver.overLimitForwardsTo)
+        ) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.overLimitApproverInWorkflow';
         }
 

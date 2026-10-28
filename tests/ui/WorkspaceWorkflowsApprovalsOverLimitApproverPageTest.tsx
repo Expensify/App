@@ -117,6 +117,7 @@ describe('WorkspaceWorkflowsApprovalsOverLimitApproverPage', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
             await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy());
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildPersonalDetailsList());
@@ -135,7 +136,7 @@ describe('WorkspaceWorkflowsApprovalsOverLimitApproverPage', () => {
     });
 
     it('never offers an approver of the workflow as the additional approver for reports over the limit', async () => {
-        // Given Bob > Erin, where Bob is setting a limit, and Erin already approves every report after him
+        // Given the rules-based workflow Bob > Erin, where Bob is setting a limit, and Erin already approves every report after him
 
         // When the admin picks who else approves Bob's reports over the limit
         await renderPage(0);
