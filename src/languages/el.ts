@@ -4954,8 +4954,9 @@ ${amount} για ${merchant} - ${date}`,
             findRoom: 'Βρείτε δωμάτιο',
             emptyRoomsTitle: 'Δεν υπάρχουν δωμάτια προς εμφάνιση',
             emptyRoomsSubtitle: 'Τα δωμάτια σε αυτόν τον χώρο εργασίας θα εμφανίζονται εδώ.',
-            emptyRoomsArchivedSubtitle:
-                'Αυτός ο χώρος εργασίας είναι αρχειοθετημένος, επομένως και τα δωμάτιά του είναι επίσης αρχειοθετημένα. Καταργήστε την αρχειοθέτηση του χώρου εργασίας για να χρησιμοποιήσετε ξανά τα δωμάτιά του.',
+            emptyRoomsArchivedTitle: 'Αυτά τα δωμάτια είναι αρχειοθετημένα',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Καταργήστε την αρχειοθέτηση αυτού του χώρου εργασίας</a> για να τα χρησιμοποιήσετε ξανά.</centered-text></muted-text>`,
             edit: 'Επεξεργασία χώρου εργασίας',
             enabled: 'Ενεργοποιημένο',
             disabled: 'Απενεργοποιημένο',

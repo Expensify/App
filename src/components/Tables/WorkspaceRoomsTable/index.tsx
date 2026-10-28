@@ -1,8 +1,10 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import RenderHTML from '@components/RenderHTML';
 import type {ActiveSorting, CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -12,6 +14,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -63,6 +66,7 @@ function WorkspaceRoomsTable({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {environmentURL} = useEnvironment();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
     const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
@@ -166,10 +170,21 @@ function WorkspaceRoomsTable({
             ListFooterComponent={listFooterComponent}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
-            <Table.EmptyState
-                title={translate('workspace.common.emptyRoomsTitle')}
-                subtitle={translate(isPolicyArchived ? 'workspace.common.emptyRoomsArchivedSubtitle' : 'workspace.common.emptyRoomsSubtitle')}
-            />
+            {isPolicyArchived ? (
+                <Table.EmptyState
+                    title={translate('workspace.common.emptyRoomsArchivedTitle')}
+                    subtitleText={
+                        <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
+                            <RenderHTML html={translate('workspace.common.emptyRoomsArchivedSubtitle', `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)}`)} />
+                        </View>
+                    }
+                />
+            ) : (
+                <Table.EmptyState
+                    title={translate('workspace.common.emptyRoomsTitle')}
+                    subtitle={translate('workspace.common.emptyRoomsSubtitle')}
+                />
+            )}
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

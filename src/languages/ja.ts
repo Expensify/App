@@ -4821,8 +4821,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             findRoom: 'ルームを探す',
             emptyRoomsTitle: '表示するルームがありません',
             emptyRoomsSubtitle: 'このワークスペースのルームがここに表示されます。',
-            emptyRoomsArchivedSubtitle:
-                'このワークスペースはアーカイブされているため、そのルームもアーカイブされています。ルームを再び使用するには、ワークスペースのアーカイブを解除してください。',
+            emptyRoomsArchivedTitle: 'これらのルームはアーカイブされています',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text>再び使用するには、<a href="${workspaceOverviewURL}">このワークスペースのアーカイブを解除</a>してください。</centered-text></muted-text>`,
             edit: 'ワークスペースを編集',
             enabled: '有効',
             disabled: '無効',

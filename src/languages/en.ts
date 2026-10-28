@@ -5073,7 +5073,9 @@ const translations = {
             findRoom: 'Find room',
             emptyRoomsTitle: 'No rooms to show',
             emptyRoomsSubtitle: 'Rooms in this workspace will appear here.',
-            emptyRoomsArchivedSubtitle: 'This workspace is archived, so its rooms are archived too. Unarchive the workspace to use its rooms again.',
+            emptyRoomsArchivedTitle: 'These rooms are archived',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Unarchive this workspace</a> to use them again.</centered-text></muted-text>`,
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',

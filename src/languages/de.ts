@@ -4887,8 +4887,9 @@ ${amount} für ${merchant} – ${date}`,
             findRoom: 'Raum finden',
             emptyRoomsTitle: 'Keine Zimmer vorhanden',
             emptyRoomsSubtitle: 'Räume in diesem Workspace werden hier angezeigt.',
-            emptyRoomsArchivedSubtitle:
-                'Dieser Arbeitsbereich ist archiviert, daher sind seine Räume ebenfalls archiviert. Heben Sie die Archivierung des Arbeitsbereichs auf, um seine Räume wieder zu verwenden.',
+            emptyRoomsArchivedTitle: 'Diese Räume sind archiviert',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Heben Sie die Archivierung dieses Workspace auf</a>, um sie wieder zu verwenden.</centered-text></muted-text>`,
             edit: 'Arbeitsbereich bearbeiten',
             enabled: 'Aktiviert',
             disabled: 'Deaktiviert',

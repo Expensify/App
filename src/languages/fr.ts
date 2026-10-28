@@ -4894,8 +4894,9 @@ ${amount} pour ${merchant} - ${date}`,
             findRoom: 'Trouver un salon',
             emptyRoomsTitle: 'Aucune salle à afficher',
             emptyRoomsSubtitle: 'Les salons de cet espace de travail apparaîtront ici.',
-            emptyRoomsArchivedSubtitle:
-                'Cet espace de travail est archivé, donc ses salons sont également archivés. Désarchivez l’espace de travail pour pouvoir utiliser de nouveau ses salons.',
+            emptyRoomsArchivedTitle: 'Ces salons sont archivés',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Désarchivez cet espace de travail</a> pour les utiliser à nouveau.</centered-text></muted-text>`,
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
             disabled: 'Désactivé',
