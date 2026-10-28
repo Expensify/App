@@ -19,8 +19,7 @@ import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
-import Animated, {cancelAnimation, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import Animated, {css, useReducedMotion} from 'react-native-reanimated';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
     /** Submit buttons support the default and success styles; danger is not a valid submit state. */
@@ -48,6 +47,11 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
 
+const hideAnimation = css.keyframes({
+    from: {opacity: 1, transform: [{scale: 1}]},
+    to: {opacity: 0, transform: [{scale: 0}]},
+});
+
 function AnimatedSubmitButton({
     variant,
     text,
@@ -63,11 +67,7 @@ function AnimatedSubmitButton({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
-    const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
-    const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
-    const buttonMarginTop = useSharedValue<number>(gap);
-    const height = useSharedValue<number>(variables.componentSizeNormal);
-    const buttonProgress = useSharedValue(1);
+    const isReducedMotionEnabled = useReducedMotion();
     const [canShow, setCanShow] = useState(true);
     const [minWidth, setMinWidth] = useState<number>(0);
     const [isShowingLoading, setIsShowingLoading] = useState(false);
@@ -75,35 +75,6 @@ function AnimatedSubmitButton({
     const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
     const isDEWSubmissionComplete = isDEWSubmission && isSubmittingAnimationRunning && !pendingExpenseAction;
 
-    const containerStyles = useAnimatedStyle(() => ({
-        height: height.get(),
-        justifyContent: 'center',
-    }));
-
-    const buttonStyles = useAnimatedStyle(() => ({
-        opacity: buttonProgress.get(),
-        transform: [{scale: buttonProgress.get()}],
-    }));
-
-    useEffect(() => {
-        if (canShow || !isAnimationRunning) {
-            buttonProgress.set(1);
-            return;
-        }
-
-        // Animate a completed submission explicitly. An exiting animation also survives cancellation/unmount,
-        // leaving the loading button beside the restored Submit dropdown after the PDF modal disappears.
-        buttonProgress.set(
-            withTiming(0, {duration: buttonDuration}, (finished) => {
-                if (!finished) {
-                    return;
-                }
-                scheduleOnRN(onAnimationFinish);
-            }),
-        );
-
-        return () => cancelAnimation(buttonProgress);
-    }, [buttonDuration, buttonProgress, canShow, isAnimationRunning, onAnimationFinish]);
     const icons = useMemoizedLazyExpensifyIcons(['Send']);
 
     useEffect(() => {
@@ -111,8 +82,6 @@ function AnimatedSubmitButton({
             setMinWidth(0);
             setCanShow(true);
             setIsShowingLoading(false);
-            height.set(variables.componentSizeNormal);
-            buttonMarginTop.set(0);
             return;
         }
 
@@ -129,7 +98,7 @@ function AnimatedSubmitButton({
         }, CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION);
 
         return () => clearTimeout(timer);
-    }, [buttonMarginTop, gap, height, isAnimationRunning, isDEWSubmission]);
+    }, [isAnimationRunning, isDEWSubmission]);
 
     useEffect(() => {
         if (!isAnimationRunning || isShowingLoading || (isDEWSubmission && !isDEWSubmissionComplete)) {
@@ -156,13 +125,25 @@ function AnimatedSubmitButton({
     const shouldShowIcon = isAnimationRunning && !showLoading;
 
     return (
-        <Animated.View style={[containerStyles, {minWidth}]}>
+        <Animated.View style={[styles.justifyContentCenter, {height: variables.componentSizeNormal, minWidth}]}>
             {isAnimationRunning && (
                 <Animated.View
                     ref={(el: ComponentRef<typeof View> | null) => {
                         viewRef.current = el as HTMLElement | null;
                     }}
-                    style={buttonStyles}
+                    // Unlike an exiting layout animation, CSS animation never retains this view after cancellation.
+                    style={{
+                        animationName: canShow ? 'none' : hideAnimation,
+                        animationDuration: isReducedMotionEnabled ? 0 : CONST.ANIMATION_SUBMIT_DURATION,
+                        animationTimingFunction: 'linear',
+                        animationFillMode: 'forwards',
+                    }}
+                    onCSSAnimationEnd={({animationName}) => {
+                        if (canShow || animationName !== hideAnimation.name) {
+                            return;
+                        }
+                        onAnimationFinish();
+                    }}
                 >
                     <Button
                         variant={variant}
