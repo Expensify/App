@@ -7957,6 +7957,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                             return 'Campfire-Daten werden synchronisiert';
                         case 'campfireSyncConnection':
                             return 'Verbindung zu Campfire wird initialisiert';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-Daten werden synchronisiert';
                         case 'zohoBooksSyncConnection':
                             return 'Verbindung zu Zoho Books wird initialisiert';
                         case 'campfireSyncImportData':
@@ -9535,6 +9537,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
+            organizationSelectDescription: 'Wählen Sie die Organisation in Zoho Books aus, aus der Sie Daten importieren möchten.',
+            noOrganizationsFound: 'Keine Organisationen gefunden',
+            noOrganizationsFoundDescription: 'Bitte fügen Sie eine Organisation in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
+            multiLocationNotSupported: 'Organisationen mit mehreren Standorten werden noch nicht unterstützt',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',

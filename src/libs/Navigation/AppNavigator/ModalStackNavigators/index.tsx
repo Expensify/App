@@ -812,6 +812,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOAuthPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOrganizationSelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/ClaimOfferPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default,

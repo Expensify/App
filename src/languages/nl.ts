@@ -7898,6 +7898,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                             return 'Campfire-gegevens synchroniseren';
                         case 'campfireSyncConnection':
                             return 'Verbinding met Campfire initialiseren';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books-gegevens synchroniseren';
                         case 'zohoBooksSyncConnection':
                             return 'Verbinding met Zoho Books initialiseren';
                         case 'campfireSyncImportData':
@@ -9457,6 +9459,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
+            organizationSelectDescription: 'Kies de organisatie in Zoho Books waaruit je gegevens wilt importeren.',
+            noOrganizationsFound: 'Geen organisaties gevonden',
+            noOrganizationsFoundDescription: 'Voeg een organisatie toe in Zoho Books en synchroniseer de verbinding opnieuw',
+            multiLocationNotSupported: 'Organisaties met meerdere locaties worden nog niet ondersteund',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',

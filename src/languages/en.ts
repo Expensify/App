@@ -6852,6 +6852,10 @@ const translations = {
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
+            organizationSelectDescription: "Choose the organization in Zoho Books that you'd like to import data from.",
+            noOrganizationsFound: 'No organizations found',
+            noOrganizationsFoundDescription: 'Please add an organization in Zoho Books and sync the connection again',
+            multiLocationNotSupported: "Multi-location organizations aren't supported yet",
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -8401,6 +8405,8 @@ const translations = {
                             return 'Syncing Campfire data';
                         case 'campfireSyncConnection':
                             return 'Initializing connection to Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Syncing Zoho Books data';
                         case 'zohoBooksSyncConnection':
                             return 'Initializing connection to Zoho Books';
                         case 'campfireSyncImportData':

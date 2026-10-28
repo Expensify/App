@@ -7643,6 +7643,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                             return '正在同步 Campfire 数据';
                         case 'campfireSyncConnection':
                             return '正在初始化与 Campfire 的连接';
+                        case 'zohoBooksSyncTitle':
+                            return '正在同步 Zoho Books 数据';
                         case 'zohoBooksSyncConnection':
                             return '正在初始化与 Zoho Books 的连接';
                         case 'campfireSyncImportData':
@@ -9113,6 +9115,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
+            organizationSelectDescription: '选择您要从中导入数据的 Zoho Books 组织。',
+            noOrganizationsFound: '未找到组织',
+            noOrganizationsFoundDescription: '请在 Zoho Books 中添加一个组织，然后重新同步连接',
+            multiLocationNotSupported: '尚不支持多地点组织',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central 设置',

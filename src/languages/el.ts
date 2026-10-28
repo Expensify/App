@@ -8085,6 +8085,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Campfire';
                         case 'campfireSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
                         case 'campfireSyncImportData':
@@ -9698,6 +9700,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
+            organizationSelectDescription: 'Επιλέξτε τον οργανισμό στο Zoho Books από τον οποίο θέλετε να εισαγάγετε δεδομένα.',
+            noOrganizationsFound: 'Δεν βρέθηκαν οργανισμοί',
+            noOrganizationsFoundDescription: 'Προσθέστε έναν οργανισμό στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            multiLocationNotSupported: 'Οι οργανισμοί με πολλές τοποθεσίες δεν υποστηρίζονται ακόμη',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',

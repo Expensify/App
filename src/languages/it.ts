@@ -7917,6 +7917,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                             return 'Sincronizzazione dei dati Campfire';
                         case 'campfireSyncConnection':
                             return 'Inizializzazione della connessione a Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizzazione dei dati Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Inizializzazione della connessione a Zoho Books';
                         case 'campfireSyncImportData':
@@ -9484,6 +9486,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         zohoBooks: {
             organization: 'Organizzazione Zoho Books',
+            organizationSelectDescription: 'Scegli l’organizzazione in Zoho Books da cui desideri importare i dati.',
+            noOrganizationsFound: 'Nessuna organizzazione trovata',
+            noOrganizationsFoundDescription: 'Aggiungi un’organizzazione in Zoho Books e sincronizza di nuovo la connessione',
+            multiLocationNotSupported: 'Le organizzazioni con più sedi non sono ancora supportate',
         },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',

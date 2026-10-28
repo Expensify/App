@@ -4691,6 +4691,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/zoho-books/oauth',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/oauth` as const,
     },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/zoho-books/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/zoho-books/organization-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/organization-selector` as const,
+    },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import` as const,

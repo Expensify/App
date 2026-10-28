@@ -5616,6 +5616,7 @@ const CONST = {
                 DIGITS_SYNC_PAYMENTS: 'digitsSyncPayments',
                 DIGITS_SYNC_CARD_SETTLEMENTS: 'digitsSyncCardSettlements',
                 DIGITS_SYNC_TRAVEL_SETTLEMENTS: 'digitsSyncTravelSettlements',
+                ZOHO_BOOKS_SYNC_TITLE: 'zohoBooksSyncTitle',
                 ZOHO_BOOKS_SYNC_CONNECTION: 'zohoBooksSyncConnection',
                 BUSINESS_CENTRAL_SYNC_TITLE: 'businessCentralSyncTitle',
                 BUSINESS_CENTRAL_SYNC_CONNECTION: 'businessCentralSyncConnection',
