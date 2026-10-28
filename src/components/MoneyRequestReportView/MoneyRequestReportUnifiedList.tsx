@@ -200,7 +200,7 @@ function MoneyRequestReportUnifiedList({
         }
 
         // Resolve the transaction offset here, where the virtualized list's data is owned.
-        const frame = requestAnimationFrame(() => listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5}));
+        const frame = requestAnimationFrame(() => void listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5}));
         return () => cancelAnimationFrame(frame);
     }, [expandedFocusIndex, focusRequestedReportActionID, reportActionIndexOffset, listRef]);
 
