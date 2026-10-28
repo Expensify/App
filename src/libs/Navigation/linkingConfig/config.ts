@@ -130,10 +130,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_LANGUAGE,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
-                            path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.EARLY_RENEWAL]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_EARLY_RENEWAL,
                             exact: true,
@@ -192,40 +188,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.EXPENSIFY_CARD_SPEND_RULES]: {
                             path: ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_DETAILS]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_NAME.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
-                            path: ROUTES.SETTINGS_REPORT_FRAUD.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
-                            path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: {
-                            path: ROUTES.SETTINGS_REPORT_FRAUD_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
@@ -255,22 +219,35 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_ACTIVATE]: DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: DYNAMIC_ROUTES.WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN]: DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN_ATM]: DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN_ATM.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_CONFIRMATION.path,
+                        [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED]: DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.path,
+                        [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: DYNAMIC_ROUTES.WALLET_CARD_REPLACE_VALIDATE_CODE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS]: DYNAMIC_ROUTES.PERSONAL_CARD_DETAILS.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_NAME]: DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_NAME.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE]: DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION]: DYNAMIC_ROUTES.PERSONAL_CARD_FIX_CONNECTION.path,
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
                         [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path,
+                        [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path,
                         [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
                             path: ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_ADD_NEW]: {
                             path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION]: {
-                            path: ROUTES.SETTINGS_WALLET_PERSONAL_CARD_FIX_CONNECTION.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.PERSONAL_CARD_WARNING]: {
@@ -309,36 +286,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_TRANSACTIONS_IMPORTED.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
-                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE]: {
-                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.CARD_ADDED_TO_WALLET]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.TRAVEL_CVV]: {
@@ -358,14 +311,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DYNAMIC_COLLECT_DEPOSIT_ACCOUNT]: DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.path,
-                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT_ENTRY_POINT]: {
-                            path: ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.route,
                         },
@@ -458,10 +403,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: {
                             path: ROUTES.SETTINGS_TIMEZONE_SELECT,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
-                            path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.VERIFY_ACCOUNT.path,
@@ -1340,8 +1281,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.path,
-                        [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
+                        [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.path,
                         [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path,
+                        [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path,
+                        [SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD]: DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path,
+                        [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT]: DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.path,
+                        [SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT_ENTRY_POINT]: DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT_ENTRY_POINT.path,
                         [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: DYNAMIC_ROUTES.BETA_OVERRIDES.path,
                         [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         [SCREENS.WORKSPACE.OFFICE_LOCATION_ADD]: ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.route,
@@ -1890,7 +1835,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
                     screens: {
-                        [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: ROUTES.SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD,
                         [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                     },

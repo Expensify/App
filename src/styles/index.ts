@@ -5,6 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -2886,7 +2887,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        tableColumnResizeIndicator: {
+        resizeIndicator: {
             backgroundColor: theme.iconMenu,
         },
 
@@ -6798,6 +6799,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.rhpWidth,
         },
 
+        // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
+        // it is dragged to, independent of the box react-navigation measures (singleRHPStackBox).
+        singleRHPCardInterpolatorStyles: {
+            ...positioning.pFixed,
+            top: 0,
+            right: 0,
+            width: '100%',
+            height: '100%',
+        },
+
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -7168,6 +7179,28 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Fixed width so the stack never re-measures mid-drag, and always rendered because adding or removing it remounts the stack.
+        singleRHPStackBox: (isResizable: boolean) =>
+            (isResizable
+                ? {
+                      ...positioning.pAbsolute,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      width: variables.rhpWidth,
+                  }
+                : flex.flex1) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        rhpResizeHandle: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
+                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
         // content that runs under the footer.
         offlineIndicatorAboveFooter: (footerHeight: number) =>

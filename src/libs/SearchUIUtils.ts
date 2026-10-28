@@ -221,6 +221,7 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
+import tokenizedSearch from './tokenizedSearch';
 import {
     getAmount,
     getAttendees,
@@ -328,6 +329,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: 'submitted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID]: 'paid' as const,
     [CONST.SEARCH.TABLE_COLUMNS.POSTED]: 'posted' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAG]: 'tag' as const,
@@ -339,6 +341,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: 'billable' as const,
     [CONST.SEARCH.TABLE_COLUMNS.HELD]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: 'declined' as const,
     [CONST.SEARCH.TABLE_COLUMNS.MCC]: 'mcc' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: 'taxCode' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: null,
@@ -365,6 +368,7 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: 'approved' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVER]: 'formattedFirstApprover' as const,
     [CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED]: 'firstApproved' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.PAID]: 'paid' as const,
     [CONST.SEARCH.TABLE_COLUMNS.PAID_BY]: 'formattedPaidBy' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: 'exported' as const,
     [CONST.SEARCH.TABLE_COLUMNS.STATUS]: 'formattedStatus' as const,
@@ -1099,6 +1103,7 @@ type ShouldShowYearResult = {
     shouldShowYearApproved: boolean;
     shouldShowYearPosted: boolean;
     shouldShowYearExported: boolean;
+    shouldShowYearPaid: boolean;
     shouldShowYearWithdrawn: boolean;
 };
 
@@ -1181,6 +1186,7 @@ function shouldShowYear(
         shouldShowYearApproved: false,
         shouldShowYearPosted: false,
         shouldShowYearExported: false,
+        shouldShowYearPaid: false,
         shouldShowYearWithdrawn: false,
     };
 
@@ -1204,6 +1210,9 @@ function shouldShowYear(
                 if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                     result.shouldShowYearApproved = true;
                 }
+                if (item.paid && DateUtils.doesDateBelongToAPastYear(item.paid)) {
+                    result.shouldShowYearPaid = true;
+                }
             }
             if (isTransactionListItemType(item)) {
                 const transactionCreated = getTransactionCreatedDate(item);
@@ -1216,6 +1225,9 @@ function shouldShowYear(
                 if (item.approved && DateUtils.doesDateBelongToAPastYear(item.approved)) {
                     result.shouldShowYearApproved = true;
                 }
+                if (item.paid && DateUtils.doesDateBelongToAPastYear(item.paid)) {
+                    result.shouldShowYearPaid = true;
+                }
 
                 // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
                 if (!result.shouldShowYearPosted && shouldShowTransactionPostedYear(item)) {
@@ -1224,7 +1236,7 @@ function shouldShowYear(
             }
 
             // Early exit if all flags are true
-            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPosted) {
+            if (result.shouldShowYearCreated && result.shouldShowYearSubmitted && result.shouldShowYearApproved && result.shouldShowYearPaid && result.shouldShowYearPosted) {
                 return result;
             }
         }
@@ -1246,6 +1258,9 @@ function shouldShowYear(
             }
             if (report?.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
                 result.shouldShowYearApproved = true;
+            }
+            if (report?.paid && DateUtils.doesDateBelongToAPastYear(report.paid)) {
+                result.shouldShowYearPaid = true;
             }
 
             // Latch once true so a later current-year date can't reset it (the row renderer latches the same way).
@@ -1282,6 +1297,10 @@ function shouldShowYear(
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
+
+            if (item.paid && DateUtils.doesDateBelongToAPastYear(item.paid)) {
+                result.shouldShowYearPaid = true;
+            }
         } else if (!result.shouldShowYearWithdrawn && isGroupEntry(key)) {
             const group = data[key];
             if ('debitPosted' in group && group.debitPosted && DateUtils.doesDateBelongToAPastYear(group.debitPosted)) {
@@ -1296,6 +1315,7 @@ function shouldShowYear(
             result.shouldShowYearApproved &&
             result.shouldShowYearPosted &&
             result.shouldShowYearExported &&
+            result.shouldShowYearPaid &&
             result.shouldShowYearWithdrawn
         ) {
             return result;
@@ -1447,6 +1467,7 @@ type PreprocessingContext = {
     shouldShowYearSubmittedReport: boolean;
     shouldShowYearApprovedReport: boolean;
     shouldShowYearExportedReport: boolean;
+    shouldShowYearPaid: boolean;
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
     hasDeletedTransaction: boolean;
@@ -1475,6 +1496,7 @@ function createPreprocessingContext(): PreprocessingContext {
         shouldShowYearSubmittedReport: false,
         shouldShowYearApprovedReport: false,
         shouldShowYearExportedReport: false,
+        shouldShowYearPaid: false,
         shouldShowAmountInWideColumn: false,
         shouldShowTaxAmountInWideColumn: false,
         hasDeletedTransaction: false,
@@ -1586,6 +1608,9 @@ function processReportEntry(ctx: PreprocessingContext, report: OnyxTypes.Report)
     }
     if (!ctx.shouldShowYearApproved && report.approved && DateUtils.doesDateBelongToAPastYear(report.approved)) {
         ctx.shouldShowYearApproved = true;
+    }
+    if (!ctx.shouldShowYearPaid && report.paid && DateUtils.doesDateBelongToAPastYear(report.paid)) {
+        ctx.shouldShowYearPaid = true;
     }
 }
 
@@ -1864,6 +1889,7 @@ function getTransactionsSections({
         shouldShowMerchant,
         lastExportedActionByReportID,
         exportedToNamesByReportID,
+        lastReimbursedActionByReportID,
         moneyRequestReportActionsByTransactionID,
         holdReportActionsByTransactionID,
         shouldShowYearCreated,
@@ -1871,6 +1897,7 @@ function getTransactionsSections({
         shouldShowYearApproved,
         shouldShowYearPosted,
         shouldShowYearExported,
+        shouldShowYearPaid,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
         hasDeletedTransaction,
@@ -1938,6 +1965,7 @@ function getTransactionsSections({
             const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const submitted = report ? getSubmittedDate(report, actions) : undefined;
             const approved = report ? getApprovedDate(report, actions) : undefined;
+            const paid = report ? getPaidDate(report, lastReimbursedActionByReportID.get(report.reportID), actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
@@ -1978,6 +2006,7 @@ function getTransactionsSections({
                 date,
                 submitted,
                 approved,
+                paid,
                 posted,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
@@ -1987,6 +2016,7 @@ function getTransactionsSections({
                 shouldShowYearApproved,
                 shouldShowYearPosted,
                 shouldShowYearExported,
+                shouldShowYearPaid,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
                 isActionColumnWide: hasDeletedTransaction,
@@ -2688,15 +2718,15 @@ function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction |
 }
 
 /**
- * Returns the latest payment action between the snapshot-derived one and the given report actions, mirroring the
- * backend paid-by rules: payment actions at or before the latest reimbursement cancellation don't count, and a
- * payment action recorded by the report owner that is paired with a MARKED_REDEEMED action is a "received payment"
- * self-attestation, which doesn't identify a payer.
+ * Returns the earliest or latest payment action between the snapshot-derived one and the given report actions. Payment
+ * actions at or before the latest reimbursement cancellation don't count, because that payment was reversed.
+ * `shouldCountPayment` lets a caller leave out payments that don't answer its question.
  */
-function getLastPaidAction(
+function getPaymentAction(
     snapshotPaidAction: OnyxTypes.ReportAction | undefined,
     actions: OnyxTypes.ReportAction[],
-    ownerAccountID: number | undefined,
+    sortBy: 'earliest' | 'latest',
+    shouldCountPayment: (action: OnyxTypes.ReportAction) => boolean = () => true,
 ): OnyxTypes.ReportAction | undefined {
     const latestCancellation = findActionByCreated(
         actions,
@@ -2707,33 +2737,81 @@ function getLastPaidAction(
         if (!action) {
             return false;
         }
-        if (isMoneyRequestAction(action)) {
-            const originalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action);
-            if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY || originalMessage.isSubmitterMarkedPaymentReceived) {
-                return false;
-            }
+        if (isMoneyRequestAction(action) && getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            return false;
         }
         if (latestCancellation && action.created <= latestCancellation.created) {
             return false;
         }
-        if (action.actorAccountID !== ownerAccountID) {
-            return true;
-        }
-        return !actions.some(
-            (redeemedAction) =>
-                redeemedAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED &&
-                redeemedAction.actorAccountID === action.actorAccountID &&
-                redeemedAction.created >= action.created,
-        );
+        return shouldCountPayment(action);
     };
     const seed = isValidPaymentAction(snapshotPaidAction) ? snapshotPaidAction : undefined;
     const candidates = actions.filter(isValidPaymentAction);
     return findActionByCreated(
         candidates,
         [CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION, CONST.REPORT.ACTIONS.TYPE.IOU],
-        'latest',
+        sortBy,
         seed,
     );
+}
+
+/**
+ * Whether the action is the pay action the App records when the submitter marks the report as paid outside Expensify.
+ */
+function isReceivedPayAction(action: OnyxTypes.ReportAction): boolean {
+    return isMoneyRequestAction(action) && !!getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(action)?.isSubmitterMarkedPaymentReceived;
+}
+
+/**
+ * Whether the payment action is the submitter marking the report as paid outside Expensify ("payment received"),
+ * mirroring the backend paid-by rules: the flagged pay action, or a payment action recorded by the report owner that
+ * is paired with a MARKED_REDEEMED action. The flagged pay action pairs it too, because right after marking only it is
+ * stored; MARKED_REDEEMED arrives when the report's actions are next loaded.
+ */
+function isPaymentMarkedAsReceived(action: OnyxTypes.ReportAction, actions: OnyxTypes.ReportAction[], ownerAccountID: number | undefined): boolean {
+    if (isReceivedPayAction(action)) {
+        return true;
+    }
+    if (action.actorAccountID !== ownerAccountID) {
+        return false;
+    }
+    return actions.some(
+        (pairedAction) =>
+            (pairedAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED || isReceivedPayAction(pairedAction)) &&
+            pairedAction.actorAccountID === action.actorAccountID &&
+            pairedAction.created >= action.created,
+    );
+}
+
+/**
+ * Returns the latest payment action that identifies a payer. A payment marked as received is a self-attestation by
+ * the submitter, which doesn't identify a payer.
+ */
+function getLastPaidAction(
+    snapshotPaidAction: OnyxTypes.ReportAction | undefined,
+    actions: OnyxTypes.ReportAction[],
+    ownerAccountID: number | undefined,
+): OnyxTypes.ReportAction | undefined {
+    return getPaymentAction(snapshotPaidAction, actions, 'latest', (action) => !isPaymentMarkedAsReceived(action, actions, ownerAccountID));
+}
+
+/**
+ * Returns the report's paid date or its payment actions' date, whichever is newer, or blank when the report is not
+ * Paid. The Search response only includes payment actions when the Paid by column is requested, so the report's own
+ * date is what fills the column on its own; an offline re-payment leaves that date stale, so a newer action wins.
+ * Unlike the paid-by lookup, a payment the submitter marked as received counts: the report was still paid on that date.
+ */
+function getPaidDate(reportItem: OnyxTypes.Report, snapshotPaidAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
+        return '';
+    }
+    const {paid: reportPaid = ''} = reportItem;
+    // Marking a payment as received again keeps the date it was first marked, like the backend's paid date, while a real payment moves it to the latest one
+    const isReceived = (action: OnyxTypes.ReportAction) => isPaymentMarkedAsReceived(action, actions, reportItem.ownerAccountID);
+    const firstReceivedPaid = getPaymentAction(undefined, actions, 'earliest', isReceived)?.created ?? '';
+    const lastPaymentPaid = getPaymentAction(snapshotPaidAction, actions, 'latest', (action) => !isReceived(action))?.created ?? '';
+    const actionPaid = firstReceivedPaid >= lastPaymentPaid ? firstReceivedPaid : lastPaymentPaid;
+    return reportPaid >= actionPaid ? reportPaid : actionPaid;
 }
 
 /**
@@ -2821,6 +2899,7 @@ function getReportSections({
         shouldShowYearSubmittedReport,
         shouldShowYearApprovedReport,
         shouldShowYearExportedReport,
+        shouldShowYearPaid,
         shouldShowAmountInWideColumn,
         shouldShowTaxAmountInWideColumn,
         hasDeletedTransaction,
@@ -2931,6 +3010,7 @@ function getReportSections({
                     approved: getApprovedDate(reportItem, actions),
                     exportedTo: getExportedToSortValue(exportedToNamesByReportID, reportItem.reportID),
                     firstApproved,
+                    paid: getPaidDate(reportItem, lastReimbursedActionByReportID.get(reportItem.reportID), actions),
                     firstApproverAvatar: firstApproverDetails?.avatar,
                     firstApproverAccountID,
                     formattedFirstApprover,
@@ -2948,6 +3028,7 @@ function getReportSections({
                     shouldShowYearSubmitted: shouldShowYearSubmittedReport,
                     shouldShowYearApproved: shouldShowYearApprovedReport,
                     shouldShowYearExported: shouldShowYearExportedReport,
+                    shouldShowYearPaid,
                     hasVisibleViolations: hasVisibleViolationsForReport,
                     isRejectedReport,
                     totalDisplaySpend,
@@ -3018,12 +3099,14 @@ function getReportSections({
                 date,
                 submitted: report ? getSubmittedDate(report, actions) : undefined,
                 approved: report ? getApprovedDate(report, actions) : undefined,
+                paid: report ? getPaidDate(report, lastReimbursedActionByReportID.get(report.reportID), actions) : undefined,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated || shouldShowYearCreatedReport,
                 shouldShowYearSubmitted,
                 shouldShowYearApproved,
+                shouldShowYearPaid,
                 shouldShowYearPosted: shouldShowYearPostedTransaction,
                 shouldShowYearExported,
                 keyForList: transactionItem.transactionID,
@@ -3978,16 +4061,15 @@ function compareValues(a: unknown, b: unknown, sortOrder: SortOrder, sortBy: str
 /**
  * @private
  * Gets the value to use for sorting a transaction by a given property.
- * Handles special cases like comments and boolean fields (reimbursable, billable, held).
+ * Handles special cases like comments and boolean fields (reimbursable, billable, held, declined).
  */
 function getTransactionSortValue(transaction: TransactionListItemType, sortingProperty: string): unknown {
     if (sortingProperty === 'comment') {
         return transaction.comment?.comment;
     }
 
-    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable') {
-        const boolValue = transaction[sortingProperty as keyof TransactionListItemType];
-        return boolValue ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+    if (sortingProperty === 'reimbursable' || sortingProperty === 'billable' || sortingProperty === 'declined') {
+        return transaction[sortingProperty] ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
     }
 
     if (sortingProperty === CONST.SEARCH.TABLE_COLUMNS.HELD) {
@@ -4304,6 +4386,15 @@ function getSortedReportData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.DECLINED) {
+        return data.sort((a, b) => {
+            // Ranked as 'yes'/'no' to match the backend, with a report that never got the field ranked as not rejected.
+            const aValue = a.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            const bValue = b.declined ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty =
         sortBy === CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE || sortBy === CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE ? undefined : expenseReportColumnNamesToSortingProperty[sortBy];
 
@@ -4520,6 +4611,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'search.filters.firstApprover';
         case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
             return 'search.filters.firstApproved';
+        case CONST.SEARCH.TABLE_COLUMNS.PAID:
+            return 'search.filters.paid';
         case CONST.SEARCH.TABLE_COLUMNS.PAID_BY:
             return 'search.filters.paidBy';
         case CONST.SEARCH.TABLE_COLUMNS.POSTED:
@@ -4562,6 +4655,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.billable';
         case CONST.SEARCH.TABLE_COLUMNS.HELD:
             return 'search.filters.held';
+        case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
+            return 'search.filters.rejected';
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             return 'common.mcc';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
@@ -5526,7 +5621,21 @@ function getFeedOptions(
 }
 
 function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): SearchDatePreset[] {
-    const commonPresets = [CONST.SEARCH.DATE_PRESETS.THIS_MONTH, CONST.SEARCH.DATE_PRESETS.LAST_MONTH, CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE, CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS];
+    const commonPresets = [
+        CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
+        CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
+        CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
+        CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
+        CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
+        CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
+        CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+        CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
+        CONST.SEARCH.DATE_PRESETS.LAST_YEAR,
+        CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS,
+        CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
+        CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS,
+        CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+    ];
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
@@ -6291,10 +6400,28 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 }
 
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && (isCreatedDateType(type) || type === CONST.SEARCH.DATA_TYPES.INVOICE)) {
         return 'search.filters.createdDate';
     }
     return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
+function isLabelMatchingSearchValue(label: string, searchValue: string): boolean {
+    return tokenizedSearch([label], searchValue, (item) => [item]).length > 0;
+}
+
+function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
+    return isLabelMatchingSearchValue(translate(getFilterViewLabelKey(filterKey, type)), searchValue);
+}
+
+/** Keeps the filters whose label contains every word of the search value, dropping the sections left empty. */
+function getMatchingFilters(
+    filters: Array<Array<SearchFilter['key']>>,
+    type: SearchDataTypes | undefined,
+    searchValue: string,
+    translate: LocalizedTranslate,
+): Array<Array<SearchFilter['key']>> {
+    return filters.map((section) => section.filter((filterKey) => isFilterMatchingSearchValue(filterKey, type, searchValue, translate))).filter((section) => section.length > 0);
 }
 
 function mapFiltersFormToLabelValueList(
@@ -6806,6 +6933,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.HELD]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: false,
               [CONST.SEARCH.TABLE_COLUMNS.MCC]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_CODE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
@@ -7202,6 +7330,7 @@ function getTableMinWidth(
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
+            column === CONST.SEARCH.TABLE_COLUMNS.PAID ||
             column === CONST.SEARCH.TABLE_COLUMNS.POSTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN ||
             column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN
@@ -7213,6 +7342,7 @@ function getTableMinWidth(
             column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
             column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
             column === CONST.SEARCH.TABLE_COLUMNS.HELD ||
+            column === CONST.SEARCH.TABLE_COLUMNS.DECLINED ||
             column === CONST.SEARCH.TABLE_COLUMNS.MCC ||
             column === CONST.SEARCH.TABLE_COLUMNS.TAX_CODE
         ) {
@@ -7621,6 +7751,9 @@ export {
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
+    isLabelMatchingSearchValue,
+    isFilterMatchingSearchValue,
+    getMatchingFilters,
     isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,

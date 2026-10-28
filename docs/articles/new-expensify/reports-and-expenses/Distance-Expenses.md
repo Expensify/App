@@ -212,7 +212,7 @@ Yes! You can edit the expense before it is approved. When editing a map-based Di
 
 The distance unit is set by a Workspace Admin on the Workspace and can’t be changed at the expense level.
 
-The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, and choose another rate from the Workspace. The distance, amount, and currency are recalculated to match the rate you select.
+The rate can be changed on an individual expense. Open the Distance expense, select the **Rate** field, choose another rate from the Workspace, and select **Save**. The distance, amount, and currency are recalculated to match the rate you select.
 
 If a Workspace has rates with effective dates and you manually select a rate that doesn't match the expense date, the expense shows a violation indicating the rate doesn't match the selected date. This is informational and does not block submission — selecting the rate that matches the expense date clears the violation.
 
