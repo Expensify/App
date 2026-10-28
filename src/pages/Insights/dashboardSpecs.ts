@@ -10,7 +10,7 @@ import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Pol
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {canViewAllPolicyData} from './insightsAccess';
+import {canViewAllPolicyData, hasApprovalsEnabled, hasMultipleMembers} from './insightsAccess';
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
@@ -96,10 +96,39 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         isPolicyEligible: canViewAllPolicyData,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
-            titleKey: 'insightsPage.compliance',
+            titleKey: 'insightsPage.violationsOverTime',
             view: CONST.SEARCH.VIEW.LINE,
         },
-        supportingCharts: [],
+        supportingCharts: [
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+                titleKey: 'insightsPage.topViolations',
+                view: CONST.SEARCH.VIEW.PIE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                titleKey: 'insightsPage.violationsBySubmitter',
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: hasMultipleMembers,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                titleKey: 'insightsPage.violationsByApprover',
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: (policy) => hasMultipleMembers(policy) && hasApprovalsEnabled(policy),
+            },
+        ],
     },
 };
 

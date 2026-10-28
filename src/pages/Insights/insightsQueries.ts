@@ -63,14 +63,15 @@ function buildComplianceFilters(filters: InsightsFilters) {
     return commonFilters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: commonFilters, right: actionDates} : actionDates;
 }
 
-/** Charts retain picker dates for labels, but Compliance snapshots must not share Spend's cache keys. */
-function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashboardID): Readonly<SearchQueryJSON> | undefined {
+/** Charts retain picker dates for labels */
+function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashboardID, graphKey?: InsightsGraphKey): Readonly<SearchQueryJSON> | undefined {
     const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON || dashboard === CONST.INSIGHTS.DASHBOARD.SPEND) {
         return queryJSON;
     }
 
-    return {...queryJSON, hash: hashText(`${dashboard}:${queryJSON.hash}`, 2 ** 32)};
+    const hashSource = graphKey ? `${dashboard}:${graphKey}:${queryJSON.hash}` : `${dashboard}:${queryJSON.hash}`;
+    return {...queryJSON, hash: hashText(hashSource, 2 ** 32)};
 }
 
 /** Builds the dashboard-wide query the whole page is narrowed by. */
@@ -150,10 +151,10 @@ function buildInsightsJsonQuery(
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
         chart,
-        queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
+        queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard, chart.graphKey),
         ...(shouldIncludeComparisons && {
-            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-            averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard),
+            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard, chart.graphKey),
+            averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard, chart.graphKey),
         }),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);

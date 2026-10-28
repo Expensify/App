@@ -20,7 +20,10 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 // Home only shows Spend charts, which also exist as Search menu items
-type HomeInsightGraphKey = Exclude<InsightsGraphKey, typeof CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME>;
+type HomeInsightGraphKey = Extract<
+    InsightsGraphKey,
+    typeof CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME | typeof CONST.INSIGHTS.GRAPH.TOP_SPENDERS | typeof CONST.INSIGHTS.GRAPH.TOP_MERCHANTS | typeof CONST.INSIGHTS.GRAPH.TOP_CATEGORIES
+>;
 
 type HomeInsightChartSpec = InsightsChartSpec & {graphKey: HomeInsightGraphKey};
 

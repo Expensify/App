@@ -1315,6 +1315,10 @@ const translations = {
     insightsPage: {
         viewOnSpend: 'View on Spend',
         compliance: 'Compliance',
+        violationsOverTime: 'Violations over time',
+        topViolations: 'Top violations',
+        violationsBySubmitter: 'Violations by submitter',
+        violationsByApprover: 'Violations by approver',
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
