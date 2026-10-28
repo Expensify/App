@@ -61,15 +61,15 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
     const [city, setCity] = useState<string | undefined>(address?.city);
     const [zipcode, setZipcode] = useState<string | undefined>(address?.zip);
 
+    // `address` is a new object on every render, so the effect depends on its primitive fields; depending on the object itself would reset the
+    // controlled country and state inputs after every keystroke.
+    const {state: addressState, country: addressCountry, city: addressCity, zip: addressZip} = address;
     useEffect(() => {
-        if (!address) {
-            return;
-        }
-        setState(draftState ?? address?.state);
-        setCurrentCountry(draftCountry ?? address?.country);
-        setCity(address?.city);
-        setZipcode(address?.zip);
-    }, [address?.state, address?.country, address?.city, address?.zip, address, draftCountry, draftState]);
+        setState(draftState ?? addressState);
+        setCurrentCountry(draftCountry ?? addressCountry);
+        setCity(addressCity);
+        setZipcode(addressZip);
+    }, [addressState, addressCountry, addressCity, addressZip, draftCountry, draftState]);
 
     const handleAddressChange = (value: unknown, key: unknown) => {
         const addressPart = value as string;

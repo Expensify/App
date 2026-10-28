@@ -10,6 +10,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {AddPersonalBankAccountNavigatorParamList, RightModalNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 
 import AddPersonalBankAccountPage from '@pages/AddPersonalBankAccountPage';
+import AddressStep from '@pages/AddPersonalBankAccountPage/substeps/AddressStep';
 
 import {openReport} from '@userActions/Report';
 
@@ -98,6 +99,16 @@ function TestRightModalNavigator() {
                 initialParams={{subPage: CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.SUCCESS}}
             />
         </AddPersonalBankAccountStack.Navigator>
+    );
+}
+
+function TestAddressStep() {
+    return (
+        <AddressStep
+            isEditing={false}
+            onNext={jest.fn()}
+            onMove={jest.fn()}
+        />
     );
 }
 
@@ -234,5 +245,35 @@ describe('AddPersonalBankAccountPage', () => {
 
         expect(openReport).not.toHaveBeenCalled();
         expect(closeRHPFlowSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the state typed on the address substep', async () => {
+        // Given a saved non-US address, so the address substep shows a free-text state input
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: [{street: '1 Test St', city: 'Hanoi', state: 'Saved', zip: '100000', country: 'VN'}]});
+        });
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <PortalProvider>
+                    <NavigationContainer ref={navigationRef}>
+                        <AddPersonalBankAccountStack.Navigator>
+                            <AddPersonalBankAccountStack.Screen
+                                name={SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT}
+                                component={TestAddressStep}
+                            />
+                        </AddPersonalBankAccountStack.Navigator>
+                    </NavigationContainer>
+                </PortalProvider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByLabelText('State / Province').props.value).toBe('Saved');
+
+        // When the user types a different state
+        fireEvent.changeText(screen.getByLabelText('State / Province'), 'Typed');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the input keeps the typed value instead of being reset to the saved address on the next render
+        expect(screen.getByLabelText('State / Province').props.value).toBe('Typed');
     });
 });
