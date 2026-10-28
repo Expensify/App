@@ -1,10 +1,13 @@
 import {createBill} from '@libs/actions/BillPay';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation');
@@ -47,5 +50,15 @@ describe('Bill Pay actions', () => {
             expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, value: {invoiceID: invoiceReportID}})]),
         );
         expect(onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.value).not.toHaveProperty('invoiceID');
+    });
+
+    it('opens Spend > Bills after creating a bill', () => {
+        // When the user creates a bill
+        createBill({domain: 'receiver.com', vendorEmail: 'sender@example.com', merchant: 'Gardening supplies', amount: 1250, currency: CONST.CURRENCY.USD, date: '2026-10-05'}, 170);
+
+        // Then they land on the Bills search, not on the bill in Inbox
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.BILL}), searchKey: CONST.SEARCH.SEARCH_KEYS.BILLS}),
+        );
     });
 });

@@ -6,6 +6,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -100,7 +101,7 @@ function createBill(params: CreateBillInput, accountID: number) {
         },
     );
     Navigation.dismissModal();
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.BILL}), searchKey: CONST.SEARCH.SEARCH_KEYS.BILLS}));
 }
 
 export {createBill, payBill};
