@@ -698,6 +698,19 @@ describe('buildChartSeries labels for compared time buckets', () => {
         }).rows.map((row) => [row.point.label, row.point.shortLabel]);
     }
 
+    it('numbers a current month the compared period has no month for like the months before it', () => {
+        // Given July 31 to October 2, compared with the 64 days before it, which touch only May, June and July
+        const labels = buildLabels(
+            [monthGroup(2026, 7), monthGroup(2026, 8), monthGroup(2026, 9), monthGroup(2026, 10)],
+            CONST.SEARCH.GROUP_BY.MONTH,
+            {start: '2026-07-31', end: '2026-10-02'},
+            {start: '2026-05-28', end: '2026-07-30'},
+        );
+
+        // Then October, which no compared month pairs with, is numbered like the months before it rather than named "Oct"
+        expect(labels.map(([label]) => label)).toEqual(['Month 1', 'Month 2', 'Month 3', 'Month 4']);
+    });
+
     it('names months without their year, since the same month of each year is compared', () => {
         // Given year to date plotted against the year before
         const labels = buildLabels(
