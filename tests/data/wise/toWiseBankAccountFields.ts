@@ -133,7 +133,11 @@ function toWiseBankAccountFields(country: string, currency: string, requirements
             answeredByServer[descriptor.key] = options.at(0)?.key ?? '';
             continue;
         }
-        (isHolderField(descriptor) ? holderFields : accountFields).push(toField(descriptor));
+        const field = toField(descriptor);
+        if ('values' in field && field.values?.length === 0) {
+            continue;
+        }
+        (isHolderField(descriptor) ? holderFields : accountFields).push(field);
     }
 
     if (addressParts.length > 0) {
