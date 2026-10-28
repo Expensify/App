@@ -903,7 +903,6 @@
 "../../src/ONYXKEYS.ts"	"no-restricted-syntax"	2
 "../../src/pages/AddExistingExpense.tsx"	"no-restricted-imports"	1
 "../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
-"../../src/pages/AddPersonalBankAccountPage/substeps/AddressStep.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/AddressPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/AddressPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/AddressPage.tsx"	"react-hooks/set-state-in-effect"	1
