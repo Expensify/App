@@ -199,7 +199,7 @@ type BrokenPolicyConnection = {
 };
 
 /** Only what the Time sensitive widgets read, so the section never deep-compares whole policies */
-type TimeSensitiveAdminPolicy = Pick<Policy, 'id' | 'name' | 'achAccount' | 'policyAccountID'>;
+type TimeSensitiveAdminPolicy = Pick<Policy, 'id' | 'name' | 'achAccount' | 'policyAccountID' | 'outputCurrency'>;
 
 type TimeSensitiveAdminPolicies = {
     policies: TimeSensitiveAdminPolicy[];
@@ -218,6 +218,7 @@ const createTimeSensitiveAdminPoliciesSelector =
                 name: policy.name,
                 achAccount: policy.achAccount,
                 policyAccountID: policy.policyAccountID,
+                outputCurrency: policy.outputCurrency,
             });
 
             const policyConnections = policy.connections;
