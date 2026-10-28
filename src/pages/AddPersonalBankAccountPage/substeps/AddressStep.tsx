@@ -56,7 +56,7 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    // Store only user edits; untouched fields are derived from the latest saved address and draft.
+    // Store only user edits. Untouched fields are derived from the latest saved address and draft.
     const [addressEdits, setAddressEdits] = useState<Partial<Pick<Address, 'country' | 'state' | 'city' | 'zip'>>>({});
     const currentCountry = addressEdits.country ?? draftCountry ?? address.country ?? defaultCountry ?? CONST.COUNTRY.US;
     const state = addressEdits.state ?? draftState ?? address.state;
