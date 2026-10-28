@@ -2800,7 +2800,7 @@ function isClosedReport(report: OnyxInputOrEntry<Report>): boolean {
 /**
  * Whether the provided report is the admin's room
  */
-function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined): boolean {
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined, hasPendingJoinRequest?: boolean): boolean {
     if (!report) {
         return false;
     }
@@ -2814,7 +2814,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: s
             return false;
         }
     }
-    return isActionableJoinRequestPending(report.reportID);
+    return hasPendingJoinRequest ?? isActionableJoinRequestPending(report.reportID);
 }
 
 /**
@@ -6626,6 +6626,8 @@ type GetReportPreviewMessageBaseParams = {
     /** The current user's bank accounts, used to name the account a report was paid with. */
     bankAccountList?: OnyxEntry<BankAccountList>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    /** The transaction of `iouReportAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    linkedTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -6767,7 +6769,10 @@ function getReportPreviewMessage(
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransaction =
+            params.linkedTransaction && params.linkedTransaction.transactionID === getOriginalMessage(iouReportAction)?.IOUTransactionID
+                ? params.linkedTransaction
+                : getLinkedTransaction(iouReportAction);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -9218,13 +9223,16 @@ function buildOptimisticModifiedExpenseReportAction(
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
+    // Expense edits can arrive without updating the report's lastVisibleActionCreated, so also check the loaded actions.
+    const latestActionCreated = transactionThread?.reportID ? getLastVisibleAction(transactionThread.reportID)?.created : undefined;
+    const lastActionCreated = (latestActionCreated ?? '') > (transactionThread?.lastVisibleActionCreated ?? '') ? latestActionCreated : transactionThread?.lastVisibleActionCreated;
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: deprecatedCurrentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
+        created: getServerAnchoredDBTime('', lastActionCreated),
         isAttachmentOnly: false,
         message: [
             {

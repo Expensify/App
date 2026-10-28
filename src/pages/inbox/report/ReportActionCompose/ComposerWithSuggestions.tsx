@@ -317,7 +317,7 @@ function ComposerWithSuggestions({
         const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
         // Another composer taking focus releases the claim, so it has to be read when the focus lands rather than now.
         const canFocusAfterDelay = isInSidePanelRef.current ? () => !!ReportActionComposeFocusManager.sidePanelComposerRef.current : undefined;
-        focusComposerWithDelay(composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+        focusComposerWithDelay(() => composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
     const shouldIgnoreEditSelectionResetRef = useRef(false);
