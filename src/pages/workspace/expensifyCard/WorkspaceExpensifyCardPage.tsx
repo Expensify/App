@@ -22,7 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
@@ -42,10 +42,10 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
     const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
 
-    const fetchExpensifyCards = useCallback(() => {
+    const fetchExpensifyCards = () => {
         updateSelectedExpensifyCardFeed(defaultFundID, policyID);
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [policyID, defaultFundID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 

@@ -200,6 +200,11 @@ const translations = {
         agentThinking: 'Thinking...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
+        // @context Hint under the Category field of a multi-night reservation expense, for example “3 nights • $232.42 per night”. nightlyRate is a formatted currency amount.
+        reservationNightsWithNightlyRate: ({count, nightlyRate}: {count: number; nightlyRate: string}) => ({
+            one: `1 night • ${nightlyRate} per night`,
+            other: `${count} nights • ${nightlyRate} per night`,
+        }),
         phone: 'Phone',
         phoneNumber: 'Phone number',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -627,7 +632,7 @@ const translations = {
             cta: 'Notify',
         },
         feedback: {
-            prompt: 'Was that response useful?',
+            prompt: 'Was this helpful?',
             useful: 'Useful response',
             notUseful: 'Not useful response',
             thanks: 'Thanks for the feedback!',
@@ -666,7 +671,7 @@ const translations = {
         attachmentError: 'Attachment error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment. Please try again.',
         errorWhileSelectingCorruptedAttachment: 'An error occurred while selecting a corrupted attachment. Please try another file.',
-        errorWhileConvertingHeic: "We couldn't process this image. Please try again, or upload the photo in a different format.",
+        errorWhileConvertingImage: "We couldn't process this image. Please try again, or upload the photo in a different format.",
         takePhoto: 'Take photo',
         retake: 'Retake',
         usePhoto: 'Use photo',
@@ -1314,6 +1319,8 @@ const translations = {
     },
     insightsPage: {
         viewOnSpend: 'View on Spend',
+        compliance: 'Compliance',
+        runningTotal: 'Running total',
         compare: {
             label: 'Compare',
             previousPeriod: 'Previous period',
@@ -2666,7 +2673,8 @@ const translations = {
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
-            lossOfUnsubmittedData: (login: string) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Merging your accounts is irreversible. All expenses and reports from <strong>${login}</strong>, including drafts and unreported expenses, will be moved to the account you’re keeping.`,
             enterSecurityCode: (login: string) => `To continue, please enter the security code sent to <strong>${login}</strong>.`,
             errors: {
                 incorrectSecurityCode: 'Incorrect or invalid security code. Please try again or request a new code.',
@@ -2927,10 +2935,212 @@ const translations = {
         editNickname: 'Edit nickname',
         nickname: 'Nickname',
         editNicknameInstruction: 'Give the bank account a nickname that sets it apart from others.',
+        wiseOnboarding: {
+            confirmationTitle: "Let's double check that everything looks right",
+            representative: {
+                title: 'We need some details from you',
+                description: "We're required to collect this information to process payments.",
+                legalFirstName: 'Legal first name',
+                legalLastName: 'Legal last name',
+                // @context US Social Security Number, not a national ID of the reader's country.
+                ssn: 'Social Security Number or ITIN',
+                hasNoSSN: "I don't have a social security number or ITIN",
+                hasSSN: 'I have a social security number or ITIN',
+                idDocument: 'ID verification',
+                idDocumentDescription: 'Please upload a government-issued ID. You can add up to 5 files.',
+            },
+            business: {
+                title: 'Enter your business info',
+                legalName: 'Legal business name',
+                companyType: 'Company type',
+                companyTypeLimitedLiabilityCompany: 'Limited liability company (LLC)',
+                companyTypeForProfitCorporation: 'For-profit corporation',
+                companyTypeNonProfitCorporation: 'Nonprofit corporation',
+                companyTypeSoleProprietorship: 'Sole proprietorship',
+                companyTypeGeneralPartnership: 'General partnership',
+                companyTypeLimitedPartnership: 'Limited partnership',
+                companyTypeLimitedLiabilityPartnership: 'Limited liability partnership (LLP)',
+                companyTypeTrust: 'Trust',
+                companyTypeOther: 'Other',
+                companyRole: 'Your role at the company',
+                companyRoleOwner: 'Owner',
+                companyRoleDirector: 'Director',
+                companyRoleOther: 'Other',
+                industryCategories: 'Industry category',
+                // Keys are Wise's industry categories, spelled the British way. cspell:ignore DEFENCE JEWELLERY ORGANISATIONS SPECIALISED
+                industryCategoryOptions: {
+                    GROWING_OF_CROPS_AGRICULTURE: 'Crop farming',
+                    GROWING_OF_TOBACCO_SPICES_MEDICINAL_PLANTS: 'Growing tobacco, spices, and medicinal plants',
+                    LIVESTOCK_FARMING_ANIMAL_PRODUCTION: 'Livestock farming and animal production',
+                    FORESTRY_LOGGING: 'Forestry and logging',
+                    COMMERCIAL_FISHING_AQUACULTURE_SERVICES: 'Commercial fishing and aquaculture',
+                    EXTRACTION_OF_FOSSIL_FUELS: 'Fossil fuel extraction',
+                    EXTRACTION_OF_METALS_GOLD_SILVER: 'Metal mining, including gold and silver',
+                    QUARRYING_OF_CONSTRUCTION_INDUSTRIAL_MINERALS: 'Quarrying of construction and industrial minerals',
+                    EXTRACTION_OF_PRECIOUS_STONES_SPECIALISED_MINERALS: 'Mining of precious stones and specialized minerals',
+                    MANUFACTURE_OF_FOOD_PRODUCTS_PREPARED_MEALS: 'Food products and prepared meals manufacturing',
+                    MANUFACTURE_OF_ALCOHOLIC_BEVERAGES_MALT: 'Alcoholic beverage and malt manufacturing',
+                    MANUFACTURE_OF_SOFT_DRINKS_BOTTLED_WATERS: 'Soft drink and bottled water manufacturing',
+                    MANUFACTURE_OF_TOBACCO_PRODUCTS: 'Tobacco product manufacturing',
+                    MANUFACTURE_OF_TEXTILES_APPAREL_FOOTWEAR: 'Textile, apparel, and footwear manufacturing',
+                    MANUFACTURE_OF_FUR_LEATHER_GOODS: 'Fur and leather goods manufacturing',
+                    MANUFACTURE_OF_WOOD_WOOD_BASED_PRODUCTS: 'Wood and wood product manufacturing',
+                    MANUFACTURE_OF_PAPER_PAPER_PRODUCTS: 'Paper and paper product manufacturing',
+                    PRINTING_MEDIA_REPRODUCTION_SERVICES: 'Printing and media reproduction',
+                    MANUFACTURE_OF_CHEMICALS_PETROLEUM_REFINED_PRODUCTS: 'Chemical and refined petroleum product manufacturing',
+                    MANUFACTURE_OF_COATINGS_INKS_PIGMENTS: 'Paint, ink, and pigment manufacturing',
+                    MANUFACTURE_OF_PLASTIC_RUBBER_PRODUCTS: 'Plastic and rubber product manufacturing',
+                    HOUSEHOLD_BEAUTY_AGRICULTURAL_CHEMICALS: 'Household, beauty, and agricultural chemicals',
+                    MANUFACTURE_OF_PHARMACEUTICALS_MEDICINES: 'Pharmaceutical and medicine manufacturing',
+                    MANUFACTURE_PROCESSING_OF_GLASS_PRODUCTS: 'Glass product manufacturing and processing',
+                    MANUFACTURE_OF_CERAMICS_CLAY_PRODUCTS: 'Ceramic and clay product manufacturing',
+                    MANUFACTURE_OF_CEMENT_CONCRETE_STONE_PRODUCTS: 'Cement, concrete, and stone product manufacturing',
+                    MANUFACTURE_OF_BASIC_IRON_STEEL_NON_FERROUS_METALS: 'Iron, steel, and non-ferrous metal production',
+                    PRODUCTION_OF_PRECIOUS_METALS: 'Precious metal production',
+                    PROCESSING_OF_NUCLEAR_FUEL: 'Nuclear fuel processing',
+                    CASTING_OF_METALS_FOUNDRY_SERVICES: 'Metal casting and foundries',
+                    MANUFACTURE_OF_STRUCTURAL_METAL_PRODUCTS: 'Structural metal product manufacturing',
+                    MANUFACTURE_OF_METAL_TANKS_BOILERS_STEAM_GENERATORS: 'Metal tank, boiler, and steam generator manufacturing',
+                    MANUFACTURE_OF_WEAPONS_AMMUNITION_MILITARY_VEHICLES: 'Weapon, ammunition, and military vehicle manufacturing',
+                    METAL_TREATMENT_PRECISION_MACHINING: 'Metal treatment and precision machining',
+                    MANUFACTURE_OF_TOOLS_HARDWARE_METAL_PACKAGING: 'Tool, hardware, and metal packaging manufacturing',
+                    MANUFACTURE_OF_COMPUTERS_ELECTRONICS_MEDICAL_OPTICAL_INSTRUMENTS: 'Computer, electronics, and optical instrument manufacturing',
+                    MANUFACTURE_OF_JEWELLERY_WATCHES: 'Jewelry and watch manufacturing',
+                    MANUFACTURE_OF_ELECTRICAL_EQUIPMENT_DOMESTIC_APPLIANCES: 'Electrical equipment and home appliance manufacturing',
+                    GENERAL_PURPOSE_MACHINERY_MECHANICAL_POWER: 'General-purpose machinery and mechanical power equipment',
+                    SPECIAL_PURPOSE_INDUSTRIAL_PROCESS_MACHINERY: 'Special-purpose industrial machinery',
+                    MANUFACTURE_OF_MOTOR_VEHICLES_TRAILERS_LIGHT_TRANSPORT: 'Motor vehicle, trailer, and light vehicle manufacturing',
+                    MANUFACTURE_OF_MARINE_RAIL_AEROSPACE_EQUIPMENT: 'Ship, rail, and aerospace equipment manufacturing',
+                    MANUFACTURE_OF_FURNITURE_MATTRESSES_CLEANING_TOOLS: 'Furniture, mattress, and cleaning tool manufacturing',
+                    MANUFACTURE_OF_MUSICAL_SPORTS_LEISURE_MISCELLANEOUS_GOODS: 'Musical instrument, sports, and leisure goods manufacturing',
+                    MANUFACTURE_OF_MEDICAL_DENTAL_INSTRUMENTS_AND_SUPPLIES: 'Medical and dental instrument and supply manufacturing',
+                    REPAIR_INSTALLATION_OF_INDUSTRIAL_EQUIPMENT: 'Industrial equipment repair and installation',
+                    ELECTRIC_POWER_GENERATION_TRANSMISSION_SUPPLY: 'Electric power generation and supply',
+                    MANUFACTURE_DISTRIBUTION_TRADE_OF_GAS: 'Gas production, distribution, and trade',
+                    STEAM_AIR_CONDITIONING_SUPPLY: 'Steam and air conditioning supply',
+                    WATER_SUPPLY_SEWERAGE_WASTE_MANAGEMENT: 'Water supply, sewerage, and waste management',
+                    DEVELOPMENT_CONSTRUCTION_OF_BUILDINGS: 'Building development and construction',
+                    CIVIL_ENGINEERING_INFRASTRUCTURE_CONSTRUCTION: 'Civil engineering and infrastructure construction',
+                    ELECTRICAL_PLUMBING_SPECIALISED_BUILDING_INSTALLATION: 'Electrical, plumbing, and other building installation',
+                    BUILDING_COMPLETION_FINISHING_TRADES: 'Building finishing trades',
+                    ROOFING_SCAFFOLDING_ROOFING_OTHER_SPECIALISED_CONSTRUCTION_ACTIVITIES: 'Roofing, scaffolding, and other specialty construction',
+                    AUTOMOTIVE_SALES_PARTS_SERVICES: 'Vehicle sales, parts, and repair',
+                    WHOLESALE_OF_PHARMACEUTICALS_MEDICAL_SUPPLIES: 'Wholesale of pharmaceuticals and medical supplies',
+                    WHOLESALE_OF_WATCHES_AND_JEWELLERY: 'Wholesale of watches and jewelry',
+                    WHOLESALE_OF_INDUSTRIAL_FUELS_CHEMICALS: 'Wholesale of industrial fuels and chemicals',
+                    WHOLESALE_OF_METALS_METAL_ORES: 'Wholesale of metals and metal ores',
+                    COMMISSION_AGENTS_GENERAL_TRADE_INTERMEDIARIES: 'Commission agents and trade intermediaries',
+                    WHOLESALE_OF_FRESH_PERISHABLE_FOODS: 'Wholesale of fresh and perishable foods',
+                    WHOLESALE_OF_CROPS_SEEDS_FLOWERS: 'Wholesale of crops, seeds, and flowers',
+                    WHOLESALE_OF_LIVESTOCK_ANIMAL_BY_PRODUCTS: 'Wholesale of livestock and animal by-products',
+                    WHOLESALE_OF_TEXTILES_CLOTHING: 'Wholesale of textiles and clothing',
+                    WHOLESALE_OF_JUICES_TEA_COFFEE_SPICES: 'Wholesale of juices, tea, coffee, and spices',
+                    WHOLESALE_OF_ALCOHOL: 'Wholesale of alcohol',
+                    GENERAL_FOOD_BEVERAGE_TOBACCO_WHOLESALE: 'Wholesale of food, beverages, and tobacco',
+                    WHOLESALE_OF_ELECTRONICS_HOUSEHOLD_GOODS: 'Wholesale of electronics and household goods',
+                    WHOLESALE_OF_HEAVY_INDUSTRIAL_AGRICULTURAL_MACHINERY: 'Wholesale of industrial and agricultural machinery',
+                    WHOLESALE_OF_BUILDING_PLUMBING_TRADE_SUPPLIES: 'Wholesale of building and plumbing supplies',
+                    GENERALIST_MISCELLANEOUS_INDUSTRIAL_WHOLESALE: 'General and other wholesale',
+                    GROCERY_SUPERMARKETS_SPECIALIST_FOOD_RETAIL: 'Grocery stores, supermarkets, and specialty food retail',
+                    ALCOHOL_TOBACCO_RETAIL: 'Alcohol and tobacco retail',
+                    RETAIL_SALE_OF_WATCHES_AND_JEWELLERY: 'Watch and jewelry retail',
+                    RETAIL_OF_ART_ANTIQUES_SPECIALISED_GOODS: 'Art, antiques, and specialty goods retail',
+                    PHARMACIES_HEALTH_BEAUTY_RETAIL: 'Pharmacies and health and beauty retail',
+                    AUTOMOTIVE_FUEL_RETAIL: 'Gas stations and fuel retail',
+                    RETAIL_OF_ELECTRONICS_DIGITAL_EQUIPMENT: 'Electronics retail',
+                    RETAIL_OF_HOME_GARDEN_DIY: 'Home, garden, and hardware retail',
+                    BOOKS_SPORTS_RECREATIONAL_GOODS_RETAIL: 'Book, sports, and recreational goods retail',
+                    RETAIL_OF_CLOTHING_FOOTWEAR: 'Clothing and footwear retail',
+                    E_COMMERCE_DIRECT_TO_CONSUMER_RETAIL: 'E-commerce and direct-to-consumer retail',
+                    PUBLIC_MASS_TRANSIT_SCHEDULED: 'Public transit',
+                    PRIVATE_AVIATION_CHARTER_SERVICES: 'Private aviation and charter flights',
+                    TAXIS_PRIVATE_HIRE_VEHICLES: 'Taxis and ride services',
+                    FREIGHT_TRANSPORT_LOGISTICS_LAND_WATER_AIR_PIPELINE: 'Freight transport and logistics',
+                    SPACE_TRANSPORT_SATELLITE_LAUNCH_SERVICES: 'Space transport and satellite launches',
+                    WAREHOUSING_CARGO_HANDLING_TRANSPORT_SUPPORT: 'Warehousing, cargo handling, and transport support',
+                    POSTAL_COURIER_SERVICES: 'Postal and courier services',
+                    HOTELS_SHORT_STAY_ACCOMMODATION: 'Hotels and short-term lodging',
+                    RESTAURANTS_CATERING_BEVERAGE_SERVICES: 'Restaurants, catering, and bars',
+                    MEDIA_CONTENT_PUBLISHING: 'Media and content publishing',
+                    SOFTWARE_DEVELOPMENT_PUBLISHING: 'Software development and publishing',
+                    FILM_RADIO_TV_MUSIC_PRODUCTION: 'Film, radio, TV, and music production',
+                    TELECOMMUNICATIONS_NETWORKS_SERVICES: 'Telecommunications',
+                    IT_CONSULTANCY_TECHNICAL_SUPPORT_SERVICES: 'IT consulting and technical support',
+                    DATA_HOSTING_WEB_PORTALS: 'Data hosting and web portals',
+                    NEWS_AGENCIES_SPECIALISED_INFORMATION_SERVICES: 'News agencies and information services',
+                    BANKING_CREDIT_FINANCIAL_INTERMEDIATION: 'Banking, lending, and financial intermediation',
+                    HOLDING_COMPANIES: 'Holding companies',
+                    INVESTMENT_FUNDS_BROKERAGE_ASSET_MANAGEMENT: 'Investment funds, brokerage, and asset management',
+                    INSURANCE_REINSURANCE: 'Insurance and reinsurance',
+                    PENSION_FUNDING_RETIREMENT_SERVICES: 'Pension and retirement services',
+                    REAL_ESTATE_OWNERSHIP_LETTING: 'Real estate ownership and rental',
+                    REAL_ESTATE_AGENCIES: 'Real estate agencies',
+                    PROPERTY_FACILITIES_MANAGEMENT_SERVICES: 'Property management',
+                    LEGAL_ACCOUNTING_MANAGEMENT_CONSULTANCY: 'Legal, accounting, and consulting services',
+                    ARCHITECTURE_ENGINEERING_TECHNICAL_CONSULTING: 'Architecture, engineering, and technical consulting',
+                    BUSINESS_STRATEGY_MANAGEMENT: 'Business strategy and management',
+                    MARKET_RESEARCH_PR_MEDIA_REPRESENTATION: 'Market research and public relations',
+                    ADVERTISING_DESIGN_PHOTOGRAPHY: 'Advertising, design, and photography',
+                    SCIENTIFIC_RESEARCH_EXPERIMENTAL_DEVELOPMENT: 'Scientific research and development',
+                    TRANSLATION_INTERPRETATION_SERVICES: 'Translation and interpretation',
+                    VETERINARY_SERVICES: 'Veterinary services',
+                    VEHICLE_TRANSPORT_EQUIPMENT_LEASING: 'Vehicle and transport equipment leasing',
+                    LEASING_OF_INTELLECTUAL_PROPERTY_IP: 'Intellectual property licensing',
+                    INDUSTRIAL_CONSTRUCTION_OFFICE_EQUIPMENT_LEASING: 'Industrial, construction, and office equipment leasing',
+                    CONSUMER_LEISURE_HOUSEHOLD_GOODS_RENTAL: 'Consumer and household goods rental',
+                    EMPLOYMENT_RECRUITMENT_HR_PROVISION: 'Recruitment and staffing',
+                    SECURITY_INVESTIGATION_SURVEILLANCE_SERVICES: 'Security and investigation services',
+                    BUSINESS_PROCESS_ADMINISTRATIVE_SUPPORT: 'Business process and administrative support',
+                    CALL_CENTRES_DEBT_RECOVERY_SERVICES: 'Call centers and debt collection',
+                    CONFERENCES_EXHIBITIONS_TRADE_SHOWS: 'Conferences, exhibitions, and trade shows',
+                    TRAVEL_AGENCIES_TOUR_OPERATORS_TOURIST_SERVICES: 'Travel agencies and tour operators',
+                    FACILITIES_MANAGEMENT_CLEANING: 'Facilities management and cleaning',
+                    PUBLIC_ADMINISTRATION_REGULATION_DEFENCE: 'Public administration and defense',
+                    JUSTICE_PUBLIC_SAFETY_SOCIAL_SECURITY: 'Justice, public safety, and social security',
+                    SCHOOLS_COLLEGES_HIGHER_EDUCATION: 'Schools, colleges, and universities',
+                    SPECIALISED_TRAINING_EDUCATIONAL_SUPPORT: 'Training and educational support',
+                    CLINICAL_HEALTHCARE_HOSPITALS_MEDICAL_PRACTICES: 'Hospitals and medical practices',
+                    RESIDENTIAL_CARE_NURSING_FACILITIES: 'Residential care and nursing homes',
+                    SOCIAL_WORK_CHILDCARE_COMMUNITY_SERVICES: 'Social work, childcare, and community services',
+                    GAMBLING_AND_BETTING_ACTIVITIES: 'Gambling and betting',
+                    ARTISTIC_CREATION_VENUES: 'Arts and art venues',
+                    PERFORMING_ARTS: 'Performing arts',
+                    HERITAGE_MUSEUMS_NATURE_PRESERVATION: 'Museums, heritage sites, and nature reserves',
+                    THEME_PARKS_LEISURE_ATTRACTIONS: 'Theme parks and attractions',
+                    PROFESSIONAL_SPORTS_TEAMS_ATHLETES: 'Professional sports teams and athletes',
+                    SPORTS_FACILITIES_FITNESS_CENTRES: 'Sports facilities and gyms',
+                    BUSINESS_PROFESSIONAL_LABOUR_ASSOCIATIONS: 'Business, professional, and labor associations',
+                    RELIGIOUS_ORGANISATIONS_SPIRITUAL_ACTIVITIES: 'Religious organizations',
+                    POLITICAL_ORGANISATIONS_ADVOCACY: 'Political and advocacy organizations',
+                    REPAIR_OF_COMPUTERS_ELECTRONICS_PERSONAL_GOODS: 'Computer, electronics, and personal goods repair',
+                    FUNERAL_CARE_RELATED_ACTIVITIES: 'Funeral services',
+                    WELLBEING_PERSONAL_SERVICES: 'Wellness and personal services',
+                    HAIRDRESSING_BEAUTY_TREATMENT: 'Hair and beauty salons',
+                    LAUNDRY_DRY_CLEANING_SERVICES: 'Laundry and dry cleaning',
+                    REPAIR_OF_WATCHES_CLOCKS_JEWELLERY: 'Watch, clock, and jewelry repair',
+                    DOMESTIC_EMPLOYERS_HOUSEHOLD_STAFF: 'Households employing domestic staff',
+                    RESIDENTS_PROPERTY_MANAGEMENT: "Residents' associations",
+                    DIPLOMATIC_BODIES: 'Embassies and international organizations',
+                },
+                description: 'Business description',
+                descriptionHint: 'Briefly describe what your company does.',
+            },
+            terms: {
+                title: 'Accept terms',
+                subtitle: 'Please accept the terms below.',
+                certify: "I certify that the information I've provided is true and accurate.",
+                expensifyTerms: `I agree to the Expensify <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">terms and conditions</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacy policy</a>.`,
+                expensifyTermsAccessibilityLabel: 'I agree to the Expensify terms and conditions and privacy policy.',
+                wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
+                wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
+                error: 'Please accept all of the terms to continue.',
+            },
+        },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
+            payingReportSubtitle: 'The company and employee bank accounts use different currencies.',
             getStarted: 'Get started',
         },
         wiseGlobalReimbursementsBanner: {
@@ -3164,6 +3374,8 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
+        collectEmployeeBankDetails: 'Collect employee bank details',
+        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -4168,6 +4380,7 @@ const translations = {
             removeDelegate: 'Remove vacation delegate',
         },
     },
+    completedStep: (stepLabel: string) => `${stepLabel}, completed`,
     stepCounter: (step: number, total?: number, text?: string) => {
         let result = `Step ${step}`;
 
@@ -4275,11 +4488,14 @@ const translations = {
             outOfRange: ({min, max}: {min: number; max: number}) => `Enter a value between ${min} and ${max}`,
             tooFewItems: ({min}: {min: number}) => `Add at least ${min}`,
             tooManyItems: ({max}: {max: number}) => `Add at most ${max}`,
-            itemError: ({item, error}: {item: string; error: string}) => `${item}: ${error}`,
+            itemError: ({item, field, error}: {item: string; field: string; error: string}) => `${item}, ${field}: ${error}`,
         },
         addItem: ({item}: {item: string}) => `Add ${item}`,
         removeItemTitle: ({item}: {item: string}) => `Remove ${item}?`,
         removeItemPrompt: ({name}: {name: string}) => `Are you sure you want to remove ${name}?`,
+        maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
+        numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
+        questionsChanged: 'The questions on this page changed',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -5121,7 +5337,7 @@ const translations = {
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
             deleteOpenExpensifyCardsError: 'Your company still has Expensify Cards. Please <concierge-link>reach out to Concierge</concierge-link> to remove them.',
-            deleteTravelInvoicingError: 'Your company still has Consolidated Travel Billing enabled.',
+            deleteTravelBillingError: 'Your company still has Consolidated Travel Billing enabled.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -5182,6 +5398,7 @@ const translations = {
             cardAdminAlternateText: 'Manage workspace cards.',
             peopleAdminAlternateText: 'Manage members and approval workflows.',
             paymentsAdminAlternateText: 'Manage workflow payments.',
+            approveOnlyAlternateText: 'Approve reports only.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -5205,6 +5422,8 @@ const translations = {
                         return 'People admin';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Payments admin';
+                    case CONST.POLICY.ROLE.APPROVE_ONLY:
+                        return 'Approve-only';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
@@ -5239,9 +5458,9 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
-            travelInvoicing: 'Export Consolidated Travel Billing expenses as',
-            travelInvoicingVendor: 'Travel vendor',
-            travelInvoicingPayableAccount: 'Travel payable account',
+            travelBilling: 'Export Consolidated Travel Billing expenses as',
+            travelBillingVendor: 'Travel vendor',
+            travelBillingPayableAccount: 'Travel payable account',
         },
         createdForClient: {
             title: "You've created a workspace for your client!",
@@ -5530,7 +5749,7 @@ const translations = {
             notConfigured: 'Not configured',
             bankAccountDescription: 'Choose where to send checks from.',
             creditCardAccount: 'Credit card account',
-            travelInvoicingDescription: (integrationName = 'QuickBooks Online') => `Travel expenses will export as credit card charges to the ${integrationName} account specified below.`,
+            travelBillingDescription: (integrationName = 'QuickBooks Online') => `Travel expenses will export as credit card charges to the ${integrationName} account specified below.`,
             companyCardsLocationEnabledDescription: (integrationName = 'QuickBooks Online') =>
                 `${integrationName} doesn't support locations on vendor bill exports when locations are imported as tags. As you have locations imported as tags on your workspace, this export option is unavailable.`,
             outOfPocketTaxEnabledDescription: (integrationName = 'QuickBooks Online') =>
@@ -5631,7 +5850,7 @@ const translations = {
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard: 'Exported expenses will post as bank transactions to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
-            travelInvoicingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
+            travelBillingDescription: 'Travel expenses will export as bank transactions to the Xero account specified below.',
             xeroBankAccount: 'Xero bank account',
             bankAccount: 'Bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
@@ -5732,7 +5951,7 @@ const translations = {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
-            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
+            travelBillingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -6375,8 +6594,8 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
-            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
-            travelInvoicingSettlementAccount: {
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
                 label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
@@ -6499,13 +6718,13 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
-            travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
-            travelInvoicingPayableAccount: {
-                label: 'Travel Invoicing payable account',
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
             },
         },
         campfire: {
@@ -6622,13 +6841,13 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
-            travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Campfire.",
             },
-            travelInvoicingPayableAccount: {
-                label: 'Travel Invoicing payable account',
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
             },
         },
         zohoBooks: {
@@ -6692,6 +6911,35 @@ const translations = {
             companyCardAccount: {
                 label: 'Company card account',
                 description: 'Choose where to export company card transactions.',
+            },
+            exportToMultipleAccounts: 'Configure exporting to multiple accounts',
+            cardProgramAccount: {
+                label: 'Card program account',
+                description: 'Override the workspace account for these card programs.',
+                descriptionLevel2: 'Override the workspace account for this card program.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All programs use default account';
+                    }
+                    return {
+                        one: `${count} program with custom account`,
+                        other: `${count} programs with custom accounts`,
+                    };
+                },
+            },
+            cardAccount: {
+                label: 'Per-card account',
+                description: 'Override the program account for individual cards.',
+                descriptionLevel2: 'Override the program account for these cards.',
+                countInfo: ({count}: {count: number}) => {
+                    if (!count) {
+                        return 'All cards use program accounts';
+                    }
+                    return {
+                        one: `${count} card with custom account`,
+                        other: `${count} cards with custom accounts`,
+                    };
+                },
             },
             paymentMethod: {
                 label: 'Payment method',
@@ -6899,6 +7147,8 @@ const translations = {
             chooseTransactionStartDate: 'Choose a transaction start date',
             startDateDescription: "Choose your import start date. We'll sync all transactions from this date onwards.",
             editStartDateDescription: "Choose a new transaction start date. We'll sync all transactions from that date onwards, excluding those we already imported.",
+            bulkEditStartDateDescription: "Choose a transaction start date for all selected cards. We'll sync transactions from that date onwards, excluding those we already imported.",
+            bulkStartDateUpdated: 'Transaction start date updated',
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',
@@ -7132,13 +7382,13 @@ const translations = {
                         subtitle: "Push this workspace's categories, tags, and report fields to Expensify Travel so travelers answer them at booking time.",
                     },
                 },
-                travelInvoicing: {
+                travelBilling: {
                     travelBookingSection: {
                         title: 'Travel booking',
                         subtitle: "Congrats! You're all set to book and manage travel on this workspace.",
                         manageTravelLabel: 'Manage travel',
                     },
-                    travelInvoicingSection: {
+                    travelBillingSection: {
                         title: 'Consolidated Travel Billing',
                         subtitle: 'Centralize all travel spend in a monthly bill instead of paying at time of purchase.',
                         learnHow: 'Learn how.',
@@ -7159,6 +7409,7 @@ const translations = {
                             settlementFrequencyDescription: 'How often Expensify will pull from your business bank account to settle recent Expensify Travel transactions.',
                             monthlySpendLimitLabel: 'Monthly spend limit per member',
                             monthlySpendLimitDescription: 'The maximum amount each member can spend on travel per month.',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) => `The monthly spend limit per member can't exceed the current travel limit of ${travelLimit}.`,
                             reduceLimitTitle: 'Reduce travel spend limit?',
                             reduceLimitWarning: 'If you reduce the limit, members who have already spent more than this amount will be unable to make new travel bookings until next month.',
                             provisioningError:
@@ -7242,6 +7493,7 @@ const translations = {
                     `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
+                bulkUpdateTransactionStartDate: 'Update transaction start date',
                 updateCard: 'Update card',
                 unassignCard: 'Unassign card',
                 unassignCards: 'Unassign cards',
@@ -7686,6 +7938,14 @@ const translations = {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again',
+            approveOnlyRoleBlockedTitle: 'Can’t change this role',
+            approveOnlyRoleBlockedConfirm: 'Got it',
+            approveOnlyRoleBlockedDescription: 'Approve-only members can’t create expenses on this workspace. These need to be resolved first:',
+            approveOnlyRoleBlockedReasons: {
+                hasCardOnPolicy: 'A card is assigned to them on this workspace. A Workspace Admin or Card Admin needs to unassign it first.',
+                isRestrictedByDomainGroup: 'This workspace is the Preferred workspace for a domain group they’re in. A Domain Admin needs to change it first.',
+                isDefaultPolicy: 'This is their default workspace. They’ll need to set a different one before you can update their role.',
+            },
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Are you sure you want to remove ${memberName}?`,
                 other: 'Are you sure you want to remove these members?',
@@ -7706,6 +7966,10 @@ const translations = {
                 optionNoRegularWorkspaceHelp: "Member works from home or travels between locations with no regular office, so commute rules don't apply.",
                 futureOnlyNote: 'Changes apply only to future mileage calculations. Existing mileage expenses are not recalculated.',
             },
+            officeLocation: 'Office location',
+            officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            changeOfficeLocation: 'Change office location',
+            changeWorkArrangement: 'Change work arrangement',
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -7751,6 +8015,10 @@ const translations = {
                 cannotRemove: "You can't remove yourself or the workspace owner",
                 genericRemove: 'There was a problem removing that workspace member',
             },
+            makeApproveOnly: () => ({
+                one: 'Make approve only',
+                other: 'Make approve only members',
+            }),
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
@@ -7763,6 +8031,7 @@ const translations = {
             paymentsAdmins: 'Payments Admins',
             approvers: 'Approvers',
             auditors: 'Auditors',
+            approveOnly: 'Approve-only',
             guests: 'Guests',
             editors: 'Editors',
             members: 'Members',
@@ -7863,6 +8132,7 @@ const translations = {
             rillet: 'Rillet',
             dualEntry: 'DualEntry',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             businessCentral: 'Dynamics 365 Business Central',
             sap: 'SAP',
@@ -7888,6 +8158,8 @@ const translations = {
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -8139,6 +8411,18 @@ const translations = {
                             return 'Syncing card settlements';
                         case 'campfireSyncTravelSettlements':
                             return 'Syncing travel settlements';
+                        case 'digitsSyncTitle':
+                            return 'Syncing Digits data';
+                        case 'digitsSyncConnection':
+                            return 'Initializing connection to Digits';
+                        case 'digitsSyncImportData':
+                            return 'Loading data';
+                        case 'digitsSyncPayments':
+                            return 'Syncing vendor payments';
+                        case 'digitsSyncCardSettlements':
+                            return 'Syncing card settlements';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Syncing travel settlements';
                         case 'businessCentralSyncTitle':
                             return 'Syncing Dynamics 365 Business Central data';
                         case 'businessCentralSyncConnection':
@@ -8175,9 +8459,9 @@ const translations = {
             cardReconciliation: 'Card reconciliation',
             reconciliationAccount: 'Reconciliation account',
             continuousReconciliation: 'Continuous Reconciliation',
-            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
-            syncTravelInvoicingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
-            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            syncTravelBillingSettlementsNoAccountTooltip: 'To unlock, set an account for your exports.',
+            syncTravelBillingSettlementsNoAutoSyncTooltip: 'To unlock, enable auto-sync.',
             saveHoursOnReconciliation:
                 'Save hours on reconciliation each accounting period by having Expensify continuously reconcile Expensify Card statements and settlements on your behalf.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
@@ -8186,10 +8470,10 @@ const translations = {
                 "<muted-text-label>Continuous Reconciliation is configured per card feed. Select a feed to change which one you're configuring.</muted-text-label>",
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
-                chooseTravelInvoicingBankAccount: 'Choose the bank account that your Consolidated Travel Billing payments will be reconciled against.',
+                chooseTravelBillingBankAccount: 'Choose the bank account that your Consolidated Travel Billing payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                travelBillingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Make sure this account matches your Consolidated Travel Billing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
@@ -9216,13 +9500,10 @@ const translations = {
                 restrictCardSpendDescription: 'Block or limit spend at the point of sale',
                 flagForReview: 'Flag for review',
                 flagForReviewDescription: 'Notify when your conditions are met',
-                requireFields: 'Set field requirements',
-                requireFieldsShort: 'Require fields',
+                requireFields: 'Require fields',
                 requireFieldsDescription: 'Receipts, categories, etc.',
                 applyExpenseDefaults: 'Apply expense defaults',
                 applyExpenseDefaultsDescription: 'Update fields automatically',
-                createAgentRule: 'Describe agent rule',
-                createAgentRuleDescription: 'Create flexible rules that run when you need.',
                 describeItBelow: 'Or just describe it below',
                 describeRulePlaceholder: 'Block all spend above $2,000',
                 selectTemplateOrDescribe: 'Select a template or describe a rule to continue',
@@ -9916,6 +10197,10 @@ const translations = {
             !oldDescription
                 ? `set the description of this workspace to "${newDescription}"`
                 : `updated the description of this workspace to "${newDescription}" (previously "${oldDescription}")`,
+        updateRulesDocument: (isReplacement: boolean, overviewURL?: string) => {
+            const message = isReplacement ? 'replaced the expense policy document' : 'added an expense policy document';
+            return overviewURL ? `${message} in <a href="${overviewURL}">Workspace &gt; Overview</a>` : message;
+        },
         removedFromApprovalWorkflow: ({submittersNames}: {submittersNames: string[]}) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -9930,11 +10215,13 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and expense chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
-        demotedFromWorkspace: (policyName: string, oldRole: string) =>
-            `updated your role in ${policyName} from ${oldRole} to user. You have been removed from all submitter expense chats except for you own.`,
+        demotedFromWorkspace: (policyName: string, oldRole: string, newRole: string) =>
+            `updated your role in ${policyName} from ${oldRole} to ${newRole}. You have been removed from all submitter expense chats except for you own.`,
         updatedWorkspaceCurrencyAction: (oldCurrency: string, newCurrency: string) => `updated the default currency to ${newCurrency} (previously ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: (oldFrequency: string, newFrequency: string) => `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
         updateApprovalMode: (newValue: string, oldValue?: string) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,
+        archivedWorkspace: 'archived this workspace',
+        unarchivedWorkspace: 'unarchived this workspace',
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         forcedCorporateUpgrade: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
@@ -10034,6 +10321,11 @@ const translations = {
             setAsPrimary: ({name}: {name: string}) => `set the office location "${name}" as primary`,
             setCompanyAddressAsPrimary: 'set the company address as primary',
             removed: ({name}: {name: string}) => `removed the office location "${name}"`,
+            changedMemberOfficeLocation: ({displayName, officeLocation, previousOfficeLocation}: {displayName: string; officeLocation: string; previousOfficeLocation: string}) =>
+                `changed ${displayName}'s office location to ${officeLocation} (previously ${previousOfficeLocation})`,
+            quotedName: ({name}: {name: string}) => `"${name}"`,
+            companyAddress: 'the company address',
+            primaryOffice: 'the primary office',
         },
         workArrangement: {
             set: ({arrangement}: {arrangement: string}) => `set the default work arrangement to ${arrangement}`,
@@ -10415,6 +10707,8 @@ const translations = {
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
             violationsBySubmitter: 'Violations by submitter',
+            travel: 'Travel',
+            trips: 'Trips',
         },
         resultsAreLimited: 'Search results are limited.',
         viewResults: 'View results',
@@ -10550,6 +10844,15 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'This week',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Last week',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'This quarter',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Last quarter',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'This year',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Last year',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Last 30 days',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Last 90 days',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Last 6 months',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Last statement',
                 },
             },
@@ -10584,7 +10887,7 @@ const translations = {
             },
             card: {
                 expensify: 'Expensify',
-                travelInvoicing: 'Consolidated Travel Billing',
+                travelBilling: 'Consolidated Travel Billing',
                 individualCards: 'Individual cards',
                 closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
@@ -10619,6 +10922,8 @@ const translations = {
             billable: 'Billable',
             rejected: 'Rejected',
             held: 'Held',
+            searchFilters: 'Search filters',
+            noFiltersSelected: 'No filters selected',
             reimbursable: 'Reimbursable',
             purchaseCurrency: 'Purchase currency',
             sortOrder: {
@@ -10708,6 +11013,7 @@ const translations = {
         noCategory: 'No category',
         noMerchant: 'No merchant',
         noTag: 'No tag',
+        noVendor: 'No vendor',
         expenseType: 'Expense type',
         receiptType: 'Receipt type',
         receiptTypeValues: {
@@ -10801,8 +11107,6 @@ const translations = {
             category: 'Category',
             tag: 'Tag',
         },
-        switchToTableView: 'Switch to table view',
-        switchToExpenseView: 'Switch to expense view',
     },
     report: {
         newReport: {
@@ -10895,7 +11199,7 @@ const translations = {
                     `the Plaid connection to your business bank account is broken. Please <a href='${walletRoute}'>reconnect your bank account ${maskedAccountNumber}</a> so you can continue to use your Expensify Cards.`,
                 addEmployee: (email: string, role: string, didJoinPolicy?: boolean) => {
                     const translatedRole = String(translations.workspace.common.roleName(role)).toLowerCase();
-                    const article = role === CONST.POLICY.ROLE.AUDITOR ? 'an' : 'a';
+                    const article = role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY ? 'an' : 'a';
                     return didJoinPolicy ? `${email} joined via the workspace invite link` : `added ${email} as ${article} ${translatedRole}`;
                 },
                 updateRole: (email: string, currentRole: string, newRole: string) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
@@ -11111,7 +11415,7 @@ const translations = {
         personalCard: 'Personal card',
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
-        travelInvoicing: 'Consolidated Travel Billing',
+        travelBilling: 'Consolidated Travel Billing',
         travelCard: 'Travel Card',
     },
     distance: {
@@ -11878,6 +12182,10 @@ const translations = {
                 one: '1 active user',
                 other: `${count} active users`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 member',
+                other: `${count} members`,
+            }),
             state: {
                 paid: 'Paid',
                 cleared: 'Cleared',
@@ -11897,6 +12205,9 @@ const translations = {
                 refundedAmountOn: ({amount, date}: PaymentDetailsPartialRefundParams) => `Refunded ${amount} on ${date}`,
             },
             billedTo: 'Billed to',
+            activity: 'Activity',
+            findActiveUser: 'Find an active user',
+            findMember: 'Find a member',
             viewReceipt: 'View receipt',
             viewInvoice: 'View invoice',
         },
@@ -12096,6 +12407,7 @@ const translations = {
             aBankAccountIsLocked: 'A bank account is locked',
             completeHrSetup: 'Complete HR setup',
             theresAProblemWithAnHRConnection: "There's a problem with an HR connection",
+            theresAProblemWithYourAgent: "There's a problem with your agent(s)",
         },
     },
     emptySearchView: {
@@ -12194,6 +12506,7 @@ const translations = {
         downloadStatementPDF: 'Download statement',
         basicExport: 'Basic export',
         currentView: 'Current view',
+        currentViewGroupsOnly: 'Current view (groups only)',
         reportLevelExport: 'All Data - report level',
         expenseLevelExport: 'All Data - expense level',
         multipleTaxExport: 'Canadian Multiple Tax Export',
@@ -12224,6 +12537,90 @@ const translations = {
         readyPartialBody: ({count, total}: {count: number; total: number}) =>
             `${count} of ${total} reports exported. If it didn't automatically download, use the button below. See which reports failed in <concierge-link>Concierge</concierge-link>.`,
         close: 'Close',
+    },
+    bulkAction: {
+        approvingTitle: 'Approving reports...',
+        submittingTitle: 'Submitting reports...',
+        payingTitle: 'Marking reports as paid...',
+        holdingTitle: 'Holding expenses...',
+        unholdingTitle: 'Unholding expenses...',
+        rejectingTitle: 'Rejecting expenses...',
+        deletingTitle: 'Deleting reports...',
+        deletingExpensesTitle: 'Deleting expenses...',
+        runningBody: "Wait a few minutes, or Concierge can message you when it's done.",
+        sendFromConcierge: "Message me when it's done",
+        conciergeTitle: 'You bet!',
+        conciergeBody: "Concierge will message you when it's done.",
+        goToConcierge: 'Go to Concierge',
+        approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Approved ${doneCount} of ${count} report`,
+            other: `Approved ${doneCount} of ${count} reports`,
+        }),
+        submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Submitted ${doneCount} of ${count} report`,
+            other: `Submitted ${doneCount} of ${count} reports`,
+        }),
+        paidTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Marked ${doneCount} of ${count} report as paid`,
+            other: `Marked ${doneCount} of ${count} reports as paid`,
+        }),
+        heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Held expenses on ${doneCount} of ${count} report`,
+            other: `Held expenses on ${doneCount} of ${count} reports`,
+        }),
+        unheldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Unheld expenses on ${doneCount} of ${count} report`,
+            other: `Unheld expenses on ${doneCount} of ${count} reports`,
+        }),
+        rejectedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Rejected expenses on ${doneCount} of ${count} report`,
+            other: `Rejected expenses on ${doneCount} of ${count} reports`,
+        }),
+        deletedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Deleted ${doneCount} of ${count} report`,
+            other: `Deleted ${doneCount} of ${count} reports`,
+        }),
+        deletedExpensesTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Deleted expenses on ${doneCount} of ${count} report`,
+            other: `Deleted expenses on ${doneCount} of ${count} reports`,
+        }),
+        noReportsTitle: 'No matching reports',
+        noReportsBody: 'None of the reports you selected needed this action.',
+        notApprovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be approved.",
+            other: `${count} reports couldn't be approved.`,
+        }),
+        notSubmittedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be submitted.",
+            other: `${count} reports couldn't be submitted.`,
+        }),
+        notPaidBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be paid.",
+            other: `${count} reports couldn't be paid.`,
+        }),
+        notHeldBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be held.",
+            other: `Expenses on ${count} reports couldn't be held.`,
+        }),
+        notUnheldBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be unheld.",
+            other: `Expenses on ${count} reports couldn't be unheld.`,
+        }),
+        notRejectedBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be rejected.",
+            other: `Expenses on ${count} reports couldn't be rejected.`,
+        }),
+        notDeletedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be deleted.",
+            other: `${count} reports couldn't be deleted.`,
+        }),
+        expensesNotDeletedBody: ({count}: {count: number}) => ({
+            one: "Expenses on 1 report couldn't be deleted.",
+            other: `Expenses on ${count} reports couldn't be deleted.`,
+        }),
+        viewFailedReports: 'View reports',
+        failedTitle: 'Something went wrong',
+        failedBody: 'This action could not be started. Please try again later.',
     },
     domain: {
         notVerified: 'Not verified',
