@@ -10,6 +10,7 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import YesNoCell from '@components/Search/SearchList/ListItem/YesNoCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
 
@@ -166,6 +167,11 @@ function ExpenseReportListItemRowWide({
                     text={item.formattedPaidStatus ?? ''}
                     isLargeScreenWidth
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DECLINED)]}>
+                <YesNoCell value={!!item.declined} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
