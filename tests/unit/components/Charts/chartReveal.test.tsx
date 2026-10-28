@@ -156,6 +156,30 @@ describe('ChartReveal', () => {
         expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
+    it('should bring the spinner back in the same render when a revealed chart loads again', () => {
+        // Given a chart that has been revealed after loading
+        const {rerender} = render(renderChart(true));
+        rerender(renderChart(false));
+        runFrames(HOLD_FRAMES);
+
+        // When the card starts loading again, before the chart has reported it
+        rerender(
+            <ChartReveal
+                isLoading
+                loadingHeight={LOADING_HEIGHT}
+                isCardMeasured
+            >
+                <ChartBody
+                    isLoading={false}
+                    label="chart"
+                />
+            </ChartReveal>,
+        );
+
+        // Then the spinner is back already, because an empty card for even one commit shrinks the page under the user
+        expect(screen.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
+    });
+
     it('should hold when a chart that faded in without a spinner reloads', () => {
         // Given a chart that faded in as soon as its card was measured
         const {rerender} = render(renderChart(false, 'chart', false));

@@ -201,7 +201,7 @@ const userFriendlyColumnList = new Set(
  * @private
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
-function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substitutionMap: SubstitutionMap, knownValues: KnownFilterValues, currentType: string) {
+function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substitutionMap: SubstitutionMap, knownValues: KnownFilterValues, currentType: string, hasExplicitType: boolean) {
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
@@ -228,6 +228,11 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+            // `in:` is only supported for chats and tasks. A bare `in:` with no explicit type resolves to `type:chat`.
+            if (hasExplicitType && currentType !== CONST.SEARCH.DATA_TYPES.CHAT && currentType !== CONST.SEARCH.DATA_TYPES.TASK) {
+                return false;
+            }
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -339,11 +344,13 @@ function parseForLiveMarkdown(input: string, currentUserName: string, map: Subst
         return [];
     }
     const ranges = parsedAutocomplete.ranges;
-    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, knownValues, currentType, !!typeRange))
         .map((range) => {
             const isCurrentUserMention = knownValues.userLogins.has(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
