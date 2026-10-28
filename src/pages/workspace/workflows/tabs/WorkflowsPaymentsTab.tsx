@@ -454,7 +454,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             showLockIcon={!canWritePayments}
                             subMenuItems={
                                 <View style={[styles.mt3, styles.mbn3]}>
-                                    <MenuItemSectionRoot sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}>
+                                    <MenuItemSectionRoot
+                                        // TODO: Navigate to the reimbursement country selector page once it is added
+                                        onPress={canWritePayments ? () => {} : undefined}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                    >
                                         <MenuItemField.Row
                                             name={translate('workflowsPage.businessBankAccountCountries')}
                                             value={reimbursementCountryNames}
