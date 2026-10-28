@@ -31,16 +31,20 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     // Concierge screen pushed later (e.g. via search) has its own param and can't collide.
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const sourceReportID = route.params?.sourceReportID;
+    const sourcePolicyID = route.params?.sourcePolicyID;
 
     if (conciergeReportID !== reportID) {
         return undefined;
     }
 
-    // Native (no side panel): use the source report captured when Concierge Anywhere was opened via the sidebar
-    // button. Mirrors the {reportID} context the side panel builds on web. The button drops a self-referencing
+    // Native (no side panel): use the source workspace or report captured when Concierge Anywhere was opened via the
+    // sidebar button. Mirrors the {policyID} or {reportID} context the side panel builds on web. The button drops a self-referencing
     // source report, but it can only do so when CONCIERGE_REPORT_ID is already cached. On the create/open path
     // it is not, so guard here as well (reportID is the Concierge report by the check above).
     if (!isInSidePanel) {
+        if (sourcePolicyID) {
+            return {policyID: sourcePolicyID};
+        }
         return sourceReportID && sourceReportID !== reportID ? {reportID: sourceReportID} : undefined;
     }
 

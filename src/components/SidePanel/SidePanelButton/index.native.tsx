@@ -11,7 +11,8 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
+import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 
 import {navigateToConciergeChat} from '@userActions/Report';
 
@@ -52,7 +53,10 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                     // Capture the report the user is viewing (still topmost at press time) so Concierge can act on it
                     // after we navigate away. This is the only entry that threads a source report, so context is scoped
                     // to Concierge opened via this sidebar button. Search, LHN, and deep links never carry it.
-                    const sourceReportID = Navigation.getTopmostReportId();
+                    // On a workspace page the topmost report is the last one the user left, not what is on screen, so
+                    // send only the workspace.
+                    const sourcePolicyID = getFocusedWorkspacePolicyID(navigationRef.getRootState());
+                    const sourceReportID = sourcePolicyID ? undefined : Navigation.getTopmostReportId();
                     navigateToConciergeChat({
                         conciergeReportID,
                         introSelected,
@@ -61,6 +65,7 @@ function SidePanelButton({style}: SidePanelButtonProps) {
                         hasCompletedGuidedSetupFlow,
                         conciergePersonalDetails,
                         sourceReportID: sourceReportID && sourceReportID !== conciergeReportID ? sourceReportID : undefined,
+                        sourcePolicyID,
                     });
                 }}
             >

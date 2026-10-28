@@ -30,7 +30,7 @@ let mockSearchState: {
     selectedTransactions: {},
     selectedReports: [],
 };
-let mockRouteParams: {sourceReportID?: string} = {};
+let mockRouteParams: {sourceReportID?: string; sourcePolicyID?: string} = {};
 let mockFocusedWorkspacePolicyID: string | undefined;
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
@@ -104,6 +104,19 @@ describe('useSidePanelContext', () => {
         const {result} = await renderWithConciergeReport();
         await waitForBatchedUpdates();
         expect(result.current).toEqual({reportID: 'source_report'});
+    });
+
+    it('returns the route source workspace when not in the side panel (native Concierge Anywhere)', async () => {
+        // Given Concierge opened from a workspace page on native
+        mockIsInSidePanel = false;
+        mockRouteParams = {sourcePolicyID: 'policy_123'};
+
+        // When the side panel context is built
+        const {result} = await renderWithConciergeReport();
+        await waitForBatchedUpdates();
+
+        // Then only the workspace is sent
+        expect(result.current).toEqual({policyID: 'policy_123'});
     });
 
     it('drops a self-referencing source report when not in the side panel', async () => {
