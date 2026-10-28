@@ -1986,6 +1986,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             if (firstSkippedBankAccount) {
                 const [bankAccountID, {bankAccount, reportNames}] = firstSkippedBankAccount;
+                const globalReimbursementsModalData = {bankAccountID, bankCountry: bankAccount.bankCountry, bankCurrency: bankAccount.bankCurrency};
+
+                // Nothing was paid, so there is nothing to list next to the skipped reports. Open the intro directly, the same way paying a single report does
+                if (paidReportCount === 0 && otherSkippedBankAccounts.length === 0) {
+                    showEnableGlobalReimbursementsModal({...globalReimbursementsModalData, isPayingMultipleReports: reportNames.size > 1});
+                    return;
+                }
+
                 deferModalPresentationAfterPopoverDismiss(() => {
                     showConfirmModal({
                         title: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.title', getLastFourDigits(bankAccount.accountData?.accountNumber ?? '')),
@@ -1998,11 +2006,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         if (result.action !== ModalActions.CONFIRM) {
                             return;
                         }
-                        showEnableGlobalReimbursementsModal({
-                            bankAccountID,
-                            bankCountry: bankAccount.bankCountry,
-                            bankCurrency: bankAccount.bankCurrency,
-                        });
+                        showEnableGlobalReimbursementsModal(globalReimbursementsModalData);
                     });
                 });
             }

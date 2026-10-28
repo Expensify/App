@@ -31,12 +31,20 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect} from 'react';
 
+function getSubtitleTranslationKey(isPayingReport: boolean, isPayingMultipleReports: boolean) {
+    if (isPayingMultipleReports) {
+        return 'walletPage.wiseGlobalReimbursementsIntro.payingMultipleReportsSubtitle';
+    }
+    return isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle';
+}
+
 type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO>;
 
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const isPayingReport = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
+    const isPayingMultipleReports = route.params.isPayingMultipleReports === 'true';
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
@@ -83,7 +91,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                         />
                         <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
                         <ConfirmationPage.Description style={styles.textSupporting}>
-                            {translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
+                            {translate(getSubtitleTranslationKey(isPayingReport, isPayingMultipleReports))}
                         </ConfirmationPage.Description>
                     </ConfirmationPage.Content>
                     <FixedFooter>

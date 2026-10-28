@@ -231,7 +231,12 @@ const DYNAMIC_ROUTES = {
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
         entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
-        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+        getRoute: (bankAccountID: number | undefined, isPayingMultipleReports?: boolean) =>
+            getUrlWithParams(`global-reimbursements/${bankAccountID}`, {
+                // Shows the copy for several reports when bulk pay could not pay any of them
+                isPayingMultipleReports: isPayingMultipleReports ? 'true' : undefined,
+            }),
+        queryParams: ['isPayingMultipleReports'],
     },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',

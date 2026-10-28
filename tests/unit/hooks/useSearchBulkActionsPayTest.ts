@@ -755,17 +755,16 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
     });
 
     it('opens the global reimbursements onboarding when the user picks Get started', async () => {
-        // Given a selected report whose payment needs global reimbursements and a user who confirms the modal
-        mockSelectedReports = [makePayableReport('1', '2')];
-        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValue(bankAccount);
+        // Given one selected report whose payment needs global reimbursements next to a payable one, and a user who confirms the modal
+        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValueOnce(bankAccount).mockReturnValue(undefined);
         mockShowConfirmModal.mockReturnValueOnce(Promise.resolve({action: ModalActions.CONFIRM}));
 
         // When the user selects bulk Pay
         await selectBulkPay();
 
-        // Then nothing is paid and the selection stays, so the user can still act on these reports
-        expect(payMoneyRequest).not.toHaveBeenCalled();
-        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+        // Then only the payable report is paid
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'})}));
 
         // And the onboarding signal is set for the paying bank account, so the existing intro flow takes over
         await waitFor(() => {
@@ -778,9 +777,8 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
     });
 
     it('does not open the onboarding when the user picks Not now', async () => {
-        // Given a selected report whose payment needs global reimbursements and a user who dismisses the modal
-        mockSelectedReports = [makePayableReport('1', '2')];
-        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValue(bankAccount);
+        // Given one selected report whose payment needs global reimbursements next to a payable one, and a user who dismisses the modal
+        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValueOnce(bankAccount).mockReturnValue(undefined);
 
         // When the user selects bulk Pay
         await selectBulkPay();
@@ -819,10 +817,10 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
     });
 
     it('lists a report once when several of its expenses are selected', async () => {
-        // Given two selected expenses from the same report whose payment needs global reimbursements
+        // Given two selected expenses from a report whose payment needs global reimbursements, and one expense from a payable report
         mockSelectedReports = [];
-        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1'}), tx2: makeSelectedTransaction({reportID: '1'})};
-        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValue(bankAccount);
+        mockSelectedTransactions = {tx1: makeSelectedTransaction({reportID: '1'}), tx2: makeSelectedTransaction({reportID: '1'}), tx3: makeSelectedTransaction({reportID: '3'})};
+        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValueOnce(bankAccount).mockReturnValueOnce(bankAccount).mockReturnValue(undefined);
 
         // When the user selects bulk Pay
         await selectBulkPay();
@@ -832,16 +830,52 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
     });
 
     it('falls back to a generic name for a skipped report without a name', async () => {
-        // Given a selected report without a name whose payment needs global reimbursements
-        mockSelectedReports = [makePayableReport('1', '2')];
+        // Given a selected report without a name whose payment needs global reimbursements, next to a payable one
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportName: ''});
-        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValue(bankAccount);
+        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValueOnce(bankAccount).mockReturnValue(undefined);
 
         // When the user selects bulk Pay
         await selectBulkPay();
 
         // Then the modal still lists the report, so the list is never empty
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} common.report`}));
+    });
+
+    it('opens the onboarding directly when the only selected report needs global reimbursements', async () => {
+        // Given a single selected report whose payment needs global reimbursements
+        mockSelectedReports = [makePayableReport('1', '2')];
+        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValue(bankAccount);
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then nothing is paid and the selection stays, so the user can pay the report after the setup
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+
+        // And the onboarding opens without the modal, the same way paying a single report does, with the copy for one report
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(showEnableGlobalReimbursementsModal).toHaveBeenCalledWith({
+            bankAccountID: BANK_ACCOUNT_ID,
+            bankCountry: 'US',
+            bankCurrency: CONST.CURRENCY.USD,
+            isPayingMultipleReports: false,
+        });
+    });
+
+    it('opens the onboarding directly with the copy for several reports when none of them can be paid', async () => {
+        // Given two selected reports paid from the same bank account that needs global reimbursements
+        jest.mocked(getBankAccountToSetUpBeforePaying).mockReturnValue(bankAccount);
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then nothing is paid and the onboarding opens without the modal, because there are no paid reports to report on
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        // And the onboarding explains that all the selected reports need it
+        expect(showEnableGlobalReimbursementsModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, isPayingMultipleReports: true}));
     });
 
     it('does not show the modal when no report needs global reimbursements', async () => {
