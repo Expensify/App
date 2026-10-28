@@ -64,7 +64,7 @@ The journeys drive the real app, so the test account needs data to work with. A 
 
 ## How the workflow uses the account
 
-The emulator builds start from `src/PgoEmulatorApp.ts`, which runs the normal app and signs it in with the partner login. The runner places the login on the disposable device after installing the app, so no app or uploaded file contains it. The app stores only the session, so signing out cannot revoke the login. It signs in again on the first launch after 30 minutes, so no journey starts with an old session.
+The emulator builds start from `src/PgoEmulatorApp.ts`, which runs the normal app and signs it in with the partner login. It then hands the session to Expensify Classic, as a normal HybridApp sign-in does. Without that handoff, HybridApp would sign New Expensify out on every launch. The runner places the login on the disposable device after installing the app, so no app or uploaded file contains it. Classic keeps the login to stay signed in, and signing out could revoke it for every later run, so nothing in the workflow signs out. The app signs in again on the first launch after 30 minutes, so no journey starts with an old session. If sign-in fails, the app writes the reason next to the login file and the runner prints it.
 
 The journeys also need a fixture that names the account, the chat that receives the training messages, and the busy report to open. The runner builds it after signing in. It takes the email from the secret, and reads the account's own chat and its `#announce` room from the app's search. The fixture stays on the runner. To open a different busy chat, change `BUSY_REPORT` in `scripts/pgo/emulatorAccount.ts`.
 

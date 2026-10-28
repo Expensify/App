@@ -1,6 +1,6 @@
 // cspell:ignore sdcard simctl
 /** Sign a disposable emulator into the CI test account and describe that account to the journeys. */
-import {mkdirSync, mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
@@ -9,7 +9,7 @@ import type {JourneyFixture} from './journeyConfig';
 import type {JourneyDevice, JourneyNode} from './journeyDevice';
 
 import {capture, fail, run, runAllowFailure, sleep} from '../lib/scriptUtils';
-import {EMULATOR_SIGN_IN_FILE, parseEmulatorSignIn} from './emulatorSignIn';
+import {EMULATOR_SIGN_IN_ERROR_FILE, EMULATOR_SIGN_IN_FILE, parseEmulatorSignIn} from './emulatorSignIn';
 import {parseJourneyFixture} from './journeyConfig';
 import {createJourneyDevice, idSelector, normalizeLabel} from './journeyDevice';
 import {showTab, waitForTab} from './journeyWorkload';
@@ -54,7 +54,8 @@ async function signInEmulator(platform: PlatformName, device: string, appID: str
             } catch (error) {
                 // The sign-in screen stays visible until Authenticate returns and the account's first data load mounts the tabs.
                 if (Date.now() > deadline) {
-                    throw error;
+                    const reason = readSignInError(platform, device, appID);
+                    throw reason ? new Error(`The app did not sign in to the CI account: ${reason}`) : error;
                 }
             }
             await sleep(2000);
@@ -143,6 +144,20 @@ function writeFixture(fixture: JourneyFixture): string {
     const path = join(mkdtempSync(join(tmpdir(), 'pgo-journey-')), 'fixture.json');
     writeFileSync(path, JSON.stringify(fixture), {mode: 0o600});
     return path;
+}
+
+/** The CI entry leaves only its own error message, never the login, in this file. */
+function readSignInError(platform: PlatformName, device: string, appID: string): string | undefined {
+    try {
+        const message =
+            platform === 'android'
+                ? capture('adb', ['-s', device, 'shell', 'cat', `${androidFilesDirectory(appID)}/${EMULATOR_SIGN_IN_ERROR_FILE}`])
+                : readFileSync(join(capture('xcrun', ['simctl', 'get_app_container', device, appID, 'data']).trim(), 'Documents', EMULATOR_SIGN_IN_ERROR_FILE), 'utf8');
+        return message.trim() || undefined;
+    } catch {
+        // The app wrote no error: it is still signing in, or it never ran the CI entry.
+        return undefined;
+    }
 }
 
 async function waitForAndroidFilesDirectory(device: string, appID: string): Promise<void> {
