@@ -789,6 +789,7 @@
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/SearchHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/ShortcutsOverviewHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
+"../../src/libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/TabPressListeners.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/Overlay/BaseOverlay.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1072,6 +1073,7 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/TravelMenuItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/Insights/InsightsDashboard.tsx"	"rulesdir/no-onyx-loading-status"	1
+"../../src/pages/Insights/InsightsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/Insights/useInsightsFilters.ts"	"rulesdir/no-onyx-loading-status"	3
 "../../src/pages/iou/DynamicSplitBillDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/DynamicSplitExpenseCreateDateRangePage.tsx"	"no-restricted-imports"	1
