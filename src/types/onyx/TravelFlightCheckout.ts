@@ -138,4 +138,4 @@ type TravelFlightCheckout = {
 };
 
 export default TravelFlightCheckout;
-export type {FlightCheckoutSegment, FlightCheckoutLeg, FlightPriceSummary, FlightSeatMapColumn, FlightSeat, FlightSeatMapCabin, FlightSeatMap, FlightPaymentSource};
+export type {FlightCheckoutLeg, FlightPriceSummary, FlightSeat, FlightSeatMap, FlightPaymentSource};

@@ -199,10 +199,8 @@ type FlightFareRules = {
 
 export default TravelFlightSearch;
 export type {
-    FlightSearchLocation,
     FlightSearchLeg,
     FlightSearchFilters,
-    FlightAirport,
     FlightSegment,
     FlightFareRuleSummary,
     FlightPolicyViolation,
