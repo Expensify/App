@@ -112,6 +112,8 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the workspace agents has errors. */
+    hasAgentErrors?: boolean;
     /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
     hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
@@ -126,8 +128,6 @@ type GetWorkspaceMenuItemsParams = {
     isVendorMatchingBetaEnabled?: boolean;
     /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
     isRecruitingBetaEnabled?: boolean;
-    /** Whether the company agents beta is enabled. */
-    isCompanyAgentsBetaEnabled?: boolean;
     /** Whether the unified Connections beta replaces the Accounting, HR, Recruiting, Receipt partners, and MCP items. */
     isUnifiedConnectionsBetaEnabled?: boolean;
     /** Formats the invoice account balance for its menu badge. */
@@ -142,6 +142,7 @@ function getWorkspaceMenuItems({
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasAgentErrors,
     hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
@@ -149,7 +150,6 @@ function getWorkspaceMenuItems({
     hasApprovalWorkflowWithNonMemberApprover = false,
     isVendorMatchingBetaEnabled = false,
     isRecruitingBetaEnabled = false,
-    isCompanyAgentsBetaEnabled = false,
     isUnifiedConnectionsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
@@ -258,7 +258,7 @@ function getWorkspaceMenuItems({
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
 
-    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && isCompanyAgentsBetaEnabled && !isAgentAccount) {
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && !isAgentAccount) {
         const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
         items.splice(membersItemIndex + 1, 0, {
             translationKey: 'agentsPage.title',
@@ -267,6 +267,7 @@ function getWorkspaceMenuItems({
             screenName: SCREENS.WORKSPACE.AGENTS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
             badgeTranslationKey: 'common.beta',
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 

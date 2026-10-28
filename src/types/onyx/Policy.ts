@@ -2525,6 +2525,219 @@ type CampfireConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 >;
 
 /**
+ * The Digits company the connection is authorized for. A Digits sign-in covers exactly one company.
+ */
+type DigitsCompany = {
+    /** Unique identifier of the company. */
+    id: string;
+
+    /** Name of the company. */
+    name: string;
+
+    /** Currency the company operates in. Digits only supports USD companies. */
+    currency: string;
+};
+
+/**
+ * Chart of accounts entry retrieved from Digits.
+ */
+type DigitsAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Account number shown in Digits, imported as the GL code. */
+    displayNumber?: string;
+
+    /** Unique identifier of the parent account. */
+    parentID?: string;
+
+    /** Type of the account, as the Digits API names it. */
+    type: string;
+
+    /** Subtype of the account. Account pickers filter on the values in `CONST.DIGITS_ACCOUNT_SUBTYPE`. */
+    subtype: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
+};
+
+/**
+ * Vendor retrieved from Digits.
+ */
+type DigitsVendor = {
+    /** The vendor's Digits external ID, serialized as a JSON string of its issuer and ID. */
+    id: string;
+
+    /** Name of the vendor. */
+    name: string;
+
+    /** Email address associated with the vendor. */
+    email?: string;
+
+    /** Roles Digits derived from the vendor's ledger activity. A vendor without activity has none yet. */
+    roles: string[];
+};
+
+/**
+ * Connection data retrieved from Digits.
+ */
+type DigitsConnectionData = {
+    /** The company the connection is authorized for. */
+    company?: DigitsCompany;
+
+    /** Accounts available in Digits. */
+    accounts?: DigitsAccount[];
+
+    /** Vendors available in Digits. */
+    vendors?: DigitsVendor[];
+};
+
+/**
+ * Digits dimensions that can be mapped to Expensify tags.
+ */
+type DigitsField = ValueOf<typeof CONST.DIGITS_FIELD>;
+
+/**
+ * Coding configuration used when importing data from Digits.
+ */
+type DigitsCoding = {
+    /** Mapping of Digits dimensions to their configured mapping behavior. */
+    fieldMappings?: Partial<Record<DigitsField, ValueOf<typeof CONST.DIGITS_MAPPING_VALUE>>>;
+};
+
+/** Offline feedback key for field mapping */
+type DigitsCodingFieldMappingsOfflineFeedbackKey = `${typeof CONST.DIGITS_CONFIG.FIELD_MAPPING_PREFIX}${DigitsField}`;
+
+/**
+ * Available dates that can be used as the export date.
+ */
+type DigitsExportDate = ValueOf<typeof CONST.DIGITS_EXPORT_DATE>;
+
+/**
+ * Export strategy for reimbursable expenses.
+ */
+type DigitsExportReimbursable = ValueOf<typeof CONST.DIGITS_EXPORT_REIMBURSABLE>;
+
+/**
+ * Export strategy for company card expenses.
+ */
+type DigitsExportNonReimbursable = ValueOf<typeof CONST.DIGITS_EXPORT_NON_REIMBURSABLE>;
+
+/**
+ * Export configuration for sending accounting data to Digits.
+ */
+type DigitsExport = {
+    /** Identifier of the export implementation to use. */
+    exporter: string;
+
+    /** Date source used when generating exported transactions. */
+    exportDate: DigitsExportDate;
+
+    /** Export behavior for reimbursable expenses. */
+    reimbursable: DigitsExportReimbursable;
+
+    /** Export behavior for company card expenses. */
+    nonReimbursable: DigitsExportNonReimbursable;
+
+    /** Account used when exporting company card expenses. */
+    creditCardAccountID: string;
+
+    /**
+     * Whether card transactions should be exported to multiple
+     * accounts based on card program mappings.
+     */
+    exportToMultipleAccounts: boolean;
+
+    /**
+     * Mapping of card program identifiers to account IDs.
+     */
+    cardProgramAccounts: Record<CardFeedWithNumber, string>;
+
+    /** Default vendor used when exporting transactions. */
+    defaultVendorID: string;
+
+    /** Payable account used when exporting travel billings. */
+    travelInvoicingPayableAccountID: string;
+
+    /** Accounting method used during export. */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/** Offline feedback key for card program account */
+type DigitsExportCardProgramAccountsOfflineFeedbackKey = `${typeof CONST.DIGITS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${string}`;
+
+/**
+ * Offline feedback keys for `DigitsExport`
+ */
+type DigitsExportOfflineFeedbackKeys = keyof Omit<DigitsExport, 'cardProgramAccounts'> | DigitsExportCardProgramAccountsOfflineFeedbackKey;
+
+/**
+ * Automatic synchronization settings for Digits.
+ */
+type DigitsAutoSync = {
+    /** Whether automatic synchronization is enabled. */
+    enabled: boolean;
+};
+
+/**
+ * Synchronization settings for importing and updating data in Digits.
+ */
+type DigitsSync = {
+    /** Whether reimbursed expense reports should be synchronized. */
+    syncReimbursedReports: boolean;
+
+    /** Account used for bill payment transactions. */
+    billPaymentAccountID: string;
+
+    /** Whether Expensify Card settlement transactions should be synchronized. */
+    syncExpensifyCardSettlements: boolean;
+
+    /** Bank account used for Expensify Card settlements. */
+    settlementsBankAccountID: string;
+
+    /** Whether travel billing settlement transactions should be synchronized. */
+    syncTravelInvoicingSettlements: boolean;
+
+    /** Bank account used for travel billing settlements. */
+    travelInvoicingSettlementsBankAccountID: string;
+};
+
+/**
+ * Connection config for Digits. Credentials, the auto-sync job and settlement progress stay on the server.
+ */
+type DigitsConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** Coding settings */
+        coding?: DigitsCoding;
+
+        /** Export settings */
+        export?: DigitsExport;
+
+        /** Auto-sync settings */
+        autoSync?: DigitsAutoSync;
+
+        /** Sync settings */
+        sync?: DigitsSync;
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    DigitsCodingFieldMappingsOfflineFeedbackKey | DigitsExportOfflineFeedbackKeys | keyof DigitsAutoSync | keyof DigitsSync
+>;
+
+/**
  * An organization configured in Zoho Books.
  */
 type ZohoBooksOrganization = {
@@ -3402,6 +3615,9 @@ type Connections = {
 
     /** Campfire integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: Connection<CampfireConnectionData, CampfireConnectionsConfig>;
+
+    /** Digits integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: Connection<DigitsConnectionData, DigitsConnectionsConfig>;
 
     /** Zoho Books integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: Connection<ZohoBooksConnectionData, ZohoBooksConnectionsConfig>;
@@ -4303,6 +4519,9 @@ export type {
     CampfireExport,
     CampfireAutoSync,
     CampfireSync,
+    DigitsExportDate,
+    DigitsVendor,
+    DigitsAccount,
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
@@ -4322,3 +4541,10 @@ export type {
  * @public
  */
 export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
+
+/**
+ * The Digits action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.
+ *
+ * @public
+ */
+export type {DigitsAutoSync, DigitsCoding, DigitsConnectionsConfig, DigitsExport, DigitsSync};
