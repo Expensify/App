@@ -30,7 +30,7 @@ import type GpsDraftDetails from '@src/types/onyx/GpsDraftDetails';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/core';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 /**
@@ -70,10 +70,10 @@ function RequireTwoFactorAuthenticationOverlay() {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
+    const requires2FAForXeroSelector = (workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
 
-    const snapshotOnboardingResumePathIfNeeded = useCallback(() => {
+    const snapshotOnboardingResumePathIfNeeded = () => {
         const activeRoute = Navigation.getActiveRoute();
         if (activeRoute.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
             updateOnboardingLastVisitedPath(activeRoute);
@@ -87,7 +87,7 @@ function RequireTwoFactorAuthenticationOverlay() {
         if (resumePath.startsWith(`/${ROUTES.ONBOARDING_ROOT.route}`)) {
             updateOnboardingLastVisitedPath(resumePath);
         }
-    }, [account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath]);
+    };
 
     useEffect(() => {
         if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
