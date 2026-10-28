@@ -11,7 +11,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 
 This index lists rule titles only. Before writing or editing code, read the full rule file for every category that applies to the files you touch: each file holds the rule's conditions, exceptions, and the fix it expects.
 
-Before committing, run the `code-inline-reviewer` agent (`.claude/agents/code-inline-reviewer.md`) on your diff. CI runs the same check.
+Before committing, stage everything with `git add -A`. Then start a general-purpose subagent that follows `.claude/agents/code-inline-reviewer.md` and reviews `git diff --cached $(git merge-base origin/main HEAD)`. CI runs the same check.
 
 ## Categories
 

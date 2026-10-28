@@ -7,7 +7,7 @@
 CI enforces the `app-coding-standards` rules with the `code-inline-reviewer` agent. Follow these steps for every code change:
 
 1. **Before writing or editing code**, load the `app-coding-standards` skill (`.claude/skills/app-coding-standards/SKILL.md`) and read the full rule file in `rules/` for every rule category that applies to the files you touch (`PERF-*`, `CONSISTENCY-*`, `CLEAN-REACT-PATTERNS-*`, `UI-*`, and `ONYX-*`). `SKILL.md` is only an index: the conditions, exceptions, and required fixes are in the rule files.
-2. **Before committing or creating a PR**, run the `code-inline-reviewer` agent (`.claude/agents/code-inline-reviewer.md`) on your diff, the same way CI does. Use `git diff main...HEAD` instead of `gh pr diff` when no PR exists yet. If your tool cannot run it as a subagent, follow its instructions yourself. Fix every violation, or explain in the PR why an exception applies.
+2. **Before committing or creating a PR**, review your diff the same way CI does. Stage everything with `git add -A`. Then start a general-purpose subagent, tell it to follow `.claude/agents/code-inline-reviewer.md`, and have it review `git diff --cached $(git merge-base origin/main HEAD)` instead of `gh pr diff`. That diff covers committed, staged, and new files since your branch left `main`. Don't call the reviewer by name: tools register agents only from the folder where the session started, which is usually the Expensidev root. If your tool cannot run subagents, follow the reviewer's instructions yourself. Fix every violation, or explain in the PR why an exception applies.
 
 ## HybridApp Architecture
 
