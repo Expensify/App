@@ -645,7 +645,7 @@ function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: 
             <Flow
                 resetKey={`${currency}-${String(isDomestic)}`}
                 schema={bankAccountFields.fields}
-                draftValues={{...WISE_GB_DRAFT, currency}}
+                draftValues={{currency, accountHolderName: WISE_GB_DRAFT.accountHolderName}}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
                 layout={layout}
                 confirmation={confirmation}
