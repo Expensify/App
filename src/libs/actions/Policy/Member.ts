@@ -1073,6 +1073,7 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
     );
     const importFinalModal = getImportMembersFinalModal(added, updated, shouldShowMemberRolePermissionWarning);
 
+    // Dynamic External Workflow policies are skipped because the backend keeps them on DYNAMIC_EXTERNAL, and successData would override that with ADVANCED
     const shouldUpdateApprovalMode =
         members.some((member) => !!member.submitsTo || !!member.forwardsTo || !!member.overLimitForwardsTo || !!member.approvalLimit) &&
         isControlPolicy(policy) &&
