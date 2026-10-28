@@ -1,4 +1,4 @@
-/** Collects completed interactive benchmark spans from an iOS app's cache markers. */
+/** Collects completed interactive benchmark spans from an iOS app's cache markers on a device or simulator. */
 
 // cspell:ignore devicectl
 
@@ -8,14 +8,15 @@ import {join} from 'node:path';
 
 import type {BenchmarkLogEvent} from '../lib/nativeAppBenchmark';
 
-import {iOSBenchmarkMarkerPath, parseBenchmarkLogEvents} from '../lib/nativeAppBenchmark';
-import {runAllowFailure, sleep} from '../lib/scriptUtils';
+import {iOSBenchmarkMarkerPath, parseBenchmarkLogEvents, parseBootedIOSSimulators} from '../lib/nativeAppBenchmark';
+import {capture, runAllowFailure, sleep} from '../lib/scriptUtils';
 
 const POLL_INTERVAL_MS = 250;
 
 /** Snapshots markers before an action, then waits for a fresh event for every requested span. */
 function createIOSJourneyBenchmarkReader(deviceID: string, appID: string) {
     let previousMarkers: Map<string, string | undefined> | undefined;
+    const readMarker = parseBootedIOSSimulators(capture('xcrun', ['simctl', 'list', 'devices', 'booted', '--json'])).includes(deviceID) ? readSimulatorMarker : readDeviceMarker;
 
     function begin(spanNames: readonly string[]): void {
         if (spanNames.length === 0) {
@@ -72,7 +73,12 @@ function createIOSJourneyBenchmarkReader(deviceID: string, appID: string) {
     return {begin, collect};
 }
 
-function readMarker(deviceID: string, appID: string, spanName: string): string | undefined {
+function readSimulatorMarker(deviceID: string, appID: string, spanName: string): string | undefined {
+    const markerPath = join(capture('xcrun', ['simctl', 'get_app_container', deviceID, appID, 'data']).trim(), iOSBenchmarkMarkerPath(spanName));
+    return existsSync(markerPath) ? readFileSync(markerPath, 'utf8') : undefined;
+}
+
+function readDeviceMarker(deviceID: string, appID: string, spanName: string): string | undefined {
     const temporaryDirectory = mkdtempSync(join(tmpdir(), 'expensify-journey-benchmark-ios-'));
     const localPath = join(temporaryDirectory, 'benchmark.log');
     try {
