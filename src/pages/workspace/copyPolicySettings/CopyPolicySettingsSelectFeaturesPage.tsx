@@ -297,7 +297,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const confirmCopyMembers = () => {
         const targetNames = targetPolicies.map((policy) => policy?.name).filter((name): name is string => !!name);
-        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetNames.length, targetWorkspaceName: targetNames.at(0) ?? ''});
+        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetPolicyIDs.length, targetWorkspaceName: targetNames.at(0) ?? ''});
 
         return showConfirmModal({
             id: 'copyPolicySettingsConfirmMembers',
