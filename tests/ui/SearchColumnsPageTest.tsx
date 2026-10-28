@@ -38,7 +38,7 @@ describe('SearchColumnsPage', () => {
         }
 
         const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
-        (jest.mocked(useOnyx) as jest.Mock).mockImplementation((key: string) => [key === ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM ? form : undefined]);
+        (jest.mocked(useOnyx) as jest.Mock).mockImplementation((key: string) => [key === ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM ? form : undefined, {status: 'loaded'}]);
         mockGetRootState.mockReturnValue({
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: input}}}}],
         });

@@ -54,7 +54,24 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import {
+    addDays,
+    endOfMonth,
+    endOfQuarter,
+    endOfWeek,
+    endOfYear,
+    format,
+    parse,
+    startOfMonth,
+    startOfQuarter,
+    startOfWeek,
+    startOfYear,
+    subDays,
+    subMonths,
+    subQuarters,
+    subWeeks,
+    subYears,
+} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
@@ -1221,7 +1238,14 @@ const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
-const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+// Keys whose change alone doesn't offer Save. The Spend footer's selections are still saved with a search, but changing
+// them is undone from the footer's own Reset, so they offer neither Save nor Reset in the header.
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1413,6 +1437,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.DESCRIPTION ||
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
+                    filterKey === FILTER_KEYS.DECLINED ||
+                    filterKey === FILTER_KEYS.HELD ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
                     filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
@@ -1507,6 +1533,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
@@ -1578,12 +1605,7 @@ function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is Onyx
     return !!data;
 }
 
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]> {
+function getAllPolicyValues<TValue>(policyID: Filter | undefined, key: OnyxCollectionKey, policyData: OnyxCollection<TValue>, policies?: OnyxCollection<OnyxTypes.Policy>): TValue[] {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1592,16 +1614,13 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
-        return Object.keys(policyData).reduce(
-            (acc, curr) => {
-                const id = curr.replace(key, '');
-                if (!resolvedValues.includes(id) && policyData[curr]) {
-                    acc.push(policyData[curr]);
-                }
-                return acc;
-            },
-            [] as Array<OnyxCollectionValuesMapping[T]>,
-        );
+        return Object.keys(policyData).reduce<TValue[]>((acc, curr) => {
+            const id = curr.replace(key, '');
+            if (!resolvedValues.includes(id) && policyData[curr]) {
+                acc.push(policyData[curr]);
+            }
+            return acc;
+        }, []);
     }
 
     return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
@@ -1701,44 +1720,31 @@ function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
             const presetRange = getDateRangeForPreset(equalToValue);
             start = presetRange.start;
             end = presetRange.end;
-        } else if (isValidDate(equalToValue)) {
-            start = equalToValue;
-            end = equalToValue;
+        } else {
+            start = getInclusiveRangeBoundary(equalToValue);
+            end = start;
         }
     }
 
+    // Typed dates can drop leading zeros, like 2026-1-5, so each boundary is zero-padded before it is compared with other dates
     const greaterThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
     if (greaterThanOrEqualToFilter) {
-        const filterValue = greaterThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            start = getLaterDate(start, filterValue);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanOrEqualToFilter.value.toString()));
     }
 
     const greaterThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
     if (greaterThanFilter) {
-        const filterValue = greaterThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const nextDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), 1), 'yyyy-MM-dd');
-            start = getLaterDate(start, nextDay);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanFilter.value.toString(), 1));
     }
 
     const lowerThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
     if (lowerThanOrEqualToFilter) {
-        const filterValue = lowerThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            end = getEarlierDate(end, filterValue);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanOrEqualToFilter.value.toString()));
     }
 
     const lowerThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
     if (lowerThanFilter) {
-        const filterValue = lowerThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const previousDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), -1), 'yyyy-MM-dd');
-            end = getEarlierDate(end, previousDay);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanFilter.value.toString(), -1));
     }
 
     return {start, end};
@@ -1772,9 +1778,23 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
     const now = new Date();
     let start: Date;
     let end: Date;
+    const lastWeek = subWeeks(now, 1);
     const lastMonth = subMonths(now, 1);
+    const lastQuarter = subQuarters(now, 1);
+    const lastYear = subYears(now, 1);
+
+    // Weeks start on Sunday regardless of locale, matching the week buckets of group-by:week.
+    const weekOptions = {weekStartsOn: 0} as const;
 
     switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_WEEK:
+            start = startOfWeek(now, weekOptions);
+            end = endOfWeek(now, weekOptions);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_WEEK:
+            start = startOfWeek(lastWeek, weekOptions);
+            end = endOfWeek(lastWeek, weekOptions);
+            break;
         case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
             start = startOfMonth(now);
             end = endOfMonth(now);
@@ -1783,9 +1803,37 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
             start = startOfMonth(lastMonth);
             end = endOfMonth(lastMonth);
             break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_QUARTER:
+            start = startOfQuarter(now);
+            end = endOfQuarter(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_QUARTER:
+            start = startOfQuarter(lastQuarter);
+            end = endOfQuarter(lastQuarter);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_YEAR:
+            start = startOfYear(now);
+            end = endOfYear(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_YEAR:
+            start = startOfYear(lastYear);
+            end = endOfYear(lastYear);
+            break;
         case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
             start = startOfYear(now);
             end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS:
+            start = subDays(now, 29);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS:
+            start = subDays(now, 89);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS:
+            start = startOfMonth(subMonths(now, 5));
+            end = endOfMonth(now);
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
             start = startOfMonth(subMonths(now, 11));
@@ -1810,7 +1858,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1973,6 +2021,10 @@ function buildFilterFormValuesFromQuery(
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
                 ?.map((filter) => {
@@ -2046,7 +2098,12 @@ function buildFilterFormValuesFromQuery(
                     ?.value.toString() ?? filtersForm[negatedKey];
         }
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
+        ) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[addNegation(filterKey, isNegated)] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
@@ -3116,6 +3173,16 @@ function getFilterFormValues<K extends ListFilterContentProps['baseFilterKey'] |
 }
 
 /**
+ * Builds the Merchant filter form values. A negated Merchant filter always uses the not-equal operator, so its match type is cleared.
+ */
+function getMerchantFilterFormValues(value: string | undefined, isNegated: boolean, merchantOperator: MerchantMatchType): Partial<SearchAdvancedFiltersForm> {
+    return {
+        ...getFilterFormValues(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value, isNegated),
+        [FILTER_KEYS.MERCHANT_OPERATOR]: isNegated ? undefined : merchantOperator,
+    };
+}
+
+/**
  * Checks whether a query still matches a default query: it contains all of the default query's filter keys and has the same type.
  * Used to detect when a query no longer represents a given default/suggested search (e.g. a filter was removed).
  */
@@ -3125,7 +3192,9 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     }
 
     const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
-    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+    // The Spend footer's keys pick what the footer shows, not which rows match, and a default choice is left out of the
+    // query. So they never decide whether a last query still belongs to its default one.
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key).filter((key) => !FOOTER_FILTER_KEYS.has(key)));
 
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
@@ -3217,6 +3286,7 @@ export {
     isFilterNegatable,
     removeNegation,
     getFilterFormValues,
+    getMerchantFilterFormValues,
     getFilterFromQuery,
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,

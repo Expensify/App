@@ -16,8 +16,9 @@ import {dismissASAPSubmitExplanation} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import CenteredModalLayout from './CenteredModalLayout';
@@ -31,21 +32,22 @@ function AutoSubmitModal() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin']);
-    const menuSections = useMemo(
-        () => [
-            {
-                icon: illustrations.PaperAirplane,
-                titleTranslationKey: 'autoSubmitModal.submittedExpensesTitle',
-                descriptionTranslationKey: 'autoSubmitModal.submittedExpensesDescription',
-            },
-            {
-                icon: illustrations.Pencil,
-                titleTranslationKey: 'autoSubmitModal.pendingExpensesTitle',
-                descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
-            },
-        ],
-        [illustrations.PaperAirplane, illustrations.Pencil],
-    );
+    const menuSections = [
+        {
+            icon: illustrations.PaperAirplane,
+            titleTranslationKey: 'autoSubmitModal.submittedExpensesTitle',
+            descriptionTranslationKey: 'autoSubmitModal.submittedExpensesDescription',
+        },
+        {
+            icon: illustrations.Pencil,
+            titleTranslationKey: 'autoSubmitModal.pendingExpensesTitle',
+            descriptionTranslationKey: 'autoSubmitModal.pendingExpensesDescription',
+        },
+    ] satisfies Array<{
+        icon: IconAsset;
+        titleTranslationKey: TranslationPaths;
+        descriptionTranslationKey: TranslationPaths;
+    }>;
 
     const willShowAgainRef = useRef<boolean | null>(null);
 
@@ -111,8 +113,8 @@ function AutoSubmitModal() {
                                     additionalStyles={[styles.mr4]}
                                 />
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>
-                                    <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey as TranslationPaths)}</Text>
-                                    <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey as TranslationPaths)}</Text>
+                                    <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey)}</Text>
+                                    <Text style={[styles.mutedTextLabel, styles.lh16]}>{translate(section.descriptionTranslationKey)}</Text>
                                 </View>
                             </View>
                         ))}

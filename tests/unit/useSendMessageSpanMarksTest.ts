@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
 import {cancelAllSpans, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {cancelAllSendMessageSpans, cancelSendMessagePhases, startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
+import {cancelSendMessagePhases, cancelSendMessageSpansForReport, startSendMessagePhase, startSendMessageVisibleSpan} from '@libs/telemetry/sendMessageSpans';
 import useSendMessageSpanMarks from '@libs/telemetry/useSendMessageSpanMarks';
 
 import CONST from '@src/CONST';
@@ -35,8 +35,11 @@ function getEndOrder() {
     return (Sentry as unknown as {endOrder: string[]}).endOrder;
 }
 
-function startSendSpan(reportActionID: string) {
-    return startSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_${reportActionID}`, {
+const REPORT_ID = '1';
+const CONCIERGE_THREAD_REPORT_ID = '2';
+
+function startSendSpan(reportActionID: string, visibleReportID = REPORT_ID) {
+    startSendMessageVisibleSpan(reportActionID, visibleReportID, {
         name: 'send-message-visible',
         op: CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
     });
@@ -46,8 +49,8 @@ function buildForeignSpanIDThatSlicesToReportActionID(reportActionID: string) {
     return `${'OtherSpanFamily_'.padEnd(CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE.length + 1, 'x')}${reportActionID}`;
 }
 
-function startSendWithOpenPropagate(reportActionID: string) {
-    startSendSpan(reportActionID);
+function startSendWithOpenPropagate(reportActionID: string, visibleReportID = REPORT_ID) {
+    startSendSpan(reportActionID, visibleReportID);
     startSendMessagePhase(reportActionID, CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE);
 }
 
@@ -136,34 +139,43 @@ describe('cancelSendMessagePhases', () => {
     });
 });
 
-describe('cancelAllSendMessageSpans', () => {
+describe('cancelSendMessageSpansForReport', () => {
     it('sweeps an open phase before its parent', () => {
+        // Given a send whose Propagate phase is still open
         startSendWithOpenPropagate('30');
 
-        cancelAllSendMessageSpans();
+        // When the user leaves the report it was sent in
+        cancelSendMessageSpansForReport(REPORT_ID);
 
+        // Then the phase ends first, because Sentry drops descendants that are still open when the root ends
         expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE, CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE]);
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_30`)).toBeUndefined();
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_30`)).toBeUndefined();
     });
 
     it('sweeps a PostCommit phase left open by a row that never laid out', () => {
+        // Given a send whose row committed but never laid out, leaving PostCommit open
         startSendWithOpenPropagate('31');
         renderHook(() => useSendMessageSpanMarks('31'));
         getEndOrder().length = 0;
 
-        cancelAllSendMessageSpans();
+        // When the user leaves the report
+        cancelSendMessageSpansForReport(REPORT_ID);
 
+        // Then PostCommit is swept with its parent so it does not leak
         expect(getEndOrder()).toEqual([CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT, CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE]);
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.POST_COMMIT}_31`)).toBeUndefined();
     });
 
-    it('sweeps every send in flight', () => {
+    it('sweeps every send in flight for the report', () => {
+        // Given two sends in flight in the same report
         startSendWithOpenPropagate('32');
         startSendWithOpenPropagate('33');
 
-        cancelAllSendMessageSpans();
+        // When the user leaves that report
+        cancelSendMessageSpansForReport(REPORT_ID);
 
+        // Then both sends and their phases are cancelled
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_32`)).toBeUndefined();
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_33`)).toBeUndefined();
         expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_32`)).toBeUndefined();
@@ -171,12 +183,39 @@ describe('cancelAllSendMessageSpans', () => {
     });
 
     it('leaves spans outside the send-message family alone', () => {
+        // Given a send and an unrelated open-report span
         startSendWithOpenPropagate('34');
         startSpan('ManualOpenReport_34', {name: 'open-report', op: 'ManualOpenReport'});
 
-        cancelAllSendMessageSpans();
+        // When the user leaves the report
+        cancelSendMessageSpansForReport(REPORT_ID);
 
+        // Then only the send-message spans are swept
         expect(getEndOrder()).not.toContain('ManualOpenReport');
         expect(getSpan('ManualOpenReport_34')).toBeDefined();
+    });
+
+    it('keeps a Concierge send handed off to its thread alive when the Concierge chat goes away', () => {
+        // Given a respond-in-thread send typed in the Concierge chat, which renders in the new thread
+        startSendWithOpenPropagate('35', CONCIERGE_THREAD_REPORT_ID);
+
+        // When the side panel swaps the Concierge chat for the thread
+        cancelSendMessageSpansForReport(REPORT_ID);
+
+        // Then the send keeps measuring, so it can end when the message lays out in the thread
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_35`)).toBeDefined();
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_35`)).toBeDefined();
+    });
+
+    it('cancels a handed-off send when the user leaves the thread before it renders', () => {
+        // Given a respond-in-thread send that has not rendered yet
+        startSendWithOpenPropagate('36', CONCIERGE_THREAD_REPORT_ID);
+
+        // When the user leaves the thread
+        cancelSendMessageSpansForReport(CONCIERGE_THREAD_REPORT_ID);
+
+        // Then the send is cancelled instead of being orphaned
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE}_36`)).toBeUndefined();
+        expect(getSpan(`${CONST.TELEMETRY.SPAN_SEND_MESSAGE_PHASE.PROPAGATE}_36`)).toBeUndefined();
     });
 });

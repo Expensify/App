@@ -54,7 +54,7 @@ function buildSubstitutionsMap(
 
     const substitutionKeyOccurrences = new Map<string, number>();
 
-    const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
+    const substitutionsMap = searchAutocompleteQueryRanges.reduce<SubstitutionMap>((map, range) => {
         const {key: filterKey, value: filterValue} = range;
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -116,7 +116,7 @@ function buildSubstitutionsMap(
         }
 
         return map;
-    }, {} as SubstitutionMap);
+    }, {});
     return substitutionsMap;
 }
 

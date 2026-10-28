@@ -58,6 +58,7 @@ import DisplayNames from './DisplayNames';
 import Icon from './Icon';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ReportHeaderTitleSkeleton from './ReportHeaderTitleSkeleton';
 import Text from './Text';
 
 type AvatarWithDisplayNameProps = {
@@ -220,10 +221,33 @@ function AvatarWithDisplayName({
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.reportID, report?.parentReportID]);
-    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const title = getReportName(report, getReportNameFromNames(derivedReportNames, report?.reportID));
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
+
+    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    const parentReportActionActorAccountID = parentReportAction?.actorAccountID;
+    const actorAccountID = useRef<number | null>(null);
+    useEffect(() => {
+        if (!report?.parentReportActionID) {
+            return;
+        }
+        actorAccountID.current = parentReportActionActorAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    }, [parentReportActionActorAccountID, report?.parentReportActionID]);
+
+    const derivedReportName = getReportNameFromNames(derivedReportNames, report?.reportID);
+
+    // Placeholder name with no derived name means the name is still loading. Search rows may never get a derived name, so skip them.
+    if (!shouldUseCustomSearchTitleName && derivedReportName === undefined && report?.reportName === CONST.REPORT.DEFAULT_REPORT_NAME) {
+        return (
+            <View style={[styles.appContentHeaderTitle, styles.flex1]}>
+                <ReportHeaderTitleSkeleton />
+            </View>
+        );
+    }
+
+    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
+    const title = getReportName(report, derivedReportName);
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, true, isReportArchived);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
@@ -233,21 +257,9 @@ function AvatarWithDisplayName({
     const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const statusTooltipText = shouldDisplayStatus ? getReportStatusTooltipTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const shouldShowReportTitleEditButton = shouldEnableDetailPageNavigation && !isSmallScreenWidth && canEditReportTitle(report, policy, currentUserAccountID, rules);
-
-    const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
     const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
-
-    const parentReportActionActorAccountID = parentReportAction?.actorAccountID;
-    const actorAccountID = useRef<number | null>(null);
-    useEffect(() => {
-        if (!report?.parentReportActionID) {
-            return;
-        }
-        actorAccountID.current = parentReportActionActorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActionActorAccountID, report?.parentReportActionID]);
 
     const goToDetailsPage = () => {
         navigateToDetailsPage(report, isInSidePanel);

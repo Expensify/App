@@ -1,23 +1,28 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 
-import type Navigation from '@libs/Navigation/Navigation';
+import type * as ReactNavigation from '@react-navigation/native';
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
 
-type ShortcutCallback = () => void;
-type ShortcutConfig = {isActive?: boolean};
+import createMock from '../utils/createMock';
+
+type ShortcutCallback = Parameters<typeof useKeyboardShortcut>[1];
+type ShortcutConfig = Parameters<typeof useKeyboardShortcut>[2];
 
 const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
         useIsFocused: () => true,
     };
 });
 
-jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: ShortcutCallback, config?: ShortcutConfig) => {
+jest.mock('@hooks/useKeyboardShortcut', () => (key: Parameters<typeof useKeyboardShortcut>[0], callback: ShortcutCallback, config?: ShortcutConfig) => {
     shortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
 });
 
@@ -59,6 +64,7 @@ function simulateFocusOut(container: HTMLElement, relatedTarget: EventTarget | n
 
 describe('useListKeyboardNav', () => {
     afterEach(() => {
+        jest.restoreAllMocks();
         for (const key of Object.keys(shortcuts)) {
             delete shortcuts[key];
         }
@@ -355,6 +361,133 @@ describe('useListKeyboardNav', () => {
         // Focus should scan backward from index 1 to index 0
         expect(result.current.focusedIndex).toBe(0);
 
+        cleanup();
+    });
+
+    it('keeps focus active when moving between children in the container', () => {
+        // Given two rows in the same list, focusout must not disable internal keyboard navigation.
+        const {ref, cleanup} = createContainerRef();
+        const first = document.createElement('button');
+        const second = document.createElement('button');
+        first.id = 'a';
+        second.id = 'b';
+        ref.current.append(first, second);
+        const {result} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys: ['a', 'b', 'c'], disabledIndexes: [], containerRef: ref}));
+        // When the browser transfers focus to another row, the related target is still contained.
+        act(() => {
+            first.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+            first.dispatchEvent(new FocusEvent('focusout', {bubbles: true, relatedTarget: second}));
+        });
+        pressArrowDown();
+        // Then the next arrow must advance instead of becoming inactive or resetting the index.
+        expect(result.current.focusedIndex).toBe(1);
+        cleanup();
+    });
+
+    it('updates focus state for unmatched and non-element targets without selecting a row', () => {
+        // Given a list that previously lost focus, target-id matching cannot gate focus-state updates.
+        const {ref, cleanup} = createContainerRef();
+        const unmatched = document.createElement('button');
+        unmatched.id = 'unmatched';
+        const text = document.createTextNode('nested text');
+        ref.current.append(unmatched, text);
+        const {result} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys: ['a', 'b'], disabledIndexes: [], containerRef: ref}));
+        simulateFocusIn(ref.current);
+        simulateFocusOut(ref.current);
+        // When an unmatched row and then a text node receive focus, both still activate the list.
+        act(() => {
+            unmatched.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        });
+        expect(result.current.focusedIndex).toBe(-1);
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+        simulateFocusOut(ref.current);
+        act(() => {
+            text.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        });
+        pressArrowDown();
+        // Then the list recovers arrow navigation without interpreting either target as a known row.
+        expect(result.current.focusedIndex).toBe(0);
+        cleanup();
+    });
+
+    it('handles a null focus target and removes the exact DOM listeners on unmount', () => {
+        // Given a browser container, retain the actual registered callback rather than replacing the hook.
+        const {ref, cleanup} = createContainerRef();
+        const addListener = jest.spyOn(ref.current, 'addEventListener');
+        const removeListener = jest.spyOn(ref.current, 'removeEventListener');
+        const {result, unmount} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys: ['a'], disabledIndexes: [], containerRef: ref}));
+        const focusIn = addListener.mock.calls.find(([name]) => name === 'focusin');
+        const focusOut = addListener.mock.calls.find(([name]) => name === 'focusout');
+        expect(focusIn).toBeDefined();
+        expect(focusOut).toBeDefined();
+        if (!focusIn || !focusOut || typeof focusIn[1] !== 'function') {
+            throw new Error('The list must register its DOM focus listeners');
+        }
+        // When a newly constructed event has no target, it still represents focus activation.
+        const notifyFocusIn = focusIn[1];
+        act(() => notifyFocusIn(new FocusEvent('focusin')));
+        pressArrowDown();
+        unmount();
+        // Then navigation remains usable and both exact callbacks are released.
+        expect(result.current.focusedIndex).toBe(0);
+        expect(removeListener).toHaveBeenCalledWith('focusin', focusIn[1]);
+        expect(removeListener).toHaveBeenCalledWith('focusout', focusOut[1]);
+        cleanup();
+    });
+
+    it('retains native View ownership without attaching DOM listeners', () => {
+        // Given a real native View contract, no browser methods are part of the container.
+        const nativeView = createMock<ComponentRef<typeof View>>({focus: jest.fn<void, []>()});
+        const containerRef = {current: nativeView};
+        // When the generic hook receives a native container, traversal remains independent of DOM focus.
+        const {result, unmount} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys: ['a'], disabledIndexes: [], containerRef}));
+        pressArrowDown();
+        // Then native ownership is unchanged and the DOM listener branch is bypassed.
+        expect(result.current.focusedIndex).toBe(0);
+        unmount();
+    });
+
+    it.each([
+        {itemKeys: [], disabledIndexes: []},
+        {itemKeys: ['a', 'b'], disabledIndexes: [0, 1]},
+    ])('does not select an item when no enabled row exists: %j', ({itemKeys, disabledIndexes}) => {
+        // Given an empty or fully disabled list, neither direction may manufacture an enabled row.
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() => useListKeyboardNav({isActive: true, itemKeys, disabledIndexes, containerRef: ref}));
+        // When traversal is requested in both directions, execute the real arrow manager.
+        pressArrowDown();
+        pressArrowUp();
+        // Then the unfocused marker remains intact, including the all-disabled loop termination.
+        expect(result.current.focusedIndex).toBe(-1);
+        cleanup();
+    });
+
+    it('uses the latest item order for focus events and adjusts after shrinking', () => {
+        // Given focus on the last row, a reorder changes the id-to-index correspondence.
+        const {ref, cleanup} = createContainerRef();
+        const child = document.createElement('button');
+        child.id = 'c';
+        ref.current.appendChild(child);
+        const {result, rerender} = renderHook(({itemKeys}: {itemKeys: string[]}) => useListKeyboardNav({isActive: true, itemKeys, disabledIndexes: [], containerRef: ref}), {
+            initialProps: {itemKeys: ['a', 'b', 'c']},
+        });
+        act(() => {
+            child.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        });
+        expect(result.current.focusedIndex).toBe(2);
+        // When the order changes, the layout effect must update the keys before the next focus event.
+        rerender({itemKeys: ['c', 'a', 'b']});
+        act(() => {
+            child.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        });
+        expect(result.current.focusedIndex).toBe(0);
+        act(() => result.current.setFocusedIndex(2));
+        rerender({itemKeys: ['c']});
+        // Then shrinking clamps to the surviving row and an empty list restores the unfocused marker.
+        expect(result.current.focusedIndex).toBe(0);
+        rerender({itemKeys: []});
+        expect(result.current.focusedIndex).toBe(-1);
         cleanup();
     });
 });

@@ -1,6 +1,7 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -88,7 +89,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
@@ -213,52 +214,43 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isApproverOfOutstandingReports = useIsApproverOfOutstandingPolicyReports(policyID);
 
-    const rulesDocumentSourceURL = useMemo(
-        () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
-        [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
-    );
+    const rulesDocumentSourceURL = getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? '');
 
     const hasRulesDocument = !!policy?.rulesDocumentURL;
     const hasCustomRulesText = !StringUtils.isEmptyString(policy?.customRules ?? '');
 
-    const handleRulesDocumentPicked = useCallback(
-        (files: FileObject[]) => {
-            const file = files.at(0);
-            if (!policyID || !file) {
-                return;
-            }
-            setPendingRulesDocumentFile(file);
-        },
-        [policyID],
-    );
+    const handleRulesDocumentPicked = (files: FileObject[]) => {
+        const file = files.at(0);
+        if (!policyID || !file) {
+            return;
+        }
+        setPendingRulesDocumentFile(file);
+    };
 
     const rulesDocumentURL = policy?.rulesDocumentURL;
 
-    const getRulesDocumentMenuItems = useCallback(
-        (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
-            {
-                text: translate('common.replace'),
-                icon: expensifyIcons.Upload,
-                shouldCallAfterModalHide: true,
-                onSelected: () => {
-                    openPicker({
-                        onPicked: handleRulesDocumentPicked,
-                    });
-                },
+    const getRulesDocumentMenuItems = (openPicker: (options: {onPicked: (files: FileObject[]) => void}) => void): PopoverMenuItem[] => [
+        {
+            text: translate('common.replace'),
+            icon: expensifyIcons.Upload,
+            shouldCallAfterModalHide: true,
+            onSelected: () => {
+                openPicker({
+                    onPicked: handleRulesDocumentPicked,
+                });
             },
-            {
-                text: translate('common.remove'),
-                icon: expensifyIcons.Trashcan,
-                onSelected: () => {
-                    if (!policyID || !rulesDocumentURL) {
-                        return;
-                    }
-                    deletePolicyRulesDocument(policyID, rulesDocumentURL);
-                },
+        },
+        {
+            text: translate('common.remove'),
+            icon: expensifyIcons.Trashcan,
+            onSelected: () => {
+                if (!policyID || !rulesDocumentURL) {
+                    return;
+                }
+                deletePolicyRulesDocument(policyID, rulesDocumentURL);
             },
-        ],
-        [translate, expensifyIcons, handleRulesDocumentPicked, policyID, rulesDocumentURL],
-    );
+        },
+    ];
     const shouldShowExpensePolicySection = isPolicyAdmin || hasRulesDocument || hasCustomRulesText;
 
     // The primary office is listed first and the rest by name, since the server returns them keyed by random officeIDs
@@ -295,14 +287,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
 
-    const mentionReportContextValue = useMemo(() => ({policyID, currentReportID: undefined, exactlyMatch: true}), [policyID]);
+    const mentionReportContextValue = {policyID, currentReportID: undefined, exactlyMatch: true};
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (policyDraftID || !isFocused) {
             return;
         }
         openPolicyProfilePage(routePolicyID);
-    }, [policyDraftID, isFocused, routePolicyID]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -489,7 +481,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             customText={translate('common.more')}
             options={secondaryActions}
             isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+            wrapperStyle={!isPolicyAdmin && shouldDisplayButtonsInSeparateLine ? styles.flexGrow1 : undefined}
         />
     );
 
@@ -789,7 +781,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             <MenuItem.Description>{formattedAddress}</MenuItem.Description>
                                         </MenuItem.Content>
                                         <MenuItem.Trailing>
-                                            {isCompanyAddressPrimary && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                            {isCompanyAddressPrimary && (
+                                                <Badge
+                                                    text={translate('workspace.officeLocations.primary')}
+                                                    badgeStyles={styles.ml0}
+                                                />
+                                            )}
                                         </MenuItem.Trailing>
                                     </MenuItem.Row>
                                 </MenuItemSectionRoot>
@@ -814,7 +811,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                                 <MenuItem.Description>{formatAddressToString(officeLocation.address)}</MenuItem.Description>
                                             </MenuItem.Content>
                                             <MenuItem.Trailing>
-                                                {!!officeLocation.isDefault && <MenuItem.RightLabel>{translate('workspace.officeLocations.primary')}</MenuItem.RightLabel>}
+                                                {!!officeLocation.isDefault && (
+                                                    <Badge
+                                                        text={translate('workspace.officeLocations.primary')}
+                                                        badgeStyles={styles.ml0}
+                                                    />
+                                                )}
                                                 {isEditable && <MenuItem.Chevron />}
                                             </MenuItem.Trailing>
                                         </MenuItem.Row>

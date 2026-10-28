@@ -26,7 +26,7 @@ You can create and assign tasks to yourself or other members directly within a c
 The task **creator** and the **assignee** can:
 
 - **Leave comments** in the task's thread.
-- **Reassign the task** by clicking the task, then clicking the arrow next to the **Assignee** field, and selecting a new person or entering their email.
+- **Reassign the task** by clicking the task, then clicking the arrow next to the **Assignee** field, selecting a new person or entering their email, and then selecting **Save**.
 - **Edit the title or description** by clicking the arrow next to each field.
 - **Mark the task as complete** by checking the box or opening the task and clicking **Mark as Complete**.
 
