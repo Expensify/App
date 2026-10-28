@@ -146,6 +146,11 @@ function createWithdrawalABAAccount(parameters: CreateWithdrawalABAAccountParams
     API.write(WRITE_COMMANDS.CREATE_WITHDRAWAL_ABA_ACCOUNT, parameters, onyxData);
 }
 
+/** Clears the result of the last attempt to create an ABA withdrawal account, so the form starts fresh. */
+function clearCreateWithdrawalABAAccount() {
+    Onyx.merge(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM, {isSuccess: null, errors: null});
+}
+
 export {
     goToWithdrawalAccountSetupStep,
     resetUSDBankAccount,
@@ -2095,6 +2100,7 @@ export {
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,
+    clearCreateWithdrawalABAAccount,
     askForCorpaySignerInformation,
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,

@@ -11,19 +11,27 @@ import TextLink from '@components/TextLink';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
-import {createWithdrawalABAAccount} from '@userActions/BankAccounts';
-import {clearErrors} from '@userActions/FormActions';
+import {clearCreateWithdrawalABAAccount, createWithdrawalABAAccount} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ABAWithdrawalAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ABAWithdrawalAccountForm';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+
+import ABAWithdrawalSuccess from './ABAWithdrawalSuccess';
+
+const isSuccessSelector = (form: OnyxEntry<ABAWithdrawalAccountForm>) => !!form?.isSuccess;
 
 const REQUIRED_FIELDS = [INPUT_IDS.BSB_NUMBER, INPUT_IDS.ACCOUNT_NUMBER, INPUT_IDS.BANK_USER_IDENTIFICATION_NUMBER, INPUT_IDS.COMPANY_NAME];
 
@@ -54,10 +62,11 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress}: ABAWithdr
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const [isSuccess] = useOnyx(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM, {selector: isSuccessSelector});
 
-    // Clear any error left from an earlier attempt
+    // Clear any result left from an earlier attempt
     useEffect(() => {
-        clearErrors(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM);
+        clearCreateWithdrawalABAAccount();
     }, []);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM> => {
@@ -92,6 +101,15 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress}: ABAWithdr
             policyID,
         });
     };
+
+    const finish = () => {
+        clearCreateWithdrawalABAAccount();
+        Navigation.dismissModal();
+    };
+
+    if (isSuccess) {
+        return <ABAWithdrawalSuccess onFinish={finish} />;
+    }
 
     return (
         <InteractiveStepWrapper
