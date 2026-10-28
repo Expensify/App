@@ -255,7 +255,7 @@ function SearchSavePage() {
                     appliedFilters.map((filter) => (
                         <View
                             style={[styles.flexRow]}
-                            key={filter.key}
+                            key={filter.id}
                         >
                             <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
                             <Text style={[styles.label]}>

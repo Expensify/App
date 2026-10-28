@@ -34,7 +34,8 @@ type SearchAutocompleteInputProps = {
     /** Value of TextInput */
     value: string;
 
-    onSearchQueryChange: (searchTerm: string) => void;
+    /** Called with the new text and, for typed edits, the input event's timestamp (same clock as `performance.now()`) */
+    onSearchQueryChange: (searchTerm: string, autoScrollToRight?: boolean, inputEventTimeStamp?: number) => void;
 
     /** Callback invoked when the user submits the input */
     onSubmit?: () => void;
@@ -102,6 +103,7 @@ function SearchAutocompleteInput({
     const {isBetaEnabled} = usePermissions();
     const isTravelApprovalBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const inputRef = useRef<BaseTextInputRef>(null);
+    const inputEventTimeStampRef = useRef<number | undefined>(undefined);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
     const {currencyList} = useCurrencyListState();
     const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
@@ -208,7 +210,17 @@ function SearchAutocompleteInput({
                 <TextInput
                     testID="search-autocomplete-text-input"
                     value={value}
-                    onChangeText={onSearchQueryChange}
+                    onChange={(event) => {
+                        // `onChange` fires right before `onChangeText` for the same edit, so the ref holds this edit's timestamp.
+                        // On web during IME composition (e.g. Android Chrome virtual keyboards), MarkdownTextInput only fires `onChangeText`,
+                        // so the ref remains undefined and onSearchQueryChange safely falls back to performance.now().
+                        inputEventTimeStampRef.current = event.timeStamp;
+                    }}
+                    onChangeText={(text) => {
+                        const inputEventTimeStamp = inputEventTimeStampRef.current;
+                        inputEventTimeStampRef.current = undefined;
+                        onSearchQueryChange(text, false, inputEventTimeStamp);
+                    }}
                     autoFocus={shouldDelayFocus ? autoFocusAfterNav : autoFocus}
                     caretHidden={caretHidden}
                     role={CONST.ROLE.SEARCHBOX}

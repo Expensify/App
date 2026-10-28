@@ -205,6 +205,7 @@ function filterOutRangesWithCorrectValue(
     tagList: SharedValue<string[]>,
     exportedToList: SharedValue<string[]>,
     currentType: string,
+    hasExplicitType: boolean,
     shouldReturnTripRooms: boolean,
 ) {
     'worklet';
@@ -233,6 +234,11 @@ function filterOutRangesWithCorrectValue(
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+            // `in:` is only supported for chats and tasks. A bare `in:` with no explicit type resolves to `type:chat`.
+            if (hasExplicitType && currentType !== CONST.SEARCH.DATA_TYPES.CHAT && currentType !== CONST.SEARCH.DATA_TYPES.TASK) {
+                return false;
+            }
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -308,6 +314,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
             return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
             return exportedToList.get().includes(range.value);
@@ -356,12 +363,14 @@ function parseForLiveMarkdown(
         return [];
     }
     const ranges = parsedAutocomplete.ranges;
-    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const shouldReturnTripRooms = currentType === CONST.SEARCH.DATA_TYPES.TRIP && isTravelApprovalBetaEnabled;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType, shouldReturnTripRooms))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType, !!typeRange, shouldReturnTripRooms))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';

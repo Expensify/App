@@ -1,10 +1,10 @@
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 
 import type {ForwardedRef} from 'react';
-import type {GestureType} from 'react-native-gesture-handler';
-import type {BaseGestureConfig} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
+import type {NativeGesture, PanGesture} from 'react-native-gesture-handler';
 import type PagerView from 'react-native-pager-view';
-import type {SharedValue} from 'react-native-reanimated';
+import type Animated from 'react-native-reanimated';
+import type {AnimatedRef, SharedValue} from 'react-native-reanimated';
 
 /** The pager items array is used within the pager to render and navigate between the images */
 type AttachmentCarouselPagerItems = Pick<Attachment, 'attachmentID'> & {
@@ -28,8 +28,11 @@ type AttachmentCarouselPagerStateContextType = {
     /** Index of the currently active page */
     activePage: number;
 
-    /** Ref to the active attachment */
-    pagerRef?: ForwardedRef<PagerView | GestureType> | BaseGestureConfig['ref'];
+    /** Ref to the pager: the PagerView on native and the attachment list on web */
+    pagerRef?: ForwardedRef<PagerView> | AnimatedRef<Animated.FlatList<Attachment>>;
+
+    /** The pan gesture that swipes between attachments on web. The pan gesture of the attachment needs to work simultaneously with it */
+    pagerGesture?: PanGesture;
 
     /** Indicates if the pager is currently scrolling */
     isPagerScrolling: SharedValue<boolean>;
@@ -38,7 +41,7 @@ type AttachmentCarouselPagerStateContextType = {
     isScrollEnabled: SharedValue<boolean>;
 
     /** In case we need a gesture that should work simultaneously with panning in MultiGestureCanvas */
-    externalGestureHandler?: GestureType;
+    externalGestureHandler?: NativeGesture;
 };
 
 type AttachmentCarouselPagerActionsContextType = {

@@ -68,6 +68,7 @@ type GetReportTableColumnStylesParams = {
     isApprovedColumnWide?: boolean;
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
+    isPaidColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
     isWithdrawnColumnWide?: boolean;
     isActionColumnWide?: boolean;
@@ -1995,6 +1996,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isApprovedColumnWide,
             isPostedColumnWide,
             isExportedColumnWide,
+            isPaidColumnWide,
             isDateColumnWide,
             isDateColumnCreated,
             isTaxAmountColumnWide,
@@ -2044,6 +2046,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
                 columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID:
+                columnWidth = {...getWidthStyle(isPaidColumnWide ? variables.w102 : variables.w62)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
                 // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
@@ -2126,6 +2131,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
             case CONST.SEARCH.TABLE_COLUMNS.HELD:
+            case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
                 columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MCC:

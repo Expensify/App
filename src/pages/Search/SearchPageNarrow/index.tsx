@@ -124,7 +124,7 @@ function SearchPageNarrow({
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         if (!isMobileSelectionModeEnabled) {
             return false;
         }
@@ -132,7 +132,7 @@ function SearchPageNarrow({
         clearSelectedTransactions();
         turnOffMobileSelectionMode();
         return true;
-    }, [isMobileSelectionModeEnabled, clearSelectedTransactions, topBarOffset, StyleUtils.searchHeaderDefaultOffset]);
+    };
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
@@ -205,14 +205,14 @@ function SearchPageNarrow({
     useEffect(() => {
         isHeaderInteractiveRef.current = isHeaderInteractive;
     }, [isHeaderInteractive]);
-    const onSearchLayout = useCallback(() => {
+    const onSearchLayout = () => {
         if (isHeaderInteractiveRef.current) {
             return;
         }
         startTransition(() => {
             setIsHeaderInteractive(true);
         });
-    }, [startTransition]);
+    };
 
     const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: true});
 

@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SeverityLevel} from '@sentry/react-native';
 
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import MultifactorAuthenticationAuthorizeTransactionActions from './AuthorizeTransactionActions';
@@ -63,7 +63,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const allowNavigatingAwayRef = useRef(false);
 
-    const showConfirmModal = useCallback(() => {
+    const showConfirmModal = () => {
         // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButton, so we handle navigation manually when offline.
         // Offline mode isn't supported in MFA; navigate users away immediately without showing the confirmation modal.
         if (isOffline) {
@@ -73,7 +73,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
             return;
         }
         setConfirmModalVisibility(true);
-    }, [isOffline, transactionID]);
+    };
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);

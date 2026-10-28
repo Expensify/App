@@ -71,6 +71,71 @@ describe('SearchAutocompleteUtils', () => {
             ]);
         });
 
+        it('should highlight in: filter when no type is set', () => {
+            // Given an in: filter without an explicit type, which resolves to type:chat
+            const input = 'in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the in: value is highlighted as valid
+            expect(result).toEqual([{start: 3, type: 'mention-user', length: 6}]);
+        });
+
+        it('should highlight in: filter for type:chat', () => {
+            // Given an in: filter with type:chat, which supports in:
+            const input = 'type:chat in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then both the type and the in: value are highlighted as valid
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 13, type: 'mention-user', length: 6},
+            ]);
+        });
+
+        it('should not highlight in: filter for type:expense', () => {
+            // Given an in: filter with type:expense, which does not support in:
+            const input = 'type:expense in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then only the type is highlighted, so the user can see in: is not valid for expenses
+            expect(result).toEqual([{start: 5, type: 'mention-user', length: 7}]);
+        });
+
+        it('should use the last type filter to decide whether to highlight in:', () => {
+            // Given type:expense followed by type:chat, where the search parser uses the last type (chat)
+            const input = 'type:expense type:chat in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then both types and the in: value are highlighted as valid
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 7},
+                {start: 18, type: 'mention-user', length: 4},
+                {start: 26, type: 'mention-user', length: 6},
+            ]);
+        });
+
+        it('should not highlight in: when the last type filter does not support it', () => {
+            // Given type:chat followed by type:expense, where the search parser uses the last type (expense)
+            const input = 'type:chat type:expense in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then only the types are highlighted, so the user can see in: is not valid for expenses
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 15, type: 'mention-user', length: 7},
+            ]);
+        });
+
         it('should highlight current user mentions with mention-here type', () => {
             const input = 'from:currentuser@example.com';
 
@@ -185,6 +250,19 @@ describe('SearchAutocompleteUtils', () => {
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
 
             expect(result).toEqual([]);
+        });
+
+        it('should highlight VENDOR filter with a typed vendor name', () => {
+            // Given a typed vendor filter, whose names are matched by text on the server
+            const input = 'vendor:"Acme Tools"';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the vendor value is highlighted like other free-text filters
+            expect(result).toEqual([
+                {start: 7, type: 'mention-user', length: 12}, // vendor:"Acme Tools"
+            ]);
         });
 
         it('should highlight EXPORTED_TO filter when value is in predefined integrations or custom template list', () => {

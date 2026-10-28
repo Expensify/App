@@ -1,3 +1,4 @@
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
@@ -17,8 +18,9 @@ import TripListItemRow from './TripListItemRow';
 /**
  * A trip row in search results. Tapping the row or its View action opens the trip room.
  */
-function TripListItem({item, columns = [], isFocused, showTooltip, isDisabled, onSelectRow, onFocus, shouldSyncFocus, isLastItem}: TripListItemProps) {
+function TripListItem({item, columns = [], showTooltip, isDisabled, onSelectRow, onFocus, shouldSyncFocus, isLastItem}: TripListItemProps) {
     const styles = useThemeStyles();
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const StyleUtils = useStyleUtils();
     const {pageGutterMargin} = useLayoutSpacing();
     const {isLargeScreenWidth} = useResponsiveLayout();
