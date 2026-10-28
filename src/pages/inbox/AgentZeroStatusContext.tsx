@@ -187,7 +187,7 @@ function AgentZeroStatusGate({
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
     // that flash without waiting for the NVP clear.
     // A pregenerated followup reply, or an agent comment that was already newest when its label turned on, answers an
-    // earlier question; it can sort after the user's next message, so it does not mean the current turn is answered.
+    // earlier question. It can sort after the user's next message, so it does not mean the current turn is answered.
     const serverAgentIDsKey = (serverAgentIDs ?? []).join(',');
     const [labelBaseline, setLabelBaseline] = useState({key: serverAgentIDsKey, newestActionID: newestReportAction?.reportActionID});
     if (labelBaseline.key !== serverAgentIDsKey) {

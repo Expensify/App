@@ -77,7 +77,7 @@ function useComposerSubmit(reportID: string) {
         // "...is working on your chat" while a human is handling it). Clear it optimistically so it disappears
         // the instant the user sends, instead of lingering until the ProcessAgentZeroRequest job runs; the
         // backend re-establishes the correct status afterward. Skip the clear while a suggested-followup turn
-        // is still reconciling (pregenerated reply queued or followup-list pending) — the indicator then
+        // is still reconciling (pregenerated reply queued or followup-list pending). The indicator then
         // reflects that in-flight turn, and clearing it would blank the status mid-generation.
         const hasPendingConciergeTurn = !!pendingConciergeResponse || !!pendingConciergeFollowupList;
         if (isConciergeChatReport(report, conciergeReportID) && !hasPendingConciergeTurn) {

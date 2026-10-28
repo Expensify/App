@@ -152,7 +152,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
 
             const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
 
-            // Then the skeleton window no longer hides the indicators — that message is a turn of its own
+            // Then the skeleton window no longer hides the indicators, since that message is a turn of its own
             await waitFor(() => {
                 expect(result.current).toBe(false);
             });

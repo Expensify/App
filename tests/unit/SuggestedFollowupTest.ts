@@ -239,7 +239,7 @@ describe('SuggestedFollowup actions — followup-list skeleton flag', () => {
             await waitForBatchedUpdates();
 
             // Then the queued pending response records the same reportActionID the question was posted
-            // with — the anchor later used to detect a newer user message during the turn
+            // with, the anchor later used to detect a newer user message during the turn
             const questionReportActionID = addCommentSpy.mock.calls.at(0)?.at(0)?.reportActionID;
             expect(questionReportActionID).toBeTruthy();
             const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);

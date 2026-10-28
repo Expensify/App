@@ -47,7 +47,7 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
 }
 
 /**
- * Whether someone other than the agent commented after the given question — i.e. the user started
+ * Whether someone other than the agent commented after the given question, meaning the user started
  * another agent request while this turn was still in flight. Compares identity plus `created`
  * within non-agent comments only: the pregenerated Concierge reply is future-stamped past its
  * display delay, so a message sent during that window sorts before the reply yet is still a

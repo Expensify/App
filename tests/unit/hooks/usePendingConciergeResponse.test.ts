@@ -500,7 +500,7 @@ describe('usePendingConciergeResponse', () => {
 
         it('preserves the Concierge processing indicator when the user sent another message during the followup turn', async () => {
             // Given a followup turn: the user's question, a second user message sent while the turn
-            // was still in flight, and the pregenerated Concierge reply — which is future-stamped, so
+            // was still in flight, and the pregenerated Concierge reply, which is future-stamped, so
             // it sorts AFTER the second message even though that message is the newer request
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [QUESTION_ID]: makeUserComment(QUESTION_ID, '2026-07-27 10:00:00.000'),
@@ -525,7 +525,7 @@ describe('usePendingConciergeResponse', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: canonicalFollowupAction('2026-07-27 10:00:04.000')});
             await waitForBatchedUpdates();
 
-            // Then the skeleton flag is cleared, but the processing indicator survives — it tracks
+            // Then the skeleton flag is cleared, but the processing indicator survives. It tracks
             // the second message's in-flight request, not the completed turn
             const flag = await getOnyxValue(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}` as const);
             expect(flag).toBeUndefined();
@@ -558,7 +558,7 @@ describe('usePendingConciergeResponse', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: canonicalFollowupAction('2026-07-27 10:00:04.000')});
             await waitForBatchedUpdates();
 
-            // Then the defensive clear still runs — a missed server NVP clear must not leave a stuck label
+            // Then the defensive clear still runs, since a missed server NVP clear must not leave a stuck label
             const nameValuePairs = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}` as const);
             expect(getAgentZeroProcessingLabel(nameValuePairs, CONST.ACCOUNT_ID.CONCIERGE)).toBe('');
 

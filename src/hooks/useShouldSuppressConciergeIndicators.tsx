@@ -18,9 +18,9 @@ import useSidePanelState from './useSidePanelState';
  * Returns true when thinking/typing indicators should be hidden. Two cases:
  *   1. The Concierge welcome state — before any real message activity occurs
  *      in either the side panel or the main DM session.
- *   2. The followup-list pending window — between trickle completion and the
- *      server reply with `<followup-list>` — unless the user has sent another
- *      message since that turn's question, which is a turn of its own.
+ *   2. The followup-list pending window, between trickle completion and the
+ *      server reply with `<followup-list>`. It does not apply once the user has
+ *      sent another message since that turn's question, which is a turn of its own.
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
     const isInSidePanel = useIsInSidePanel();
