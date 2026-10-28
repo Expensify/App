@@ -226,6 +226,7 @@ function useVictoryBarInteractions() {
         chartBottom,
         yZero,
         coordinateScale,
+        shouldPinTooltipOnTouch: false,
     });
 
     const [activeBarIndex, setActiveBarIndex] = useState(-1);

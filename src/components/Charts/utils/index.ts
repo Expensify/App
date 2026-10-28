@@ -1,6 +1,15 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    WRAPPED_LABEL_ELLIPSIS,
+} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 
@@ -8,9 +17,10 @@ import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
-import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
+import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getLineRuns from './getLineRuns';
 import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
@@ -38,6 +48,27 @@ function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, 
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Builds a Skia paragraph that wraps at word breaks, centers each line, and truncates anything
+ * past `maxLines` with an ellipsis. Used for bar-name labels drawn under the Home chart bars.
+ *
+ * Unlike buildChartParagraph this does not reuse the shared builder cache: the wrap/ellipsis/align
+ * paragraph style is fixed when the builder is created, so it cannot share the single-line builder.
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildWrappedChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color: string, maxLines: number): SkParagraph {
+    return Skia.ParagraphBuilder.Make({maxLines, ellipsis: WRAPPED_LABEL_ELLIPSIS, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            color: Skia.Color(color),
         })
         .addText(text)
         .pop()
@@ -456,6 +487,16 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
 }
 
 /**
+ * Horizontal plot bounds of a cartesian chart whose y axis is `CARTESIAN_Y_AXIS`, mirroring victory-native's layout,
+ * so labels can be laid out from the width before the chart mounts.
+ */
+function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight);
+    return {left, right, width: right - left};
+}
+
+/**
  * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
  * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
  */
@@ -465,6 +506,44 @@ function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, 
         return edgeSpace;
     }
     return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
+}
+
+type AxisLabelStepParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    /** Minimum clear space between adjacent labels (px) */
+    minGap: number;
+};
+
+/**
+ * Picks the smallest step whose labels (points 0, step, 2 * step, ...), centered under their points, don't overlap.
+ * When no step fits, multiples of the last step are tried, down to labeling only the first point.
+ */
+function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepParams): number {
+    const getLeft = (i: number) => (pointXs.at(i) ?? 0) - (labelWidths.at(i) ?? 0) / 2;
+    const fits = (step: number) => {
+        for (let i = step; i < pointXs.length; i += step) {
+            const previousRight = getLeft(i - step) + (labelWidths.at(i - step) ?? 0);
+            if (getLeft(i) - previousRight < minGap) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const candidates = [...steps];
+    const lastStep = steps.at(-1) ?? 1;
+    for (let step = lastStep * 2; step < pointXs.length; step += lastStep) {
+        candidates.push(step);
+    }
+    return candidates.find(fits) ?? Math.max(1, pointXs.length);
 }
 
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
@@ -478,7 +557,7 @@ function getYAxisLabelWidth(
     if (!fontManager) {
         return 0;
     }
-    const values = data.flatMap((point) => Object.values(point.values));
+    const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
     const rawDataMax = values.length ? Math.max(...values) : 0;
     const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
@@ -491,6 +570,7 @@ function getYAxisLabelWidth(
 
 export {
     buildChartParagraph,
+    buildWrappedChartParagraph,
     canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,
@@ -500,6 +580,7 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getLineRuns,
     getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
@@ -514,8 +595,10 @@ export {
     isCursorOverChartLabel,
     getNiceYAxisTicks,
     getYAxisLabelWidth,
+    getCartesianPlotBounds,
     getBarLayout,
     getDomainPaddingForEdgeSpace,
+    getAxisLabelStep,
 };
 
 export type {ChartLabelHitTestParams};

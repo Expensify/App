@@ -668,6 +668,43 @@ describe('Table', () => {
             expect(screen.getByTestId('row-5')).toBeTruthy();
         });
 
+        it('should preserve all datasets on rows that allow text selection', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    shouldAllowTextSelection
+                    dataSet={{customMarker: true}}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            // Given a table row with a caller dataset that allows text selection
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 1)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the rendered host row is inspected
+            const row = getHostTableRows().find((candidate) => candidate.props.accessibilityLabel === mockData.at(0)?.name);
+
+            // Then the caller, table-row, and copyable-row datasets are all present
+            expect(row?.props.dataSet).toEqual({
+                customMarker: true,
+                tableRow: true,
+                [CONST.COPYABLE_ROW_ELEMENT]: true,
+            });
+        });
+
         it('should render column headers when Header component is used', () => {
             const props = createDefaultProps();
             render(
@@ -2583,6 +2620,44 @@ describe('Table', () => {
             expect(screen.queryByTestId('row-1')).toBeNull();
             expect(screen.queryByTestId('row-2')).toBeNull();
             expect(screen.getByTestId('generic-empty-state')).toBeTruthy();
+        });
+
+        it('renders the empty state instead of "No results" when a page-header table hides every row by default', () => {
+            // Given a page-header table (like the Workspaces list) whose default filter hides every row, with both
+            // a no-results state and an empty state declared
+            const props = createDefaultProps();
+            const data: TestItem[] = [
+                {keyForList: '1', id: '1', name: 'Archived A', category: 'archived', value: 1},
+                {keyForList: '2', id: '2', name: 'Archived B', category: 'archived', value: 2},
+            ];
+
+            // When the table renders with no search or filter selected
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    filters={statusFilterConfig}
+                    isItemInFilter={isItemInStatusFilter}
+                >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
+                    <Table.NoResultsState />
+                    <Table.EmptyState title="No workspaces" />
+                    <Table.Header />
+                    <Table.Body />
+                </Table>,
+            );
+
+            // Then the empty state shows inside the list with the page header still visible, because the user did
+            // not search or filter, so "No results found" would be misleading
+            expect(screen.getByTestId('flash-list')).toBeTruthy();
+            expect(screen.getByTestId('table-header-component')).toBeTruthy();
+            expect(screen.getAllByTestId('generic-empty-state')).toHaveLength(1);
+            expect(screen.getByText('No workspaces')).toBeTruthy();
+            expect(screen.queryByText('common.noResultsFound')).toBeNull();
         });
     });
 

@@ -19,6 +19,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {useCallback, useMemo} from 'react';
 
 import useDelegateAccountID from './useDelegateAccountID';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -62,6 +63,7 @@ function useAutoCreateTrackWorkspace() {
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const {isBetaEnabled} = usePermissions();
     const delegateAccountID = useDelegateAccountID();
 
@@ -143,6 +145,7 @@ function useAutoCreateTrackWorkspace() {
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
                     reportNameValuePairs,
+                    isAnonymousUser,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
@@ -172,6 +175,7 @@ function useAutoCreateTrackWorkspace() {
             isBetaEnabled,
             conciergeChatReportID,
             reportNameValuePairs,
+            isAnonymousUser,
             mergedAccountConciergeReportID,
             conciergeChat,
             selfDMReport,

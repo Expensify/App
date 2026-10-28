@@ -60,6 +60,7 @@ jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLay
 
 jest.mock('@libs/actions/BankAccounts', () => ({
     pressLockedBankAccount: jest.fn(),
+    openDepositAccountSetup: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
@@ -368,6 +369,7 @@ describe('TimeSensitiveSection - UnlockBankAccount', () => {
             introSelected: undefined,
             currentUserAccountID: ADMIN_ACCOUNT_ID,
             isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: true,
             // Narrowed to Concierge only, which is not in the personal details list here
             conciergePersonalDetails: {},
         });

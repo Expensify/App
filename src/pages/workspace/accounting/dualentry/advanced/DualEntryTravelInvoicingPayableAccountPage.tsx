@@ -1,7 +1,7 @@
 import type {SelectorType} from '@components/SelectionScreen';
 
 import useOnyx from '@hooks/useOnyx';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {clearDualEntryErrorField, updateDualEntryTravelInvoicingPayableAccount} from '@libs/actions/connections/DualEntry';
 import {getCardSettings} from '@libs/CardUtils';
@@ -27,8 +27,8 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
     const travelInvoicingPayableAccountID = dualentryConfig?.export?.travelInvoicingPayableAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
     const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
@@ -62,7 +62,7 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             shouldBeBlocked={shouldBeBlocked}
-            title="workspace.dualEntry.travelInvoicingPayableAccount.label"
+            title="workspace.dualEntry.travelBillingPayableAccount.label"
             displayName="DualEntryTravelInvoicingPayableAccountSelectPage"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}

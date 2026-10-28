@@ -18,7 +18,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
 import useAppFocusEvent from './useAppFocusEvent';
@@ -142,7 +142,7 @@ function useMarkAsRead({
     // A visible browser window can regain OS focus without any visibility change, and nothing else re-runs the
     // read catch-up in that case, so bump a counter on app focus to re-run it.
     const [appFocusCount, setAppFocusCount] = useState(0);
-    useAppFocusEvent(useCallback(() => setAppFocusCount((count) => count + 1), []));
+    useAppFocusEvent(() => setAppFocusCount((count) => count + 1));
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());

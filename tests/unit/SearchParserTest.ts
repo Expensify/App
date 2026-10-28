@@ -231,7 +231,7 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: 'marriott',
                 },
@@ -261,7 +261,7 @@ const tests = [
                     },
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: "McDonald's",
                 },
@@ -596,7 +596,7 @@ const tests = [
                             },
                         },
                         right: {
-                            operator: 'eq',
+                            operator: 'contains',
                             left: 'merchant',
                             right: 'Expensify, Inc.',
                         },
@@ -723,6 +723,98 @@ const tests = [
             filters: {
                 operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
                 left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
+        query: 'type:expense anyApproval:last-month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
+        query: 'type:expense any-approval:last-month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
+        query: 'type:expense anyApproval>2026-04-01',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                right: '2026-04-01',
+            },
+        },
+    },
+    {
+        query: 'type:expense anyApproval<2026-04-30',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                right: '2026-04-30',
+            },
+        },
+    },
+    {
+        query: 'type:expense anyApproval>=2026-04-01 anyApproval<=2026-04-30',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                    right: '2026-04-01',
+                },
+                right: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                    right: '2026-04-30',
+                },
+            },
+        },
+    },
+    {
+        query: 'type:expense -anyApproval:last-month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
                 right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
             },
         },
@@ -1038,6 +1130,50 @@ const tests = [
 
 const keywordTests = [
     {
+        query: '-merchant*:Uber',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['-merchant*:Uber'],
+            },
+        },
+    },
+    {
+        // The "contains" operator is only supported for the merchant field
+        query: 'category*:travel',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['category*:travel'],
+            },
+        },
+    },
+    {
+        // The "contains" operator is not supported for default keys
+        query: 'type*:expense',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'keyword',
+                right: ['type*:expense'],
+            },
+        },
+    },
+    {
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',
@@ -1230,6 +1366,62 @@ const keywordTests = [
         },
     },
     {
+        query: 'declined:yes',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'declined',
+                right: 'yes',
+            },
+        },
+    },
+    {
+        query: 'type:expense-report -declined:no',
+        expected: {
+            type: 'expense-report',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'declined',
+                right: 'no',
+            },
+        },
+    },
+    {
+        query: 'held:yes',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'held',
+                right: 'yes',
+            },
+        },
+    },
+    {
+        query: '-held:no',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'neq',
+                left: 'held',
+                right: 'no',
+            },
+        },
+    },
+    {
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',
@@ -1329,6 +1521,20 @@ const keywordTests = [
     },
     {
         query: 'merchant:tax',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'contains',
+                left: 'merchant',
+                right: 'tax',
+            },
+        },
+    },
+    {
+        query: 'merchant=tax',
         expected: {
             type: 'expense',
             sortBy: 'date',
@@ -1576,7 +1782,7 @@ const limitTests = [
             view: 'table',
             limit: '50',
             filters: {
-                operator: 'eq',
+                operator: 'contains',
                 left: 'merchant',
                 right: 'Amazon',
             },
@@ -1653,7 +1859,7 @@ const footerSelectionTests = [
                     right: 'USD',
                 },
                 right: {
-                    operator: 'eq',
+                    operator: 'contains',
                     left: 'merchant',
                     right: 'Amazon',
                 },
@@ -1716,7 +1922,7 @@ const compareTests = [
             groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
             compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
             filters: {
-                operator: 'eq',
+                operator: 'contains',
                 left: 'merchant',
                 right: 'Amazon',
             },
@@ -1777,7 +1983,13 @@ function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknow
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
+        // Given a raw search query string typed by the user (including filter aliases such as any-approval)
+
+        // When the query is parsed into its structured representation
+        const result = parseSearchQueryWithoutRawFilters(query);
+
+        // Then the parsed type, sort, view and filter tree match what the search API expects for that query
+        expect(result).toEqual(expected);
     });
 });
 

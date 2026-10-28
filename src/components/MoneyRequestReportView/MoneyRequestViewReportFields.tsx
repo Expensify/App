@@ -34,7 +34,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ReportFieldInlineInput from './ReportFieldInlineInput';
@@ -77,7 +77,7 @@ function ReportFieldView(
     styles: ThemeStyles,
     onSaveValue: (reportField: PolicyReportField, value: string) => void,
     onDelete: (reportField: EnrichedPolicyReportField) => Promise<void>,
-    pendingAction?: PendingAction,
+    fieldPendingAction?: PendingAction,
 ) {
     return (
         <View
@@ -87,8 +87,7 @@ function ReportFieldView(
             style={styles.flex1}
         >
             <OfflineWithFeedback
-                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
+                pendingAction={fieldPendingAction}
                 errors={report?.errorFields?.[reportField.fieldKey]}
                 onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
             >
@@ -141,39 +140,39 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         deleteReportField(report.reportID, report.fieldList?.[reportField.fieldKey] ?? reportField);
     };
 
-    const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
-        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
-        const fields = Object.values(fieldsByName);
+    const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+    const fields = Object.values(fieldsByName);
+    const sortedPolicyReportFields: EnrichedPolicyReportField[] = fields
+        .filter((field) => isReportFieldTargetMatchingReport(report, field))
+        .filter((reportField) => !shouldHideSingleReportField(reportField))
+        .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
+        .map((field): EnrichedPolicyReportField => {
+            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
+            const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
+            const fieldKey = getReportFieldKey(field.fieldID);
+            const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
+            const isEditable = !isFieldDisabled || isDeletedFormulaField;
 
-        return fields
-            .filter((field) => isReportFieldTargetMatchingReport(report, field))
-            .filter((reportField) => !shouldHideSingleReportField(reportField))
-            .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
-            .map((field): EnrichedPolicyReportField => {
-                const fieldValue = resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
-                const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
-                const fieldKey = getReportFieldKey(field.fieldID);
-                const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
-                const isEditable = !isFieldDisabled || isDeletedFormulaField;
-
-                const violation = isFieldDisabled ? undefined : getFieldViolation(field);
-                const violationTranslation = getFieldViolationTranslation(field, violation);
-
-                return {
-                    ...field,
-                    fieldValue,
-                    isFieldDisabled: !isEditable,
-                    // Only fields that are no longer on the workspace can be deleted. Their `deletable` flag is not
-                    // checked: once the workspace drops a field, whether it was required no longer applies, and the
-                    // report's copy of a date field can still be flagged as not deletable.
-                    isFieldDeletable: field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
-                    fieldKey,
-                    violation,
-                    violationTranslation,
-                };
-            });
-    }, [policy, report, currentUserAccountID, reportNameValuePairs, getCurrencyDecimals, rules]);
+            // An input the user can type into is seeded with the raw value, the same as the report field editor page.
+            // Seeding it with the computed value would save the resolved text over a `{field:X}` default the first
+            // time it was edited, so the field would stop following the field it refers to.
+            const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+            const fieldValue = shouldUseRawValue ? (field.value ?? field.defaultValue ?? '') : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
+            const violation = isFieldDisabled ? undefined : getFieldViolation(field);
+            const violationTranslation = getFieldViolationTranslation(field, violation);
+            return {
+                ...field,
+                fieldValue,
+                isFieldDisabled: !isEditable,
+                // Only fields that are no longer on the workspace can be deleted. Their `deletable` flag is not
+                // checked: once the workspace drops a field, whether it was required no longer applies, and the
+                // report's copy of a date field can still be flagged as not deletable.
+                isFieldDeletable: field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
+                fieldKey,
+                violation,
+                violationTranslation,
+            };
+        });
 
     // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
     // If no displayable custom fields remain, the early return below hides the section.
@@ -183,6 +182,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         return null;
     }
 
+    const pendingFieldsByKey = new Map(Object.entries(report?.pendingFields ?? {}));
     const columnCount = shouldUseNarrowLayout || shouldUseSingleColumn ? 1 : CONST.REPORT_FIELDS_PER_ROW;
     const fieldRows: EnrichedPolicyReportField[][] = [];
     for (let index = 0; index < sortedPolicyReportFields.length; index += columnCount) {
@@ -202,7 +202,18 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
                         // message grows downwards instead of stretching the cells beside it and shifting their inputs.
                         style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
                     >
-                        {fieldRow.map((reportField) => ReportFieldView(reportField, report, policy, styles, saveReportField, deleteField, pendingAction))}
+                        {fieldRow.map((reportField) =>
+                            ReportFieldView(
+                                reportField,
+                                report,
+                                policy,
+                                styles,
+                                saveReportField,
+                                deleteField,
+                                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                                pendingAction ? undefined : pendingFieldsByKey.get(reportField.fieldKey),
+                            ),
+                        )}
                         {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
                         {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
                             <View
