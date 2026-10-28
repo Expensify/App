@@ -48,8 +48,6 @@ const translations = {
         bills: 'Bills',
         createBill: 'Create bill',
         vendorEmail: 'Vendor email',
-        domain: 'Receiving domain',
-        invoiceDetails: 'Invoice details',
         attachPDF: 'Attach PDF',
         payByACH: 'Pay by ACH',
         markAsPaid: 'Mark as paid',

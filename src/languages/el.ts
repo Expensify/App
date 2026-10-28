@@ -37,8 +37,6 @@ const translations: TranslationDeepObject<typeof en> = {
         bills: 'Λογαριασμοί',
         createBill: 'Δημιουργία λογαριασμού',
         vendorEmail: 'Email προμηθευτή',
-        domain: 'Τομέας παραλήπτη',
-        invoiceDetails: 'Στοιχεία τιμολογίου',
         attachPDF: 'Επισύναψη PDF',
         payByACH: 'Πληρωμή μέσω ACH',
         markAsPaid: 'Σήμανση ως πληρωμένο',

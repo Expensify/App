@@ -1,13 +1,11 @@
 import type Form from './Form';
 
 type CreateBillForm = Form<
-    'domain' | 'vendorEmail' | 'merchant' | 'amount' | 'currency' | 'date',
+    'vendorEmail' | 'merchant' | 'amount' | 'date',
     {
-        domain: string;
         vendorEmail: string;
         merchant: string;
         amount: string;
-        currency: string;
         date: string;
     }
 >;

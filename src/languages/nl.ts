@@ -40,8 +40,6 @@ const translations: TranslationDeepObject<typeof en> = {
         bills: 'Te betalen facturen',
         createBill: 'Te betalen factuur maken',
         vendorEmail: 'E-mailadres leverancier',
-        domain: 'Ontvangend domein',
-        invoiceDetails: 'Factuurgegevens',
         attachPDF: 'PDF bijvoegen',
         payByACH: 'Betalen via ACH',
         markAsPaid: 'Markeren als betaald',

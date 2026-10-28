@@ -40,8 +40,6 @@ const translations: TranslationDeepObject<typeof en> = {
         bills: '支払請求書',
         createBill: '支払請求書を作成',
         vendorEmail: '取引先のメールアドレス',
-        domain: '受信ドメイン',
-        invoiceDetails: '請求書の詳細',
         attachPDF: 'PDFを添付',
         payByACH: 'ACHで支払う',
         markAsPaid: '支払済みにする',
