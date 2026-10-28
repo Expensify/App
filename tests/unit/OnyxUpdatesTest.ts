@@ -25,7 +25,11 @@ describe('OnyxUpdatesTest', () => {
     });
 
     // Staged WRITE and catch-up updates live in module state, so drain them before Onyx.clear to keep tests isolated
-    beforeEach(() => flushQueue().then(() => Onyx.clear()).then(waitForBatchedUpdates));
+    beforeEach(() =>
+        flushQueue()
+            .then(() => Onyx.clear())
+            .then(waitForBatchedUpdates),
+    );
 
     let releaseHeldApply: (() => void) | undefined;
     afterEach(() => {
