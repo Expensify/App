@@ -8,6 +8,7 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     CreateCollectOnlyDepositAccountParams,
+    CreateWithdrawalABAAccountParams,
     DeletePaymentBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
@@ -109,6 +110,40 @@ function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAcc
     };
 
     API.write(WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT, parameters, onyxData);
+}
+
+/** Creates an ABA withdrawal account. */
+function createWithdrawalABAAccount(parameters: CreateWithdrawalABAAccountParams) {
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM,
+                value: {isLoading: true, errors: null},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM,
+                value: {isLoading: false, isSuccess: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT,
+                value: null,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM,
+                value: {isLoading: false, isSuccess: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_WITHDRAWAL_ABA_ACCOUNT, parameters, onyxData);
 }
 
 export {
@@ -2073,5 +2108,6 @@ export {
     pressLockedBankAccount,
     uploadUserKYBDocs,
     createCollectOnlyDepositAccount,
+    createWithdrawalABAAccount,
     openDepositAccountSetup,
 };
