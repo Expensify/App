@@ -233,6 +233,11 @@ function isNavigationPartialRoute(route: unknown): route is NavigationPartialRou
 function isRealizedNavigationState(state: unknown): state is NavigationState {
     return isRecord(state) && state.stale === false && typeof state.key === 'string' && Array.isArray(state.routes);
 }
+
+function isNavigationStateWithRoutes(state: unknown): state is PartialState<NavigationState> {
+    return typeof state === 'object' && state !== null && 'routes' in state && Array.isArray(state.routes);
+}
+
 function hasReportParams(params: unknown): params is ReportsSplitNavigatorParamList[typeof SCREENS.REPORT] {
     return typeof params === 'object' && params !== null && 'reportID' in params && typeof params.reportID === 'string';
 }
