@@ -1,10 +1,25 @@
 /** Shared eligibility rules for Bills, Home, Inbox, and report actions. */
 import CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Domain, Policy, Report} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {arePaymentsEnabled} from './PolicyUtils';
+import {Str} from 'expensify-common';
+
+// eslint-disable-next-line no-restricted-imports -- Classic shows Bill only to admins of Collect or Control workspaces, so Submit workspaces are excluded on purpose.
+import {arePaymentsEnabled, getActiveAdminWorkspaces, isPaidGroupPolicy} from './PolicyUtils';
+
+/**
+ * Matches the Classic rules for showing Bill. The user must be an admin of a group workspace and belong to their private email
+ * domain, and the domain must have a technical contact to receive the bill.
+ */
+function canCreateBill(policies: OnyxCollection<Policy>, domains: OnyxCollection<Domain>, email: string | undefined, isFromPublicDomain: boolean | undefined): boolean {
+    if (!email || isFromPublicDomain || !getActiveAdminWorkspaces(policies, email).some(isPaidGroupPolicy)) {
+        return false;
+    }
+    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
+    return Object.values(domains ?? {}).some((domain) => !!domain?.hasTechnicalContact && !!domain.email && Str.extractEmailDomain(domain.email).toLowerCase() === emailDomain);
+}
 
 function isBillReport(report: OnyxEntry<Report>): boolean {
     return report?.type === CONST.REPORT.TYPE.BILL;
@@ -51,4 +66,4 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     return reimburser ? reimburser === email : policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
-export {isBillReport, isBillPayReport, canApproveBill, canPayBill};
+export {isBillReport, isBillPayReport, canApproveBill, canPayBill, canCreateBill};
