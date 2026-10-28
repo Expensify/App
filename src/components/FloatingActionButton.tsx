@@ -45,6 +45,8 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
     const fabPressable = useRef<HTMLDivElement | ComponentRef<typeof ViewType> | ComponentRef<typeof TextType> | null>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isLHBVisible = !shouldUseNarrowLayout;
+    // Only the FAB over the floating tab bar is glass. In the LHB it sits next to the solid receipt button, so it keeps its solid fill and hover color.
+    const shouldUseGlass = isFloatingButtonGlassAvailable && !isLHBVisible;
     const {translate} = useLocalize();
 
     const fabSize = isLHBVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
@@ -67,7 +69,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
 
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
-            backgroundColor: isFloatingButtonGlassAvailable ? 'transparent' : backgroundColor,
+            backgroundColor: shouldUseGlass ? 'transparent' : backgroundColor,
         };
     });
 
@@ -120,12 +122,12 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                                 styles.floatingActionButton,
                                 {borderRadius},
                                 isLHBVisible && styles.floatingActionButtonSmall,
-                                isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass,
+                                shouldUseGlass && styles.floatingActionButtonGlass,
                                 animatedStyle,
                             ]}
                             testID="fab-animated-container"
                         >
-                            <FloatingButtonGlass tintColor={buttonDefaultBG} />
+                            {shouldUseGlass && <FloatingButtonGlass tintColor={buttonDefaultBG} />}
                             <Svg
                                 width={fabSize}
                                 height={fabSize}
