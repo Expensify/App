@@ -33,7 +33,6 @@ import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaDa
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
-import type {FlatList} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -540,7 +539,7 @@ describe('ReportActionsList (body)', () => {
         it('mounts the off-screen oldest update and gives only that row a manual focus request in the inverted list', () => {
             // Given a newest-first group whose collapsed anchor is its newest member
             const scrollToIndex = jest.fn();
-            jest.mocked(useActionListRef).mockReturnValue({current: createMock<FlatList>({scrollToIndex})});
+            jest.mocked(useActionListRef).mockReturnValue(createMock<ReturnType<typeof useActionListRef>>({current: {scrollToIndex}}));
             const frames: FrameRequestCallback[] = [];
             const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
             try {

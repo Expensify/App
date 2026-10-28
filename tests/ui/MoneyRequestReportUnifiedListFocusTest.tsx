@@ -4,8 +4,6 @@ import MoneyRequestReportUnifiedList from '@components/MoneyRequestReportView/Mo
 
 import CONST from '@src/CONST';
 
-import type {FlatList} from 'react-native';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,7 +31,7 @@ describe('MoneyRequestReportUnifiedList expansion focus', () => {
         {name: 'empty transactions', horizontal: false, empty: true, expectedIndex: 1},
     ])('mounts an off-screen revealed update with $name', ({horizontal, empty, expectedIndex}) => {
         const scrollToIndex = jest.fn();
-        const listRef = {current: createMock<FlatList>({scrollToIndex})};
+        const listRef = createMock<Props['listRef']>({current: {scrollToIndex}});
         const frames = new Map<number, FrameRequestCallback>();
         let frameID = 0;
         const frameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
