@@ -26,11 +26,25 @@ jest.setTimeout(120000);
 const repoRoot = path.resolve(__dirname, '../..');
 const scriptPath = path.join(repoRoot, 'scripts/generateCertificatePins.sh');
 const pinsJsonPath = path.join(repoRoot, 'config/certificatePinning/pins.json');
+/**
+ * The HybridApp pin lists live in the Mobile-Expensify submodule and are what actually ships to the stores.
+ * They drifted from pins.json once already (the Sectigo roots were missing for a month and every HybridApp
+ * build reported the 2026-10 Sectigo chain on staging.expensify.com as a mismatch), so they are checked
+ * here too whenever the submodule is checked out. CI for this suite does not fetch the submodule, so that
+ * check only runs locally and in HybridApp builds; a missing submodule is skipped rather than failed.
+ */
+const hybridAppPinFiles = [
+    'Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml',
+    'Mobile-Expensify/Android/src/yapl/android/http/ExpensifyCertificatePinner.java',
+    'Mobile-Expensify/iOS/Expensify/ExpensifyAppDelegate.m',
+].filter((relativePath) => fs.existsSync(path.join(repoRoot, relativePath)));
+
 const nativePinFiles = [
     'android/app/src/main/java/com/expensify/chat/CertificatePinning.kt',
     'android/app/src/main/res/xml/network_security_config_enforce.xml',
     'ios/CertificatePinning.swift',
     'patches/react-native-nitro-fetch/react-native-nitro-fetch+1.6.2+001+certificate-pinning.patch',
+    ...hybridAppPinFiles,
 ];
 
 const CLOUDFLARE_GROUP_HEADER = '=== Groups A-D: Cloudflare-fronted expensify.com hosts ===';
