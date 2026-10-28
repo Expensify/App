@@ -27,7 +27,7 @@ type UseEditMessageProps = {
     shouldScrollToLastMessage?: boolean;
     scrollToLastMessage?: () => void;
     debouncedCommentMaxLengthValidation: DebouncedFuncLeading<(value: string) => boolean>;
-    composerRef: React.RefObject<ComposerRef | null>;
+    composerRef: React.RefObject<Pick<ComposerRef, 'blur' | 'focus'> | null>;
 };
 
 /**

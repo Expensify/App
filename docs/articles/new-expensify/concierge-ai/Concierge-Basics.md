@@ -64,7 +64,7 @@ Yes! Just be clear in your message. Concierge can understand multi-step instruct
 
 # Can I talk to a real person instead of Concierge?
 
-Absolutely. Just say you’d like to chat with a human, and we’ll connect you—24/7.
+Absolutely. Just say you’d like to chat with a human, and we’ll connect you—24/7. You can also select **Account > Help > Talk to a human**.
 
 If you’re working with an onboarding specialist or account manager, Concierge can schedule a call with them for you.
 

@@ -35,6 +35,9 @@ type ResolveReportContext = {
     conciergeChat: OnyxEntry<Report>;
     isSelfTourViewed: boolean | undefined;
     hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    /** The lastModified of each policy's cached full policy snapshot, keyed by policyID */
+    fullPolicySnapshotLastModifiedByPolicyID?: Record<string, number>;
 };
 
 /**
@@ -94,6 +97,9 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
     // report that can be opened: the prev/next carousel enabled its arrow from the transaction alone and then had
     // nowhere to navigate, so the press did nothing. createTransactionThreadReport recognizes an unreported
     // transaction and parents the new thread to the self-DM.
+    // An unreported expense has no parent expense report to build the thread from; report "0" is a
+    // placeholder, not a row in the collection.
+    const iouReport = isUnreported ? undefined : (getReportOrDraftReport(reportID) ?? expense.report);
     const transactionThreadReport = createTransactionThreadReport({
         introSelected: context.introSelected,
         conciergeChat: context.conciergeChat,
@@ -101,12 +107,11 @@ function getReportIDToOpenForExpense(expense: TransactionThreadNavigationDescrip
         hasCompletedGuidedSetupFlow: context.hasCompletedGuidedSetupFlow,
         currentUserLogin: context.currentUserEmail ?? '',
         currentUserAccountID: context.currentUserAccountID,
-        // An unreported expense has no parent expense report to build the thread from; report "0" is a
-        // placeholder, not a row in the collection.
-        iouReport: isUnreported ? undefined : (getReportOrDraftReport(reportID) ?? expense.report),
+        iouReport,
         iouReportAction: iouAction,
         transaction,
         personalDetails: context.personalDetails,
+        fullPolicySnapshotLastModified: iouReport?.policyID ? context.fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
     });
     return transactionThreadReport?.reportID ?? reportID;
 }
@@ -161,6 +166,7 @@ function getOrCreateTransactionThreadReportID(
         iouReportAction,
         transaction,
         personalDetails: context.personalDetails,
+        fullPolicySnapshotLastModified: iouReport?.policyID ? context.fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
     });
     return transactionThreadReport?.reportID;
 }

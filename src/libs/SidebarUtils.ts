@@ -6,6 +6,7 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     GuideAccountIDsDerivedValue,
     PersonalDetails,
@@ -18,7 +19,7 @@ import type {
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -219,7 +220,6 @@ function shouldDisplayReportInLHN({
         (isPublicRoom(report) && isAnonymousUser()) ||
         isSystemChat ||
         !!report.isPinned ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
 
@@ -442,7 +442,6 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -764,6 +763,7 @@ function getOptionData({
     isTrackIntentUser,
     formatPhoneNumber,
     rules,
+    bankAccountList,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -788,12 +788,15 @@ function getOptionData({
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    reportAttributesDerived?: ReportNamesDerivedValue;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -835,7 +838,7 @@ function getOptionData({
         isConciergeChat: false,
     };
     const reportMetadata = getReportMetadata(report?.reportID);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 
@@ -946,6 +949,7 @@ function getOptionData({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
+        bankAccountList,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
@@ -973,7 +977,6 @@ function getOptionData({
             rawReportName: report.reportName,
             hasDerivedEntry: !!derivedEntry,
             derivedReportName: derivedEntry?.reportName,
-            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
         });
     }
 

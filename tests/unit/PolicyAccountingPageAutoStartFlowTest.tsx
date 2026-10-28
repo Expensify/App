@@ -1,8 +1,10 @@
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
+import Collapsible from '@components/CollapsibleSection/Collapsible';
+import type CollapsibleProps from '@components/CollapsibleSection/Collapsible/types';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {MenuItemProps} from '@components/MenuItem';
+import type * as MenuItemModule from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,6 +13,7 @@ import PolicyAccountingPage from '@pages/workspace/accounting/PolicyAccountingPa
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
@@ -18,8 +21,10 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type {View} from 'react-native';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const POLICY_ID = 'policy-1';
@@ -117,13 +122,21 @@ jest.mock('@components/HeaderWithBackButton', () => ({__esModule: true, default:
 jest.mock('@components/MenuItemList', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/MenuItem', () => {
     const {View: MockView} = jest.requireActual<{View: typeof View}>('react-native');
+    const {default: ActualMenuItem} = jest.requireActual<typeof MenuItemModule>('@components/MenuItem');
     return {
         __esModule: true,
-        default: ({title, rightComponent}: MenuItemProps) => <MockView testID={title}>{rightComponent}</MockView>,
+        default: Object.assign(({title, rightComponent}: MenuItemModule.MenuItemProps) => <MockView testID={title}>{rightComponent}</MockView>, ActualMenuItem),
     };
 });
 jest.mock('@components/Section', () => ({__esModule: true, default: ({children}: {children: React.ReactNode}) => children}));
-jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
+// Jest resolves the native entry point by default; exercise the web wrapper's focus protection here.
+jest.mock('@components/CollapsibleSection/Collapsible', () => jest.requireActual<{default: React.ComponentType<CollapsibleProps>}>('@components/CollapsibleSection/Collapsible/index.tsx'));
+jest.mock('react-collapse', () => {
+    const {View: MockView} = jest.requireActual<{View: typeof View}>('react-native');
+    return {
+        Collapse: ({isOpened, children}: CollapsibleProps) => <MockView aria-hidden={!isOpened}>{children}</MockView>,
+    };
+});
 jest.mock('@components/ThreeDotsMenu', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: () => null}));
 
@@ -257,5 +270,68 @@ describe('PolicyAccountingPage auto-started connect flow', () => {
         // Then the enrolled integration and Campfire are both available
         expect(screen.getByTestId(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.businessCentral)).toBeOnTheScreen();
         expect(screen.getByTestId('Campfire')).toBeOnTheScreen();
+    });
+
+    it('keeps Exact Online inside Other integrations when an accounting connection exists', async () => {
+        // Given a workspace connected to Sage Intacct
+        mockRouteParams = {};
+        const policy = buildPolicy({
+            connections: createMock<Policy['connections']>({
+                intacct: {
+                    data: {},
+                    lastSync: {isConnected: true, isSuccessful: true, source: 'NEWEXPENSIFY'},
+                },
+            }),
+        });
+
+        // When the Accounting page opens with Other integrations collapsed
+        render(<PolicyAccountingPageUnderTest policy={policy} />, {wrapper: AccountingTestWrapper});
+        await waitForBatchedUpdates();
+
+        // Then Exact Online is hidden along with the other available integrations
+        const waitlistTitle = screen.getByText('Exact Online', {includeHiddenElements: true});
+        expect(screen.queryByText('Exact Online')).toBeNull();
+        expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
+        expect(screen.UNSAFE_getByType(Collapsible).find((node) => node.type === 'div').props.inert).toBe(true);
+
+        // When Other integrations is expanded
+        fireEvent.press(screen.getByRole('button', {name: 'Other'}));
+
+        // Then the waitlist is available once within the expanded section
+        expect(screen.getAllByText('Exact Online')).toHaveLength(1);
+        expect(screen.getByRole('button', {name: 'Join waitlist'})).toBeOnTheScreen();
+        expect(screen.getByText('Exact Online')).toBe(waitlistTitle);
+        expect(screen.UNSAFE_getByType(Collapsible).find((node) => node.type === 'div').props.inert).toBe(false);
+
+        // When Other integrations is collapsed again
+        fireEvent.press(screen.getByRole('button', {name: 'Other'}));
+
+        // Then Exact Online is hidden again
+        expect(screen.queryByText('Exact Online')).toBeNull();
+        expect(screen.getByText('Exact Online', {includeHiddenElements: true})).toBe(waitlistTitle);
+        expect(screen.queryByRole('button', {name: 'Join waitlist'})).toBeNull();
+        expect(screen.UNSAFE_getByType(Collapsible).find((node) => node.type === 'div').props.inert).toBe(true);
+    });
+
+    it.each([{enabledBetas: []}, {enabledBetas: [CONST.BETAS.EXACT_ONLINE]}])('offers the Exact Online waitlist with beta enrollment $enabledBetas', async ({enabledBetas}) => {
+        // Given an eligible workspace and a user who may have the future Exact connector beta
+        mockEnabledBetas = enabledBetas;
+        mockRouteParams = {};
+
+        // When the Accounting page lists its integrations
+        render(<PolicyAccountingPageUnderTest policy={buildPolicy({connections: {}})} />, {wrapper: AccountingTestWrapper});
+        await waitForBatchedUpdates();
+
+        // Then Exact Online offers the waitlist without starting an unimplemented connector flow
+        expect(screen.getByText('Exact Online')).toBeOnTheScreen();
+        expect(screen.getByRole('button', {name: 'Join waitlist'})).toBeOnTheScreen();
+        expect(mockStartIntegrationFlow).not.toHaveBeenCalled();
+        expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
+
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, '2026-10-15 10:00:00'));
+        expect(screen.getByLabelText('Exact Online, Coming soon, You’re on the waitlist')).toBeOnTheScreen();
+
+        await act(() => Onyx.set(ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, null));
+        expect(screen.getByLabelText('Exact Online, Coming soon')).toBeOnTheScreen();
     });
 });
