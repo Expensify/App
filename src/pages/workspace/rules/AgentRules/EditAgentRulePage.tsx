@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -81,18 +80,13 @@ function EditAgentRulePage({
         Navigation.goBack();
     };
 
-    const [isChecking = false] = useOnyx(ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM, {selector: (form) => !!form?.isLoading});
-    const {refusal, checkThenSavePrompt, checkSuggestedPrompt, dismissRefusal} = useAgentRulePromptCheck({
+    const {refusal, isChecking, checkThenSavePrompt, trySuggestedPrompt, resetCheck} = useAgentRulePromptCheck({
         policyID,
         formID: ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM,
+        formRef,
         checkedPrompt: agentRule?.prompt,
         savePrompt: saveRule,
     });
-
-    const trySuggestedPrompt = (suggestedPrompt: string) => {
-        formRef.current?.resetForm({[INPUT_IDS.PROMPT]: suggestedPrompt});
-        checkSuggestedPrompt(suggestedPrompt);
-    };
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
@@ -157,7 +151,7 @@ function EditAgentRulePage({
                                 type="markdown"
                                 excludedMarkdownStyles={['mentionReport']}
                                 onKeyPress={submitFormOnModEnter}
-                                onValueChange={dismissRefusal}
+                                onValueChange={resetCheck}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine

@@ -27,6 +27,7 @@ import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
+let mockOnPromptChange: ((value: string) => void) | undefined;
 let mockIsOffline = false;
 
 jest.mock('@hooks/useLocalize', () =>
@@ -89,7 +90,10 @@ jest.mock('@components/Button', () => {
     MockButton.Text = ({children}: {children: React.ReactNode}) => ReactModule.createElement(Text, null, children);
     return MockButton;
 });
-jest.mock('@components/Form/InputWrapper', () => () => null);
+jest.mock('@components/Form/InputWrapper', () => ({onValueChange}: {onValueChange?: (value: string) => void}) => {
+    mockOnPromptChange = onValueChange;
+    return null;
+});
 jest.mock('@components/Form/FormProvider', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<{
@@ -275,6 +279,25 @@ describe('Agent rule prompt check', () => {
         // Then the rule saves at once, because the check cannot run offline
         expect(onSave).toHaveBeenCalledWith({prompt: TYPED_PROMPT});
         expect(getGenerateRuleRequests(writeSpy)).toHaveLength(0);
+    });
+
+    it('stops the check and keeps the page open when the admin edits the text during the check', async () => {
+        // Given an admin who typed an agent rule, and the check has not answered
+        const onSave = jest.fn();
+        await renderWriteTab(onSave);
+        await submit(TYPED_PROMPT);
+        const generationID = getLastGenerationID(writeSpy);
+
+        // When the admin changes the text, and the answer for the old text arrives after that
+        act(() => {
+            mockOnPromptChange?.(`${TYPED_PROMPT} and the submitter`);
+        });
+        await waitForBatchedUpdatesWithAct();
+        await answerCheck({generationID, state: CONST.GENERATED_RULE.STATE.AGENT_RULE});
+
+        // Then nothing saves and the form stops loading, because a save now would lose the admin's edit
+        expect(onSave).not.toHaveBeenCalled();
+        expect((await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM))?.isLoading).toBe(false);
     });
 
     it('saves the rule when the check fails', async () => {

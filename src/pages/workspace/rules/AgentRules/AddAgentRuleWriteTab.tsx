@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ImpossibleRuleNotice from '@pages/workspace/rules/ImpossibleRuleNotice';
@@ -41,10 +40,10 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
-    const [isChecking = false] = useOnyx(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {selector: (form) => !!form?.isLoading});
-    const {refusal, checkThenSavePrompt, checkSuggestedPrompt, dismissRefusal} = useAgentRulePromptCheck({
+    const {refusal, isChecking, checkThenSavePrompt, trySuggestedPrompt, resetCheck} = useAgentRulePromptCheck({
         policyID,
         formID: ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM,
+        formRef,
         checkedPrompt,
         savePrompt: (prompt) => onSave({[INPUT_IDS.PROMPT]: prompt}),
     });
@@ -70,11 +69,6 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
     };
 
     const inputWrapperStyles = useAgentPromptInputStyles();
-
-    const trySuggestedPrompt = (suggestedPrompt: string) => {
-        formRef.current?.resetForm({[INPUT_IDS.PROMPT]: suggestedPrompt});
-        checkSuggestedPrompt(suggestedPrompt);
-    };
 
     return (
         <FormProvider
@@ -103,7 +97,7 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
                         type="markdown"
                         excludedMarkdownStyles={['mentionReport']}
                         onKeyPress={submitFormOnModEnter}
-                        onValueChange={dismissRefusal}
+                        onValueChange={resetCheck}
                         multiline
                         shouldSaveDraft
                         shouldLabelStayOnSingleLine

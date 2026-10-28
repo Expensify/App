@@ -2,6 +2,8 @@
  * Checks with Concierge whether RuleBot can carry out an agent rule that the admin wrote, before the rule saves. An
  * `impossible` answer stops the save and returns the refusal. A save after the refusal, or any other answer, saves the rule.
  */
+import type {FormRef} from '@components/Form/types';
+
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
@@ -12,14 +14,23 @@ import type {AgentRuleFormID} from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ADD_AGENT_RULE_INPUT_IDS from '@src/types/form/AddAgentRuleForm';
+import type EDIT_AGENT_RULE_INPUT_IDS from '@src/types/form/EditAgentRuleForm';
+
+import type {RefObject} from 'react';
 
 import {useEffect, useRef, useState} from 'react';
+
+const PROMPT_INPUT_ID = ADD_AGENT_RULE_INPUT_IDS.PROMPT satisfies typeof EDIT_AGENT_RULE_INPUT_IDS.PROMPT;
 
 type UseAgentRulePromptCheckParams = {
     policyID: string;
 
     /** The form that shows the loading state during the check */
     formID: AgentRuleFormID;
+
+    /** The form that shows the suggested rule when the admin tries it */
+    formRef: RefObject<FormRef | null>;
 
     /** A rule with this text saves without a check, because Concierge already wrote it or the admin saved it before */
     checkedPrompt?: string;
@@ -33,9 +44,10 @@ type PendingCheck = {
     prompt: string;
 };
 
-function useAgentRulePromptCheck({policyID, formID, checkedPrompt, savePrompt}: UseAgentRulePromptCheckParams) {
+function useAgentRulePromptCheck({policyID, formID, formRef, checkedPrompt, savePrompt}: UseAgentRulePromptCheckParams) {
     const {isOffline} = useNetwork();
     const [generatedRule] = useOnyx(ONYXKEYS.GENERATED_RULE);
+    const [isChecking = false] = useOnyx(formID, {selector: (form) => !!form?.isLoading});
     const pendingCheckRef = useRef<PendingCheck>(undefined);
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     const [checkGenerationID, setCheckGenerationID] = useState<string>();
@@ -108,16 +120,27 @@ function useAgentRulePromptCheck({policyID, formID, checkedPrompt, savePrompt}: 
         startCheck(prompt);
     };
 
-    /** Checks the suggested rule of the refusal, which the form now shows in place of the admin's text */
-    const checkSuggestedPrompt = (suggestedPrompt: string) => {
+    /** Shows the suggested rule of the refusal in place of the admin's text, and checks it */
+    const trySuggestedPrompt = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
+        formRef.current?.resetForm({[PROMPT_INPUT_ID]: suggestedPrompt});
         startCheck(suggestedPrompt);
     };
 
-    /** Hides the refusal when the admin changes the text, so that the next save checks the new text */
-    const dismissRefusal = () => setCheckGenerationID(undefined);
+    /**
+     * Stops a running check and hides the refusal when the admin changes the text. A running check must not save the text
+     * from before the change, so the admin saves again to check the new text.
+     */
+    const resetCheck = () => {
+        setCheckGenerationID(undefined);
+        if (!pendingCheckRef.current) {
+            return;
+        }
+        Log.info('[GenerateRule] Stopped an agent rule check after the text changed', false, {policyID, generationID: pendingCheckRef.current.generationID});
+        finishCheck();
+    };
 
-    return {refusal, checkThenSavePrompt, checkSuggestedPrompt, dismissRefusal};
+    return {refusal, isChecking, checkThenSavePrompt, trySuggestedPrompt, resetCheck};
 }
 
 export default useAgentRulePromptCheck;
