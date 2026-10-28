@@ -8,7 +8,7 @@
 
 Use a dedicated, owner-approved heavy account with a populated Inbox, a long chat history, and enough expenses and expense reports to scroll. Keep the account and its data between runs. Installing over the existing app preserves authentication; uninstalling or clearing app data does not.
 
-The runner never enters credentials, retrieves a security code, or switches accounts. It checks the account email in Account and exits with `SIGN_IN_REQUIRED` (exit code 2) if sign-in is needed. Stop and ask Chris to sign in manually before continuing. A CI job must surface this failure for manual intervention instead of substituting another account.
+The runner never enters credentials, retrieves a security code, or switches accounts. It checks the account email in Account and exits with `SIGN_IN_REQUIRED` (exit code 2) if sign-in is needed. Stop and ask Chris to sign in manually before continuing. A CI job must surface this failure for manual intervention instead of substituting another account. On the disposable emulators in [CI](./EVALUATION.md), the app's CI-only entry signs in to the test account before the runner starts.
 
 Before every run, it opens Inbox to allow the app's automatic large-account preference update, then opens Account → Preferences and ensures Priority mode is **Most recent**. If it is **#focus**, the runner changes it and verifies the result. It checks the preference again at the end and rejects the run if #focus became enabled.
 

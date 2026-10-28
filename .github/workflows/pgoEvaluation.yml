@@ -1,12 +1,12 @@
-name: Verify native PGO on emulators
+name: Evaluate native PGO on emulators
 
 on:
   push:
-    branches: ['@chrispader/perf/pgo-ci-verification']
+    branches: ['@chrispader/perf/pgo-ci-app-evaluation']
   workflow_dispatch:
     inputs:
       platform:
-        description: Platforms to verify
+        description: Platforms to evaluate
         type: choice
         default: both
         options: [both, android, ios]
@@ -24,25 +24,35 @@ env:
   BUNDLER: metro
   SENTRY_DISABLE_AUTO_UPLOAD: 'true'
   CMAKE_BUILD_PARALLEL_LEVEL: '2'
+  AGENT_DEVICE_VERSION: 0.20.10
 
 jobs:
-  verify:
-    # Only the copied, reviewed branch in App receives private dependency access.
-    if: github.repository == 'Expensify/App' && github.ref == 'refs/heads/@chrispader/perf/pgo-ci-verification'
+  train:
+    # Only the copied, reviewed branch in App receives private dependency and test account access.
+    if: github.repository == 'Expensify/App' && github.ref == 'refs/heads/@chrispader/perf/pgo-ci-app-evaluation'
     runs-on: ${{ matrix.platform == 'android' && 'ubuntu-24.04' || 'blacksmith-12vcpu-macos-latest' }}
     timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
         platform: ${{ fromJSON(inputs.platform == 'android' && '["android"]' || inputs.platform == 'ios' && '["ios"]' || '["android","ios"]') }}
+    env:
+      PGO_EMULATOR_ACCOUNT_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+      PGO_EMULATOR_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
+      PGO_EMULATOR_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
+      PGO_EMULATOR_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
+      PGO_EMULATOR_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
     steps:
-      - name: Check existing repository secrets
+      - name: Check repository secrets
         env:
           CHECKOUT_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           MAPBOX_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+          JOURNEY_FIXTURE: ${{ secrets.PGO_JOURNEY_FIXTURE }}
         run: |
           test -n "$CHECKOUT_TOKEN" || { echo '::error::Add the existing OS_BOTIFY_TOKEN repository secret with access to Mobile-Expensify.'; exit 1; }
           test -n "$MAPBOX_TOKEN" || { echo '::error::Add the existing MAPBOX_SDK_DOWNLOAD_TOKEN repository secret.'; exit 1; }
+          test -n "$PGO_EMULATOR_ACCOUNT_EMAIL" && test -n "$PGO_EMULATOR_PARTNER_USER_ID" && test -n "$PGO_EMULATOR_PARTNER_USER_SECRET" || { echo '::error::Add the test account secrets EXPENSIFY_PARTNER_PASSWORD_EMAIL, EXPENSIFY_PARTNER_USER_ID and EXPENSIFY_PARTNER_USER_SECRET.'; exit 1; }
+          test -n "$JOURNEY_FIXTURE" || { echo '::error::Add the PGO_JOURNEY_FIXTURE secret described in scripts/pgo/EVALUATION.md.'; exit 1; }
       - name: Checkout the candidate and its pinned native sources
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -64,6 +74,18 @@ jobs:
         env:
           MAPBOX_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
         run: ./scripts/setup-mapbox-sdk.sh "$MAPBOX_TOKEN"
+      - name: Install device automation
+        run: npm install --global "agent-device@$AGENT_DEVICE_VERSION"
+      - name: Write the test account journey fixture
+        env:
+          JOURNEY_FIXTURE: ${{ secrets.PGO_JOURNEY_FIXTURE }}
+        run: |
+          set -o pipefail
+          fixture="$RUNNER_TEMP/pgo-journey-fixture.json"
+          printf '%s' "$JOURNEY_FIXTURE" > "$fixture"
+          # Log lines can print these values one at a time, so mask each one.
+          jq -r '[.accountEmail, .description, .report.query, .report.resultLabelPrefix, .report.title, .personalChat.query, .personalChat.resultLabelPrefix, .personalChat.title] | .[] | strings' "$fixture" | while IFS= read -r value; do echo "::add-mask::$value"; done
+          echo "PGO_EMULATOR_FIXTURE_PATH=$fixture" >> "$GITHUB_ENV"
 
       - name: Read repository Java version
         if: matrix.platform == 'android'
@@ -83,7 +105,10 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Verify Android PGO on a disposable emulator
+      - name: Build the Android baseline and instrumented apps
+        if: matrix.platform == 'android'
+        run: npm run pgo:evaluate-ci -- build android
+      - name: Train on a disposable emulator and build the optimized app
         if: matrix.platform == 'android'
         uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -91,8 +116,9 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: pixel_7
+          ram-size: 4096M
           disable-animations: true
-          script: npm run pgo:verify-ci -- android
+          script: npm run pgo:evaluate-ci -- train android
 
       - name: Select repository Xcode
         if: matrix.platform == 'ios'
@@ -104,20 +130,172 @@ jobs:
         with:
           ruby-version: .ruby-version
           bundler-cache: true
-      - name: Verify iOS PGO on a disposable simulator
+      - name: Boot a disposable simulator
+        if: matrix.platform == 'ios'
+        run: npm run pgo:evaluate-ci -- boot ios
+      - name: Build the iOS apps and train on the simulator
         if: matrix.platform == 'ios'
         env:
           BUNDLE_GEMFILE: ${{ github.workspace }}/Gemfile
         run: |
           export PATH="${{ steps.ruby.outputs.ruby-prefix }}/bin:$PATH"
-          npm run pgo:verify-ci -- ios
+          npm run pgo:evaluate-ci -- build ios
+          npm run pgo:evaluate-ci -- train ios
 
-      - name: Upload verification profiles and report
+      - name: Upload the training result and profile
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
-          name: pgo-emulator-${{ matrix.platform }}
+          name: pgo-training-${{ matrix.platform }}
           path: .pgo/ci/${{ matrix.platform }}
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 7
+      - name: Upload the release and optimized apps for benchmarking
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-apps-${{ matrix.platform }}
+          path: .pgo/ci/${{ matrix.platform }}-apps
+          if-no-files-found: error
+          retention-days: 2
+
+  benchmark:
+    needs: train
+    # Each platform still benchmarks when the other platform's training failed; a missing app artifact fails only its own leg.
+    if: ${{ !cancelled() && github.repository == 'Expensify/App' && github.ref == 'refs/heads/@chrispader/perf/pgo-ci-app-evaluation' }}
+    runs-on: ${{ matrix.platform == 'android' && 'ubuntu-24.04' || 'blacksmith-12vcpu-macos-latest' }}
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(inputs.platform == 'android' && '["android"]' || inputs.platform == 'ios' && '["ios"]' || '["android","ios"]') }}
+        order: [release-first, optimized-first]
+    env:
+      PGO_EMULATOR_ACCOUNT_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+      PGO_EMULATOR_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
+      PGO_EMULATOR_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
+      PGO_EMULATOR_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
+      PGO_EMULATOR_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
+    steps:
+      - name: Checkout the candidate and its pinned native sources
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: recursive
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          persist-credentials: false
+      # A leg whose platform did not finish training stops here, before installing dependencies.
+      - name: Download the training result
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: pgo-training-${{ matrix.platform }}
+          path: .pgo/ci/${{ matrix.platform }}
+      - name: Download the trained apps
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          name: pgo-apps-${{ matrix.platform }}
+          path: .pgo/ci/${{ matrix.platform }}-apps
+      - name: Free space for the emulator and dependencies
+        if: matrix.platform == 'android'
+        run: sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /opt/ghc /usr/local/share/powershell
+      - name: Setup HybridApp dependencies
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+      - name: Install device automation
+        run: npm install --global "agent-device@$AGENT_DEVICE_VERSION"
+      - name: Write the test account journey fixture
+        env:
+          JOURNEY_FIXTURE: ${{ secrets.PGO_JOURNEY_FIXTURE }}
+        run: |
+          set -o pipefail
+          fixture="$RUNNER_TEMP/pgo-journey-fixture.json"
+          printf '%s' "$JOURNEY_FIXTURE" > "$fixture"
+          # Log lines can print these values one at a time, so mask each one.
+          jq -r '[.accountEmail, .description, .report.query, .report.resultLabelPrefix, .report.title, .personalChat.query, .personalChat.resultLabelPrefix, .personalChat.title] | .[] | strings' "$fixture" | while IFS= read -r value; do echo "::add-mask::$value"; done
+          echo "PGO_EMULATOR_FIXTURE_PATH=$fixture" >> "$GITHUB_ENV"
+
+      - name: Read repository Java version
+        if: matrix.platform == 'android'
+        id: java
+        uses: ./.github/actions/composite/getJavaVersion
+      - name: Setup Java
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: temurin
+          java-version: ${{ steps.java.outputs.version }}
+      - name: Setup the NDK tools and emulator access
+        if: matrix.platform == 'android'
+        run: |
+          # The benchmark records the same compiler and profile tool identity as the training job.
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;27.1.12297006'
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.1.12297006" >> "$GITHUB_ENV"
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Benchmark on a disposable emulator
+        if: matrix.platform == 'android'
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_7
+          ram-size: 4096M
+          disable-animations: true
+          script: npm run pgo:evaluate-ci -- benchmark android ${{ matrix.order }}
+
+      - name: Select repository Xcode
+        if: matrix.platform == 'ios'
+        uses: ./.github/actions/composite/getXcodeVersion
+      - name: Boot a disposable simulator
+        if: matrix.platform == 'ios'
+        run: npm run pgo:evaluate-ci -- boot ios
+      - name: Benchmark on the simulator
+        if: matrix.platform == 'ios'
+        run: npm run pgo:evaluate-ci -- benchmark ios ${{ matrix.order }}
+
+      - name: Upload the benchmark result
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-benchmark-${{ matrix.platform }}-${{ matrix.order }}
+          path: .pgo/ci/${{ matrix.platform }}/benchmark-${{ matrix.order }}.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  report:
+    needs: [train, benchmark]
+    if: ${{ !cancelled() && github.repository == 'Expensify/App' && github.ref == 'refs/heads/@chrispader/perf/pgo-ci-app-evaluation' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout the reporting tooling
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: Setup repository tooling
+        uses: ./.github/actions/composite/setupNode
+      - name: Download training results
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: pgo-training-*
+          path: pgo-results
+      - name: Download benchmark results
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: pgo-benchmark-*
+          path: pgo-results
+      - name: Render the evaluation report
+        env:
+          PLATFORMS: ${{ inputs.platform || 'both' }}
+        run: npm run pgo:evaluate-ci -- report pgo-results pgo-report "$PLATFORMS"
+      - name: Publish the report summary
+        run: cat pgo-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: pgo-evaluation-report
+          path: pgo-report
+          if-no-files-found: error
+          retention-days: 30

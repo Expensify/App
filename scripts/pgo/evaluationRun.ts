@@ -368,4 +368,4 @@ function runGuardedStage<T>(guard: () => void, execute: () => T): T {
     return result;
 }
 
-export {benchmarkStagePlan, configureSafeEvaluationOptions, executeEvaluation, readCohort, readPublicFrames, readSamples, runGuardedStage};
+export {benchmarkStagePlan, configureSafeEvaluationOptions, directoryNames, executeEvaluation, newBatch, readCohort, readPublicFrames, readSamples, runGuardedStage};

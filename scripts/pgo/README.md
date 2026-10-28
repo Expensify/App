@@ -2,7 +2,7 @@
 
 <!-- cspell:ignore Pader chrispader profraw profdata overfit overfitting cooldown -->
 
-For the hosted emulator workflow and the Expensify engineer handoff, see [Verify native PGO in CI](./EVALUATION.md).
+For the hosted emulator workflow and the Expensify engineer handoff, see [Evaluate native PGO in CI](./EVALUATION.md).
 
 This directory contains the local LLVM PGO workflow for Android and iOS. The `pgo.ts` command builds release, instrumented, and profile-optimized apps, retrieves native profiles, merges them, and compares startup performance. On Android, the current flags cover source-built React Native, Hermes, and ExpensifyNitroUtils libraries. On iOS, the workflow forces React Native and Hermes source builds and instruments the app and source-based CocoaPods targets. Precompiled frameworks do not participate.
 

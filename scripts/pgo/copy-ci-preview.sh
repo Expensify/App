@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Push the pinned native revision first so the App push can start CI immediately.
-branch='@chrispader/perf/pgo-ci-verification'
+branch='@chrispader/perf/pgo-ci-app-evaluation'
 repository=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 temporary=$(mktemp -d)
 trap 'rm -rf "$temporary"' EXIT
@@ -18,4 +18,4 @@ test "$(git -C "$temporary/native.git" rev-parse FETCH_HEAD)" = "$mobile_sha"
 git -C "$temporary/native.git" push git@github.com:Expensify/Mobile-Expensify.git "FETCH_HEAD:refs/heads/$branch"
 git -C "$repository" push git@github.com:Expensify/App.git "$app_sha:refs/heads/$branch"
 
-echo 'Open Expensify/App > Actions > Verify native PGO on emulators to see the run.'
+echo 'Open Expensify/App > Actions > Evaluate native PGO on emulators to see the run.'

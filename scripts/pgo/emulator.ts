@@ -137,7 +137,7 @@ function createEmulatorWorkload(adapter: PlatformAdapter, identifier: string): (
     };
 }
 
-function androidEmulatorIdentifier(): string {
+function androidEmulatorIdentifier(abi = 'x86_64'): string {
     const devices = capture('adb', ['devices'])
         .split('\n')
         .flatMap((line) => {
@@ -145,8 +145,8 @@ function androidEmulatorIdentifier(): string {
             return identifier ? [identifier] : [];
         });
     const identifier = devices.length === 1 ? devices.at(0) : undefined;
-    if (!identifier || capture('adb', ['-s', identifier, 'shell', 'getprop', 'ro.product.cpu.abi']).trim() !== 'x86_64') {
-        fail('PGO CI requires one booted x86_64 Android emulator.');
+    if (!identifier || capture('adb', ['-s', identifier, 'shell', 'getprop', 'ro.product.cpu.abi']).trim() !== abi) {
+        fail(`PGO CI requires one booted ${abi} Android emulator.`);
     }
     return identifier;
 }
@@ -163,4 +163,5 @@ if (import.meta.main) {
     await verifyEmulator(platform);
 }
 
+export {androidEmulatorIdentifier};
 export default verifyEmulator;

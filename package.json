@@ -37,6 +37,7 @@
     "build-adhoc": "ENV=adhoc bun ./node_modules/.bin/rsbuild build --config config/rsbuild/rsbuild.config.ts && bun ./scripts/combine-web-sourcemaps.ts",
     "benchmark-app-startup": "bun scripts/benchmarkAppStartup.ts",
     "pgo:verify-ci": "bun scripts/pgo/emulator.ts",
+    "pgo:evaluate-ci": "bun scripts/pgo/emulatorEvaluation.ts",
     "pgo:journey": "bun scripts/pgo/journey.ts",
     "bootstrap-device": "bun scripts/bootstrapForDevice.ts",
     "createDocsRoutes": "bun .github/scripts/createDocsRoutes.ts",
