@@ -453,21 +453,20 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             disabledAction={withPaymentsReadOnlyFallback()}
                             showLockIcon={!canWritePayments}
                             subMenuItems={
-                                <View style={[styles.mt3, styles.mbn3]}>
-                                    <MenuItemSectionRoot
-                                        onPress={canWritePayments ? () => {} : undefined}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                <MenuItemSectionRoot
+                                    onPress={canWritePayments ? () => {} : undefined}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                    style={styles.mt3}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workflowsPage.businessBankAccountCountries')}
+                                        value={reimbursementCountryNames}
+                                        numberOfLinesValue={0}
                                     >
-                                        <MenuItemField.Row
-                                            name={translate('workflowsPage.businessBankAccountCountries')}
-                                            value={reimbursementCountryNames}
-                                            numberOfLinesValue={0}
-                                        >
-                                            {canWritePayments && <MenuItem.Chevron />}
-                                        </MenuItemField.Row>
-                                        <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
-                                    </MenuItemSectionRoot>
-                                </View>
+                                        {canWritePayments && <MenuItem.Chevron />}
+                                    </MenuItemField.Row>
+                                    <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
+                                </MenuItemSectionRoot>
                             }
                         />
                     )}
