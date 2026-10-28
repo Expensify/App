@@ -13,7 +13,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {policyExpenseChatSelector} from '@selectors/Report';
-import {useCallback, useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
@@ -59,10 +58,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {selfDMReport, isLoading: isLoadingSelfDMReport} = useResolvedSelfDMReport();
     const [activePolicyID, activePolicyIDResult] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const hasExplicitPersonalDestinationSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => !!activePolicyID && !isGroupPolicy(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]),
-        [activePolicyID],
-    );
+    const hasExplicitPersonalDestinationSelector = (policies: OnyxCollection<Policy>) => !!activePolicyID && !isGroupPolicy(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]);
     const [hasExplicitPersonalDestination, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasExplicitPersonalDestinationSelector});
     const [amountOwed, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [userBillingGracePeriodEnds, userBillingGracePeriodEndsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -75,51 +71,23 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
         isLoadingSelfDMReport ||
         isLoadingOnyxValue(activePolicyIDResult, policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult);
 
-    const participants = useMemo(() => {
-        const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
-        if (reportParticipants.length > 0) {
-            return reportParticipants;
+    const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
+    let participants = reportParticipants;
+    const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
+    if (participants.length === 0 && isGlobalCreateFlow && iouType) {
+        if (iouType === CONST.IOU.TYPE.TRACK || (hasExplicitPersonalDestination && !isRestrictedToPreferredPolicy)) {
+            participants = getMoneyRequestParticipantsFromReport(selfDMReport, accountID).filter((participant) => participant.selected);
+        } else {
+            const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
+            if (canUseDefaultPolicy) {
+                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+                const defaultTargetReport = !shouldAutoReport ? selfDMReport : activePolicyExpenseChat;
+                participants = getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
+            }
         }
+    }
 
-        const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
-        if (!isGlobalCreateFlow || !iouType) {
-            return [];
-        }
-
-        if (iouType === CONST.IOU.TYPE.TRACK) {
-            return getMoneyRequestParticipantsFromReport(selfDMReport, accountID).filter((participant) => participant.selected);
-        }
-
-        if (hasExplicitPersonalDestination && !isRestrictedToPreferredPolicy) {
-            return getMoneyRequestParticipantsFromReport(selfDMReport, accountID).filter((participant) => participant.selected);
-        }
-
-        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
-        if (!canUseDefaultPolicy) {
-            return [];
-        }
-
-        const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-        const defaultTargetReport = !shouldAutoReport ? selfDMReport : activePolicyExpenseChat;
-        return getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
-    }, [
-        sourceReport,
-        accountID,
-        transaction?.isFromGlobalCreate,
-        transaction?.isFromFloatingActionButton,
-        iouType,
-        hasExplicitPersonalDestination,
-        isRestrictedToPreferredPolicy,
-        defaultExpensePolicy,
-        amountOwed,
-        userBillingGracePeriodEnds,
-        ownerBillingGracePeriodEnd,
-        personalPolicy?.autoReporting,
-        selfDMReport,
-        activePolicyExpenseChat,
-    ]);
-
-    return useMemo(() => ({participants, isLoading}), [participants, isLoading]);
+    return {participants, isLoading};
 }
 
 export default useDefaultParticipants;

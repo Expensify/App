@@ -14,7 +14,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {activeAdminPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type Props = {
     onConfirmDowngrade: () => void;
@@ -25,12 +25,9 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['MushroomTopHat']);
     const {login} = useCurrentUserPersonalDetails();
-    const selector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return activeAdminPoliciesSelector(policies, login ?? '');
-        },
-        [login],
-    );
+    const selector = (policies: OnyxCollection<Policy>) => {
+        return activeAdminPoliciesSelector(policies, login ?? '');
+    };
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
 
