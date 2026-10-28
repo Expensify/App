@@ -3,12 +3,14 @@ import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
+import {postSAMLLogin} from '@libs/LoginUtils';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useEffect} from 'react';
+
+import handleSAMLLoginError from './handleSAMLLoginError';
 
 function SAMLSignInPage() {
     const {translate} = useLocalize();

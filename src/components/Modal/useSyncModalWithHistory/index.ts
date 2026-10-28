@@ -12,7 +12,6 @@ import {EMPTY_MODAL_GUARD_SNAPSHOT_KEY, getModalGuardSnapshotKey, parseModalGuar
 import reduceModalGuardState, {getModalGuardEventFromSnapshotChange, MODAL_GUARD_EFFECT, MODAL_GUARD_STATE} from './modalGuardState';
 
 type UseSyncModalWithHistoryParams = {
-    /** Whether the modal is currently visible */
     isVisible: boolean;
 
     /** Whether this modal participates in browser-history back handling */

@@ -50,15 +50,17 @@ import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type ShareCodePageOnyxProps = {
-    /** The report currently being looked at */
     report?: OnyxEntry<Report>;
 
     /** The policy for the report currently being looked at */
     policy?: OnyxEntry<Policy>;
+
+    /** Whether to show only the QR code, without the rows under it */
+    shouldShowQRCodeOnly?: boolean;
 };
 
 type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
@@ -99,7 +101,7 @@ function createAvatarQRLogo(LocalAvatarLogo: React.FC<SvgProps>): React.FC<SvgPr
     return AvatarQRLogo;
 }
 
-function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: ShareCodePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -109,8 +111,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const reportForTitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
+    const reportForTitle = getReportForHeader(report, parentReport);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForTitle?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const derivedTitleReportName = getReportNameFromNames(derivedReportNames, reportForTitle?.reportID);
@@ -118,26 +121,33 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
 
-    const subtitle = useMemo(() => {
-        if (isReport) {
-            if (isExpenseReport(report)) {
-                return getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
-            }
-            if (isMoneyRequestReport(report)) {
-                // generate subtitle from participants
-                return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, translate}))
-                    .join(' & ');
-            }
-
-            return (
-                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived).workspaceName ??
-                getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived)
-            );
+    let subtitle;
+    if (isReport) {
+        if (isExpenseReport(report)) {
+            subtitle = getPolicyName({
+                report,
+                unavailableTranslation: translate('workspace.common.unavailable'),
+            });
+        } else if (isMoneyRequestReport(report)) {
+            // generate subtitle from participants; resolve the translation once, not per participant
+            const hiddenText = translate('common.hidden');
+            subtitle = getParticipantsAccountIDsForDisplay(report, undefined, true)
+                .map((accountID) =>
+                    getDisplayNameForParticipant({
+                        accountID,
+                        formatPhoneNumber,
+                        hiddenTranslation: hiddenText,
+                    }),
+                )
+                .join(' & ');
+        } else {
+            subtitle =
+                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived).workspaceName ??
+                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
-
-        return currentUserPersonalDetails.login;
-    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID, translate, derivedParentReportName]);
+    } else {
+        subtitle = currentUserPersonalDetails.login;
+    }
 
     const title = isReport ? getReportName(reportForTitle, derivedTitleReportName) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
@@ -199,36 +209,42 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     />
                 </View>
 
-                <View style={themeStyles.mt9}>
-                    <ContextMenuItem
-                        isAnonymousAction
-                        text={translate('qrCodes.copy')}
-                        icon={icons.Copy}
-                        successIcon={icons.Checkmark}
-                        successText={translate('qrCodes.copied')}
-                        onPress={() => Clipboard.setString(url)}
-                        shouldLimitWidth={false}
-                    />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
-                    We shouldn't introduce platform specific code in our codebase.
-                    This is a temporary solution while Web is not supported for the QR code download feature */}
-                    {shouldAllowDownloadQRCode && (
-                        <MenuItem
+                {!shouldShowQRCodeOnly && (
+                    <View style={themeStyles.mt9}>
+                        <ContextMenuItem
                             isAnonymousAction
-                            title={translate('common.download')}
-                            icon={icons.Download}
-                            onPress={() => qrCodeRef.current?.download?.()}
+                            text={translate('qrCodes.copy')}
+                            icon={icons.Copy}
+                            successIcon={icons.Checkmark}
+                            successText={translate('qrCodes.copied')}
+                            onPress={() => Clipboard.setString(url)}
+                            shouldLimitWidth={false}
                         />
-                    )}
+                        {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                        We shouldn't introduce platform specific code in our codebase.
+                        This is a temporary solution while Web is not supported for the QR code download feature */}
+                        {shouldAllowDownloadQRCode && (
+                            <MenuItem.Root onPress={() => qrCodeRef.current?.download?.()}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={icons.Download} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
+                        )}
 
-                    <MenuItemNavigation
-                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
-                        icon={icons.Cash}
-                        onPress={() => {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
-                        }}
-                    />
-                </View>
+                        <MenuItemNavigation
+                            title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
+                            icon={icons.Cash}
+                            onPress={() => {
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
+                            }}
+                        />
+                    </View>
+                )}
             </ScrollView>
         </ScreenWrapper>
     );

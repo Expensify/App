@@ -1,6 +1,7 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
-import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector, hasDeviceManagementError, hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 
@@ -39,6 +40,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -68,12 +70,13 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS]: !isPolicyAdmin ? hasCompanyCardFeedErrors : false,
         [CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT]: Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED),
         [CONST.INDICATOR_STATUS.HAS_DEVICE_MANAGEMENT_ERROR]: hasDeviceManagementErrorValue,
+        [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS]: !!hasAgentError,
     };
 
     const infoChecks: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
         [CONST.INDICATOR_STATUS.HAS_HOME_ADDRESS_INFO]: shouldShowAddHomeAddress,
-        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards, privatePersonalDetails),
+        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards, privatePersonalDetails) || hasCardPendingDigitalWalletApproval(allCards),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(
             stripeCustomerId,
             retryBillingSuccessful,

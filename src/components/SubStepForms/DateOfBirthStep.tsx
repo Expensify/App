@@ -16,32 +16,23 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 import {subYears} from 'date-fns';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DateOfBirthStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** Fields list of the form */
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
-        /** The ID of the date of birth input */
         dobInputID: string;
 
         /** The default value for the date of birth input */
         dobDefaultValue: string;
 
-        /** Optional footer component */
         footerComponent?: React.ReactNode;
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
@@ -73,25 +64,22 @@ function DateOfBirthStepImpl({
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            const errors = getFieldRequiredErrors(values, stepFields, translate);
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const valuesToValidate = (values as Record<string, unknown>)[dobInputID] as string;
-            if (valuesToValidate) {
-                if (!isValidPastDate(valuesToValidate) || !meetsMaximumAgeRequirement(valuesToValidate)) {
-                    // @ts-expect-error type mismatch to be fixed
-                    errors[dobInputID] = translate('bankAccount.error.dob');
-                } else if (!meetsMinimumAgeRequirement(valuesToValidate)) {
-                    // @ts-expect-error type mismatch to be fixed
-                    errors[dobInputID] = translate('bankAccount.error.age');
-                }
+        const valuesToValidate = (values as Record<string, unknown>)[dobInputID] as string;
+        if (valuesToValidate) {
+            if (!isValidPastDate(valuesToValidate) || !meetsMaximumAgeRequirement(valuesToValidate)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[dobInputID] = translate('bankAccount.error.dob');
+            } else if (!meetsMinimumAgeRequirement(valuesToValidate)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[dobInputID] = translate('bankAccount.error.age');
             }
+        }
 
-            return errors;
-        },
-        [dobInputID, stepFields, translate],
-    );
+        return errors;
+    };
 
     return (
         <FormProvider

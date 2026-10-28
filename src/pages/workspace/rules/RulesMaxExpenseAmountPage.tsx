@@ -1,14 +1,13 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,8 +43,6 @@ function RulesMaxExpenseAmountPage({
     const styles = useThemeStyles();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const defaultValue =
         policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount
@@ -63,10 +60,7 @@ function RulesMaxExpenseAmountPage({
                 shouldEnableMaxHeight
                 testID="RulesMaxExpenseAmountPage"
             >
-                <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.expensesAboveAmount' : 'workspace.rules.individualExpenseRules.maxExpenseAmount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.expensesAboveAmount')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}

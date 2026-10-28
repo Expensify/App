@@ -4,7 +4,12 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import CONST from '../../src/CONST';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
+import getMimeTypeFromFileHeader from '../../src/libs/getMimeTypeFromFileHeader';
 import createMock from '../utils/createMock';
+
+jest.mock('@src/libs/getMimeTypeFromFileHeader', () => jest.fn());
+
+const mockGetMimeTypeFromFileHeader = jest.mocked(getMimeTypeFromFileHeader);
 
 // Mock only normalizeFileObject and validateImageForCorruption; keep real hasHeicOrHeifExtension and isValidReceiptExtension
 jest.mock('@src/libs/fileDownload/FileUtils', () => {
@@ -16,6 +21,21 @@ jest.mock('@src/libs/fileDownload/FileUtils', () => {
     };
 });
 
+// Whether the platform can turn a DNG into a JPEG: true on native, false on web. Defaults to web, and native cases flip it.
+let mockCanConvertDngToJpeg = false;
+jest.mock('@libs/fileDownload/canConvertDngToJpeg', () => ({
+    __esModule: true,
+    get default() {
+        return mockCanConvertDngToJpeg;
+    },
+}));
+
+let mockHasDngFileHeader = false;
+jest.mock('@libs/fileDownload/hasDngFileHeader', () => ({
+    __esModule: true,
+    default: () => Promise.resolve(mockHasDngFileHeader),
+}));
+
 const mockFileUtils = jest.mocked(FileUtils);
 
 const createMockFile = (name: string, size: number): FileObject => ({
@@ -26,9 +46,12 @@ const createMockFile = (name: string, size: number): FileObject => ({
 describe('validateAttachmentFile', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockCanConvertDngToJpeg = false;
+        mockHasDngFileHeader = false;
         // Default: pass-through so async validation succeeds
         mockFileUtils.normalizeFileObject.mockImplementation(async (file) => file);
         mockFileUtils.validateImageForCorruption.mockResolvedValue(undefined);
+        mockGetMimeTypeFromFileHeader.mockResolvedValue(undefined);
     });
 
     describe('FILE_INVALID', () => {
@@ -94,6 +117,96 @@ describe('validateAttachmentFile', () => {
             const error = await validateAttachmentFile(file, undefined, false);
 
             expect(error.isValid).toBe(true);
+        });
+
+        it.each([
+            ['by extension', {name: 'IMG_0001.DNG', size: 1000}],
+            ['by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}],
+        ])('rejects a DNG chat attachment %s on web even though attachments get no receipt extension check', async (description, file: FileObject) => {
+            // Given a ProRAW picked as a chat attachment on web, where nothing can transcode it and the backend rejects DNG
+            // When validated outside the receipt flow
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then it is refused with the invalid-file-type modal before upload, instead of failing after it is sent
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+        });
+
+        it('rejects a DNG on web that is recognized only by its header', async () => {
+            // Given a ProRAW renamed to .jpg, so only its TIFF header says it is a DNG
+            mockHasDngFileHeader = true;
+
+            // When validated as a chat attachment
+            const error = await validateAttachmentFile(createMockFile('IMG_0001.jpg', 1000), undefined, false);
+
+            // Then it is refused before upload, since the backend rejects DNG
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
+        });
+
+        it('still accepts a plain TIFF chat attachment', async () => {
+            // Given a TIFF, which shares the DNG container but is an accepted format
+            const file = createMockFile('scan.tiff', 1000);
+
+            // When validated outside the receipt flow
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then the DNG rejection does not catch it
+            expect(error.isValid).toBe(true);
+        });
+    });
+
+    describe('DNG_IMAGE', () => {
+        beforeEach(() => {
+            mockCanConvertDngToJpeg = true;
+        });
+
+        it.each([
+            ['a chat attachment by extension', {name: 'IMG_0001.DNG', size: 1000}, false],
+            ['a chat attachment by MIME type', {name: 'photo', size: 1000, type: 'image/x-adobe-dng'}, false],
+            ['a receipt', {name: 'IMG_0001.dng', size: 1000}, true],
+        ])('flags %s for conversion to JPEG on native', async (description, file: FileObject, isValidatingReceipts) => {
+            // Given a DNG reaching validation on native, e.g. shared into the app, where no picker has converted it yet
+            // When validated
+            const error = await validateAttachmentFile(file, undefined, isValidatingReceipts);
+
+            // Then it is flagged for conversion rather than rejected (DNG isn't a receipt extension) or uploaded (the backend rejects DNG)
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE);
+        });
+
+        it('flags an oversized DNG for conversion instead of rejecting it as too large', async () => {
+            // Given a 50 MB ProRAW, whose JPEG will be a fraction of that
+            const file = createMockFile('IMG_0001.DNG', CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
+
+            // When validated on native
+            const error = await validateAttachmentFile(file, undefined, false);
+
+            // Then it goes to conversion and the size limit is checked against the converted JPEG
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE);
+        });
+
+        it('rejects a DNG receipt on web as the wrong file type', async () => {
+            // Given web, which can't decode DNG
+            mockCanConvertDngToJpeg = false;
+
+            // When a DNG receipt is validated
+            const error = await validateAttachmentFile(createMockFile('IMG_0001.dng', 1000), undefined, true);
+
+            // Then the user sees the invalid-file-type error
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE);
         });
     });
 
@@ -199,6 +312,22 @@ describe('validateAttachmentFile', () => {
 
             const file = createMockFile('folder', 0);
             const error = await validateAttachmentFile(file, mockItem);
+
+            if (error.isValid) {
+                throw new Error('validateAttachmentFile should return an invalid result');
+            }
+
+            expect(error.error).toEqual(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
+        });
+
+        it.each(['folder', 'receipts.pdf'])('returns FOLDER_NOT_ALLOWED for a receipt directory named %s', async (name) => {
+            const mockItem = createMock<DataTransferItem>({
+                kind: 'file' as const,
+                webkitGetAsEntry: jest.fn(() => createMock<FileSystemEntry>({isDirectory: true})),
+            });
+
+            const file = createMockFile(name, 0);
+            const error = await validateAttachmentFile(file, mockItem, true);
 
             if (error.isValid) {
                 throw new Error('validateAttachmentFile should return an invalid result');
@@ -323,6 +452,161 @@ describe('validateAttachmentFile', () => {
 
                 expect(error.isValid).toBe(true);
                 expect(mockFileUtils.normalizeFileObject).toHaveBeenCalledWith(convertedFile);
+            } finally {
+                createObjectURLSpy.mockRestore();
+            }
+        });
+    });
+
+    describe('missing file extension', () => {
+        it('recovers the extension from the MIME type for a native file picked without one', async () => {
+            // Given a native attachment whose picker returned no extension (an Android content:// URI
+            // resolves to a bare numeric segment), but which does carry its MIME type
+            const file: FileObject = {name: '1000000042', size: 100, type: 'video/mp4', uri: 'content://media/external/video/media/42'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the extension is backfilled, so downloading it later produces a file the OS can open
+            // instead of a generic document with no extension
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('1000000042.mp4');
+        });
+
+        it('recovers the extension for the chat_attachment fallback name', async () => {
+            // Given a document picker that returned `name: null`, so getDataForUpload fell back to the
+            // literal default attachment name
+            const file: FileObject = {name: CONST.DEFAULT_ATTACHMENT_FILENAME, size: 100, type: 'video/mp4'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the default name gets a real extension
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe(`${CONST.DEFAULT_ATTACHMENT_FILENAME}.mp4`);
+        });
+
+        it('leaves the name untouched when the MIME type is unknown', async () => {
+            // Given an attachment with no extension whose MIME type cannot be mapped to one
+            const file: FileObject = {name: '1000000042', size: 100, type: 'application/not-a-real-type'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then no extension is invented, because a wrong extension is worse than none
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('1000000042');
+        });
+
+        it('leaves a name that already has an extension untouched', async () => {
+            // Given an attachment that already carries an extension disagreeing with its MIME type
+            const file: FileObject = {name: 'recording.mov', size: 100, type: 'video/mp4'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the picker's own name is preserved
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording.mov');
+        });
+
+        it('recovers the extension on the web File path too', async () => {
+            // Given a web File with a real MIME type but no extension in its name
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            try {
+                const file: FileObject = new File([new Blob(['content'], {type: 'video/mp4'})], 'screen_recording', {type: 'video/mp4'});
+
+                // When it is validated
+                const result = await validateAttachmentFile(file);
+
+                // Then the snapshotted File is renamed with the recovered extension
+                expect(result.isValid).toBe(true);
+                if (!result.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(result.file.name).toBe('screen_recording.mp4');
+            } finally {
+                createObjectURLSpy.mockRestore();
+            }
+        });
+
+        it('detects the real type from the file header when the picker reports application/octet-stream', async () => {
+            // Given an extensionless MP4 from the Android document picker, which reports only the generic type
+            const file: FileObject = {name: 'recording', size: 100, type: 'application/octet-stream', uri: 'content://documents/document/42'};
+            mockGetMimeTypeFromFileHeader.mockResolvedValue('video/mp4');
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then the bytes are sniffed, and both the extension and the type come from the real format,
+            // so the download gets a .mp4 name and the optimistic message renders it as a video
+            expect(mockGetMimeTypeFromFileHeader).toHaveBeenCalledWith(file);
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording.mp4');
+            expect(result.file.type).toBe('video/mp4');
+        });
+
+        it('leaves the name untouched when the header of an application/octet-stream file is not recognized', async () => {
+            // Given an extensionless file with the generic type whose header matches no known signature
+            const file: FileObject = {name: 'recording', size: 100, type: 'application/octet-stream', uri: 'content://documents/document/42'};
+
+            // When it is validated
+            const result = await validateAttachmentFile(file);
+
+            // Then no meaningless .bin extension is added and the type is kept
+            expect(result.isValid).toBe(true);
+            if (!result.isValid) {
+                throw new Error('validateAttachmentFile should return a valid result');
+            }
+            expect(result.file.name).toBe('recording');
+            expect(result.file.type).toBe('application/octet-stream');
+        });
+
+        it('does not read the file header when the MIME type or extension is already known', async () => {
+            // Given one file with a real MIME type and one with an extension
+            const fileWithType: FileObject = {name: 'recording', size: 100, type: 'video/mp4'};
+            const fileWithExtension: FileObject = {name: 'recording.mp4', size: 100, type: 'application/octet-stream'};
+
+            // When they are validated
+            await validateAttachmentFile(fileWithType);
+            await validateAttachmentFile(fileWithExtension);
+
+            // Then the header is never read, since the name can already be resolved
+            expect(mockGetMimeTypeFromFileHeader).not.toHaveBeenCalled();
+        });
+
+        it('detects the real type on the web File path when the browser reports no type', async () => {
+            // Given a web File with no extension and an empty type, which browsers report for such files
+            const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
+            mockGetMimeTypeFromFileHeader.mockResolvedValue('video/mp4');
+            try {
+                const file: FileObject = new File([new Blob(['content'])], 'screen_recording', {type: ''});
+
+                // When it is validated
+                const result = await validateAttachmentFile(file);
+
+                // Then the snapshotted File gets the sniffed extension and type
+                expect(result.isValid).toBe(true);
+                if (!result.isValid) {
+                    throw new Error('validateAttachmentFile should return a valid result');
+                }
+                expect(result.file.name).toBe('screen_recording.mp4');
+                expect(result.file.type).toBe('video/mp4');
             } finally {
                 createObjectURLSpy.mockRestore();
             }

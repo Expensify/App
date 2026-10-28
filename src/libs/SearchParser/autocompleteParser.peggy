@@ -23,7 +23,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency"
   ]);
 }
 
@@ -39,6 +39,12 @@ defaultFilter
       expectingNestedQuote = false; nameOperator = false; // Reset string parser
 
       const isNegated = !!neg && !nonNegatableKeys.has(key);
+
+      // The "contains" operator is only supported for the merchant field
+      if (op === "contains" && (neg || key !== "merchant")) {
+        autocomplete = null;
+        return;
+      }
 
       if (!value) {
         autocomplete = {
@@ -81,6 +87,7 @@ autocompleteKey "key"
       / total
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / from
@@ -92,6 +99,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / transactionStatus
       / withdrawalType
       / withdrawalStatus
       / paidStatus
@@ -104,10 +112,13 @@ autocompleteKey "key"
       / view
       / reimbursable
       / billable
+      / declined
+      / held
       / policyID
       / action
       / date
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo
@@ -133,6 +144,9 @@ autocompleteKey "key"
       / reportFieldDynamic
       / columns
       / limit
+      / footerCount
+      / footerCurrency
+      / footerTotal
     )
 
 filterKey

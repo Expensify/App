@@ -2,26 +2,21 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePaymentType, getBankAccountLastFourDigits, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
+import {getActivePaymentType, getBusinessBankAccountOptions, selectPaymentType} from '@libs/PaymentUtils';
 import type {SelectPaymentTypeParams} from '@libs/PaymentUtils';
-import {wasPaidWithPolicyBankAccount} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import {calculateWalletTransferBalanceFee} from '@src/libs/PaymentUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
-
-import Onyx from 'react-native-onyx';
 
 import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -153,7 +148,7 @@ describe('PaymentUtils', () => {
             hasViolations: false,
             isASAPSubmitBetaEnabled: false,
             iouReport: {reportID: '1'} as Report,
-            betas: [],
+            rules: undefined,
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
@@ -256,7 +251,6 @@ describe('PaymentUtils', () => {
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
-                betas: params.betas,
                 userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: 42,
                 ownerBillingGracePeriodEnd: 999,
@@ -286,7 +280,6 @@ describe('PaymentUtils', () => {
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
-                betas: params.betas,
                 userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
@@ -535,114 +528,48 @@ describe('PaymentUtils', () => {
             expect(result).toHaveLength(2);
             expect(result.at(0)?.text).toBe('Valid Business');
         });
-    });
-});
 
-describe('wasPaidWithPolicyBankAccount', () => {
-    const PAYER_EMAIL = 'payer@test.com';
-    const PAYER_ACCOUNT_ID = 101;
-    const NON_PAYER_ADMIN_ACCOUNT_ID = 102;
+        it('moves the eligible workspace default bank account to the top and keeps the order of the other accounts', () => {
+            // Given three eligible business bank accounts where the workspace default is the second one
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'Account A', methodID: 1}),
+                createMockPaymentMethod({title: 'Account B', methodID: 2}),
+                createMockPaymentMethod({title: 'Account C', methodID: 3}),
+            ];
 
-    const policyWithDesignatedPayer: Policy = {
-        ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
-        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        reimburser: PAYER_EMAIL,
-    };
+            // When the options are built with the workspace default bank account ID
+            const result = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD, 2);
 
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
-    beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [PAYER_ACCOUNT_ID]: {accountID: PAYER_ACCOUNT_ID, login: PAYER_EMAIL},
-            [NON_PAYER_ADMIN_ACCOUNT_ID]: {accountID: NON_PAYER_ADMIN_ACCOUNT_ID, login: 'wsadmin@test.com'},
+            // Then the default account is listed first so admins don't pay from the wrong entity, and the rest keep their relative order
+            expect(result.map((option) => option.methodID)).toEqual([2, 1, 3]);
         });
-        await waitForBatchedUpdates();
-    });
 
-    afterEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
+        it('keeps the current order when the workspace default bank account is not eligible', () => {
+            // Given a workspace default bank account in a currency that doesn't match the report
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'Account A', methodID: 1}),
+                createMockPaymentMethod({title: 'EUR Account', methodID: 2, bankCurrency: 'EUR'}),
+                createMockPaymentMethod({title: 'Account C', methodID: 3}),
+            ];
 
-    it('returns true when the designated payer made the payment', () => {
-        expect(wasPaidWithPolicyBankAccount(policyWithDesignatedPayer, PAYER_ACCOUNT_ID)).toBe(true);
-    });
+            // When the options are built for a USD report
+            const result = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD, 2);
 
-    it('returns false when an admin who is not the designated payer made the payment', () => {
-        expect(wasPaidWithPolicyBankAccount(policyWithDesignatedPayer, NON_PAYER_ADMIN_ACCOUNT_ID)).toBe(false);
-    });
-
-    it('falls back to the reimburser stored on the bank account when the workspace has no reimburser', () => {
-        const policy: Policy = {
-            ...policyWithDesignatedPayer,
-            reimburser: undefined,
-            achAccount: {
-                bankAccountID: 1111,
-                accountNumber: 'XXXXXX1111',
-                routingNumber: '123456789',
-                addressName: 'Test bank account',
-                bankName: 'Test bank',
-                reimburser: PAYER_EMAIL,
-            },
-        };
-
-        expect(wasPaidWithPolicyBankAccount(policy, PAYER_ACCOUNT_ID)).toBe(true);
-        expect(wasPaidWithPolicyBankAccount(policy, NON_PAYER_ADMIN_ACCOUNT_ID)).toBe(false);
-    });
-
-    it('returns true for any payer when the workspace has no designated payer', () => {
-        expect(wasPaidWithPolicyBankAccount({...policyWithDesignatedPayer, reimburser: undefined}, NON_PAYER_ADMIN_ACCOUNT_ID)).toBe(true);
-    });
-});
-
-describe('getBankAccountLastFourDigits', () => {
-    const POLICY_BANK_ACCOUNT_ID = 1111;
-    const PAYER_EMAIL = 'payer@test.com';
-    const PAYER_ACCOUNT_ID = 101;
-    const NON_PAYER_ADMIN_ACCOUNT_ID = 102;
-
-    const policy: Policy = {
-        ...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE),
-        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-        reimburser: PAYER_EMAIL,
-        achAccount: {
-            bankAccountID: POLICY_BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX1111',
-            routingNumber: '123456789',
-            addressName: 'Test bank account',
-            bankName: 'Test bank',
-            reimburser: PAYER_EMAIL,
-        },
-    };
-
-    beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [PAYER_ACCOUNT_ID]: {accountID: PAYER_ACCOUNT_ID, login: PAYER_EMAIL},
-            [NON_PAYER_ADMIN_ACCOUNT_ID]: {accountID: NON_PAYER_ADMIN_ACCOUNT_ID, login: 'wsadmin@test.com'},
+            // Then the ineligible default account stays filtered out and the eligible accounts keep their order
+            expect(result.map((option) => option.methodID)).toEqual([1, 3]);
         });
-        await waitForBatchedUpdates();
-    });
 
-    afterEach(async () => {
-        await Onyx.clear();
-        await waitForBatchedUpdates();
-    });
+        it('keeps the current order when the workspace has no default bank account or it is not in the list', () => {
+            // Given multiple eligible business bank accounts
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Account A', methodID: 1}), createMockPaymentMethod({title: 'Account B', methodID: 2})];
 
-    it('uses the account stored on the payment action over anything resolved locally', () => {
-        expect(getBankAccountLastFourDigits(undefined, {}, policy, 'XXXXXX0000', NON_PAYER_ADMIN_ACCOUNT_ID)).toBe('0000');
-    });
+            // When no default bank account ID is given, or the ID doesn't match any eligible account
+            const resultWithoutDefault = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD);
+            const resultWithUnknownDefault = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD, 999);
 
-    it('falls back to the workspace account for a payment made by the designated payer', () => {
-        expect(getBankAccountLastFourDigits(undefined, {}, policy, undefined, PAYER_ACCOUNT_ID)).toBe('1111');
-    });
-
-    it('does not attribute the workspace account to a payment made by a non-payer admin', () => {
-        expect(getBankAccountLastFourDigits(undefined, {}, policy, undefined, NON_PAYER_ADMIN_ACCOUNT_ID)).toBe('');
-    });
-
-    it('does not attribute the workspace account to a payment that names another bank account', () => {
-        expect(getBankAccountLastFourDigits(2222, {}, policy, undefined, PAYER_ACCOUNT_ID)).toBe('');
+            // Then the existing order is preserved
+            expect(resultWithoutDefault.map((option) => option.methodID)).toEqual([1, 2]);
+            expect(resultWithUnknownDefault.map((option) => option.methodID)).toEqual([1, 2]);
+        });
     });
 });

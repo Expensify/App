@@ -9,13 +9,12 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import Button from './Button';
 import ImageSVG from './ImageSVG';
 import Modal from './Modal';
 import Text from './Text';
 
 type ProactiveAppReviewModalProps = {
-    /** Whether modal is visible */
     isVisible: boolean;
 
     /** Callback for when user selects "Yeah!" */

@@ -17,7 +17,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import useReportAttributes, {useDerivedIsEmptyReport, useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -60,12 +61,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -110,16 +112,9 @@ type BaseReportActionContextMenuProps = {
      */
     isThreadReportParentAction?: boolean;
 
-    /** Content Ref */
-    contentRef?: RefObject<View | null>;
-
-    /** Function to check if context menu is active */
+    contentRef?: RefObject<ComponentRef<typeof View> | null>;
     checkIfContextMenuActive?: () => void;
-
-    /** List of disabled actions */
     disabledActions?: ContextMenuAction[];
-
-    /** Function to update emoji picker state */
     setIsEmojiPickerActive?: (state: boolean) => void;
 
     /** Whether to add bottom safe area padding for edge-to-edge modal content */
@@ -167,7 +162,7 @@ function BaseReportActionContextMenu({
     ]);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
@@ -175,8 +170,7 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const {isProduction, isDevelopment, environment} = useEnvironment();
     const isStaging = environment === CONST.ENVIRONMENT.STAGING;
-    const threeDotRef = useRef<View>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const threeDotRef = useRef<ComponentRef<typeof View>>(null);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: withDEWRoutedActionsObject,
     });
@@ -211,6 +205,7 @@ function BaseReportActionContextMenu({
     const policyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${policyID}`, {selector: fullPolicySnapshotLastModifiedSelector});
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`);
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`);
@@ -243,6 +238,7 @@ function BaseReportActionContextMenu({
     const [iouTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const iouReportID = (moneyRequestAction ?? reportAction)?.reportID;
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [moneyRequestReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`);
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
@@ -250,6 +246,8 @@ function BaseReportActionContextMenu({
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const personalDetails = usePersonalDetails();
     const reportAttributes = useReportAttributes();
@@ -273,7 +271,8 @@ function BaseReportActionContextMenu({
     const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
     const isChronosReport = chatIncludesChronosWithID(originalReportID);
     const isPinnedChat = !!report?.isPinned;
-    const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
+    const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived, derivedIsEmptyReport);
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const memberChangeLogReportActionMessage = isMemberChangeAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
@@ -288,11 +287,13 @@ function BaseReportActionContextMenu({
                 type,
                 reportAction,
                 childReportActions,
+                originalReportActions,
+                moneyRequestReportActions,
                 isArchivedRoom,
-                betas,
                 menuTarget: anchor,
                 isChronosReport,
                 reportID,
+                report,
                 isPinnedChat,
                 isUnreadChat,
                 isThreadReportParentAction,
@@ -310,6 +311,9 @@ function BaseReportActionContextMenu({
                 transactions,
                 isHarvestReport,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
+                rules,
+                personalDetails,
+                cardList,
             }),
     );
 
@@ -342,7 +346,7 @@ function BaseReportActionContextMenu({
      * shows the sign in modal. Else, executes the callback.
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
-        if (isAnonymousUser() && !isAnonymousAction) {
+        if (isAnonymousUser(session) && !isAnonymousAction) {
             hideContextMenu(false, () => {
                 signOutAndRedirectToSignIn();
             });
@@ -351,12 +355,12 @@ function BaseReportActionContextMenu({
         }
     };
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
-            contextMenuAnchor: anchorRef?.current as ViewType | RNText | null,
+            contextMenuAnchor: anchorRef?.current as ComponentRef<typeof ViewType> | ComponentRef<typeof RNText> | null,
             report: {
                 reportID,
                 originalReportID,
@@ -383,6 +387,8 @@ function BaseReportActionContextMenu({
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: wrapperStyle});
 
+    const reportIDToName = useReportIDToNameMap();
+
     return (
         (isVisible || shouldKeepOpen || !isMini) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth && (isVisible || shouldKeepOpen)}>
@@ -398,6 +404,7 @@ function BaseReportActionContextMenu({
                                 reportActions,
                                 childReportActions,
                                 originalReportActions,
+                                reportIDToName,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -413,6 +420,7 @@ function BaseReportActionContextMenu({
                                 personalDetails,
                                 isHarvestReport,
                                 moneyRequestAction,
+                                moneyRequestPolicy,
                                 card,
                                 originalReport,
                                 isTryNewDotNVPDismissed,
@@ -422,17 +430,18 @@ function BaseReportActionContextMenu({
                                 movedToReport,
                                 getLocalDateFromDatetime,
                                 policy,
+                                fullPolicySnapshotLastModified,
                                 policyTags,
                                 translate,
                                 dateFnsLocale,
                                 convertToDisplayString,
+                                convertToDisplayStringWithoutCurrency,
                                 formatPhoneNumber,
                                 harvestReport,
                                 harvestReportOriginalID,
                                 introSelected,
                                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                                betas,
                                 isDelegateAccessRestricted,
                                 showDelegateNoAccessModal,
                                 currentUserAccountID: currentUserPersonalDetails?.accountID,
@@ -448,6 +457,7 @@ function BaseReportActionContextMenu({
                                 reportAttributes,
                                 originalReportOfUnapprovedTransaction,
                                 memberChangeLogRoomReportName,
+                                rules,
                             };
 
                             if ('renderContent' in contextAction) {

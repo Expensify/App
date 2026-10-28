@@ -7,10 +7,11 @@ import React from 'react';
 type ReportFieldListProps = {
     field: PolicyReportField;
     value: string | undefined;
+    footer?: React.ReactNode;
     onChange: (newValue: string | undefined) => void;
 };
 
-function ReportFieldList({field, value, onChange}: ReportFieldListProps) {
+function ReportFieldList({field, value, footer, onChange}: ReportFieldListProps) {
     const items = field.values.map((fieldValue) => ({
         value: fieldValue,
         text: fieldValue,
@@ -24,6 +25,7 @@ function ReportFieldList({field, value, onChange}: ReportFieldListProps) {
             allowDeselect
             onChange={(item) => onChange(item?.value)}
             hasHeader
+            footer={footer}
         />
     );
 }

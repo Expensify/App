@@ -1,8 +1,6 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -36,8 +34,10 @@ type FeatureTrainingModalProps = {
     /** Modal content width */
     width?: number;
 
-    /** Style for the modal inner container */
     modalInnerContainerStyle?: ViewStyle;
+
+    /** Whether the modal should close when the user navigates back */
+    shouldHandleNavigationBack?: boolean;
 
     /** Composed feature training content */
     children?: ReactNode;
@@ -50,12 +50,12 @@ function FeatureTrainingModal({
     shouldCloseOnConfirm = true,
     shouldUseScrollView: shouldUseScrollViewProp = false,
     width,
+    shouldHandleNavigationBack,
     children,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeModeUtil(windowWidth, windowHeight);
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const pendingCloseRef = useRef(false);
 
@@ -100,6 +100,7 @@ function FeatureTrainingModal({
             shouldTreatModalAsCovering
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             innerContainerStyle={{
                 boxShadow: 'none',
                 ...(shouldUseScrollView ? styles.pb0 : styles.pb5),
@@ -135,3 +136,4 @@ function FeatureTrainingModal({
 }
 
 export default FeatureTrainingModal;
+export type {FeatureTrainingModalProps};

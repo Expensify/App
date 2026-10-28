@@ -15,26 +15,20 @@ import React from 'react';
 import {View} from 'react-native';
 
 import AttachmentPicker from './AttachmentPicker';
-import Button from './ButtonComposed';
+import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
+import Tooltip from './Tooltip';
 
 type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
     buttonText: string;
 
-    /** Name of currently uploaded file */
     uploadedFiles: FileObject[];
-
-    /** Handler that fires when file is selected for upload */
     onUpload: (files: FileObject[]) => void;
-
-    /** Handler that fires when file is removed */
     onRemove: (fileUri: string) => void;
-
-    /** Array containing accepted file types */
     acceptedFileTypes: Array<ValueOf<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>>;
 
     /** Styles to be assigned to Container */
@@ -52,11 +46,16 @@ type UploadFileProps = {
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
 
-    /** The total size limit of the files that can be selected. */
     totalFilesSizeLimit?: number;
 
     /** The maximum size of a single file that can be selected. */
     maxFileSize?: number;
+
+    /** Read out by screen readers for the upload button in place of its text, such as to name the document it asks for */
+    accessibilityLabel?: string;
+
+    /** Whether each file's remove button reaches the 44x44 minimum touch target past its icon */
+    shouldExtendRemoveTouchArea?: boolean;
 };
 
 function UploadFile({
@@ -72,6 +71,8 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
     maxFileSize = 0,
+    accessibilityLabel,
+    shouldExtendRemoveTouchArea = false,
 }: UploadFileProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
@@ -129,7 +130,7 @@ function UploadFile({
             >
                 {({openPicker}) => (
                     <Button
-                        accessibilityLabel={buttonText}
+                        accessibilityLabel={accessibilityLabel ?? buttonText}
                         onPress={() => {
                             openPicker({
                                 onPicked: handleFileUpload,
@@ -155,18 +156,21 @@ function UploadFile({
                         style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
                         textStyle={styles.textBold}
                     />
-                    <PressableWithFeedback
-                        onPress={() => onRemove(file?.name ?? '')}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.remove')}
-                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
-                    >
-                        <Icon
-                            src={icons.Close}
-                            fill={theme.icon}
-                            size={CONST.ICON_SIZE.MEDIUM}
-                        />
-                    </PressableWithFeedback>
+                    <Tooltip text={translate('common.remove')}>
+                        <PressableWithFeedback
+                            onPress={() => onRemove(file?.name ?? '')}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
+                            sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
+                            shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
+                        >
+                            <Icon
+                                src={icons.Close}
+                                fill={theme.icon}
+                                size={CONST.ICON_SIZE.MEDIUM}
+                            />
+                        </PressableWithFeedback>
+                    </Tooltip>
                 </View>
             ))}
             {errorText !== '' && (

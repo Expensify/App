@@ -1,12 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCompanyCardConnectionError from '@hooks/useCompanyCardConnectionError';
 import useDuplicateFeedDetection from '@hooks/useDuplicateFeedDetection';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
@@ -18,29 +20,28 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUpdateFeedBrokenConnection from '@hooks/useUpdateFeedBrokenConnection';
 
-import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {checkIfNewFeedConnected, getBankName, getCompanyCardFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 
 import {updateSelectedFeed} from '@userActions/Card';
-import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCompanyCardErrors, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
 
 type BankConnectionProps = {
-    /** ID of the policy */
     policyID?: string;
 
     /** Selected feed for assign card flow */
@@ -57,14 +58,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds);
-    const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank', 'BrokenCompanyCardBankConnection']);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
-    );
+    const {isNewFeedConnected, newFeed} = checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed);
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
@@ -74,17 +72,19 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
-    const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
+    const {errorMessage, hasError: isNewFeedHasError} = useCompanyCardConnectionError({cardFeeds, addNewCard, newFeed, isAddingNewCard: !feed});
+    // importPlaidAccounts only writes these errors while repairing an existing feed, so the add-card flow ignores them
+    const hasImportError = !!feed && !isEmptyObject(assignCard?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const {checkForDuplicateFeed} = useDuplicateFeedDetection({policyID, isPlaid});
 
-    const onOpenBankConnectionFlow = useCallback(() => {
+    const onOpenBankConnectionFlow = () => {
         if (!url) {
             return;
         }
         customWindow = openBankConnection(url);
-    }, [url]);
+    };
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -104,6 +104,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        clearAddNewCompanyCardErrors();
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
@@ -119,6 +120,12 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
             return;
         }
 
+        // A failed import is rendered instead. Clearing isRefreshing must not fall through to the healthy feed close below.
+        if (hasImportError) {
+            customWindow?.close();
+            return;
+        }
+
         // Handle assign card flow
         if (feed) {
             if (!isFeedExpired) {
@@ -128,13 +135,11 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     Navigation.closeRHPFlow();
                     return;
                 }
-                // When refreshing the feed, a healthy connection must not short-circuit into the assignee step.
-                // RefreshCardFeedConnectionPage can't render it and the modal would spin forever.
+                // The host pages only render the connection steps, so an assign flow that detoured here is not resumed.
+                // The panel closes and the admin assigns the card again on the reconnected feed. During a refresh the
+                // panel stays open because RefreshCardFeedConnectionPage closes it once the reconnect completes.
                 if (!assignCard?.isRefreshing) {
-                    setAssignCardStepAndData({
-                        currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                        isEditing: false,
-                    });
+                    Navigation.closeRHPFlow();
                     return;
                 }
             }
@@ -184,22 +189,35 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         feed,
         isFeedExpired,
         isOffline,
-        assignCard?.cardToAssign?.dateOption,
         assignCard?.isRefreshing,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        hasImportError,
         checkForDuplicateFeed,
     ]);
 
     const getContent = () => {
+        if (hasImportError) {
+            return (
+                <ConfirmationPageDefault
+                    heading={translate('workspace.companyCards.error.feedCouldNotBeLoadedTitle')}
+                    description={translate('common.genericErrorMessage')}
+                    illustration={illustrations.BrokenCompanyCardBankConnection}
+                    illustrationStyle={styles.errorStateCardIllustration}
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={() => Navigation.closeRHPFlow()}
+                />
+            );
+        }
         if (isNewFeedHasError) {
             return (
                 <WorkspaceCompanyCardsErrorConfirmation
                     policyID={policyID}
                     newFeed={newFeed}
+                    errorMessage={errorMessage}
                 />
             );
         }

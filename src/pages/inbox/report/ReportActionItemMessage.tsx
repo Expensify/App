@@ -1,14 +1,15 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getUpdateRoomDescriptionFragment, isMoneyRequestAction, isReimbursementDirectionInformationRequiredAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -21,7 +22,6 @@ import ReportActionMessageContent from './actionContents/ReportActionMessageCont
 import TextCommentFragment from './comment/TextCommentFragment';
 
 type ReportActionItemMessageProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -33,7 +33,6 @@ type ReportActionItemMessageProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 };
 
@@ -73,7 +72,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
             return;
         }
 
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, isCompleted)));
     };
     if (isReimbursementDirectionInformationRequiredAction(action)) {
         const {bankAccountLastFour, currency, policyID, bankAccountID, completed} =

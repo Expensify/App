@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -27,7 +27,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {ForwardedRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
@@ -47,13 +47,8 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
-    /** Whether the confirmation screen should be skipped */
     skipConfirmation?: boolean;
-
-    /** Type of the IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
-
-    /** The policyID of the request */
     policyID?: string;
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
@@ -68,10 +63,7 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
-
-    /** The chatReportID of the request */
     chatReportID?: string;
 
     /** Whether this is a P2P (1:1) request */
@@ -145,23 +137,17 @@ function MoneyRequestAmountForm({
 
     const absoluteAmount = Math.abs(amount);
 
-    const onFormatAmount = useCallback(
-        (amountAsInt: number, currencyParam?: string) => {
-            const decimals = getCurrencyDecimals(currencyParam);
-            return convertToFrontendAmountAsString(amountAsInt, decimals);
-        },
-        [getCurrencyDecimals],
-    );
+    const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
+        const decimals = getCurrencyDecimals(currencyParam);
+        return convertToFrontendAmountAsString(amountAsInt, decimals);
+    };
 
-    const initializeAmount = useCallback(
-        (newAmount: number) => {
-            const frontendAmount = newAmount ? onFormatAmount(newAmount, currency) : '';
-            moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
-        },
-        [currency, onFormatAmount],
-    );
+    const initializeAmount = (newAmount: number) => {
+        const frontendAmount = newAmount ? onFormatAmount(newAmount, currency) : '';
+        moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
+    };
 
-    const toggleNegative = useCallback(() => {
+    const toggleNegative = () => {
         const nextIsNegative = !isNegative;
         isUserSignOverrideRef.current = true;
         setIsNegative(nextIsNegative);
@@ -169,15 +155,15 @@ function MoneyRequestAmountForm({
         // The sign flip bypasses the input's change handler, so report the newly signed value like a keystroke would
         const currentNumber = moneyRequestAmountInputRef.current?.getNumber() ?? '';
         onAmountChange?.(currentNumber && nextIsNegative ? `-${currentNumber}` : currentNumber);
-    }, [isNegative, onAmountChange, onSignDirtyChange]);
+    };
 
-    const clearNegative = useCallback(() => {
+    const clearNegative = () => {
         isUserSignOverrideRef.current = true;
         setIsNegative(false);
         onSignDirtyChange?.(initialIsNegativeRef.current);
-    }, [onSignDirtyChange]);
+    };
 
-    const initializeIsNegative = useCallback((currentAmount: number, shouldResetUserSign = false) => {
+    const initializeIsNegative = (currentAmount: number, shouldResetUserSign = false) => {
         // A tab switch is the only place we deliberately discard a user's manual sign flip. A plain `amount` update
         // (e.g. an async transaction load) must preserve it, so it leaves isUserSignOverrideRef untouched.
         if (shouldResetUserSign) {
@@ -191,7 +177,7 @@ function MoneyRequestAmountForm({
         const nextIsNegative = currentAmount < 0;
         initialIsNegativeRef.current = nextIsNegative;
         setIsNegative(nextIsNegative);
-    }, []);
+    };
 
     useEffect(() => {
         initializeIsNegative(amount);
@@ -212,38 +198,36 @@ function MoneyRequestAmountForm({
     /**
      * Submit amount and navigate to a proper page
      */
-    const submitAndNavigateToNextPage = useCallback(
-        ({paymentType: iouPaymentType}: PaymentActionParams = {}) => {
-            const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
+    const submitAndNavigateToNextPage = ({paymentType: iouPaymentType}: PaymentActionParams = {}) => {
+        const isTaxAmountForm = Navigation.getActiveRouteWithoutParams().includes('taxAmount');
 
-            // Skip the check for tax amount form as 0 is a valid input
-            const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
-                setFormError(translate('iou.error.invalidAmount'));
-                return;
-            }
-
-            if (isTaxAmountForm && isTaxAmountInvalid(currentAmount, taxAmount, getCurrencyDecimals(currency))) {
-                setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
-                return;
-            }
-
-            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
-
-            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
-        },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, getCurrencyDecimals],
-    );
-
-    const buttonText: string = useMemo(() => {
-        if (skipConfirmation) {
-            if (iouType === CONST.IOU.TYPE.SPLIT) {
-                return translate('iou.splitExpense');
-            }
-            return translate('iou.createExpense');
+        // Skip the check for tax amount form as 0 is a valid input
+        const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
+        if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
+            setFormError(translate('iou.error.invalidAmount'));
+            return;
         }
-        return isEditing ? translate('common.save') : translate('common.next');
-    }, [skipConfirmation, iouType, isEditing, translate]);
+
+        if (isTaxAmountForm && isTaxAmountInvalid(currentAmount, taxAmount, getCurrencyDecimals(currency))) {
+            setFormError(translate('iou.error.invalidTaxAmount', formattedTaxAmount));
+            return;
+        }
+
+        const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
+
+        onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
+    };
+
+    let buttonText: string;
+    if (skipConfirmation) {
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            buttonText = translate('iou.splitExpense');
+        } else {
+            buttonText = translate('iou.createExpense');
+        }
+    } else {
+        buttonText = isEditing ? translate('common.save') : translate('common.next');
+    }
 
     const canUseTouchScreen = canUseTouchScreenUtil();
 
@@ -251,63 +235,46 @@ function MoneyRequestAmountForm({
         setFormError('');
     }, [selectedTab]);
 
-    const footer = useMemo(
-        () => (
-            <View style={styles.w100}>
-                {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
-                    <SettlementButton
-                        pressOnEnter
-                        onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                        currency={currency ?? CONST.CURRENCY.USD}
-                        policyID={policyID}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        kycWallAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        paymentMethodDropdownAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        shouldShowPersonalBankAccountOption
-                        enterKeyEventListenerPriority={1}
-                        chatReportID={chatReportID}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_PAY_BUTTON}
-                    />
-                ) : (
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                        onPress={() => submitAndNavigateToNextPage()}
-                        testID="next-button"
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
-                    >
-                        {/* Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked. */}
-                        <Button.KeyboardShortcut allowBubble={!isEditing} />
-                        <Button.Text>{buttonText}</Button.Text>
-                    </Button>
-                )}
-            </View>
-        ),
-        [
-            styles.w100,
-            styles.mt5,
-            styles.mt0,
-            iouType,
-            skipConfirmation,
-            submitAndNavigateToNextPage,
-            currency,
-            policyID,
-            canUseTouchScreen,
-            chatReportID,
-            isEditing,
-            isExtraSmallScreenHeight,
-            buttonText,
-        ],
+    const footer = (
+        <View style={styles.w100}>
+            {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
+                <SettlementButton
+                    pressOnEnter
+                    onPress={submitAndNavigateToNextPage}
+                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                    currency={currency ?? CONST.CURRENCY.USD}
+                    policyID={policyID}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    kycWallAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    paymentMethodDropdownAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    shouldShowPersonalBankAccountOption
+                    enterKeyEventListenerPriority={1}
+                    chatReportID={chatReportID}
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_PAY_BUTTON}
+                />
+            ) : (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
+                    onPress={() => submitAndNavigateToNextPage()}
+                    testID="next-button"
+                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
+                >
+                    {/* Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked. */}
+                    <Button.KeyboardShortcut allowBubble={!isEditing} />
+                    <Button.Text>{buttonText}</Button.Text>
+                </Button>
+            )}
+        </View>
     );
 
     return (

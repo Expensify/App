@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 
@@ -11,9 +12,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, isLabelledDng, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 import fileURIToPath from '@libs/fileURIToPath';
-import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getPickerCaptureSource, logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
@@ -27,16 +28,19 @@ import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerRes
 
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
 
+import type {CapturedPhoto} from './AttachmentCamera';
 import type AttachmentPickerProps from './types';
 
-import launchCamera from './launchCamera/launchCamera';
+import AttachmentCamera from './AttachmentCamera';
+
+/** Gives the popover a frame to finish dismissing on iOS. Launching immediately would close the gallery/camera along with it. */
+const MODAL_DISMISS_DELAY_MS = 200;
 
 const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
     pdf: String(types.pdf),
@@ -65,34 +69,18 @@ type LocalCopy = {
 };
 
 type Item = {
-    /** The icon associated with the item. */
     icon: IconAsset;
     /** The key in the translations file to use for the title */
     textTranslationKey: TranslationPaths;
-    /** Function to call when the user clicks the item */
-    pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
-};
-
-/**
- * Ensures asset has proper fileName and type properties
- */
-const processAssetWithFallbacks = (asset: Asset): Asset => {
-    // Generate fallback name: extract from URI if available, otherwise use timestamped default
-    const fallbackName = asset.uri
-        ? asset.uri
-              .substring(asset.uri.lastIndexOf('/') + 1)
-              .split('?')
-              .at(0)
-        : `image_${Date.now()}.jpeg`;
-    const fileName = asset.fileName ?? fallbackName;
-    return {
-        ...asset,
-        fileName,
-        // Default to JPEG if no type specified
-        type: asset.type ?? 'image/jpeg',
-    };
-};
-
+} & (
+    | {
+          pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+      }
+    | {
+          /** Direct action that doesn't go through the promise-based selectItem flow */
+          onPress: () => void;
+      }
+);
 /**
  * Return imagePickerOptions based on the type
  */
@@ -152,6 +140,55 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
 };
 
 /**
+ * Transcodes document-picked DNG files (e.g. an iPhone ProRAW browsed to via "Choose file") to JPEG, the same
+ * way gallery picks are, so both entry points accept the same photos. Anything else is returned untouched: plain
+ * TIFFs are an accepted receipt format, and `.heic` documents keep the existing HEIC-through-validation flow.
+ *
+ * Files are converted one at a time (see `processPickedAssetsSequentially`) and failures are collected so a
+ * multi-selection produces at most one alert. A file that can't be decoded is dropped from the result, since the
+ * backend rejects DNG and it must never be uploaded unconverted.
+ */
+async function transcodeDngFiles(files: LocalCopy[], showGeneralAlert: (message?: string) => void, translate: LocaleContextProps['translate']): Promise<LocalCopy[]> {
+    const failureMessages = new Set<string>();
+    const collectFailure = (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
+        failureMessages.add(message);
+    };
+
+    const results: LocalCopy[] = [];
+    for (const file of files) {
+        if (!isLabelledDng(file)) {
+            results.push(file);
+            continue;
+        }
+
+        // eslint-disable-next-line no-await-in-loop -- converting one image at a time keeps a single decoded bitmap in memory, see processPickedAssetsSequentially
+        const convertedAssets = await processPickedAssetsSequentially(
+            [{uri: file.uri, fileName: file.name ?? undefined, type: file.type ?? undefined, fileSize: file.size ?? undefined}],
+            collectFailure,
+            translate,
+        );
+        const convertedAsset = convertedAssets?.at(0);
+        if (!convertedAsset?.uri) {
+            continue;
+        }
+
+        results.push({
+            name: convertedAsset.fileName ?? file.name,
+            uri: convertedAsset.uri,
+            // The JPEG's size differs from the DNG's and isn't reported by the transcode. `getDataForUpload` reads it from disk.
+            size: null,
+            type: convertedAsset.type ?? file.type,
+        });
+    }
+
+    if (failureMessages.size > 0) {
+        showGeneralAlert([...failureMessages].join('\n'));
+    }
+
+    return results;
+}
+
+/**
  * This component renders a function as a child and
  * returns a "show attachment picker" method that takes
  * a callback. This is the ios/android implementation
@@ -171,6 +208,10 @@ function AttachmentPicker({
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
+    // Mount and visibility are tracked separately so the camera stays mounted through its hide
+    // animation. Unmounting on close cuts the animation off midway and the modal vanishes abruptly.
+    const [isAttachmentCameraMounted, setIsAttachmentCameraMounted] = useState(false);
+    const [isAttachmentCameraVisible, setIsAttachmentCameraVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -179,6 +220,16 @@ function AttachmentPicker({
     const onCanceled = useRef<() => void>(() => {});
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
+    const modalDismissTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (!modalDismissTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(modalDismissTimeoutRef.current);
+        };
+    }, []);
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -194,10 +245,15 @@ function AttachmentPicker({
         [translate],
     );
 
+    const launchInAppCamera = useCallback(() => {
+        setIsAttachmentCameraMounted(true);
+        setIsAttachmentCameraVisible(true);
+    }, []);
+
     /**
      * Common image picker handling
      *
-     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+     * @param {function} imagePickerFunc - RNImagePicker.launchImageLibrary
      */
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
@@ -225,68 +281,7 @@ function AttachmentPicker({
                         return resolve();
                     }
 
-                    const processedAssets: Asset[] = [];
-                    let processedCount = 0;
-
-                    const checkAllProcessed = () => {
-                        processedCount++;
-                        if (processedCount === assets.length) {
-                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
-                        }
-                    };
-
-                    for (const asset of assets) {
-                        if (!asset.uri) {
-                            checkAllProcessed();
-                            continue;
-                        }
-
-                        if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-                                .then((isHEIC) => {
-                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                    if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                            .then((manipulationResult) => {
-                                                const uri = manipulationResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipulationResult.width,
-                                                    height: manipulationResult.height,
-                                                };
-                                                processedAssets.push(convertedAsset);
-                                                checkAllProcessed();
-                                            })
-                                            .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, skipping asset', {error: error.message});
-                                                showGeneralAlert(translate('attachmentPicker.errorWhileConvertingHeic'));
-                                                checkAllProcessed();
-                                            });
-                                    } else {
-                                        // Ensure the asset has proper fileName and type for non-HEIC images
-                                        const processedAsset = processAssetWithFallbacks(asset);
-                                        processedAssets.push(processedAsset);
-                                        checkAllProcessed();
-                                    }
-                                })
-                                .catch((error: Error) => {
-                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
-                                    checkAllProcessed();
-                                });
-                        } else {
-                            // Ensure the asset has proper fileName and type
-                            const processedAsset = processAssetWithFallbacks(asset);
-                            processedAssets.push(processedAsset);
-                            checkAllProcessed();
-                        }
-                    }
+                    processPickedAssetsSequentially(assets, showGeneralAlert, translate).then(resolve).catch(reject);
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],
@@ -327,7 +322,7 @@ function AttachmentPicker({
             destination: 'cachesDirectory',
         });
 
-        return pickedFiles.map((file) => {
+        const localFiles: LocalCopy[] = pickedFiles.map((file) => {
             const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
 
             if (localCopy?.status !== 'success') {
@@ -341,7 +336,9 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [acceptedFileTypes, fileLimit, type]);
+
+        return transcodeDngFiles(localFiles, showGeneralAlert, translate);
+    }, [acceptedFileTypes, fileLimit, showGeneralAlert, translate, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -362,12 +359,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => showImagePicker(launchCamera),
+                onPress: launchInAppCamera,
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, launchInAppCamera, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -420,7 +417,6 @@ function AttachmentPicker({
                     return Promise.resolve(null);
                 }
 
-                /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
                 const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
                 const fileDataUri = ('uri' in fileData && fileData.uri) || '';
 
@@ -490,6 +486,39 @@ function AttachmentPicker({
         [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
+    const handleCameraCapture = useCallback(
+        (photos: CapturedPhoto[]) => {
+            setIsAttachmentCameraVisible(false);
+            if (modalDismissTimeoutRef.current) {
+                clearTimeout(modalDismissTimeoutRef.current);
+                modalDismissTimeoutRef.current = null;
+            }
+            const assets: Asset[] = photos.map((photo) => ({
+                uri: photo.uri,
+                fileName: photo.fileName,
+                type: photo.type,
+                width: photo.width,
+                height: photo.height,
+            }));
+            Promise.resolve(pickAttachment(assets)).finally(() => {
+                onClosed.current();
+                delete onModalHide.current;
+            });
+        },
+        [pickAttachment],
+    );
+
+    const handleCameraClose = useCallback(() => {
+        setIsAttachmentCameraVisible(false);
+        if (modalDismissTimeoutRef.current) {
+            clearTimeout(modalDismissTimeoutRef.current);
+            modalDismissTimeoutRef.current = null;
+        }
+        onCanceled.current();
+        onClosed.current();
+        delete onModalHide.current;
+    }, []);
+
     /**
      * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
      */
@@ -525,11 +554,32 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
+            if (modalDismissTimeoutRef.current) {
+                clearTimeout(modalDismissTimeoutRef.current);
+                modalDismissTimeoutRef.current = null;
+            }
+
+            /* Presenting a second modal while the first is still dismissing fails silently on iOS, so
+             * defer the camera launch to onModalHide. onPress items report completion themselves and
+             * skip the promise-based pickAttachment chain below. */
+            if ('onPress' in item) {
+                onModalHide.current = () => {
+                    modalDismissTimeoutRef.current = setTimeout(() => {
+                        modalDismissTimeoutRef.current = null;
+                        item.onPress();
+                        delete onModalHide.current;
+                    }, MODAL_DISMISS_DELAY_MS);
+                };
+                close();
+                return;
+            }
+
             onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
-                setTimeout(() => {
+                modalDismissTimeoutRef.current = setTimeout(() => {
+                    modalDismissTimeoutRef.current = null;
                     item.pickAttachment()
                         .catch((error: Error) => {
                             if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
@@ -545,7 +595,7 @@ function AttachmentPicker({
                             onClosed.current();
                             delete onModalHide.current;
                         });
-                }, 200);
+                }, MODAL_DISMISS_DELAY_MS);
             };
             close();
         },
@@ -581,6 +631,10 @@ function AttachmentPicker({
         <>
             <Popover
                 onClose={() => {
+                    if (modalDismissTimeoutRef.current) {
+                        clearTimeout(modalDismissTimeoutRef.current);
+                        modalDismissTimeoutRef.current = null;
+                    }
                     close();
                     onCanceled.current();
                 }}
@@ -602,6 +656,14 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            {isAttachmentCameraMounted && (
+                <AttachmentCamera
+                    isVisible={isAttachmentCameraVisible}
+                    onCapture={handleCameraCapture}
+                    onClose={handleCameraClose}
+                    onModalHide={() => setIsAttachmentCameraMounted(false)}
+                />
+            )}
             {renderChildren()}
         </>
     );

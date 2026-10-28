@@ -18,7 +18,6 @@ import {View} from 'react-native';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
 
 type ComparePlansModalProps = {
-    /** Whether the modal is visible */
     isModalVisible: boolean;
 
     /** Updates modal visibility */

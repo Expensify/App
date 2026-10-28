@@ -19,7 +19,7 @@ import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type AddressValues = {
@@ -49,10 +49,7 @@ function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values:
 
 type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
-        /** The ID of the form */
         formID: TFormID;
-
-        /** The title of the form */
         formTitle: string;
 
         /** The disclaimer informing that PO box is not allowed */
@@ -61,46 +58,19 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProp
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-        /** A function to call when the form is submitted */
         onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-        /** Fields list of the form */
         stepFields: Array<FormOnyxKeys<TFormID>>;
-
-        /** The IDs of the input fields */
         inputFieldsIDs: AddressInputIDs;
-
-        /** The default values for the form */
         defaultValues: AddressValues;
-
-        /** Should show help links */
         shouldShowHelpLinks?: boolean;
-
-        /** Indicates if country selector should be displayed */
         shouldDisplayCountrySelector?: boolean;
-
-        /** Indicates if state selector should be displayed */
         shouldDisplayStateSelector?: boolean;
-
-        /** Label for the state selector */
         stateSelectorLabel?: string;
-
-        /** The title of the state selector modal */
         stateSelectorModalHeaderTitle?: string;
-
-        /** The title of the state selector search input */
         stateSelectorSearchInputTitle?: string;
-
-        /** Callback to be called when the country is changed */
         onCountryChange?: (country: unknown) => void;
-
-        /** Translation key of street field */
         streetTranslationKey?: TranslationPaths;
-
-        /** Indicates if country can be changed by user */
         shouldAllowCountryChange?: boolean;
-
-        /** Indicates if zip code format should be validated */
         shouldValidateZipCodeFormat?: boolean;
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
@@ -155,34 +125,31 @@ function AddressStepImpl({
         setDraftValues(formID, {[inputFieldsIDs.country]: defaultValues.country});
     }, [defaultValues.country, formID, inputFieldsIDs.country, shouldAllowCountryChange]);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            const errors = getFieldRequiredErrors(values, stepFields, translate);
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const street = getStringFormValue(values, inputFieldsIDs.street);
-            const streetError = getInvalidAddressErrorTranslationPath(street);
-            if (street && streetError) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate(streetError);
-            }
+        const street = getStringFormValue(values, inputFieldsIDs.street);
+        const streetError = getInvalidAddressErrorTranslationPath(street);
+        if (street && streetError) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.street] = translate(streetError);
+        }
 
-            const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
-            const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
-            const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
+        const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
+        const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
+        const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
 
-            if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
-                const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
-            } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
-            }
+        if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
+            const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
+        } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
+        }
 
-            return errors;
-        },
-        [defaultValues.country, inputFieldsIDs.country, inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
-    );
+        return errors;
+    };
 
     return (
         <FormProvider

@@ -5,7 +5,7 @@ import {handleNegativeAmountFlipping, replaceAllDigits, replaceCommasWithPeriod,
 
 import CONST from '@src/CONST';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
@@ -21,10 +21,7 @@ type AmountFormProps = {
     /** Should we allow negative number as valid input */
     shouldAllowNegative?: boolean;
 
-    /** Whether to allow flipping the amount */
     allowFlippingAmount?: boolean;
-
-    /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 } & Partial<BaseTextInputProps>;
 
@@ -44,29 +41,22 @@ function AmountWithoutCurrencyInput({
     ...rest
 }: AmountFormProps) {
     const {toLocaleDigit} = useLocalize();
-    const separator = useMemo(
-        () =>
-            replaceAllDigits('1.1', toLocaleDigit)
-                .split('')
-                .filter((char) => char !== '1')
-                .join(''),
-        [toLocaleDigit],
-    );
+    const separator = replaceAllDigits('1.1', toLocaleDigit)
+        .split('')
+        .filter((char) => char !== '1')
+        .join('');
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
      * @param newAmount - Changed amount from user input
      */
-    const setNewAmount = useCallback(
-        (newAmount: string) => {
-            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-            // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const processedAmount = handleNegativeAmountFlipping(newAmountWithoutSpaces, allowFlippingAmount ?? false, toggleNegative);
-            const replacedCommasAmount = replaceCommasWithPeriod(processedAmount);
-            onInputChange?.(replacedCommasAmount);
-        },
-        [onInputChange, allowFlippingAmount, toggleNegative],
-    );
+    const setNewAmount = (newAmount: string) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+        const processedAmount = handleNegativeAmountFlipping(newAmountWithoutSpaces, allowFlippingAmount ?? false, toggleNegative);
+        const replacedCommasAmount = replaceCommasWithPeriod(processedAmount);
+        onInputChange?.(replacedCommasAmount);
+    };
 
     // Add custom notation for using '-' character in the mask.
     // If we only use '-' for characterSet instead of '0123456789.-'

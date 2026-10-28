@@ -29,7 +29,6 @@ type ConnectionLayoutProps = {
     /** Header title to be translated for the connection component */
     headerTitle?: TranslationPaths;
 
-    /** The subtitle to show in the header */
     headerSubtitle?: string;
 
     /** React nodes that will be shown */
@@ -38,7 +37,6 @@ type ConnectionLayoutProps = {
     /** Title to be translated for the connection component */
     title?: TranslationPaths;
 
-    /** The current policyID */
     policyID?: string;
 
     /** Defines which types of access should be verified */
@@ -50,13 +48,8 @@ type ConnectionLayoutProps = {
     /** The content container style of ScrollView */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 
-    /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
-
-    /** Whether to include safe area padding bottom or not */
     shouldIncludeSafeAreaPaddingBottom?: boolean;
-
-    /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
 
     /** Used for dynamic header title translation with parameters */
@@ -65,13 +58,8 @@ type ConnectionLayoutProps = {
     /** Used for dynamic title translation with parameters */
     titleAlreadyTranslated?: string;
 
-    /** Name of the current connection */
     connectionName: ConnectionName;
-
-    /** Whether the screen should load for an empty connection */
     shouldLoadForEmptyConnection?: boolean;
-
-    /** Handler for back button press */
     onBackButtonPress?: () => void;
 
     /** Whether or not to block user from accessing the page */

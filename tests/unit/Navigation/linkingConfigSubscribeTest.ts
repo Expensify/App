@@ -1,9 +1,11 @@
-import {hasAuthToken} from '@libs/actions/Session';
+import type * as CurrentUserStore from '@libs/CurrentUserStore';
+import {hasAuthToken} from '@libs/CurrentUserStore';
 import subscribe from '@libs/Navigation/linkingConfig/subscribe';
 
 import {Linking} from 'react-native';
 
-jest.mock('@libs/actions/Session', () => ({
+jest.mock('@libs/CurrentUserStore', () => ({
+    ...jest.requireActual<typeof CurrentUserStore>('@libs/CurrentUserStore'),
     hasAuthToken: jest.fn(),
 }));
 

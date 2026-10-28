@@ -1,5 +1,4 @@
 type ExportPerDiemCSVParams = {
-    /** ID of the policy */
     policyID: string;
 };
 

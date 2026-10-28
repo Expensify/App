@@ -21,12 +21,21 @@ import {createTransactionThreadReport} from '@userActions/Report';
 import type * as ReportActions from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
+/** Echoes the translation path and any interpolated values so assertions can lock the chosen message. */
+function translate<TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    if (parameters.length === 0) {
+        return path;
+    }
+    return `${path}|${parameters.map(String).join('|')}`;
+}
 
 // The delegate boundary is the assertion point: editTransaction*Inline only builds params and calls through.
 jest.mock('@userActions/IOU/UpdateMoneyRequest', () => ({
@@ -99,6 +108,7 @@ describe('TransactionInlineEdit', () => {
             parentReport: baseParentReport,
             policy: basePolicy,
             parentReportActions: undefined,
+            rules: undefined,
         };
 
         const policyCategories: PolicyCategories = {
@@ -313,6 +323,41 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditCategory).toBe(true);
             });
+
+            it('should enable category editing when the category is missing and the policy categories have not loaded yet', () => {
+                // Lazy-loaded accounts have no policyCategories in Onyx on a fresh sign-in. Without this the cell
+                // deadlocks: the edit icon stays hidden, so the picker never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(true);
+            });
+
+            it('should disable category editing when the category is missing and the loaded policy categories are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policyCategories: {},
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
+
+            it('should disable category editing when categories are not enabled on policy and the policy categories have not loaded yet', () => {
+                const policyWithoutCategories: Policy = {
+                    ...basePolicy,
+                    areCategoriesEnabled: false,
+                };
+
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: policyWithoutCategories,
+                    policyCategories: undefined,
+                });
+
+                expect(permissions.canEditCategory).toBe(false);
+            });
         });
 
         describe('tag permissions', () => {
@@ -359,6 +404,38 @@ describe('TransactionInlineEdit', () => {
 
                 expect(permissions.canEditTag).toBe(true);
             });
+
+            it('should enable tag editing when the tag is missing and the policy tags have not loaded yet', () => {
+                // Same deadlock as categories. With the collection absent the edit icon stays hidden, so TagPicker
+                // never mounts and never backfills the list.
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: true},
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(true);
+            });
+
+            it('should disable tag editing when the tag is missing and the loaded policy tags are empty', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: true},
+                    policyTags: {},
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
+
+            it('should disable tag editing when tags are not enabled on policy and the policy tags have not loaded yet', () => {
+                const permissions = getTransactionEditPermissions({
+                    ...baseUnreportedParams,
+                    policy: {...basePolicy, areTagsEnabled: false},
+                    policyTags: undefined,
+                });
+
+                expect(permissions.canEditTag).toBe(false);
+            });
         });
 
         describe('unreported expenses', () => {
@@ -383,12 +460,14 @@ describe('TransactionInlineEdit', () => {
                 } satisfies TransactionEditPermissions);
             });
 
+            // An empty collection rather than an absent one is what "no available options" means here. An absent
+            // collection only tells us the lazy-loaded account hasn't fetched it yet, so the cell stays editable.
             it('should disable category and tag editing without available options', () => {
                 const permissions = getTransactionEditPermissions({
                     ...baseUnreportedParams,
                     transaction: unreportedTransaction,
-                    policyCategories: undefined,
-                    policyTags: undefined,
+                    policyCategories: {},
+                    policyTags: {},
                 });
 
                 expect(permissions).toMatchObject({
@@ -623,6 +702,7 @@ describe('TransactionInlineEdit', () => {
 
         function buildParams(): TransactionInlineEditParams {
             return {
+                isVendorMatchingBetaEnabled: false,
                 hash: 123456,
                 isOffline: false,
                 transactionID: TRANSACTION_ID,
@@ -646,10 +726,11 @@ describe('TransactionInlineEdit', () => {
                 getCurrencySymbol: () => '$',
                 transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: snapshotTransaction},
                 transactionViolations: {},
-                betas: [],
+                isASAPSubmitBetaEnabled: false,
                 introSelected: undefined,
                 currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
                 currentUserEmail: '',
+                rules: undefined,
             };
         }
 
@@ -659,10 +740,10 @@ describe('TransactionInlineEdit', () => {
         // the state of a Search row the user has not opened: it exists only in the search snapshot.
         it.each([
             ['date', () => editTransactionDateInline(buildParams(), '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
-            ['merchant', () => editTransactionMerchantInline(buildParams(), 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
-            ['description', () => editTransactionDescriptionInline(buildParams(), 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
+            ['merchant', () => editTransactionMerchantInline(translate, buildParams(), 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
+            ['description', () => editTransactionDescriptionInline(translate, buildParams(), 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
             ['category', () => editTransactionCategoryInline(buildParams(), 'Benefits'), () => updateMoneyRequestCategory, {category: 'Benefits'}],
-            ['amount', () => editTransactionAmountInline(buildParams(), 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
+            ['amount', () => editTransactionAmountInline(translate, buildParams(), 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
             ['tag', () => editTransactionTagInline(buildParams(), 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
         ])('forwards the caller transaction when editing %s', (_field, edit, getDelegate, expectedChange) => {
             edit();
@@ -671,11 +752,148 @@ describe('TransactionInlineEdit', () => {
         });
 
         it('clears the merchant instead of discarding the edit', () => {
-            // isValidMerchant only allows an empty merchant on an unreported expense, which it can only
-            // tell from the transaction. Without one the edit was dropped before any API call.
-            editTransactionMerchantInline(buildParams(), '');
+            // Given an unreported expense, where an empty merchant is a real clear rather than a required-field failure
+            // When the merchant is cleared
+            const rejection = editTransactionMerchantInline(translate, buildParams(), '');
 
+            // Then the edit is saved as the partial merchant, so there is no error to toast
+            expect(rejection).toBeUndefined();
             expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({value: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT}));
+        });
+
+        it('rejects an empty merchant on an expense report without saving', () => {
+            // Given a reported expense, where clearing the merchant is not allowed the way it is for an unreported expense
+            const expenseReport: Report = {reportID: 'expense-report-1', type: CONST.REPORT.TYPE.EXPENSE};
+            const reportedTransaction: Transaction = {...snapshotTransaction, reportID: expenseReport.reportID};
+            const parentReportAction = {
+                reportActionID: '999',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-08-12',
+            } as ReportAction;
+
+            // When the merchant is cleared to whitespace
+            const rejection = editTransactionMerchantInline(translate, {...buildParams(), parentReport: expenseReport, transaction: reportedTransaction, parentReportAction}, '   ');
+
+            // Then the edit is dropped before any write, including the transaction thread that building params would create
+            expect(rejection).toBe('common.error.fieldRequired');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+            expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
+        });
+
+        it('rejects a placeholder merchant without saving', () => {
+            // Given the seeded "(none)" placeholder, which is not a merchant the user actually entered
+            // When that placeholder is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+
+            // Then the edit is dropped, because saving the placeholder would look like a successful clear
+            expect(rejection).toBe('iou.error.invalidMerchant');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a merchant past the byte limit without saving', () => {
+            // Given a merchant longer than the form allows, measured in bytes the same way the merchant step does
+            const tooLongMerchant = 'a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES + 1);
+
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), tooLongMerchant);
+
+            // Then the edit is dropped so the cell can revert instead of storing a value the form would refuse
+            expect(rejection).toBe(`common.error.characterLimitExceedCounter|${tooLongMerchant.length}|${CONST.MERCHANT_NAME_MAX_BYTES}`);
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a merchant that contains an HTML tag without saving', () => {
+            // Given a merchant the form would reject for HTML, which inline edit never sees because it skips FormProvider
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), '<script>x</script>');
+
+            // Then the edit is dropped with the same invalid character failure the form shows
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a merchant that is both too long and tagged as invalid character', () => {
+            // Given a merchant that is past the byte limit and also contains a tag, so both failures apply at once
+            const taggedMerchant = `<b>${'a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES)}</b>`;
+
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), taggedMerchant);
+
+            // Then HTML wins, matching FormProvider, which replaces the length error when a tag is present
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it.each(['<✓>', '<@>'])('rejects a merchant with a non-standard tag %s without saving', (merchant) => {
+            // Given a merchant the merchant step rejects through strict HTML validation, which the default tag check allows
+            // When that merchant is saved from the table
+            const rejection = editTransactionMerchantInline(translate, buildParams(), merchant);
+
+            // Then the edit is dropped with the same invalid character failure the merchant step shows
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(updateMoneyRequestMerchant).not.toHaveBeenCalled();
+        });
+
+        it('rejects a zero amount on an invoice without saving', () => {
+            // Given an invoice, where a zero amount is invalid even though an unreported expense can store one
+            const invoiceReport: Report = {reportID: 'invoice-report-1', type: CONST.REPORT.TYPE.INVOICE};
+
+            // When the amount is set to zero
+            const rejection = editTransactionAmountInline(translate, {...buildParams(), parentReport: invoiceReport}, 0);
+
+            // Then the edit is dropped so the previous amount stays in place
+            expect(rejection).toBe('iou.error.invalidAmount');
+            expect(updateMoneyRequestAmountAndCurrency).not.toHaveBeenCalled();
+        });
+
+        it('rejects a description past the character limit without saving', () => {
+            // Given a description longer than the description step allows
+            const tooLongDescription = 'a'.repeat(CONST.DESCRIPTION_LIMIT + 1);
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(translate, buildParams(), tooLongDescription);
+
+            // Then the edit is dropped so the cell reverts instead of storing text the description step would refuse
+            expect(rejection).toBe(`common.error.characterLimitExceedCounter|${tooLongDescription.length}|${CONST.DESCRIPTION_LIMIT}`);
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
+        });
+
+        it('saves a description that only exceeds the limit because of surrounding spaces', () => {
+            // Given a description the description step accepts once FormProvider trims it
+            const description = 'a'.repeat(CONST.DESCRIPTION_LIMIT);
+            const paddedDescription = `  ${description}  `;
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(translate, buildParams(), paddedDescription);
+
+            // Then the trimmed description is saved, matching the description step
+            expect(rejection).toBeUndefined();
+            expect(updateMoneyRequestDescription).toHaveBeenCalledWith(expect.objectContaining({comment: description}));
+        });
+
+        it('counts a too-long description after trimming surrounding spaces', () => {
+            // Given text that is still over the limit once the spaces the description step ignores are removed
+            const description = 'a'.repeat(CONST.DESCRIPTION_LIMIT + 1);
+            const paddedDescription = `  ${description}  `;
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(translate, buildParams(), paddedDescription);
+
+            // Then the toast uses the trimmed length, the same count the description step shows
+            expect(rejection).toBe(`common.error.characterLimitExceedCounter|${description.length}|${CONST.DESCRIPTION_LIMIT}`);
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
+        });
+
+        it('rejects a description that contains an HTML tag without saving', () => {
+            // Given a description that is also past the length limit, so both failures apply at once
+            const taggedDescription = `<b>${'a'.repeat(CONST.DESCRIPTION_LIMIT)}</b>`;
+
+            // When that description is saved from the table
+            const rejection = editTransactionDescriptionInline(translate, buildParams(), taggedDescription);
+
+            // Then HTML wins, matching FormProvider, which replaces the length error when a tag is present
+            expect(rejection).toBe('common.error.invalidCharacter');
+            expect(updateMoneyRequestDescription).not.toHaveBeenCalled();
         });
 
         describe('transaction thread creation', () => {
@@ -693,7 +911,7 @@ describe('TransactionInlineEdit', () => {
                 mockCreateTransactionThreadReport.mockReturnValue(CREATED_THREAD);
 
                 // A parent IOU action but no transaction thread anywhere: the edit must create the thread first.
-                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+                editTransactionMerchantInline(translate, {...buildParams(), parentReportAction: iouParentReportAction, conciergeChat: CONCIERGE_CHAT}, 'Cafe');
 
                 // The threaded conciergeChat reaches createTransactionThreadReport instead of the deprecated module-level lookup...
                 expect(mockCreateTransactionThreadReport).toHaveBeenCalledWith(
@@ -706,14 +924,14 @@ describe('TransactionInlineEdit', () => {
             it('reuses an existing transaction thread without creating a new one', () => {
                 const existingThread: Report = {reportID: 'existing-thread-1'};
 
-                editTransactionMerchantInline({...buildParams(), parentReportAction: iouParentReportAction, transactionThreadReport: existingThread}, 'Cafe');
+                editTransactionMerchantInline(translate, {...buildParams(), parentReportAction: iouParentReportAction, transactionThreadReport: existingThread}, 'Cafe');
 
                 expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
                 expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: existingThread}));
             });
 
             it('does not create a thread when there is no parent report action to anchor it', () => {
-                editTransactionMerchantInline({...buildParams(), conciergeChat: CONCIERGE_CHAT}, 'Cafe');
+                editTransactionMerchantInline(translate, {...buildParams(), conciergeChat: CONCIERGE_CHAT}, 'Cafe');
 
                 expect(mockCreateTransactionThreadReport).not.toHaveBeenCalled();
                 expect(updateMoneyRequestMerchant).toHaveBeenCalledWith(expect.objectContaining({transactionThreadReport: undefined}));

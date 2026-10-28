@@ -3,7 +3,12 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import type {SplitExpense} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isClosedReport, isReportApproved, isSettled} from './ReportUtils';
 
 type SplitWarningParams = {
     splitExpenses: SplitExpense[];
@@ -23,6 +28,13 @@ type SplitSaveErrorParams = {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
+
+/**
+ * Approved/paid/done report - amount frozen, must not change.
+ */
+function isSplitExpenseFrozen(splitReport: OnyxEntry<Report>): boolean {
+    return isReportApproved({report: splitReport}) || isSettled(splitReport) || isClosedReport(splitReport);
+}
 
 /**
  * Determines whether any split has the same sign as the total and exceeds it in magnitude.
@@ -114,4 +126,4 @@ function computeSplitSaveErrorMessage({splitExpenses, transactionDetailsAmount, 
     return '';
 }
 
-export {computeSplitWarningMessage, computeSplitSaveErrorMessage};
+export {computeSplitWarningMessage, computeSplitSaveErrorMessage, isSplitExpenseFrozen};

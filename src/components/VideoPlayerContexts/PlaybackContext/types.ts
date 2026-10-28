@@ -1,7 +1,7 @@
 import type {Report} from '@src/types/onyx';
 
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -20,15 +20,12 @@ type StopVideo = () => void;
  * Represents the original parent container of the video element.
  * Can be a React Native View, an HTML div, or null if not set.
  */
-type OriginalParent = View | HTMLDivElement | null;
+type OriginalParent = ComponentRef<typeof View> | HTMLDivElement | null;
 
 /**
  * Metadata describing a video element instance.
  */
 type VideoElementData = {
-    /**
-     * Whether the video player should use a shared video element.
-     */
     shouldUseSharedVideoElement: boolean;
 
     /**
@@ -56,21 +53,18 @@ type PlaybackStateContextValues = {
     /**
      * The original parent container of the shared video element.
      */
-    originalParent: View | HTMLDivElement | null;
+    originalParent: ComponentRef<typeof View> | HTMLDivElement | null;
 
     /**
      * The shared video element container, if one exists.
      */
-    sharedElement: View | HTMLDivElement | null;
+    sharedElement: ComponentRef<typeof View> | HTMLDivElement | null;
 
     /**
      * Array of currently mounted Video Player instances
      */
     mountedVideoPlayersRef: RefObject<string[]>;
 
-    /**
-     * Status of the currently used Video Player
-     */
     playerStatus: RefObject<VideoPlayerStatus>;
 
     /**
@@ -107,15 +101,12 @@ type PlaybackActionsContextValues = {
     shareVideoPlayerElements: (
         playerRef: VideoPlayer | null,
         viewRef: VideoView | null,
-        parent: View | HTMLDivElement | null,
-        child: View | HTMLDivElement | null,
+        parent: ComponentRef<typeof View> | HTMLDivElement | null,
+        child: ComponentRef<typeof View> | HTMLDivElement | null,
         isUploading: boolean,
         videoElementData: VideoElementData,
     ) => void;
 
-    /**
-     * Sets the URL of the currently playing video.
-     */
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
 
     /**
@@ -136,9 +127,6 @@ type PlaybackActionsContextValues = {
  * References and helper methods for managing video playback.
  */
 type PlaybackContextVideoRefs = {
-    /**
-     * Resets the player data in the context.
-     */
     resetPlayerData: () => void;
 
     /**

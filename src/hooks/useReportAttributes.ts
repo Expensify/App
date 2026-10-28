@@ -3,7 +3,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {reportNameSelector} from '@selectors/ReportAttributes';
+import {reportIsEmptySelector, reportNameSelector} from '@selectors/ReportAttributes';
 
 import useOnyx from './useOnyx';
 
@@ -68,5 +68,18 @@ function useDerivedReportNamesByReportIDs(reportIDs: Array<string | undefined>) 
     return reportNames;
 }
 
+/**
+ * Returns a single report's cached `isEmpty` flag using a selector.
+ *
+ * The selector output is a primitive boolean, so its comparison is trivial and the component re-renders only when
+ * that specific report's emptiness changes — not on every global report attribute change.
+ */
+function useDerivedIsEmptyReport(reportID: string | undefined) {
+    const [isEmpty] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) => reportIsEmptySelector(value, reportID),
+    });
+    return isEmpty;
+}
+
 export default useReportAttributes;
-export {useReportAttributesByID, useDerivedReportNameByReportID, useDerivedReportNamesByReportIDs};
+export {useReportAttributesByID, useDerivedReportNameByReportID, useDerivedReportNamesByReportIDs, useDerivedIsEmptyReport};

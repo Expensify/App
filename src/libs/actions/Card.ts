@@ -3,6 +3,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
+    ApproveDigitalWalletCardAdditionParams,
     CardDeactivateParams,
     CreateExpensifyCardParams,
     DeletePersonalCardParams,
@@ -15,6 +16,7 @@ import type {
     SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
+    ToggleCardContinuousReconciliationParams,
     UnassignCardParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
@@ -24,12 +26,16 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType} from '@libs/CardUtils';
+import {getDisplayedExpensifyCardLimitType, getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
+import deferNavigate from '@libs/Navigation/deferNavigate';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
@@ -38,6 +44,7 @@ import {buildSpendRuleAST} from '@libs/SpendRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
@@ -63,7 +70,6 @@ type IssueNewCardFlowData = {
     /** Data required to be sent to issue a new card */
     data?: Partial<IssueNewCardData>;
 
-    /** ID of the policy */
     policyID: string | undefined;
 
     /** Whether the changing assignee is disabled. E.g., The assignee is auto selected from workspace members page */
@@ -74,6 +80,26 @@ type CardOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST
 type CardListUpdateData = Omit<PartialDeep<Card>, 'errors'> & {
     errors?: Card['errors'] | null;
 };
+
+/**
+ * Shared isLoading updates so both card writes show and hide the same spinner. The generic failure error is a
+ * fallback for responses that carry no message of their own; a backend error keyed by a later timestamp wins.
+ */
+function buildCardLoadingOnyxData(cardID: number) {
+    const mergeCard = (value: CardListUpdateData): Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {[cardID]: value},
+        },
+    ];
+
+    return {
+        optimisticData: mergeCard({errors: null, isLoading: true}),
+        successData: mergeCard({isLoading: false}),
+        failureData: mergeCard({errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), isLoading: false}),
+    };
+}
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
     const cardID = card?.cardID ?? CONST.DEFAULT_NUMBER_ID;
@@ -200,53 +226,38 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
  * Activates the physical Expensify card based on the last four digits of the card number
  */
 function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    errors: null,
-                    isLoading: true,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoading: false,
-                },
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    isLoading: false,
-                },
-            },
-        },
-    ];
-
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
     };
 
-    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
+}
+
+/**
+ * Opens the confirm or deny flow for a digital wallet addition. Every entry point goes through here so they share one
+ * URL and `backTo` keeps the page they came from underneath. This card's details page is already where the route goes
+ * back to, so it sends no `backTo`.
+ */
+function navigateToAddCardToDigitalWallet(cardID: number) {
+    const isOpenedOverCardDetails = Navigation.getActiveRouteWithoutParams() === `/${createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(String(cardID)), ROUTES.SETTINGS_WALLET)}`;
+    const backTo = isOpenedOverCardDetails ? undefined : Navigation.getActiveRoute();
+
+    // Called straight from a press handler, so defer it and let the touch finish before the RHP mounts.
+    deferNavigate(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET.getRoute(String(cardID), backTo)));
+}
+
+/**
+ * Confirms or denies adding the card to a digital wallet. Confirming needs a magic code. Denying does not.
+ */
+function approveDigitalWalletCardAddition(cardID: number, isApproved: boolean, validateCode?: string) {
+    const parameters: ApproveDigitalWalletCardAdditionParams = {
+        cardID,
+        isApproved,
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.APPROVE_DIGITAL_WALLET_CARD_ADDITION, parameters, buildCardLoadingOnyxData(cardID));
 }
 
 /**
@@ -662,12 +673,12 @@ function updateSettlementFrequency(
     workspaceAccountID: number,
     programKey: CardProgramKey,
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
-    currentFrequency?: Date,
+    currentMonthlySettlementDate?: number,
 ) {
-    const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date();
+    const monthlySettlementDate = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY ? null : new Date().getDate();
 
     const settlementValue = {[programKey]: {monthlySettlementDate}};
-    const failureValue = {[programKey]: {monthlySettlementDate: currentFrequency}};
+    const failureValue = {[programKey]: {monthlySettlementDate: currentMonthlySettlementDate}};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
@@ -754,19 +765,29 @@ function updateSettlementAccount(
     programKey: CardProgramKey,
     settlementBankAccountID?: number,
     currentSettlementBankAccountID?: number,
+    isTravelSettlementAccountPending = false,
 ) {
     if (!settlementBankAccountID) {
         return;
     }
 
-    const optimisticValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: true};
+    const optimisticValue = {
+        [programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}},
+        isLoading: true,
+        // The backend writes its error to this root field, which Travel Billing shares, so leave it alone while Travel's error is pending
+        ...(!isTravelSettlementAccountPending && {errorFields: {paymentBankAccountID: null}}),
+    };
 
-    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID}, isLoading: false};
+    // Clears a marker left by an earlier queued change that failed after this one's optimistic clear
+    const successValue = {[programKey]: {paymentBankAccountID: settlementBankAccountID, errorFields: {paymentBankAccountID: null}}, isLoading: false};
 
     const failureValue = {
-        [programKey]: {paymentBankAccountID: currentSettlementBankAccountID},
+        // Kept under the program so it marks a card failure without touching the root field Travel Billing reads
+        [programKey]: {
+            paymentBankAccountID: currentSettlementBankAccountID,
+            errorFields: {paymentBankAccountID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+        },
         isLoading: false,
-        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
@@ -799,6 +820,10 @@ function updateSettlementAccount(
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_ACCOUNT, parameters, {optimisticData, successData, failureData});
+}
+
+function clearSettlementAccountError(workspaceAccountID: number, programKey: CardProgramKey) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {[programKey]: {errorFields: {paymentBankAccountID: null}}});
 }
 
 function getCardDefaultName(userName?: string) {
@@ -1117,18 +1142,46 @@ function updateExpensifyCardTitle(workspaceAccountID: number, cardID: number, ne
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_TITLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateExpensifyCardLimitType(
-    workspaceAccountID: number,
-    cardID: number,
-    newLimitType: CardLimitType,
-    timeZone: SelectedTimezone | undefined,
-    oldCardNameValuePairs?: Card['nameValuePairs'],
-    validFrom?: string,
-    validThru?: string,
-    shouldClearValidityDates?: boolean,
-) {
+type UpdateExpensifyCardLimitTypeActionParams = {
+    workspaceAccountID: number;
+    cardID: number;
+    newLimitType: CardLimitType;
+    timeZone?: SelectedTimezone;
+    oldCardNameValuePairs?: Card['nameValuePairs'];
+    validFrom?: string;
+    validThru?: string;
+    shouldClearValidityDates?: boolean;
+    /** Leave existing validity dates unchanged. Used by inline table edits. */
+    shouldSkipValidityDateUpdate?: boolean;
+};
+
+function updateExpensifyCardLimitType({
+    workspaceAccountID,
+    cardID,
+    newLimitType,
+    timeZone,
+    oldCardNameValuePairs,
+    validFrom,
+    validThru,
+    shouldClearValidityDates,
+    shouldSkipValidityDateUpdate = false,
+}: UpdateExpensifyCardLimitTypeActionParams) {
     const normalizedValidFrom = validFrom ? DateUtils.normalizeDateToStartOfDay(validFrom, timeZone) : undefined;
     const normalizedValidThru = validThru ? DateUtils.normalizeDateToEndOfDay(validThru, timeZone) : undefined;
+
+    const pendingFields = {
+        limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        ...(shouldSkipValidityDateUpdate
+            ? {}
+            : {
+                  validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                  validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+              }),
+    };
+    const clearedPendingFields = {
+        limitType: null,
+        ...(shouldSkipValidityDateUpdate ? {} : {validFrom: null, validThru: null}),
+    };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST>> = [
         {
@@ -1138,13 +1191,13 @@ function updateExpensifyCardLimitType(
                 [cardID]: {
                     nameValuePairs: {
                         limitType: newLimitType,
-                        pendingFields: {
-                            limitType: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            validFrom: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            validThru: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        validFrom: shouldClearValidityDates ? null : normalizedValidFrom,
-                        validThru: shouldClearValidityDates ? null : normalizedValidThru,
+                        pendingFields,
+                        ...(shouldSkipValidityDateUpdate
+                            ? {}
+                            : {
+                                  validFrom: shouldClearValidityDates ? null : normalizedValidFrom,
+                                  validThru: shouldClearValidityDates ? null : normalizedValidThru,
+                              }),
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     pendingFields: {availableSpend: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -1163,7 +1216,7 @@ function updateExpensifyCardLimitType(
                 [cardID]: {
                     isLoading: false,
                     nameValuePairs: {
-                        pendingFields: {limitType: null, validFrom: null, validThru: null},
+                        pendingFields: clearedPendingFields,
                     },
                     pendingAction: null,
                     pendingFields: {availableSpend: null},
@@ -1180,9 +1233,13 @@ function updateExpensifyCardLimitType(
                 [cardID]: {
                     nameValuePairs: {
                         limitType: oldCardNameValuePairs?.limitType,
-                        validFrom: oldCardNameValuePairs?.validFrom,
-                        validThru: oldCardNameValuePairs?.validThru,
-                        pendingFields: {limitType: null, validFrom: null, validThru: null},
+                        pendingFields: clearedPendingFields,
+                        ...(shouldSkipValidityDateUpdate
+                            ? {}
+                            : {
+                                  validFrom: oldCardNameValuePairs?.validFrom,
+                                  validThru: oldCardNameValuePairs?.validThru,
+                              }),
                     },
                     pendingFields: {availableSpend: null},
                     pendingAction: null,
@@ -1196,9 +1253,13 @@ function updateExpensifyCardLimitType(
     const parameters: UpdateExpensifyCardLimitTypeParams = {
         cardID,
         limitType: newLimitType,
-        validFrom: normalizedValidFrom,
-        validThru: normalizedValidThru,
-        clearValidityDates: shouldClearValidityDates,
+        ...(shouldSkipValidityDateUpdate
+            ? {}
+            : {
+                  validFrom: normalizedValidFrom,
+                  validThru: normalizedValidThru,
+                  clearValidityDates: shouldClearValidityDates,
+              }),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_EXPENSIFY_CARD_LIMIT_TYPE, parameters, {optimisticData, successData, failureData});
@@ -1421,14 +1482,7 @@ function configureExpensifyCardsForPolicy(policyID: string, workspaceAccountID: 
     });
 }
 
-function issueExpensifyCard(
-    domainAccountID: number,
-    policyID: string | undefined,
-    feedCountry: string,
-    validateCode: string,
-    timeZone: SelectedTimezone | undefined,
-    data?: IssueNewCardData,
-) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, validateCode: string, timeZone: SelectedTimezone | undefined, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -1533,7 +1587,7 @@ function issueExpensifyCard(
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, feedCountry, policyID},
+            {...parameters, policyID},
             {
                 optimisticData,
                 successData,
@@ -1560,6 +1614,21 @@ function issueExpensifyCard(
     );
 }
 
+/**
+ * Asks if any Expensify Card has a wallet addition waiting to be confirmed.
+ */
+function getExpensifyCardPendingWalletApproval() {
+    const setIsChecking = (value: boolean): Array<OnyxUpdate<typeof ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL,
+            value,
+        },
+    ];
+
+    API.read(READ_COMMANDS.GET_EXPENSIFY_CARD_PENDING_WALLET_APPROVAL, null, {optimisticData: setIsChecking(true), finallyData: setIsChecking(false)});
+}
+
 function openCardDetailsPage(cardID: number) {
     const parameters: OpenCardDetailsPageParams = {
         cardID,
@@ -1574,15 +1643,23 @@ type ContinuousReconciliationUpdate = OnyxUpdate<
     | typeof ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION
 >;
 
-function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseContinuousReconciliation: boolean, connectionName: ConnectionName, oldConnectionName?: ConnectionName) {
-    const parameters = shouldUseContinuousReconciliation
+function toggleContinuousReconciliation(
+    workspaceAccountID: number,
+    policyID: string,
+    shouldUseContinuousReconciliation: boolean,
+    connectionName: ConnectionName,
+    oldConnectionName?: ConnectionName,
+) {
+    const parameters: ToggleCardContinuousReconciliationParams = shouldUseContinuousReconciliation
         ? {
               policyAccountID: workspaceAccountID,
+              policyID,
               shouldUseContinuousReconciliation,
               expensifyCardContinuousReconciliationConnection: connectionName,
           }
         : {
               policyAccountID: workspaceAccountID,
+              policyID,
               shouldUseContinuousReconciliation,
           };
 
@@ -1912,13 +1989,6 @@ function resolveFraudAlert(
     API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
 }
 
-function escapeCsvField(value: string): string {
-    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
-        return `"${value.replaceAll('"', '""')}"`;
-    }
-    return value;
-}
-
 function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
     return personalDetailsList?.[String(accountID)]?.login ?? '';
@@ -1958,13 +2028,16 @@ type ExportExpensifyCardListToCSVParams = {
     /** Settlement / card program currency for limit amounts */
     settlementCurrency: string;
 
+    /** Policy default limit type, used for cards that have none stored so the export matches the card list */
+    defaultLimitType: CardLimitType;
+
     translate: LocalizedTranslate;
 
     /** Formats a phone-number login for display in the current locale */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
-function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate, formatPhoneNumber}: ExportExpensifyCardListToCSVParams) {
+function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, defaultLimitType, translate, formatPhoneNumber}: ExportExpensifyCardListToCSVParams) {
     if (cards.length === 0) {
         return;
     }
@@ -1985,7 +2058,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
         const ownerNameColumn = getCardholderNameForCSV(card, personalDetailsList, translate, formatPhoneNumber);
         const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
-        const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
+        const limitTypeColumn = translate(getTranslationKeyForLimitType(getDisplayedExpensifyCardLimitType(card.nameValuePairs?.limitType, defaultLimitType)));
         const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
         const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
 
@@ -2014,10 +2087,14 @@ export {
     unfreezeCard,
     updateExpensifyCardTitle,
     updateSettlementAccount,
+    clearSettlementAccountError,
     startIssueNewCardFlow,
     configureExpensifyCardsForPolicy,
     issueExpensifyCard,
     openCardDetailsPage,
+    getExpensifyCardPendingWalletApproval,
+    approveDigitalWalletCardAddition,
+    navigateToAddCardToDigitalWallet,
     clearCardErrorField,
     clearCardNameValuePairsErrorField,
     setPersonalCardReimbursable,

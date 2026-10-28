@@ -51,6 +51,9 @@ jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
     isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
     getValidConnectedIntegration: jest.fn(),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
@@ -83,6 +86,7 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -115,6 +119,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -147,6 +152,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -181,6 +187,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -214,6 +221,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -247,6 +255,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -285,6 +294,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -320,6 +330,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -355,6 +366,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -391,6 +403,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -443,6 +456,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -493,6 +507,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -554,6 +569,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -590,6 +606,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -626,6 +643,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -660,6 +678,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -700,6 +719,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -738,6 +758,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -909,6 +930,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -953,6 +975,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -986,6 +1009,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1018,6 +1042,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1052,6 +1077,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1067,6 +1093,9 @@ describe('getPrimaryAction', () => {
     });
 
     it('should return PAY for non-payer admin when a bank account is connected (reimburseYes)', async () => {
+        // Given a non-payer admin viewing an approved expense report.
+        // When the primary payment action is resolved.
+        // Then configured reimbursement allows Pay without making the admin the designated payer.
         const payerEmail = 'payer@vba-test.com';
         const submitterEmail = 'member@vba-test.com';
         const report = createMock<Report>({
@@ -1109,8 +1138,46 @@ describe('getPrimaryAction', () => {
                 bankAccountList: {},
                 policy,
                 isChatReportArchived: false,
+                rules: undefined,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for expense report waiting for the cancelled payment to finish processing', async () => {
+        // Given a closed expense report whose cancelled payment is still being sent back to the payer
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
+            isWaitingForCancelledReimbursement: true,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+        });
+
+        // When the primary action is calculated for the admin
+        const primaryAction = getReportPrimaryAction({
+            rules: undefined,
+            currentUserLogin: CURRENT_USER_EMAIL,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            report,
+            ownerLogin: '',
+            chatReport,
+            reportTransactions: [transaction],
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isChatReportArchived: false,
+        });
+
+        // Then PAY is not offered because the backend rejects paying until that money posts
+        expect(primaryAction).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return PAY for non-reimburser payments admin in manual reimbursement mode when owner is payer', async () => {
@@ -1148,6 +1215,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1199,6 +1267,7 @@ describe('getPrimaryAction', () => {
         try {
             expect(
                 getReportPrimaryAction({
+                    rules: undefined,
                     currentUserLogin: CURRENT_USER_EMAIL,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     report,
@@ -1237,6 +1306,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1251,7 +1321,8 @@ describe('getPrimaryAction', () => {
         ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
-    it('should not return PAY for expense report with only non-reimbursable transactions when total is 0', async () => {
+    it('should return PAY for expense report with only non-reimbursable transactions when total is 0', async () => {
+        // Given a closed $0 report whose only expense is non-reimbursable, so the approver still needs to close it out
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1263,6 +1334,122 @@ describe('getPrimaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = createMock<Policy>({
             role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            reimbursable: false,
+        });
+
+        // When the primary action is computed
+        // Then PAY is offered so the report can be marked as paid, matching Expensify Classic
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should return PAY for expense report whose reimbursable expenses cancel out to 0', async () => {
+        // Given a closed $0 report holding a $50 and a -$50 reimbursable expense
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const expense = createMock<Transaction>({transactionID: '1', reportID: `${REPORT_ID}`, amount: -5000, reimbursable: true});
+        const credit = createMock<Transaction>({transactionID: '2', reportID: `${REPORT_ID}`, amount: 5000, reimbursable: true});
+
+        // When the primary action is computed
+        // Then PAY is offered, since there is nothing left to reimburse and the report can only be closed out by marking it as paid
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [expense, credit],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for a $0 expense report while an expense failed to scan', async () => {
+        // Given a closed $0 report whose only expense failed SmartScan, so its real amount is still unknown
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+        });
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 0,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            reimbursable: true,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+        });
+
+        // When the primary action is computed
+        // Then PAY is not offered, because marking the report as paid would close it before its amount is known
+        expect(
+            getReportPrimaryAction({
+                rules: undefined,
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                ownerLogin: '',
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should return empty string for expense report with only non-reimbursable transactions when preventPayoutNonReimbursableReports is true', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -3000,
+            nonReimbursableTotal: -3000,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            preventPayoutNonReimbursableReports: true,
         });
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
@@ -1281,8 +1468,9 @@ describe('getPrimaryAction', () => {
                 bankAccountList: {},
                 policy,
                 isChatReportArchived: false,
+                rules: undefined,
             }),
-        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+        ).toBe('');
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -1312,6 +1500,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1354,6 +1543,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1393,6 +1583,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1432,6 +1623,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1498,6 +1690,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1557,6 +1750,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1648,6 +1842,7 @@ describe('getPrimaryAction', () => {
             bankAccountList: {},
             policy,
             isChatReportArchived: false,
+            rules: undefined,
         };
 
         expect(getReportPrimaryAction({...params, isOffline: false})).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
@@ -1713,6 +1908,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1774,6 +1970,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1816,6 +2013,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1855,6 +2053,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1894,6 +2093,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1933,6 +2133,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -1973,6 +2174,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2010,6 +2212,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2058,6 +2261,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2098,6 +2302,7 @@ describe('getPrimaryAction', () => {
         // Then the getReportPrimaryAction should return the empty string
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2277,6 +2482,56 @@ describe('getTransactionThreadPrimaryAction', () => {
         );
     });
 
+    it('should not return REVIEW DUPLICATES when the duplicated transaction is on an IOU report', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({});
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = createMock<Transaction>({
+            transactionID: TRANSACTION_ID,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        const violation = createMock<TransactionViolation>({
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        });
+
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy, false)).not.toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
+        );
+    });
+
+    it('should return REVIEW DUPLICATES when the duplicated transaction is on an expense report', async () => {
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = createMock<Policy>({});
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = createMock<Transaction>({
+            transactionID: TRANSACTION_ID,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        const violation = createMock<TransactionViolation>({
+            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        });
+
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, createMock<Report>({}), report, undefined, transaction, [violation], policy, false)).toBe(
+            CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
+        );
+    });
+
     it('should return MARK AS CASH if has all RTER violations', async () => {
         const report = createMock<Report>({
             reportID: REPORT_ID,
@@ -2360,6 +2615,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2401,6 +2657,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         });
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
@@ -2443,6 +2700,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         });
         expect(
             getReportPrimaryAction({
+                rules: undefined,
                 currentUserLogin: CURRENT_USER_EMAIL,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,

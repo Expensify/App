@@ -1,4 +1,3 @@
-import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
@@ -8,13 +7,15 @@ import type {ButtonVariant} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-import type {Ref} from 'react';
+import type {ComponentRef, Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import Button from './ButtonComposed';
+import type {ButtonProps} from './Button/types';
+
+import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = WithSentryLabel & {
@@ -27,7 +28,6 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** Whether message is in html format */
     isMessageHtml?: boolean;
 
-    /** Styles for container element */
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Is the button in a loading state */
@@ -36,16 +36,14 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /**
      * Controls the submit button's optimistic loading state on press.
      *
-     * Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`. Defaults to true.
+     * Forwarded to the submit `Button`. Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`.
      * Set it to false when the consumer drives the press loading itself, for example through `usePressLoading`, or when `onSubmit` only changes local state.
      */
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
-    /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
 
-    /** Submit function */
-    onSubmit: () => void;
+    onSubmit: NonNullable<ButtonProps['onPress']>;
 
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;
@@ -59,16 +57,14 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /** Custom content to display in the footer after submit button */
     footerContent?: React.ReactNode;
 
-    /** Styles for the button */
     buttonStyles?: StyleProp<ViewStyle>;
 
     /** Whether to show the alert text */
     isAlertVisible?: boolean;
 
     /** React ref being forwarded to the submit button */
-    buttonRef?: Ref<View>;
+    buttonRef?: Ref<ComponentRef<typeof View>>;
 
-    /** Text for the button */
     buttonText: string;
 
     /** Style for the error message for submit button */
@@ -86,11 +82,12 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
      */
     blendButtonOpacity?: boolean;
 
-    /** Whether to add a bottom padding to the button */
     addButtonBottomPadding?: boolean;
 
     /** Prevents the button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPress?: boolean;
+
+    buttonAndFooterContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormAlertWithSubmitButton({
@@ -98,7 +95,7 @@ function FormAlertWithSubmitButton({
     isDisabled = false,
     isMessageHtml = false,
     containerStyles,
-    isLoading: isOnyxLoading = false,
+    isLoading,
     onFixTheErrorsLinkPressed = () => {},
     enabledWhenOffline = false,
     disablePressOnEnter = false,
@@ -115,21 +112,12 @@ function FormAlertWithSubmitButton({
     blendButtonOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
+    buttonAndFooterContainerStyles,
     shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
-
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
-
-    const submit = () => {
-        if (!shouldShowLoadingImmediatelyOnPress) {
-            onSubmit();
-            return;
-        }
-        startWithLoading(onSubmit);
-    };
+    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -147,7 +135,7 @@ function FormAlertWithSubmitButton({
             errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
-                <View>
+                <View style={buttonAndFooterContainerStyles}>
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
@@ -168,9 +156,10 @@ function FormAlertWithSubmitButton({
                             blendOpacity={blendButtonOpacity}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={style}
-                            onPress={submit}
+                            onPress={onSubmit}
                             isDisabled={isDisabled}
                             isLoading={isLoading}
+                            shouldShowLoadingImmediatelyOnPress={shouldShowLoadingImmediatelyOnPress}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
                         >

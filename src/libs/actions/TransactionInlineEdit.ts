@@ -1,14 +1,17 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {isCategoryMissing} from '@libs/CategoryUtils';
+import containsHtmlTag from '@libs/containsHtmlTag';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {isValidMerchant, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
+import {isMerchantRequired, isValidMoneyRequestAmount} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     calculateTaxAmount,
@@ -20,11 +23,11 @@ import {
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
+import {getMerchantError, getMerchantErrorMessage} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     IntroSelected,
     PersonalDetailsList,
     Policy,
@@ -36,6 +39,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportNameValuePairs,
+    Rule,
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
@@ -47,7 +51,7 @@ import type {ValueOf} from 'type-fest';
  * Actions for inline editing of transactions from the Search results table and the Expense Report page.
  *
  * These functions are pure: every Onyx value they need (the transaction and violation
- * collections, the resolved reports/report action, session, betas, etc.) is passed in by
+ * collections, the resolved reports/report action, session, etc.) is passed in by
  * the caller (`useTransactionInlineEdit`), which reads it via `useOnyx`. Each function
  * delegates to the corresponding IOU action which owns the canonical Onyx record, the API
  * write, failure rollback, and snapshot updates (when a hash is provided).
@@ -90,6 +94,8 @@ type TransactionEditPermissionsParams = {
     /** Actions of the parent (money request) report, used by canEditMoneyRequest to check whether the report was forwarded since the last submit */
     parentReportActions: OnyxEntry<ReportActions>;
 
+    rules: OnyxCollection<Rule>;
+
     policy?: OnyxEntry<Policy>;
 
     transactionThreadReport?: OnyxEntry<Report>;
@@ -121,6 +127,10 @@ type GetIouParamsInput = {
     transactionThreadReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     policyForTrackExpense?: OnyxEntry<Policy>;
+
+    /** The lastModified of the full policy snapshot for the parent report's policy */
+    fullPolicySnapshotLastModified?: number;
+
     policyCategories: OnyxEntry<PolicyCategories>;
     policyTags: OnyxEntry<PolicyTagLists>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
@@ -142,8 +152,8 @@ type GetIouParamsInput = {
     /** Violations for the transaction being edited plus any of its duplicates, scoped by the caller. */
     transactionViolations: OnyxCollection<TransactionViolations>;
 
-    /** Betas the current user has access to, used to gate ASAP submit behavior. */
-    betas: Beta[] | undefined;
+    /** Resolved by the caller through usePermissions so local beta overrides apply here too. */
+    isASAPSubmitBetaEnabled: boolean;
 
     /** Onboarding intro data, needed to build a transaction thread report when one doesn't exist yet. */
     introSelected: OnyxEntry<IntroSelected>;
@@ -153,6 +163,9 @@ type GetIouParamsInput = {
 
     /** The current user's email/login. */
     currentUserEmail: string;
+
+    rules: OnyxCollection<Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 type TransactionInlineEditParams = GetIouParamsInput & {
@@ -175,6 +188,7 @@ function getIouParamsForTransaction({
     transactionThreadReport,
     policy,
     policyForTrackExpense,
+    fullPolicySnapshotLastModified,
     policyCategories,
     policyTags,
     reportPolicyTags,
@@ -189,12 +203,13 @@ function getIouParamsForTransaction({
     getCurrencyDecimals,
     getCurrencySymbol,
     transactionViolations,
-    betas,
+    isASAPSubmitBetaEnabled,
     introSelected,
     currentUserAccountID,
     currentUserEmail,
+    rules,
 }: GetIouParamsInput) {
-    // transaction is passed in by the caller; only the scoped violations are derived here for the thread-report build.
+    // transaction is passed in by the caller; only the violations scoped to this transaction are derived here.
     const transactionViolationsForTransaction = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
     // parentReport (already resolved to the self DM for unreported expenses), parentReportAction, and
@@ -208,7 +223,6 @@ function getIouParamsForTransaction({
             conciergeChat,
             currentUserLogin: currentUserEmail,
             currentUserAccountID,
-            betas,
             iouReport: parentReport,
             iouReportAction: parentReportAction,
             transaction,
@@ -216,6 +230,7 @@ function getIouParamsForTransaction({
             personalDetails: personalDetailsList,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshotLastModified,
         });
     }
 
@@ -229,12 +244,14 @@ function getIouParamsForTransaction({
         policyCategories,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserEmail,
-        isASAPSubmitBetaEnabled: Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas),
+        isASAPSubmitBetaEnabled,
         delegateAccountID,
         isTrackIntentUser,
         getCurrencyDecimals,
         getCurrencySymbol,
         reportPolicyTags,
+        rules,
+        violations: transactionViolationsForTransaction,
         // Field-specific extras
         transaction,
         policyTagList: policyTags,
@@ -248,6 +265,7 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
     const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestDate({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         // updateMoneyRequestDate uses 'policyTags' (not policyTagList)
         policyTags: iouParams.policyTagList,
@@ -262,17 +280,23 @@ function editTransactionDateInline(params: TransactionInlineEditParams, newDate:
 }
 
 /** Updates the merchant of an expense from the Search results table or the Expense Report page. */
-function editTransactionMerchantInline(params: TransactionInlineEditParams, newMerchant: string) {
-    // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
-    // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
-    // thread report for an edit we're about to discard, so validate first.
-    if (!isValidMerchant(newMerchant, params.transaction, params.parentReport)) {
-        return;
+function editTransactionMerchantInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newMerchant: string): string | undefined {
+    // The merchant form uses strict HTML validation, which also rejects values like <✓>. FormProvider runs that
+    // check after validate and overwrites any length error, so a value that fails both must show invalid character.
+    if (containsHtmlTag(newMerchant, true)) {
+        return translate('common.error.invalidCharacter');
     }
 
+    const merchantError = getMerchantError(newMerchant, isMerchantRequired(params.parentReport, params.transaction));
+    if (merchantError) {
+        return getMerchantErrorMessage(translate, merchantError);
+    }
+
+    // Building params can create a transaction thread, so do it only once the merchant is valid.
     const iouParams = getIouParamsForTransaction(params);
 
     updateMoneyRequestMerchant({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         value: newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         hash: params.hash,
@@ -281,12 +305,25 @@ function editTransactionMerchantInline(params: TransactionInlineEditParams, newM
 }
 
 /** Updates the description of an expense from the Search results table or the Expense Report page. */
-function editTransactionDescriptionInline(params: TransactionInlineEditParams, newDescription: string) {
+function editTransactionDescriptionInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newDescription: string): string | undefined {
+    // The description step validates and saves the value after FormProvider strips invisible characters and trims it.
+    // The cell passes the raw text, so prepare it the same way. Otherwise trailing spaces past the limit toast a value the step would save.
+    // HTML is checked first so a value that fails both shows the invalid character error.
+    const description = StringUtils.removeInvisibleCharacters(newDescription);
+    if (containsHtmlTag(description)) {
+        return translate('common.error.invalidCharacter');
+    }
+    if (description.length > CONST.DESCRIPTION_LIMIT) {
+        return translate('common.error.characterLimitExceedCounter', description.length, CONST.DESCRIPTION_LIMIT);
+    }
+
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestDescription({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
-        comment: newDescription,
+        comment: description,
         hash: params.hash,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -294,14 +331,16 @@ function editTransactionDescriptionInline(params: TransactionInlineEditParams, n
 function editTransactionCategoryInline(params: TransactionInlineEditParams, newCategory: string) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestCategory({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         category: newCategory,
         hash: params.hash,
+        isEditedFromExpenseList: true,
     });
 }
 
 /** Updates the amount and currency of an expense from the Search results table or the Expense Report page. */
-function editTransactionAmountInline(params: TransactionInlineEditParams, newAmount: number) {
+function editTransactionAmountInline(translate: LocalizedTranslate, params: TransactionInlineEditParams, newAmount: number): string | undefined {
     // Validate before building iouParams: getIouParamsForTransaction can call createTransactionThreadReport,
     // which fires Onyx.merge + openReport (an API call). Building params first would optimistically create a
     // thread report for an edit we're about to discard, so validate against params directly first.
@@ -310,19 +349,20 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
     const isP2P = isIOUReport(params.parentReport);
 
     if (!isValidMoneyRequestAmount(newAmount, iouType, allowNegative, isP2P)) {
-        return;
+        return translate('iou.error.invalidAmount');
     }
 
     const iouParams = getIouParamsForTransaction(params);
 
     // Keep the existing currency — only the amount is changing from the search table
-    const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
+    const currency = getCurrency(iouParams.transaction);
     // Recalculate tax from the existing tax code and the new amount
     const taxCode = resolveCurrentTaxCode(iouParams.policy, iouParams.transaction?.taxCode ?? '');
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
     const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
     updateMoneyRequestAmountAndCurrency({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         amount: newAmount,
         currency,
@@ -341,11 +381,13 @@ function editTransactionAmountInline(params: TransactionInlineEditParams, newAmo
 function editTransactionTagInline(params: TransactionInlineEditParams, newTag: string) {
     const iouParams = getIouParamsForTransaction(params);
     updateMoneyRequestTag({
+        isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
         tag: newTag,
         policyRecentlyUsedTags: iouParams.policyRecentlyUsedTags,
         hash: params.hash,
         isOffline: params.isOffline,
+        isEditedFromExpenseList: true,
     });
 }
 
@@ -372,6 +414,7 @@ function getTransactionEditPermissions({
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
+    rules,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
     if (disabled || !transaction) {
         return NO_EDIT;
@@ -396,7 +439,8 @@ function getTransactionEditPermissions({
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
     const canEdit =
-        isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
+        isUnreported ||
+        (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, parentReport, policy, parentReportActions));
     if (!canEdit) {
         return NO_EDIT;
     }
@@ -439,14 +483,18 @@ function getTransactionEditPermissions({
             if (!policy?.areCategoriesEnabled && isCategoryMissing(transaction?.category)) {
                 return false;
             }
+            // An absent categories collection only means the lazy-loaded account has not fetched them yet, so treat it
+            // as unknown and keep the cell editable. Otherwise the edit icon stays hidden on an expense with a missing
+            // category, so CategoryPicker never mounts to backfill the list.
+            const areCategoriesEnabledButUnloaded = !!policy?.areCategoriesEnabled && policyCategories === undefined;
             // Matches MoneyRequestView's shouldShowCategory logic
             // For policy expenses, check if there's a category or enabled options
             if (isGroupPolicy(policy)) {
-                return !!(transaction?.category ?? '') || hasEnabledOptions(policyCategories ?? {});
+                return !!(transaction?.category ?? '') || areCategoriesEnabledButUnloaded || hasEnabledOptions(policyCategories ?? {});
             }
             // For unreported expenses, disable inline category editing while workspace selection is required.
             if (isUnreported) {
-                return !shouldSelectPolicyForUnreported && hasEnabledOptions(policyCategories ?? {});
+                return !shouldSelectPolicyForUnreported && (areCategoriesEnabledButUnloaded || hasEnabledOptions(policyCategories ?? {}));
             }
         }
 
@@ -455,19 +503,25 @@ function getTransactionEditPermissions({
             if (isMultiLevelTags(policyTags)) {
                 return false;
             }
-            return !!transaction?.tag || hasEnabledTags(getTagLists(policyTags));
+            // Same reasoning as categories above, so TagPicker can mount and backfill. If the tags turn out to be
+            // multi-level once they arrive, the check above flips this back to false and usePopoverEditState closes
+            // the open popover.
+            const areTagsEnabledButUnloaded = !!policy?.areTagsEnabled && policyTags === undefined;
+            return !!transaction?.tag || areTagsEnabledButUnloaded || hasEnabledTags(getTagLists(policyTags));
         }
 
         return (
             isUnreported ||
             canEditFieldOfMoneyRequest({
                 reportAction: parentReportAction,
+                reportActions: parentReportActions,
                 fieldToEdit: field,
                 isChatReportArchived,
                 reportNameValuePairs,
                 transaction,
                 report: parentReport,
                 policy,
+                rules,
             })
         );
     };

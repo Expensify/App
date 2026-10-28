@@ -1,5 +1,5 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -101,9 +101,9 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
      */
     const handleDateValuesChange = (newValues: SearchDateValues) => {
         if (!hasDateSelected(newValues)) {
-            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+            setDateError(translate('workspace.moreFeatures.travel.travelBilling.selectDateRangeError'));
         } else if (isDateRangeInvalid(newValues)) {
-            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
+            setDateError(translate('workspace.moreFeatures.travel.travelBilling.invalidDateRangeError'));
         } else {
             setDateError('');
         }
@@ -150,12 +150,12 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
         }
 
         if (!hasDateSelected()) {
-            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+            setDateError(translate('workspace.moreFeatures.travel.travelBilling.selectDateRangeError'));
             return;
         }
 
         if (isDateRangeInvalid()) {
-            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
+            setDateError(translate('workspace.moreFeatures.travel.travelBilling.invalidDateRangeError'));
             return;
         }
 
@@ -188,11 +188,11 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
 
     const handleDownloadCSV = () => {
         if (!hasDateSelected()) {
-            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.selectDateRangeError'));
+            setDateError(translate('workspace.moreFeatures.travel.travelBilling.selectDateRangeError'));
             return;
         }
         if (isDateRangeInvalid()) {
-            setDateError(translate('workspace.moreFeatures.travel.travelInvoicing.invalidDateRangeError'));
+            setDateError(translate('workspace.moreFeatures.travel.travelBilling.invalidDateRangeError'));
             return;
         }
         const {startDate, endDate} = getDateRange();
@@ -248,7 +248,7 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
                             isLoading={isDownloading}
                             size={CONST.BUTTON_SIZE.LARGE}
                         >
-                            <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.exportToPDF')}</Button.Text>
+                            <Button.Text>{translate('workspace.moreFeatures.travel.travelBilling.exportToPDF')}</Button.Text>
                         </Button>
                         <Button
                             style={[styles.m4, styles.mt3, styles.mb5]}
@@ -256,7 +256,7 @@ function WorkspaceTravelBillingExportPage({route}: WorkspaceTravelBillingExportP
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                         >
-                            <Button.Text>{translate('workspace.moreFeatures.travel.travelInvoicing.exportToCSV')}</Button.Text>
+                            <Button.Text>{translate('workspace.moreFeatures.travel.travelBilling.exportToCSV')}</Button.Text>
                         </Button>
                     </>
                 )}

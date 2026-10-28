@@ -24,6 +24,8 @@ import SCREENS from '@src/SCREENS';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
+import {getReportHasParentAccess} from '@selectors/Report';
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -37,13 +39,8 @@ type ParentNavigationSubtitleProps = {
     /** Current Report ID (to check hasParentAccess) */
     reportID?: string;
 
-    /** parent Report ID */
     parentReportID?: string;
-
-    /** parent Report Action ID */
     parentReportActionID?: string;
-
-    /** PressableWithoutFeedback additional styles */
     pressableStyles?: StyleProp<TextStyle>;
 
     /** Whether to open the parent report link in the current tab if possible */
@@ -55,19 +52,10 @@ type ParentNavigationSubtitleProps = {
     /** Text to display in a tooltip shown on hover of the status badge */
     statusTooltipText?: string;
 
-    /** The style of the text */
     textStyles?: StyleProp<TextStyle>;
-
-    /** The background color for the status text */
     statusTextBackgroundColor?: ColorValue;
-
-    /** The text color for the status text */
     statusTextColor?: ColorValue;
-
-    /** The style of the status text container */
     statusTextContainerStyles?: StyleProp<ViewStyle>;
-
-    /** The number of lines for the subtitle */
     subtitleNumberOfLines?: number;
 
     /** AccountID of the human agent assisting Concierge, gates the "- assisted by [...]" suffix */
@@ -76,7 +64,6 @@ type ParentNavigationSubtitleProps = {
     /** Display name of the human agent; falls back to a generic label when missing */
     humanAgentName?: string;
 
-    /** Whether to show the "from" prefix */
     shouldShowFromPrefix?: boolean;
 };
 
@@ -113,12 +100,12 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
-    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [hasParentAccess] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportHasParentAccess});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(parentReportID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
+    const hasAccessToParentReport = hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
         const tabNavigatorRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);

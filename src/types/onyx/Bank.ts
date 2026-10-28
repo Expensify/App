@@ -9,16 +9,9 @@ type BankIcon = {
     /** Source of the icon, can be a component or an image */
     icon: IconAsset;
 
-    /** Size of the icon */
     iconSize?: number;
-
-    /** Height of the icon */
     iconHeight?: number;
-
-    /** Width of the icon */
     iconWidth?: number;
-
-    /** Icon wrapper styles */
     iconStyles?: StyleProp<ViewStyle>;
 };
 

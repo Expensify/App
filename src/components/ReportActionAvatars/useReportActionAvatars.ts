@@ -3,6 +3,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
@@ -24,6 +25,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isPolicyExpenseChat,
+    isSupportTicket,
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
@@ -31,6 +33,7 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
@@ -71,7 +74,8 @@ function useReportActionAvatars({
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
     const {formatPhoneNumber, translate} = useLocalize();
-    const [personalDetailsFromSnapshot] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [personalDetailsFromSnapshot] = useAllPersonalDetails();
     // When the search hash changes, personalDetails from the snapshot will be undefined if it hasn't been fetched yet.
     // Therefore, we will fall back to allPersonalDetails while the data is being fetched.
     const personalDetails = personalDetailsFromSnapshot ?? allPersonalDetails;
@@ -79,7 +83,7 @@ function useReportActionAvatars({
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
     const chatReportID = report?.chatReportID ?? passedChatReportID;
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
@@ -94,7 +98,8 @@ function useReportActionAvatars({
         selector: (actions) => getReportActionByIDSelector(actions, derivedActionID),
     });
 
-    const action = passedAction ?? derivedAction;
+    // Support tickets use the assigned rep's avatar, not the parent message's author.
+    const action = passedAction ?? (isSupportTicket(report) ? undefined : derivedAction);
 
     const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
@@ -149,6 +154,8 @@ function useReportActionAvatars({
         });
     });
 
+    const shouldUseConciergeAvatar = !passedAction && !!conciergeReportID && isChatThread(chatReport) && chatReport?.parentReportID === conciergeReportID;
+
     const fallbackWorkspaceAvatar: IconType = {
         id: policyID,
         type: CONST.ICON_TYPE_WORKSPACE,
@@ -157,7 +164,6 @@ function useReportActionAvatars({
     };
 
     if (passedPolicyID) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, translate, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
         const policyChatReportAvatar = policy ? {...workspaceAvatar, id: policyID, name: policy.name, type: CONST.ICON_TYPE_WORKSPACE} : fallbackWorkspaceAvatar;
         const firstAccountAvatar = avatarsForAccountIDs.at(0);
@@ -169,6 +175,7 @@ function useReportActionAvatars({
                 ...(personalDetails?.[policyAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {}),
                 shouldDisplayAllActors: false,
                 isWorkspaceActor: false,
+                shouldUseConciergeAvatar,
 
                 actorHint: String(policyID).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
                 accountID: policyAccountID,
@@ -219,11 +226,10 @@ function useReportActionAvatars({
 
     /* Get correct primary & secondary icon */
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
-    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, translate}) ?? '';
+    const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '';
     const invoiceReport = [iouReport, chatReport, reportChatReport].find((susReport) => isInvoiceReport(susReport) || susReport?.chatType === CONST.REPORT.TYPE.INVOICE);
     const isNestedInInvoiceReport = !!invoiceReport && !isChatThread(report);
     const isInvoiceReportActor = isAInvoiceReport && (!actorAccountID || displayAllActors || isAReportPreviewAction);
@@ -232,7 +238,6 @@ function useReportActionAvatars({
     const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     const isAccessPlaceholderReportPreview = isAReportPreviewAction && isAWorkspaceChat && !iouReport;
     const usePersonalDetailsAvatars =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom && !isAccessPlaceholderReportPreview;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
@@ -250,6 +255,7 @@ function useReportActionAvatars({
             false,
             // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
             onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            conciergeReportID,
         );
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
@@ -265,7 +271,6 @@ function useReportActionAvatars({
         : undefined;
 
     const invoiceFallbackAvatar: IconType = {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name),
         id: policy?.id,
         name: policy?.name,
@@ -293,7 +298,7 @@ function useReportActionAvatars({
 
     if (useNearestReportAvatars) {
         primaryAvatar = getIconsWithDefaults(iouReport ?? chatReport).at(0);
-    } else if (isWorkspaceActor || usePersonalDetailsAvatars) {
+    } else if (shouldUseConciergeAvatar || isWorkspaceActor || usePersonalDetailsAvatars) {
         primaryAvatar = reportIcons.at(0);
     } else if (delegateAvatar) {
         primaryAvatar = delegateAvatar;
@@ -384,7 +389,7 @@ function useReportActionAvatars({
             ...(personalDetails?.[accountID] ?? {}),
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            shouldUseConciergeAvatar,
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,

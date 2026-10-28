@@ -2,7 +2,6 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,7 +14,7 @@ import type {Route} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import GenericFeaturesView from './GenericFeaturesView';
 import UpgradeIntroView from './UpgradeIntroView';
@@ -39,26 +38,18 @@ type Props = {
 function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {translate} = useLocalize();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const isSubmitFeature = isCurrentPolicySubmit && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
 
-    const formattedPrice = useMemo(() => {
-        const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
-        // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
-        const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
-        return `${convertToShortDisplayString(
-            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
-            upgradeCurrency,
-        )} `;
-    }, [preferredCurrency, isCategorizing, isDistanceRateUpgrade, isReporting, isSubmitFeature, upgradePlanType]);
+    const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+    const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+    // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
+    const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
+    const formattedPrice = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], upgradeCurrency)} `;
 
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
@@ -81,6 +72,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'InvoiceBlue',
         'Members',
         'Approval',
+        'NewUser',
     ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons([
         'IntacctSquare',
@@ -91,6 +83,8 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         'CertiniaSquare',
         'RilletSquare',
         'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
         'AdvancedApprovalsSquare',
         'Unlock',
     ]);
@@ -106,8 +100,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
      * However, the policyID check is only necessary when the user is not coming from the "Categorize" option.
      * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
      * In such scenarios, a separate Categories upgrade UI is displayed.
+     * Auto-pay approved reports requires Control but not advanced approvals, so it also uses the generic Control upgrade view.
      */
-    if (!feature || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
+    if (!feature || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
         return (
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
@@ -134,10 +129,10 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
 
     const getOnlyAvailableOnPlanHTML = () => {
         const planParams = {formattedPrice, hasTeam2025Pricing};
-        if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id) {
             return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
         }
-        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled) {
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id) {
             return translate('workspace.upgrade.rules.onlyAvailableOnPlanUnlimited', planParams);
         }
         return translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, planParams);

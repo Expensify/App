@@ -3,16 +3,21 @@ import {act, render, screen, waitFor} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {PartialDeep} from 'type-fest';
 
+import escapeRegExp from 'lodash/escapeRegExp';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -20,6 +25,49 @@ import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+// The component renders outside a NavigationContainer here, so the screen-bound hook cannot read focus.
+jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
+
+type MockMenuItemWithTopDescriptionProps = {
+    description?: string;
+    title?: string;
+    interactive?: boolean;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    errorText?: string;
+    brickRoadIndicator?: string;
+};
+
+const mockMenuItemWithTopDescription = jest.fn(({description, title, interactive, errorText, brickRoadIndicator}: MockMenuItemWithTopDescriptionProps) => {
+    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
+
+    return (
+        <>
+            <RN.View testID={`menu-item-${description}`}>
+                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
+            </RN.View>
+            {title !== undefined && (
+                <RN.View testID={`menu-item-title-${description}`}>
+                    <RN.Text>{title}</RN.Text>
+                </RN.View>
+            )}
+            {errorText !== undefined && (
+                <RN.View testID={`menu-item-error-${description}`}>
+                    <RN.Text>{errorText}</RN.Text>
+                </RN.View>
+            )}
+            {brickRoadIndicator !== undefined && (
+                <RN.View testID={`menu-item-indicator-${description}`}>
+                    <RN.Text>{brickRoadIndicator}</RN.Text>
+                </RN.View>
+            )}
+        </>
+    );
+});
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({
+    isHybridApp: jest.fn(() => false),
+}));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -56,25 +104,14 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
 // Title lives in a sibling element so existing toHaveTextContent('editable'|'readonly') assertions on
 // the menu-item testID stay strict-equal — they don't pick up the title text.
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description, title, interactive}: {description?: string; title?: string; interactive?: boolean}) => (
-        <>
-            <RN.View testID={`menu-item-${description}`}>
-                <RN.Text>{interactive ? 'editable' : 'readonly'}</RN.Text>
-            </RN.View>
-            {title !== undefined && (
-                <RN.View testID={`menu-item-title-${description}`}>
-                    <RN.Text>{title}</RN.Text>
-                </RN.View>
-            )}
-        </>
-    );
+    return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
 });
 
-// Mock MenuItem (used for some fields like billable)
+// Mock the legacy MenuItem (used for some fields like billable), but keep the real compound parts the migrated rows render with
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({title}: {title?: string}) => <RN.Text testID={`menu-item-simple-${title}`}>{title}</RN.Text>;
+    const {default: actualMenuItem} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem');
+    return Object.assign(({title}: {title?: string}) => <RN.Text testID={`menu-item-simple-${title}`}>{title}</RN.Text>, {...actualMenuItem});
 });
 
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -93,6 +130,9 @@ jest.mock('@hooks/useCurrencyList', () => ({
 
 TestHelper.setupGlobalFetchMock();
 
+/** Matches the accessibility label a compound field row builds from its name, followed by its value when it has one */
+const fieldLabel = (name: string) => new RegExp(`^${escapeRegExp(name)}(,|$)`);
+
 const currentUserAccountID = 10;
 const currentUserEmail = 'test@test.com';
 const policyID = 'policy_mrv_test';
@@ -100,23 +140,40 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
+const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, shouldUseNarrowLayoutOnWideRHP: false, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+let renderedThemeStyles: ReturnType<typeof useThemeStyles> | undefined;
+
+function ThemeStylesObserver() {
+    const styles = useThemeStyles();
+
+    React.useEffect(() => {
+        renderedThemeStyles = styles;
+    }, [styles]);
+
+    return null;
+}
+
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>, readonly = false) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
-            <MoneyRequestView
-                transactionThreadReport={threadReport}
-                parentReportID={expenseReportID}
-                expensePolicy={createMock<Policy>({
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    name: 'Test Policy',
-                    owner: currentUserEmail,
-                    outputCurrency: CONST.CURRENCY.USD,
-                    ...policy,
-                })}
-                shouldShowAnimatedBackground={false}
-            />
+            <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                <ThemeStylesObserver />
+                <MoneyRequestView
+                    transactionThreadReport={threadReport}
+                    parentReportID={expenseReportID}
+                    expensePolicy={createMock<Policy>({
+                        id: policyID,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        name: 'Test Policy',
+                        owner: currentUserEmail,
+                        outputCurrency: CONST.CURRENCY.USD,
+                        ...policy,
+                    })}
+                    shouldShowAnimatedBackground={false}
+                    readonly={readonly}
+                />
+            </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>,
     );
 
@@ -133,6 +190,7 @@ describe('MoneyRequestView edit fields', () => {
         await act(async () => {
             await Onyx.clear();
         });
+        mockMenuItemWithTopDescription.mockClear();
     });
 
     const setupTestData = async (isSettledReport = false) => {
@@ -216,6 +274,211 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it('shows the Category and Tag rows from the report policy when nothing is selected yet', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                Travel: {name: 'Travel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
+            expect(screen.getByTestId('menu-item-Location')).toBeOnTheScreen();
+        });
+    });
+
+    it('preserves word wrapping when expense detail labels are made non-selectable', async () => {
+        // Given an expense with all labels affected by the non-selectable text styling
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        const longTagName = 'LongTagNameWithoutSpaces';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                [longTagName]: {name: longTagName, orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport, {areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then each affected description keeps both breakWord and userSelectNone
+        await waitFor(() => {
+            const renderedRows = mockMenuItemWithTopDescription.mock.calls.map(([props]) => props);
+            const affectedRows = [
+                renderedRows.find(({description}) => description === longTagName),
+                renderedRows.find(({description}) => description?.startsWith('iou.amount')),
+                renderedRows.find(({description}) => description === 'common.description'),
+                renderedRows.find(({description}) => description === 'common.merchant'),
+                renderedRows.find(({description}) => description === 'common.report'),
+            ];
+
+            expect(affectedRows).not.toContain(undefined);
+            for (const row of affectedRows) {
+                expect(row?.descriptionTextStyle).toEqual([renderedThemeStyles?.breakWord, renderedThemeStyles?.userSelectNone]);
+            }
+        });
+    });
+
+    it('marks selectable toggle labels for multi-field copying', async () => {
+        // Given an expense that displays the Reimbursable and Billable toggles
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both selectable labels carry the marker used by the multi-field selection scraper
+        await waitFor(() => {
+            const toggleLabels = [screen.getByText(/reimbursable$/i, {includeHiddenElements: true}), screen.getByText('common.billable', {includeHiddenElements: true})];
+
+            for (const toggleLabel of toggleLabels) {
+                expect(toggleLabel).toHaveProp('dataSet', expect.objectContaining({[CONST.COPYABLE_TEXT_ELEMENT]: true}));
+                expect(toggleLabel).not.toHaveProp('dataSet', expect.objectContaining({[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}));
+            }
+        });
+    });
+
+    it('hides the Category and Tag rows when the categories and tags belong to a different policy', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}someOtherPolicy`, {
+                Travel: {name: 'Travel', enabled: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}someOtherPolicy`, {
+                Location: {name: 'Location', orderWeight: 0, required: false, tags: {Berlin: {name: 'Berlin', enabled: true}}},
+            });
+        });
+
+        renderMoneyRequestView(threadReport, {areCategoriesEnabled: true, areTagsEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        });
+        expect(screen.queryByLabelText(fieldLabel('common.category'))).not.toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-Location')).not.toBeOnTheScreen();
+    });
+
+    const renderOtherUsersUnreportedExpenseWithTag = async (transactionOverrides: Partial<Transaction> = {}) => {
+        const selfDMReportID = 'self_dm_mrv_tags';
+        const otherUserAccountID = 20;
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: selfDMReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                reportID: selfDMReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                ownerAccountID: otherUserAccountID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
+                [parentReportActionID]: {
+                    ...LHNTestUtils.getFakeReportAction(),
+                    reportActionID: parentReportActionID,
+                    reportID: selfDMReportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: otherUserAccountID,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                        IOUTransactionID: transactionID,
+                        amount: 5000,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                tag: 'Engineering:Berlin:Floor 2',
+                ...transactionOverrides,
+            });
+
+            // The viewer's own default workspace has a single, unrelated tag list
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                Tag: {name: 'Tag', orderWeight: 0, required: false, tags: {Sales: {name: 'Sales', enabled: true}}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider]}>
+                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                    <MoneyRequestView
+                        transactionThreadReport={threadReport}
+                        parentReportID={selfDMReportID}
+                        expensePolicy={undefined}
+                        shouldShowAnimatedBackground={false}
+                    />
+                </ScreenWrapperStatusContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+    };
+
+    it("shows another user's full unreported expense tag in a single row instead of the viewer's own workspace tag lists", async () => {
+        // Given an unreported self-DM expense with a three-level tag that was created by another user
+        // When the viewer opens the expense
+        await renderOtherUsersUnreportedExpenseWithTag();
+
+        // Then a single generic tag row shows every level of the expense's tag, since the viewer can't see the owner's tag list names
+        await waitFor(() => {
+            expect(screen.getAllByTestId('menu-item-common.tag')).toHaveLength(1);
+        });
+        expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
+        expect(screen.queryByTestId('menu-item-Tag')).not.toBeOnTheScreen();
+    });
+
+    it("keeps the full tag row read-only when a domain admin views another user's unreported managed card expense", async () => {
+        // Given another user's unreported managed card expense, which a domain admin is allowed to edit
+        // When the domain admin opens the expense
+        await renderOtherUsersUnreportedExpenseWithTag({managedCard: true});
+
+        // Then the full tag row can't be pressed, because editing it would use the admin's own unrelated tag lists and could clear the owner's tag
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-common.tag')).toHaveTextContent('readonly');
+        });
+        expect(screen.getByText('Engineering, Berlin, Floor 2')).toBeOnTheScreen();
+    });
+
     it('should show tax fields when tax tracking is disabled but transaction has tax data', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -238,8 +501,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-common.tax')).toBeOnTheScreen();
-            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.tax'))).toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('iou.taxAmount'))).toBeOnTheScreen();
         });
     });
 
@@ -257,8 +520,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-common.tax')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('menu-item-iou.taxAmount')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('common.tax'))).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('iou.taxAmount'))).not.toBeOnTheScreen();
         });
     });
 
@@ -285,8 +548,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-common.tax')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('menu-item-iou.taxAmount')).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('common.tax'))).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel('iou.taxAmount'))).not.toBeOnTheScreen();
         });
     });
 
@@ -314,7 +577,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should show amount as editable for the submitter when a submitted report has not been forwarded', async () => {
+    it('should show amount, merchant and date as editable for the submitter when a submitted report has not been forwarded', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -348,10 +611,12 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('editable');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('editable');
+            expect(screen.getByRole('button', {name: fieldLabel('common.date')})).toBeOnTheScreen();
         });
     });
 
-    it('should show amount as readonly for the submitter after the report was forwarded since the last submit', async () => {
+    it('should show amount, merchant and date as readonly for the submitter after the report was forwarded since the last submit', async () => {
         const approverAccountID = 999;
         const approverEmail = 'approver@test.com';
         const corporatePolicy = {
@@ -387,6 +652,9 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount/)).toHaveTextContent('readonly');
+            expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
+            expect(screen.getByLabelText(fieldLabel('common.date'))).toBeOnTheScreen();
+            expect(screen.queryByRole('button', {name: fieldLabel('common.date')})).not.toBeOnTheScreen();
         });
     });
 
@@ -411,13 +679,14 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should NOT append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+    it('should append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
             parentReportActionID,
         };
 
+        // Given a non-reimbursable expense on a report that has another expense
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
@@ -434,11 +703,47 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense details are rendered
         renderMoneyRequestView(threadReport);
         await waitForBatchedUpdatesWithAct();
 
+        // Then the Amount description flags it as non-reimbursable, the same as in a single-expense report
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should append "Reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        // Given a reimbursable expense on a report that has another expense
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: false,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense details are rendered
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Amount description flags it as reimbursable, the same as in a single-expense report
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.reimbursable/i)).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
@@ -475,40 +780,6 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should NOT append "Non-reimbursable" while offline because the pending-deleted expense is still rendered', async () => {
-        const threadReport = {
-            ...LHNTestUtils.getFakeReport(),
-            parentReportID: expenseReportID,
-            parentReportActionID,
-        };
-
-        await setupTestData();
-        await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
-                transactionID: `${transactionID}_sibling`,
-                reportID: expenseReportID,
-                amount: 2500,
-                currency: CONST.CURRENCY.USD,
-                created: '2025-06-02',
-                merchant: 'Sibling',
-                comment: {},
-                reimbursable: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            });
-            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderMoneyRequestView(threadReport);
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
-        });
-    });
-
     it('appends "Converted" to the Tax amount description for a foreign-currency taxed expense', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
@@ -533,7 +804,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^iou\.taxAmount.*common\.converted/i)).toBeOnTheScreen();
         });
     });
 
@@ -561,8 +832,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('iou.taxAmount'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -590,8 +861,8 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
-            expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('iou.taxAmount'))).toBeOnTheScreen();
+            expect(screen.queryByLabelText(/^iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
         });
     });
 
@@ -622,11 +893,44 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Co');
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Co/);
         });
     });
 
-    it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
+    it('shows the vendor row on Sage Intacct without the vendorMatching beta because Intacct (R2) is generally available', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'iv-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: {
+                    config: {export: {nonReimbursable: CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE}},
+                    data: {vendors: [{id: 'iv-1', name: 'V001', value: 'Acme Intacct'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Intacct keeps the "Vendor" label and shows the vendor's display name, which Intacct stores in `value`.
+        await waitFor(() => {
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Intacct/);
+        });
+    });
+
+    it('shows the vendor row on Xero without the vendorMatching beta because Xero (R3) is generally available', async () => {
+        // Given a non-reimbursable expense whose vendor is one of the synced Xero contacts
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -642,6 +946,7 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When the expense renders on a configured Xero workspace without the vendorMatching beta
         renderMoneyRequestView(threadReport, {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
@@ -652,9 +957,106 @@ describe('MoneyRequestView edit fields', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
+        // Then the row is shown with the Vendor label used for every integration and the contact name, because Xero does not depend on the beta
         await waitFor(() => {
-            expect(screen.queryByTestId('menu-item-common.supplier')).not.toBeOnTheScreen();
-            expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
+            expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Acme Xero/);
+        });
+    });
+
+    it.each([
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: true},
+        {isBetaEnabled: true, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: true},
+        {isBetaEnabled: false, reimbursable: true, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: false, shouldShowVendor: false},
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.INVOICE, readonly: false, shouldShowVendor: false},
+        {isBetaEnabled: false, reimbursable: false, reportType: CONST.REPORT.TYPE.EXPENSE, readonly: true, shouldShowVendor: true},
+    ])('preserves Campfire vendor field eligibility for %j', async ({isBetaEnabled, reimbursable, reportType, readonly, shouldShowVendor}) => {
+        // Given an expense with a synced Campfire vendor and the selected expense and access restrictions
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, isBetaEnabled ? [CONST.BETAS.VENDOR_MATCHING] : []);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {type: reportType});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable,
+                comment: {vendor: {externalID: 'campfire-vendor', wasManuallySet: false}},
+            });
+        });
+
+        // When the expense renders on a configured Campfire workspace
+        renderMoneyRequestView(
+            threadReport,
+            {
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+                        config: {isConfigured: true},
+                        data: {vendors: [{id: 'campfire-vendor', name: 'Campfire Supplies', isActive: true, vendorType: CONST.CAMPFIRE_VENDOR_TYPE.VENDOR}]},
+                    },
+                },
+            },
+            readonly,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then beta enrollment does not bypass the expense eligibility or editing restrictions
+        if (!shouldShowVendor) {
+            expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
+            return;
+        }
+        expect(screen.getByLabelText(fieldLabel('common.vendor'))).toHaveTextContent(/Campfire Supplies/);
+        if (readonly) {
+            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: fieldLabel('common.vendor')})).not.toBeOnTheScreen();
+        } else {
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: fieldLabel('common.vendor')})).toBeOnTheScreen();
+        }
+    });
+
+    it('hides the vendor row on Business Central without the vendorMatching beta because Business Central is still beta-gated', async () => {
+        // Given a non-reimbursable expense whose vendor is one of the synced Business Central vendors
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'bc-1', wasManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the expense renders on a configured Business Central workspace without the vendorMatching beta
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
+                    config: {isConfigured: true},
+                    data: {
+                        vendors: [
+                            {
+                                id: 'bc-1',
+                                number: 'V00010',
+                                name: 'Contoso Supplies',
+                                email: 'ap@contoso.com',
+                                blocked: CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.NONE,
+                                expensifyVendorId: '',
+                                lastModifiedDateTime: '',
+                            },
+                        ],
+                    },
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no vendor row is shown because Business Central still depends on the beta
+        await waitFor(() => {
+            expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
         });
     });
 
@@ -686,9 +1088,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('stale-vendor-id');
-            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/stale-vendor-id/);
+            expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
         });
     });
 
@@ -723,9 +1125,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('Amazon');
-            expect(vendorTitle).not.toHaveTextContent('stale-vendor-id');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/Amazon/);
+            expect(vendorTitle).not.toHaveTextContent(/stale-vendor-id/);
         });
     });
 
@@ -756,9 +1158,9 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('still-valid-vendor-id');
-            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/still-valid-vendor-id/);
+            expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
         });
     });
 
@@ -793,9 +1195,58 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            const vendorTitle = screen.getByTestId('menu-item-title-common.vendor');
-            expect(vendorTitle).toHaveTextContent('Stale Intacct Vendor');
-            expect(vendorTitle).not.toHaveTextContent('violations.inactiveVendor');
+            const vendorTitle = screen.getByLabelText(fieldLabel('common.vendor'));
+            expect(vendorTitle).toHaveTextContent(/Stale Intacct Vendor/);
+            expect(vendorTitle).not.toHaveTextContent(/violations\.inactiveVendor/);
+        });
+    });
+
+    it('shows the vendor-field error when assigned vendor is disabled in policyVendors', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        const disabledVendorID = 'disabled-vendor-id';
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.VENDOR_MATCHING]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${policyID}`, {
+                [disabledVendorID]: {
+                    externalID: disabledVendorID,
+                    name: 'Disabled Vendor',
+                    enabled: false,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: disabledVendorID, wasManuallySet: false}},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                },
+            ]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: disabledVendorID, name: 'Disabled Vendor', currency: 'USD', email: 'vendor@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByRole('alert')).toHaveTextContent('violations.inactiveVendor.');
+            expect(screen.getByTestId('menu-item-brick-road-indicator')).toBeOnTheScreen();
         });
     });
 
@@ -836,7 +1287,7 @@ describe('MoneyRequestView edit fields', () => {
             await waitForBatchedUpdatesWithAct();
 
             await waitFor(() => {
-                expect(screen.getByTestId(`menu-item-${commuterDistanceDescription}`)).toBeOnTheScreen();
+                expect(screen.getByLabelText(fieldLabel(commuterDistanceDescription))).toBeOnTheScreen();
             });
         });
 
@@ -916,10 +1367,60 @@ describe('MoneyRequestView edit fields', () => {
             await waitForBatchedUpdatesWithAct();
 
             await waitFor(() => {
-                expect(screen.getByTestId('menu-item-common.distance')).toBeOnTheScreen();
+                expect(screen.getByLabelText(fieldLabel('common.distance'))).toBeOnTheScreen();
                 expect(screen.getByTestId(/^menu-item-title-iou\.amount/)).toHaveTextContent('USD-268');
             });
-            expect(screen.queryByTestId(`menu-item-${commuterDistanceDescription}`)).not.toBeOnTheScreen();
+            expect(screen.queryByLabelText(fieldLabel(commuterDistanceDescription))).not.toBeOnTheScreen();
+        });
+    });
+
+    describe('reservation nights hint under the Category field', () => {
+        // `translate` is mocked to return the key, so the hint renders as its translation key
+        const reservationNightsHint = 'common.reservationNightsWithNightlyRate';
+
+        const renderWithReservationDates = async (hotelReservationStartDate: string, hotelReservationEndDate: string) => {
+            const threadReport = {
+                ...LHNTestUtils.getFakeReport(),
+                parentReportID: expenseReportID,
+                parentReportActionID,
+            };
+
+            await setupTestData();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+                    Travel: {name: 'Travel', enabled: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    category: 'Travel',
+                    receipt: {hotelReservationStartDate, hotelReservationEndDate},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            renderMoneyRequestView(threadReport, {areCategoriesEnabled: true});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByLabelText(fieldLabel('common.category'))).toBeOnTheScreen();
+            });
+        };
+
+        it('shows the nights and nightly rate for a multi-night reservation', async () => {
+            // Given an expense whose SmartScanned reservation spans three nights
+            // When the expense is rendered
+            await renderWithReservationDates('2026-10-01', '2026-10-04');
+
+            // Then the hint explains the per-night evaluation used by the category limit check
+            expect(screen.getByText(reservationNightsHint)).toBeOnTheScreen();
+        });
+
+        it('does not show the hint for a single-night reservation', async () => {
+            // Given an expense whose reservation is a single night, which the design says should show nothing
+            // When the expense is rendered
+            await renderWithReservationDates('2026-10-01', '2026-10-02');
+
+            // Then no nightly hint is shown
+            expect(screen.queryByText(reservationNightsHint)).not.toBeOnTheScreen();
         });
     });
 });

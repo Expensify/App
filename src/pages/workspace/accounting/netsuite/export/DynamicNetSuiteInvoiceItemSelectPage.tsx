@@ -10,7 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteInvoiceItem} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteInvoiceItemOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteInvoiceItemOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -22,7 +23,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -32,36 +33,30 @@ function DynamicNetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsPro
     const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options.config;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.path);
-    const netsuiteInvoiceItemOptions = useMemo<SelectorType[]>(() => getNetSuiteInvoiceItemOptions(policy ?? undefined, config?.invoiceItem), [config?.invoiceItem, policy]);
+    const netsuiteInvoiceItemOptions: SelectorType[] = getNetSuiteInvoiceItemOptions(policy ?? undefined, config?.invoiceItem);
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteInvoiceItemOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteInvoiceItemOptions]);
+    const initiallyFocusedOptionKey = netsuiteInvoiceItemOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const updateInvoiceItem = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.invoiceItem !== value && policyID) {
-                updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
-            }
-            goBack();
-        },
-        [policyID, config?.invoiceItem, goBack],
-    );
+    const updateInvoiceItem = ({value}: SelectorType) => {
+        if (config?.invoiceItem !== value && policyID) {
+            updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noItemsFound')}
-                subtitle={translate('workspace.netsuite.noItemsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noItemsFound')}
+            subtitle={translate('workspace.netsuite.noItemsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

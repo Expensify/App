@@ -1,0 +1,230 @@
+import {file} from 'bun';
+import path from 'node:path';
+
+import type {LintMessage, ProcessorContext} from '../types';
+
+// eslint-disable-next-line import/extensions
+import {shouldSkipReactCompiler} from '../../../config/reactCompiler/checkWithOxc.mjs';
+// eslint-disable-next-line import/extensions
+import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../../config/reactCompiler/suppressedRules.mjs';
+import WorkerPool from '../../utils/WorkerPool';
+import Processor from '../Processor';
+
+const MANUAL_MEMOIZATION_RULE = 'rulesdir/no-manual-memoization';
+const CACHE_DIR = 'node_modules/.cache/react-compiler';
+const REACT_COMPILER_FINGERPRINT_FILES = [
+    'config/babel/oxcReactCompilerConfig.js',
+    'config/reactCompiler/checkWithOxc.mjs',
+    'config/rsbuild/rsbuild.common.ts',
+    'package-lock.json',
+    'scripts/lint/processors/ReactCompilerFilter.ts',
+    'scripts/lint/processors/ReactCompilerWorker.ts',
+    'scripts/utils/WorkerPool.ts',
+] as const;
+
+type CompilerCheck = (source: string, filename: string) => boolean | Promise<boolean>;
+
+function isSuppressibleMessage(message: LintMessage): boolean {
+    if (message.ruleID !== null && RULES_SUPPRESSED_BY_REACT_COMPILER.has(message.ruleID)) {
+        return true;
+    }
+    return message.ruleID === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(message.message);
+}
+
+function cachePath(projectRoot: string, hash: string): string {
+    return `${projectRoot}/${CACHE_DIR}/${hash}`;
+}
+
+function cacheKey(fingerprint: string | undefined, filename: string, source: string): string {
+    return Bun.hash(`${fingerprint}\0${path.extname(filename)}\0${source}`).toString(16);
+}
+
+async function getReactCompilerFingerprint(projectRoot: string): Promise<string> {
+    const contents = await Promise.all(
+        REACT_COMPILER_FINGERPRINT_FILES.map(async (relativePath) => {
+            const content = await file(`${projectRoot}/${relativePath}`)
+                .text()
+                .catch(() => '');
+            return `${relativePath}\0${content}`;
+        }),
+    );
+    return Bun.hash(contents.join('\0')).toString(16);
+}
+
+async function readCache(cacheFilePath: string): Promise<boolean | undefined> {
+    const handle = file(cacheFilePath);
+    if (!(await handle.exists())) {
+        return undefined;
+    }
+    const text = await handle.text();
+    if (text === '1') {
+        return true;
+    }
+    if (text === '0') {
+        return false;
+    }
+    return undefined;
+}
+
+const CACHE_HIT = '1';
+const CACHE_MISS = '0';
+
+async function writeCache(cacheFilePath: string, memoized: boolean): Promise<void> {
+    await Bun.write(cacheFilePath, memoized ? CACHE_HIT : CACHE_MISS);
+}
+
+type Candidate = {
+    filename: string;
+    source: string;
+};
+
+type CompilerWorkerResponse = {
+    filename: string;
+    memoized: boolean;
+    cacheable: boolean;
+};
+
+function conservativeFallback(candidate: Candidate): CompilerWorkerResponse {
+    return {filename: candidate.filename, memoized: false, cacheable: false};
+}
+
+function shouldPersistCompilerCache(verdict: CompilerWorkerResponse | undefined): boolean {
+    return verdict?.cacheable === true;
+}
+
+async function checkCandidatesWithPool(candidates: Candidate[], checkCompiler: CompilerCheck | undefined, workerCount: number): Promise<Map<string, CompilerWorkerResponse>> {
+    const verdicts = new Map<string, CompilerWorkerResponse>();
+    if (candidates.length === 0) {
+        return verdicts;
+    }
+
+    if (checkCompiler) {
+        await Promise.all(
+            candidates.map(async (candidate) => {
+                try {
+                    verdicts.set(candidate.filename, {filename: candidate.filename, memoized: await checkCompiler(candidate.source, candidate.filename), cacheable: true});
+                } catch {
+                    // Conservative: keep the message rather than aborting the whole lint.
+                    verdicts.set(candidate.filename, conservativeFallback(candidate));
+                }
+            }),
+        );
+        return verdicts;
+    }
+
+    const pool = new WorkerPool<Candidate, CompilerWorkerResponse>(new URL('./ReactCompilerWorker.ts', import.meta.url), workerCount);
+    const responses = await pool.map(candidates, conservativeFallback);
+    for (const response of responses) {
+        verdicts.set(response.filename, response);
+    }
+    return verdicts;
+}
+
+/**
+ * Drop redundant messages and enforce no-manual-memoization only after the
+ * compiler memoizes the file. Files with no compiler-dependent message are skipped
+ * entirely (~60× fewer compiler invocations than the ESLint processor).
+ *
+ * Cache is one file per compiler fingerprint and content hash so concurrent
+ * writes of the same key are benign and need no lock.
+ */
+class ReactCompilerFilter extends Processor {
+    readonly name = 'react-compiler-filter';
+
+    constructor(
+        private readonly checkCompiler?: CompilerCheck,
+        private readonly workerCount = navigator.hardwareConcurrency || 4,
+    ) {
+        super();
+    }
+
+    process(messages: LintMessage[], context: ProcessorContext): Promise<LintMessage[]> {
+        return filterReactCompilerMessages(messages, context.projectRoot, this.checkCompiler, this.workerCount);
+    }
+}
+
+async function filterReactCompilerMessages(
+    messages: LintMessage[],
+    projectRoot: string,
+    checkCompiler?: CompilerCheck,
+    workerCount = navigator.hardwareConcurrency || 4,
+): Promise<LintMessage[]> {
+    const byFile = new Map<string, LintMessage[]>();
+    for (const message of messages) {
+        const list = byFile.get(message.filePath) ?? [];
+        list.push(message);
+        byFile.set(message.filePath, list);
+    }
+
+    const candidateNames: string[] = [];
+    for (const [filename, fileMessages] of byFile) {
+        if (shouldSkipReactCompiler(filename)) {
+            continue;
+        }
+        if (fileMessages.some((message) => isSuppressibleMessage(message) || message.ruleID === MANUAL_MEMOIZATION_RULE)) {
+            candidateNames.push(filename);
+        }
+    }
+
+    if (candidateNames.length === 0) {
+        return messages.filter((message) => message.ruleID !== MANUAL_MEMOIZATION_RULE);
+    }
+
+    const uncached: Candidate[] = [];
+    const memoized = new Map<string, boolean>();
+    const reactCompilerFingerprint = checkCompiler ? undefined : await getReactCompilerFingerprint(projectRoot);
+
+    await Promise.all(
+        candidateNames.map(async (filename) => {
+            let source = '';
+            if (!checkCompiler) {
+                try {
+                    source = await file(filename).text();
+                } catch {
+                    memoized.set(filename, false);
+                    return;
+                }
+                try {
+                    const cached = await readCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, filename, source)));
+                    if (cached !== undefined) {
+                        memoized.set(filename, cached);
+                        return;
+                    }
+                } catch {
+                    // Conservative: recompute rather than abort the lint.
+                }
+            }
+            uncached.push({filename, source});
+        }),
+    );
+
+    const computed = await checkCandidatesWithPool(uncached, checkCompiler, workerCount);
+    await Promise.all(
+        uncached.map(async (candidate) => {
+            const verdict = computed.get(candidate.filename) ?? conservativeFallback(candidate);
+            memoized.set(candidate.filename, verdict.memoized);
+            if (checkCompiler || !shouldPersistCompilerCache(verdict)) {
+                return;
+            }
+            try {
+                await writeCache(cachePath(projectRoot, cacheKey(reactCompilerFingerprint, candidate.filename, candidate.source)), verdict.memoized);
+            } catch {
+                // Conservative: skip the cache write rather than abort the lint.
+            }
+        }),
+    );
+
+    return messages.filter((message) => {
+        if (message.ruleID === MANUAL_MEMOIZATION_RULE) {
+            return memoized.get(message.filePath) === true;
+        }
+        if (!memoized.get(message.filePath)) {
+            return true;
+        }
+        return !isSuppressibleMessage(message);
+    });
+}
+
+export default ReactCompilerFilter;
+export {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, filterReactCompilerMessages, isSuppressibleMessage, RULES_SUPPRESSED_BY_REACT_COMPILER, shouldPersistCompilerCache};
+export type {CompilerCheck};

@@ -4,6 +4,8 @@ import Log from '@libs/Log';
 import type {AnyDeferredUpdatesDictionary, AnyDetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
 import {getEffectiveLastUpdateID} from '@userActions/OnyxUpdates';
 
+import CONST from '@src/CONST';
+
 import {applyUpdates} from './applyUpdates';
 import {clear, enqueue, getUpdates} from './DeferredOnyxUpdates';
 
@@ -107,7 +109,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): AnyDetectGapAndSpli
  * apply the updates in order after the missing updates are fetched and applied
  */
 function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousParams?: {newLastUpdateIDFromClient: number; latestMissingUpdateID: number}): Promise<void> {
-    const lastUpdateIDFromClient = clientLastUpdateID ?? getEffectiveLastUpdateID();
+    const lastUpdateIDFromClient = Math.max(clientLastUpdateID ?? CONST.DEFAULT_NUMBER_ID, getEffectiveLastUpdateID());
 
     Log.info('[DeferredUpdates] Processing deferred updates', false, {lastUpdateIDFromClient, previousParams});
 
@@ -133,7 +135,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousPa
                 // the initial "updatesAfterGaps" and all new deferred updates will be applied in order,
                 // as long as there was no new gap detected. Otherwise, repeat the process.
 
-                const newLastUpdateIDFromClient = clientLastUpdateID ?? getEffectiveLastUpdateID();
+                const newLastUpdateIDFromClient = Math.max(clientLastUpdateID ?? CONST.DEFAULT_NUMBER_ID, getEffectiveLastUpdateID());
 
                 enqueue(updatesAfterGaps, {shouldPauseSequentialQueue: false});
 

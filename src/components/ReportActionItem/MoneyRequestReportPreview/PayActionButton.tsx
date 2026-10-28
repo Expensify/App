@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -32,6 +33,7 @@ import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAn
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 function PayActionButton() {
+    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -49,6 +51,7 @@ function PayActionButton() {
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -57,8 +60,8 @@ function PayActionButton() {
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
@@ -78,16 +81,19 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, shouldShowPayButton, methodID);
+            onHoldMenuOpen(type, shouldShowPayButton, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    bankAccountList,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
+                    invoiceReportTransactions: transactions,
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
@@ -98,36 +104,40 @@ function PayActionButton() {
                     paymentMethod,
                     activePolicy,
                     conciergeChat,
-                    betas,
                     isSelfTourViewed,
-                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, currentUserDetails.displayName, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
+                    rules,
                 });
             } else {
                 payMoneyRequest({
+                    bankAccountList,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: type,
                     chatReport: currentChatReport,
                     iouReport,
+                    iouReportTransactions: transactions,
                     introSelected,
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,
                     policy,
                     chatReportPolicy,
-                    betas,
                     isSelfTourViewed,
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    rules,
                 });
             }
         }

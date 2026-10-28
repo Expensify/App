@@ -61,7 +61,7 @@ function useChartLabelLayout({data, fontManager, tickSpacing, labelAreaWidth, fi
     const effectiveFirstTickLeftSpace = data.length === 1 ? Infinity : firstTickLeftSpace;
     const effectiveLastTickRightSpace = data.length === 1 ? Infinity : lastTickRightSpace;
 
-    // Pick rotation (prefer 0° → 45° → 90°)
+    // Pick rotation (prefer 0° → 45° → 90°).
     let rotation: LabelRotation = LABEL_ROTATIONS.VERTICAL;
 
     const hWidth = effectiveWidth(maxLabelWidth, lineHeight, LABEL_ROTATIONS.HORIZONTAL);

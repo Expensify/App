@@ -17,7 +17,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
@@ -30,7 +30,6 @@ import RadioButtons from './RadioButtons';
 import Text from './Text';
 
 type AddPlaidBankAccountProps = {
-    /** Contains plaid data */
     plaidData: OnyxEntry<PlaidData>;
 
     /** Selected account ID from the Picker associated with the end of the Plaid flow */
@@ -39,10 +38,7 @@ type AddPlaidBankAccountProps = {
     /** Fired when the user exits the Plaid flow */
     onExitPlaid?: () => void;
 
-    /** Fired when the user selects an account */
     onSelect?: (plaidAccountID: string) => void;
-
-    /** Additional text to display */
     text?: string;
 
     /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
@@ -57,7 +53,6 @@ type AddPlaidBankAccountProps = {
     /** Are we adding a withdrawal account? */
     allowDebit?: boolean;
 
-    /** Is displayed in new enable wallet flow */
     isDisplayedInWalletFlow?: boolean;
 
     /** Text to display on error message */
@@ -104,16 +99,7 @@ function AddPlaidBankAccount({
         }
     };
 
-    /**
-     * @returns {Boolean}
-     * I'm using useCallback so the useEffect which uses this function doesn't run on every render.
-     */
-    const isAuthenticatedWithPlaid = useCallback(
-        () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
-        [plaidData?.bankAccounts?.length, plaidData?.errors, plaidLinkOAuthToken, receivedRedirectURI],
-    );
-
-    const isAuthenticated = isAuthenticatedWithPlaid();
+    const isAuthenticated = (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors);
     const prevIsAuthenticated = usePrevious(isAuthenticated);
 
     /**
@@ -148,7 +134,7 @@ function AddPlaidBankAccount({
         subscribeToNavigationShortcuts();
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if (isAuthenticatedWithPlaid()) {
+        if (isAuthenticated) {
             return unsubscribeToNavigationShortcuts;
         }
         openPlaidBankLogin(allowDebit, bankAccountID);
@@ -161,11 +147,11 @@ function AddPlaidBankAccount({
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
-        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
+        if (previousNetworkState.current && !isOffline && !isAuthenticated) {
             openPlaidBankLogin(allowDebit, bankAccountID);
         }
         previousNetworkState.current = isOffline;
-    }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
+    }, [allowDebit, bankAccountID, isAuthenticated, isOffline]);
 
     useEffect(() => {
         // We had a Plaid session and lost it (e.g. openReimbursementAccountPage reset plaidData on reconnect).
@@ -198,9 +184,9 @@ function AddPlaidBankAccount({
         onInputChange(plaidAccountID);
     };
 
-    const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidLinkError = (error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
-    }, []);
+    };
 
     if (isPlaidDisabled) {
         return (

@@ -1,23 +1,28 @@
 import cardScarf from '@assets/images/card-scarf.svg';
 
 import ActivityIndicator from '@components/ActivityIndicator';
+import AddToWalletStatusText from '@components/AddToWalletButton/AddToWalletStatusText';
 import AddToWalletButton from '@components/AddToWalletButton/index';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import CardPreview from '@components/CardPreview';
-import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,6 +30,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import useRefreshPendingDigitalWalletApproval from '@hooks/useRefreshPendingDigitalWalletApproval';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
@@ -37,6 +43,7 @@ import {
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
+    isCardPendingDigitalWalletApproval,
     isOfflinePINMarket,
     isTravelCard,
     isUkEuExpensifyCard,
@@ -63,6 +70,7 @@ import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUti
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
+import PendingDigitalWalletApprovalRow from '@pages/settings/Wallet/PendingDigitalWalletApprovalRow';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
 
@@ -82,11 +90,11 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 type ExpensifyCardPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD>
     | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL>;
 
 type PossibleTitles = 'cardPage.smartLimit.title' | 'cardPage.monthlyLimit.title' | 'cardPage.fixedLimit.title';
@@ -123,6 +131,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, dateFnsLocale} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {executeScenario} = useMultifactorAuthentication();
     const shouldDisplayCardDomain = !isTravelCard(cardList?.[cardID]) && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
@@ -132,23 +141,22 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const personalDetails = usePersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key', 'Eye', 'CreditCardLock']);
 
-    const cardsToShow = useMemo(() => {
-        if (shouldDisplayCardDomain) {
-            return getDomainCards(cardList)[domain]?.filter((card) => !card?.nameValuePairs?.issuedBy || !card?.nameValuePairs?.isVirtual) ?? [];
-        }
-        return [cardList?.[cardID]];
-    }, [shouldDisplayCardDomain, cardList, cardID, domain]);
-    const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
+    const cardsToShow = shouldDisplayCardDomain
+        ? (getDomainCards(cardList)[domain]?.filter((card) => !card?.nameValuePairs?.issuedBy || !card?.nameValuePairs?.isVirtual) ?? [])
+        : [cardList?.[cardID]];
+    const currentCard = cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0);
 
-    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card)), [cardsToShow]);
-    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card)), [cardsToShow]);
-    const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
-    const cardToAdd = useMemo(() => {
-        return virtualCards?.at(0);
-    }, [virtualCards]);
+    // Any of the domain's cards can be the one awaiting approval, and the CTA has to open that card's flow.
+    const cardPendingDigitalWalletApproval = cardsToShow?.find((card) => isCardPendingDigitalWalletApproval(card));
+    useRefreshPendingDigitalWalletApproval();
+
+    const virtualCards = cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card));
+    const travelCards = cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card));
+    const physicalCards = cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual);
+    const cardToAdd = virtualCards?.at(0);
 
     const isCardDetailsLoading = useAllVirtualCardDetailsLoading();
-    const currentPhysicalCard = useMemo(() => physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0), [physicalCards, cardID]);
+    const currentPhysicalCard = physicalCards?.find((card) => String(card?.cardID) === cardID) ?? physicalCards?.at(0);
     const revealedPIN = useRevealedPhysicalCardPin(String(currentPhysicalCard?.cardID));
     const revealedCardDetails = useAllRevealedVirtualCardDetails();
 
@@ -204,30 +212,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
     const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);
 
-    const spendRule = useMemo(() => getSpendRuleByCardID(cardSettings ? {privateExpensifyCardSettings: cardSettings} : undefined, cardID), [cardSettings, cardID]);
+    const spendRule = getSpendRuleByCardID(cardSettings ? {privateExpensifyCardSettings: cardSettings} : undefined, cardID);
     const spendRulesSummary = spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate, convertToDisplayString) : [];
 
-    const navigateToSpendRulesPage = useCallback(() => {
+    const navigateToSpendRulesPage = () => {
         if (!policyIDForCurrentCard) {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.getRoute(policyIDForCurrentCard, spendRule?.ruleID));
-    }, [policyIDForCurrentCard, spendRule?.ruleID]);
+    };
 
-    const spendRulesTitleComponent = useMemo(
-        () => (
-            <View>
-                {spendRulesSummary.map((summary) => (
-                    <Text
-                        key={summary}
-                        numberOfLines={2}
-                    >
-                        {summary}
-                    </Text>
-                ))}
-            </View>
-        ),
-        [spendRulesSummary],
+    const spendRulesTitleComponent = (
+        <View>
+            {spendRulesSummary.map((summary) => (
+                <Text
+                    key={summary}
+                    numberOfLines={2}
+                >
+                    {summary}
+                </Text>
+            ))}
+        </View>
     );
     const shouldShowReportVirtualCardFraudRows = !isSignedInAsDelegate && virtualCards.length > 0;
     const shouldShowReportTravelCardFraudRows = !isSignedInAsDelegate && isTravelCard(cardList?.[cardID]) && travelCards.length > 0;
@@ -238,59 +243,52 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const shouldShowPhysicalCardFooterButton =
         currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED || currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 
-    const scarfOverlayStyle = useMemo<ViewStyle>(
-        () => ({
-            top: 0,
-            left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
-            zIndex: variables.cardScarfOverlayZIndex,
-            width: variables.cardScarfOverlayWidth,
-            height: variables.cardScarfOverlayHeight,
-        }),
-        [],
-    );
+    const scarfOverlayStyle: ViewStyle = {
+        top: 0,
+        left: (variables.cardPreviewWidth - variables.cardScarfOverlayWidth) / 2,
+        zIndex: variables.cardScarfOverlayZIndex,
+        width: variables.cardScarfOverlayWidth,
+        height: variables.cardScarfOverlayHeight,
+    };
 
-    const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
-    const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
+    const handleFreezePress = () => {
+        showConfirmModal({
+            title: `${translate('cardPage.freezeCard')}?`,
+            shouldSetModalVisibility: false,
+            prompt: translate('cardPage.freezeDescription'),
+            confirmText: translate('cardPage.freezeCard'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !currentCard) {
+                return;
+            }
+            freezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+        });
+    };
 
-    const handleFreezePress = useCallback(() => {
-        setIsFreezeModalVisible(true);
-    }, []);
+    const handleUnfreezePress = () => {
+        showConfirmModal({
+            title: `${translate('cardPage.unfreezeCard')}?`,
+            shouldSetModalVisibility: false,
+            prompt: translate('cardPage.unfreezeDescription'),
+            confirmText: translate('cardPage.unfreezeCard'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !currentCard) {
+                return;
+            }
+            unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+        });
+    };
 
-    const handleDismissFreezeModal = useCallback(() => {
-        setIsFreezeModalVisible(false);
-    }, []);
-
-    const handleConfirmFreeze = useCallback(() => {
-        if (!currentCard) {
-            return;
-        }
-        freezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-        handleDismissFreezeModal();
-    }, [currentCard, handleDismissFreezeModal, session?.accountID]);
-
-    const handleUnfreezePress = useCallback(() => {
-        setIsUnfreezeModalVisible(true);
-    }, []);
-
-    const handleAskToUnfreezePress = useCallback(() => {
+    const handleAskToUnfreezePress = () => {
         const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
-    }, [currentCard?.accountID, policyIDForCurrentCard]);
-
-    const handleDismissUnfreezeModal = useCallback(() => {
-        setIsUnfreezeModalVisible(false);
-    }, []);
-
-    const handleConfirmUnfreeze = useCallback(() => {
-        if (!currentCard) {
-            return;
-        }
-        unfreezeCard(Number(currentCard?.fundID ?? CONST.DEFAULT_NUMBER_ID), currentCard, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-        handleDismissUnfreezeModal();
-    }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
+    };
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
@@ -381,7 +379,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 {!hasDetectedDomainFraud && (
                     <>
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
-                            <CardDetailsActionButtons style={styles.mb0}>
+                            <CardDetailsActionButtons>
                                 {canManageCardFreeze && currentCard?.state === CONST.EXPENSIFY_CARD.STATE.OPEN && !isCardFrozen(currentCard) && (
                                     <CardDetailsActionButton
                                         onPress={handleFreezePress}
@@ -401,6 +399,21 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 </CardDetailsActionButton>
                             </CardDetailsActionButtons>
                         )}
+                        {!!cardPendingDigitalWalletApproval && (
+                            <PendingDigitalWalletApprovalRow
+                                cardID={cardPendingDigitalWalletApproval.cardID}
+                                walletProvider={cardPendingDigitalWalletApproval.nameValuePairs?.pendingDigitalWalletApproval?.walletProvider}
+                                style={[styles.ph5, styles.mt6, styles.mb5]}
+                            />
+                        )}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletButton
+                                card={cardToAdd}
+                                cardHolderName={displayName ?? ''}
+                                cardDescription={expensifyCardTitle}
+                                style={[styles.alignSelfCenter, styles.mb6]}
+                            />
+                        )}
                         {shouldShowChangePINRow && isCardPINBlocked && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.mb5]}>
                                 <DotIndicatorMessage
@@ -412,7 +425,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     variant={CONST.BUTTON_VARIANT.DANGER}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID))));
                                     }}
                                 >
                                     <Button.Text>{translate('cardPage.unblock')}</Button.Text>
@@ -420,64 +433,58 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </View>
                         )}
                         {shouldShowSpendRulesSummary && (
-                            <MenuItemWithTopDescription
-                                interactive={false}
-                                description={translate('cardPage.spendRules')}
-                                descriptionTextStyle={[styles.fontSizeLabel]}
-                                titleComponent={spendRulesTitleComponent}
-                                accessibilityLabel={spendRulesSummary.join('. ')}
-                            />
+                            <MenuItem.Root accessibilityLabel={spendRulesSummary.join('. ')}>
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={translate('cardPage.spendRules')}>{spendRulesTitleComponent}</MenuItemField.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.availableSpend')}
-                            title={formattedAvailableSpendAmount}
-                            interactive={false}
-                            titleStyle={styles.walletCardLimit}
-                            hintText={remainingLimitHint}
-                        />
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.card.issueNewCard.limitType')}
-                            title={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
-                            interactive={false}
-                            hintText={getCardHintText(
-                                currentCard?.nameValuePairs?.validFrom,
-                                currentCard?.nameValuePairs?.validThru,
-                                personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                dateFnsLocale,
-                                translate,
-                            )}
-                        />
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('cardPage.availableSpend')}
+                                value={formattedAvailableSpendAmount}
+                            />
+                            {!!remainingLimitHint && <MenuItem.HelpText message={remainingLimitHint} />}
+                        </MenuItem.Root>
+                        <MenuItem.Root>
+                            <MenuItemField.Row
+                                name={translate('workspace.card.issueNewCard.limitType')}
+                                value={currentCardLimitTypeTranslationKey ? translate(currentCardLimitTypeTranslationKey) : ''}
+                            />
+                            <MenuItem.HelpText
+                                message={getCardHintText(
+                                    currentCard?.nameValuePairs?.validFrom,
+                                    currentCard?.nameValuePairs?.validThru,
+                                    personalDetails?.[currentCard?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                    dateFnsLocale,
+                                    translate,
+                                )}
+                            />
+                        </MenuItem.Root>
                         {shouldShowReportLostCardButton && (
                             <>
-                                <MenuItemWithTopDescription
-                                    description={translate('cardPage.physicalCardNumber')}
-                                    title={maskCard(currentPhysicalCard?.lastFourPAN)}
-                                    interactive={false}
-                                    titleStyle={styles.walletCardNumber}
+                                <MenuItemField
+                                    name={translate('cardPage.physicalCardNumber')}
+                                    value={maskCard(currentPhysicalCard?.lastFourPAN)}
                                 />
                                 {shouldShowPIN && (
-                                    <MenuItemWithTopDescription
-                                        description={translate('cardPage.physicalCardPin')}
-                                        title={maskPin(revealedPIN)}
-                                        interactive={false}
-                                        titleStyle={styles.walletCardNumber}
-                                        shouldShowRightComponent={canRevealPIN}
-                                        rightComponent={
-                                            canRevealPIN ? (
-                                                <Button
-                                                    onPress={() => {
-                                                        executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
-                                                            cardID: String(currentPhysicalCard?.cardID),
-                                                        });
-                                                    }}
-                                                    isDisabled={isOffline}
-                                                >
-                                                    <Button.Icon src={expensifyIcons.Eye} />
-                                                    <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
-                                                </Button>
-                                            ) : undefined
-                                        }
-                                    />
+                                    <MenuItemField
+                                        name={translate('cardPage.physicalCardPin')}
+                                        value={maskPin(revealedPIN)}
+                                    >
+                                        {canRevealPIN && (
+                                            <ButtonDisabledWhenOffline
+                                                onPress={() => {
+                                                    executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {
+                                                        cardID: String(currentPhysicalCard?.cardID),
+                                                    });
+                                                }}
+                                            >
+                                                <Button.Icon src={expensifyIcons.Eye} />
+                                                <Button.Text>{translate('cardPage.revealPin')}</Button.Text>
+                                            </ButtonDisabledWhenOffline>
+                                        )}
+                                    </MenuItemField>
                                 )}
                             </>
                         )}
@@ -495,7 +502,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                     Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS.getRoute(String(card.cardID)));
                                                     return;
                                                 }
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.path));
                                             }}
                                             // The top-level "Limit type" row already shows the current card's limit. On combo card pages the
                                             // revealed virtual card differs from the current (physical) card, so render its own limit here to
@@ -549,7 +556,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                 Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
                                                                 return;
                                                             }
-                                                            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)));
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))));
                                                         }}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
@@ -580,7 +587,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                             rightComponent={
                                                 !isSignedInAsDelegate ? (
                                                     <Button
-                                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD_CONFIRM_VALIDATE_CODE.getRoute(String(card.cardID)))}
+                                                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REVEAL_VALIDATE_CODE.getRoute(String(card.cardID))))}
                                                         isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
                                                         isLoading={isCardDetailsLoading[card.cardID]}
                                                     >
@@ -592,6 +599,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     )}
                                 </React.Fragment>
                             ))}
+                        {cardToAdd !== undefined && (
+                            <AddToWalletStatusText
+                                card={cardToAdd}
+                                style={styles.mb2}
+                            />
+                        )}
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
@@ -601,9 +614,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         onPress={() => {
                                             const physicalCardID = String(currentPhysicalCard?.cardID);
                                             if (isOfflinePINMarket(countryByIp)) {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN_ATM.path));
                                             } else {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID)));
                                             }
                                         }}
                                     />
@@ -612,12 +625,10 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                     <>
                                         {shouldShowReportVirtualCardFraudRows &&
                                             virtualCards.map((card) => (
-                                                <MenuItemWithTopDescription
+                                                <MenuItemNavigation
                                                     key={`virtual-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportFraud')}
-                                                    titleStyle={styles.walletCardMenuItem}
                                                     icon={expensifyIcons.Flag}
-                                                    shouldShowRightIcon
                                                     onPress={() => {
                                                         if (isAccountLocked) {
                                                             showLockedAccountModal();
@@ -627,19 +638,17 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                             Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.getRoute(String(card.cardID)));
                                                             return;
                                                         }
-                                                        Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)));
+                                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.getRoute(String(card.cardID))));
                                                     }}
                                                 />
                                             ))}
                                         {shouldShowReportTravelCardFraudRows &&
                                             travelCards.map((card) => (
-                                                <MenuItemWithTopDescription
+                                                <MenuItemNavigation
                                                     key={`travel-fraud-${card.cardID}`}
                                                     title={translate('cardPage.reportTravelFraud')}
-                                                    titleStyle={styles.walletCardMenuItem}
                                                     icon={expensifyIcons.Flag}
-                                                    shouldShowRightIcon
-                                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.getRoute(String(card.cardID))))}
                                                 />
                                             ))}
                                         {shouldShowReportLostCardButton && (
@@ -651,12 +660,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         showLockedAccountModal();
                                                         return;
                                                     }
-                                                    Navigation.navigate(
-                                                        ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(
-                                                            String(currentPhysicalCard?.cardID),
-                                                            route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
-                                                        ),
-                                                    );
+                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID))));
                                                 }}
                                             />
                                         )}
@@ -674,23 +678,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         )}
                     </>
                 )}
-                {cardToAdd !== undefined && (
-                    <AddToWalletButton
-                        card={cardToAdd}
-                        style={styles.alignSelfCenter}
-                        cardHolderName={displayName ?? ''}
-                        cardDescription={expensifyCardTitle}
-                    />
-                )}
             </ScrollView>
             {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.p5]}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
-                    }
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard.cardID))))}
                 >
                     <Button.Text>{translate('activateCardPage.activatePhysicalCard')}</Button.Text>
                 </Button>
@@ -706,29 +700,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     <Button.Text>{translate('cardPage.getPhysicalCard')}</Button.Text>
                 </Button>
             )}
-            <ConfirmModal
-                title={`${translate('cardPage.freezeCard')}?`}
-                isVisible={isFreezeModalVisible}
-                onConfirm={handleConfirmFreeze}
-                onCancel={handleDismissFreezeModal}
-                onBackdropPress={handleDismissFreezeModal}
-                shouldSetModalVisibility={false}
-                prompt={translate('cardPage.freezeDescription')}
-                confirmText={translate('cardPage.freezeCard')}
-                cancelText={translate('common.cancel')}
-                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
-            />
-            <ConfirmModal
-                title={`${translate('cardPage.unfreezeCard')}?`}
-                isVisible={isUnfreezeModalVisible}
-                onConfirm={handleConfirmUnfreeze}
-                onCancel={handleDismissUnfreezeModal}
-                onBackdropPress={handleDismissUnfreezeModal}
-                shouldSetModalVisibility={false}
-                prompt={translate('cardPage.unfreezeDescription')}
-                confirmText={translate('cardPage.unfreezeCard')}
-                cancelText={translate('common.cancel')}
-            />
         </ScreenWrapper>
     );
 }

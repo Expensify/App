@@ -45,8 +45,10 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    isDateColumnCreated,
     submittedColumnSize,
     approvedColumnSize,
+    paidColumnSize,
     postedColumnSize,
     exportedColumnSize,
     amountColumnSize,
@@ -56,6 +58,7 @@ function TransactionItemRow({
     columns,
     onButtonPress = () => {},
     style,
+    dataSet,
     isReportItemChild = false,
     isActionLoading,
     isInSingleTransactionReport = false,
@@ -97,10 +100,12 @@ function TransactionItemRow({
 }: TransactionItemRowProps) {
     const shouldDeferRBR = !shouldSkipDeferRBR;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report,
         isTrackIntentUser,
+        rules,
     });
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -153,6 +158,7 @@ function TransactionItemRow({
             onCheckboxPress,
             shouldShowCheckbox,
             style,
+            dataSet,
             isInSingleTransactionReport,
             shouldShowRadioButton,
             onRadioButtonPress,
@@ -194,8 +200,10 @@ function TransactionItemRow({
         isSelected,
         shouldShowTooltip,
         dateColumnSize,
+        isDateColumnCreated,
         submittedColumnSize,
         approvedColumnSize,
+        paidColumnSize,
         postedColumnSize,
         exportedColumnSize,
         amountColumnSize,
@@ -204,6 +212,7 @@ function TransactionItemRow({
         columns,
         onButtonPress,
         style,
+        dataSet,
         isReportItemChild,
         isActionLoading,
         isInSingleTransactionReport,

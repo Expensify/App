@@ -6,7 +6,6 @@ type OptionRowRendererComponentProps = {
     /** The index position of this option row in the list */
     index: number;
 
-    /** Callback function called when the component layout changes */
     onLayout?: () => void;
 
     /** Style prop for customizing the option row */

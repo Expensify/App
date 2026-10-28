@@ -28,7 +28,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
+import Button from './Button';
 import Modal from './Modal';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -39,7 +39,6 @@ type ExportDownloadStatusModalProps = {
     /** The export ID to subscribe to */
     exportID: string;
 
-    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Callback when the modal is closed */
@@ -72,8 +71,9 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const reportCount = displayedExport?.reportCount ?? 0;
     const receiptCount = displayedExport?.receiptCount;
     const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
+    const isTruncated = !!displayedExport?.truncated;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
-    const isConcierge = !!shouldSendFromConcierge;
+    const isConcierge = !!shouldSendFromConcierge && state !== CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
@@ -219,6 +219,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             return (
                 <>
                     <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.readyTitle')}</Text>
+                    {isTruncated && <Text style={styles.mb2}>{translate('exportDownload.truncatedBody')}</Text>}
                     {renderPartialBody()}
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

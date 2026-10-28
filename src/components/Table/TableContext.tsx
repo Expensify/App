@@ -1,13 +1,19 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
+
+import CONST from '@src/CONST';
+
 import type {FlashListRef} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
 
 import type {TableListMetadata} from './buildTableListData';
+import type {ColumnResizeController} from './columnResize/useColumnResize/types';
 import type {FilterConfig} from './middlewares/filtering';
-import type {ActiveSorting} from './middlewares/sorting';
+import type {ActiveSorting, SortOrder} from './middlewares/sorting';
 import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
@@ -37,8 +43,11 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 
+    /** Attached to the list alongside `listRef` so the table can measure the element that scrolls. */
+    measureScrollbarRef: (instance: ScrollableNodeHolder | null) => void;
+
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
-    listContainerRef: React.RefObject<View | null>;
+    listContainerRef: React.RefObject<ComponentRef<typeof View> | null>;
 
     /** Tracks the list scroll offset for the focused-input scroll helper; wired into the list's onScroll. */
     trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -51,6 +60,15 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
+
+    /** The keys of the rows the selection currently covers. */
+    selectedKeys: string[];
+
+    /**
+     * Whether the floating bulk action bar is showing for the current selection. The list reads it too, because it has
+     * to reserve the space the bar floats over or its last rows sit behind the bar once scrolled to the bottom.
+     */
+    isBulkActionBarVisible: boolean;
 
     /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
     shouldEnableSelectionInNarrowPaneModal?: boolean;
@@ -70,10 +88,21 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
+    /** Row width when the columns overflow and the list scrolls horizontally, or `undefined` when they fit. A CSS expression while resizable, so drags need no re-render. */
+    scrollWidth: number | string | undefined;
+
+    /** Row box width while resizable, so the row background follows a drag. `undefined` otherwise. */
+    rowWidth: string | undefined;
+
+    /** Lets the header render column edge handles. `undefined` when resizing is off, which includes native and narrow layouts. */
+    columnResize: ColumnResizeController | undefined;
+
+    /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
+    tableWidth: number;
+
     /** Filter configuration for dropdown filters. */
     filterConfig: FilterConfig<FilterKey> | undefined;
 
-    /** Currently active filter values. */
     activeFilters: Partial<Record<FilterKey, string[]>>;
 
     /** Currently active sorting configuration. */
@@ -82,10 +111,12 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The column the table is initially sorted by, used as the reset target for sort controls. */
     initialSortColumn: ColumnKey | undefined;
 
+    /** The order `initialSortColumn` is initially sorted in, used as the reset target for sort controls. */
+    initialSortOrder: SortOrder;
+
     /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
     narrowLayoutSortColumn: ColumnKey | undefined;
 
-    /** Currently active search string. */
     activeSearchString: string;
 
     /** Methods exposed by the Table component for programmatic control. */
@@ -112,12 +143,16 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
 
+    /** Whether `ListFooterComponent` renders as a continuation of the rows, so it owns the rounded bottom corners. */
+    shouldFooterRenderAsLastRow?: boolean;
+
     /** Callback when the user changes the search string in the filter bar. */
     onSearchStringChange?: (searchString: string) => void;
 };
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    measureScrollbarRef: () => {},
     listContainerRef: React.createRef(),
     trackScrollOffset: () => {},
     scrollInputIntoView: () => {},
@@ -125,12 +160,17 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     originalDataLength: 0,
     columns: [],
     dynamicGridTemplateColumns: undefined,
+    scrollWidth: undefined,
+    rowWidth: undefined,
+    columnResize: undefined,
+    tableWidth: 0,
     activeFilters: {},
     activeSorting: {
         columnKey: undefined,
         order: 'asc',
     },
     initialSortColumn: undefined,
+    initialSortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     narrowLayoutSortColumn: undefined,
     activeSearchString: '',
     tableMethods: {} as TableMethods<string, string>,
@@ -140,13 +180,15 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     hasSearchString: false,
     tableListMetadata: {
         hasPageHeader: false,
-        shouldRenderStickyHeader: false,
+        columnHeaderPlacement: CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: 0,
     },
     isEmptyResult: false,
     isDefaultViewEmpty: false,
+    selectedKeys: [],
+    isBulkActionBarVisible: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
 };

@@ -1,5 +1,5 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,9 +22,10 @@ import SidebarLinksData from './SidebarLinksData';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INBOX);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {shouldShowSkeleton} = useAppLoadSkeletonState();
+    const shouldShowSkeleton = useAppLoadSkeletonState();
 
     // Tag an in-flight inbox-tab navigation span when the app-loading skeleton is shown instead of the
     // report list, so durations that include the openApp wait can be queried separately in Sentry.
@@ -40,8 +41,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID="BaseSidebarScreen"
-            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.INBOX} />}
-            bottomContentStyle={styles.overflowVisible}
+            {...tabRootScreenWrapperProps}
         >
             {({insets}) => (
                 <>

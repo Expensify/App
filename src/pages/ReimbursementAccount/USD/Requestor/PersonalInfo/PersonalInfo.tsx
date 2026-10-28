@@ -21,9 +21,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Address from './subSteps/Address';
@@ -39,8 +39,7 @@ type PersonalInfoProps = {
     /** Handles submit button press (URL-based navigation) */
     onSubmit?: () => void;
 
-    /** Reference to the outer element */
-    ref?: ForwardedRef<View>;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 
     /** Back to URL for preserving navigation context */
     backTo?: string;
@@ -66,22 +65,16 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoPr
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const policyID = reimbursementAccount?.achData?.policyID;
-    const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
-    const submit = useCallback(
-        (isConfirmPage: boolean) => {
-            updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
-        },
-        [values, bankAccountID, policyID],
-    );
+    const submit = (isConfirmPage: boolean) => {
+        updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
+    };
     const isBankAccountVerifying = reimbursementAccount?.achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING;
-    const startFrom = useMemo(() => (isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values)), [values, isBankAccountVerifying]);
+    const startFrom = isBankAccountVerifying ? 0 : getInitialSubStepForPersonalInfo(values);
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.REQUESTOR, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.REQUESTOR, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<SubPageProps>({
         pages,

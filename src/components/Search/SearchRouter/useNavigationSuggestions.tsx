@@ -10,20 +10,23 @@ import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import navigateToDomainRouteWithSidebarSync from '@libs/Navigation/helpers/navigateToDomainRouteWithSidebarSync';
 import navigateToWorkspaceSettingsRoute from '@libs/Navigation/helpers/navigateToWorkspaceSettingsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldShowPolicy} from '@libs/PolicyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
-import {SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import navigationRef from '@navigation/navigationRef';
@@ -43,8 +46,10 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isAdminSelector} from '@src/selectors/Domain';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
 import {emailSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
@@ -59,13 +64,14 @@ import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
-type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Globe' | 'Gear', IconAsset>;
+type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'PieChart' | 'Building' | 'Globe' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
 
 const SEARCH_ROUTER_ICON_NAMES = [
     'Home',
     'Inbox',
     'ReceiptMultiple',
+    'PieChart',
     'Building',
     'Globe',
     'Gear',
@@ -74,6 +80,7 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Users',
     'Hashtag',
     'Sync',
+    'Connect',
     'Briefcase',
     'Tag',
     'Coins',
@@ -85,6 +92,8 @@ const SEARCH_ROUTER_ICON_NAMES = [
     'Clock',
     'InvoiceGeneric',
     'Bolt',
+    'Bot',
+    'UserPlus',
 ] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
@@ -96,11 +105,13 @@ type BuildTopLevelNavigationItemsParams = {
         home: string;
         inbox: string;
         spend: string;
+        insights: string;
         workspaces: string;
         domains: string;
         account: string;
     };
     icons: TopLevelNavigationIcons;
+    isInsightsPageBetaEnabled: boolean;
     getSpendRoute: () => Route;
     getDestinationText: (destination: string) => string;
 };
@@ -111,7 +122,7 @@ type BuildSpendNavigationItemsParams = {
     rightElement: ReactNode;
     getItemText: (item: SearchTypeMenuItem) => string;
     getDestinationText: (destination: string) => string;
-    onSelect: (searchQuery: string) => void;
+    onSelect: (searchKey: SearchKey, searchQuery: string) => void;
 };
 
 type BuildWorkspaceNavigationItemsParams = {
@@ -124,17 +135,22 @@ type BuildWorkspaceNavigationItemsParams = {
     /** Login used to evaluate Workspace membership and permissions. */
     currentUserLogin: string | undefined;
 
+    /** Personal details used to evaluate Workspace membership and permissions. */
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+
     /** Icons consumed by the shared Workspace menu source. */
     icons: Parameters<typeof getWorkspaceMenuItems>[0]['icons'];
 
     /** Whether pending offline state should be considered by Workspace visibility rules. */
     isOffline: boolean;
 
-    /** Whether the Rules Revamp beta is enabled for the current user. */
-    isRulesRevampBetaEnabled: boolean;
-
-    /** Whether the Vendor Matching beta is enabled for the current user. */
     isVendorMatchingBetaEnabled: boolean;
+
+    /** Whether the Merge ATS beta gating the Recruiting feature is enabled. */
+    isRecruitingBetaEnabled: boolean;
+
+    /** Whether the unified Connections beta replaces the separate connection pages. */
+    isUnifiedConnectionsBetaEnabled: boolean;
 
     /** Whether navigation should use the narrow-layout Workspace flow. */
     shouldUseNarrowLayout: boolean;
@@ -182,7 +198,7 @@ type BuildDomainNavigationItemsParams = {
     getItemText: (translationKey: TranslationPaths) => string;
     getDestinationText: (destination: string) => string;
     getDomainContext: (domainName: string) => ReactNode;
-    onSelect: (route: Route) => void;
+    onSelect: (route: Route, domainAccountID: number) => void;
 };
 
 type BuildAccountNavigationItemsParams = {
@@ -200,7 +216,7 @@ type BuildAccountNavigationItemsParams = {
 };
 
 // Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
-function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
+function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
             text: getDestinationText(labels.home),
@@ -223,6 +239,17 @@ function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinat
             keyForList: 'topLevelSpend',
             matchTerms: [labels.spend],
         },
+        ...(isInsightsPageBetaEnabled
+            ? [
+                  {
+                      text: getDestinationText(labels.insights),
+                      singleIcon: icons.PieChart,
+                      action: () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)),
+                      keyForList: 'topLevelInsights',
+                      matchTerms: [labels.insights],
+                  },
+              ]
+            : []),
         {
             text: getDestinationText(labels.workspaces),
             singleIcon: icons.Building,
@@ -256,7 +283,7 @@ function buildSpendNavigationItems({sections, icons, rightElement, getItemText, 
                 return {
                     text: getDestinationText(itemText),
                     singleIcon: icons[item.icon],
-                    action: () => onSelect(item.searchQuery),
+                    action: () => onSelect(item.key, item.searchQuery),
                     keyForList: `spend_${item.key}`,
                     rightElement,
                     matchTerms: [itemText],
@@ -269,10 +296,12 @@ function buildWorkspaceNavigationItems({
     policies,
     policyCategories,
     currentUserLogin,
+    currentUserPersonalDetails,
     icons,
     isOffline,
-    isRulesRevampBetaEnabled,
     isVendorMatchingBetaEnabled,
+    isRecruitingBetaEnabled,
+    isUnifiedConnectionsBetaEnabled,
     shouldUseNarrowLayout,
     convertToDisplayString,
     getItemText,
@@ -288,10 +317,12 @@ function buildWorkspaceNavigationItems({
                 policy,
                 policyID: policy.id,
                 currentUserLogin,
+                currentUserPersonalDetails,
                 icons,
                 policyCategories: policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`],
-                isRulesRevampBetaEnabled,
                 isVendorMatchingBetaEnabled,
+                isRecruitingBetaEnabled,
+                isUnifiedConnectionsBetaEnabled,
                 convertToDisplayString,
             });
 
@@ -303,7 +334,11 @@ function buildWorkspaceNavigationItems({
                     action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout, item.screenName),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
                     rightElement: <WorkspaceIdentityCell policy={policy} />,
-                    matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
+                    matchTerms: [
+                        itemText,
+                        ...(item.screenName === SCREENS.WORKSPACE.PROFILE ? [policy.name] : []),
+                        ...(item.searchAliasKeys ?? []).map((translationKey) => getItemText({...item, translationKey})),
+                    ],
                     sortText: policy.name,
                 };
             });
@@ -332,7 +367,7 @@ function buildDomainNavigationItems({
             return {
                 text: getDestinationText(itemText),
                 singleIcon: item.icon,
-                action: () => onSelect(item.route),
+                action: () => onSelect(item.route, domain.accountID),
                 keyForList: `domain_${domain.accountID}_${item.screenName}`,
                 rightElement: domainContext,
                 matchTerms: [itemText, domainName],
@@ -368,17 +403,19 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const createItems = useCreateNavigationSuggestions(query);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
 
     const topLevelItems = buildTopLevelNavigationItems({
@@ -386,12 +423,14 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             home: translate('common.home'),
             inbox: translate('common.inbox'),
             spend: translate('common.spend'),
+            insights: translate('common.insights'),
             workspaces: translate('common.workspacesTabTitle'),
             domains: translate('common.domains'),
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams),
+        isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
+        getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });
 
@@ -409,17 +448,19 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         ),
         getItemText: (item) => translate(item.translationPath),
         getDestinationText: (destination) => getGoToText(translate, destination),
-        onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
+        onSelect: (searchKey, searchQuery) => navigateToCannedSpendSearch(searchKey, searchQuery, getLastSearchQuery(searchFilters, searchKey), clearSelectedTransactions),
     });
 
     const workspaceItems = buildWorkspaceNavigationItems({
         policies: allPolicies,
         policyCategories,
         currentUserLogin,
+        currentUserPersonalDetails,
         icons,
         isOffline: !!isOffline,
-        isRulesRevampBetaEnabled: isBetaEnabled(CONST.BETAS.RULES_REVAMP),
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isUnifiedConnectionsBetaEnabled,
         shouldUseNarrowLayout,
         convertToDisplayString,
         getItemText: (item) => translate(item.translationKey),
@@ -441,7 +482,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
                 textStyle={[styles.textLabelSupporting, styles.label]}
             />
         ),
-        onSelect: (route) => Navigation.navigate(route),
+        onSelect: (route, domainAccountID) => navigateToDomainRouteWithSidebarSync(route, domainAccountID, shouldUseNarrowLayout),
     });
 
     const accountItems = buildAccountNavigationItems({

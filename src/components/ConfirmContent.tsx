@@ -14,14 +14,15 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 
 import ActivityIndicator from './ActivityIndicator';
-import Button from './ButtonComposed';
-import Header from './Header';
+import Button from './Button';
+import HeaderTitle from './HeaderTitle';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
+import ModalContext from './Modal/ModalContext';
 import {PressableWithoutFeedback} from './Pressable';
 import ScrollView from './ScrollView';
 import Text from './Text';
@@ -49,13 +50,8 @@ type ConfirmContentProps = {
     /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
     subtitle?: string | ReactNode;
 
-    /** Button variant */
     buttonVariant?: ButtonVariant;
-
-    /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
-
-    /** Whether we should show the cancel button */
     shouldShowCancelButton?: boolean;
 
     /** Icon to display above the title */
@@ -64,58 +60,26 @@ type ConfirmContentProps = {
     /** Fill color for the Icon */
     iconFill?: string | false;
 
-    /** Icon width */
     iconWidth?: number;
-
-    /** Icon height */
     iconHeight?: number;
-
-    /** Should the icon be centered? */
     shouldCenterIcon?: boolean;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
 
-    /** Whether to show the dismiss icon */
     shouldShowDismissIcon?: boolean;
-
-    /** Whether to stack the buttons */
     shouldStackButtons?: boolean;
-
-    /** Whether to reverse the order of the stacked buttons */
     shouldReverseStackedButtons?: boolean;
-
-    /** Styles for title */
     titleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for title container */
     titleContainerStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
-
-    /** Styles for subtitle */
     subtitleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for view */
     contentStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
-
-    /** Image to display with content */
     image?: IconAsset;
-
-    /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
-
-    /** Image width */
     imageWidth?: number;
-
-    /** Image height */
     imageHeight?: number;
-
-    /** Whether to fit the image to the container */
     shouldFitImageToContainer?: boolean;
 
     /** Whether the modal is visible */
@@ -177,6 +141,10 @@ function ConfirmContent({
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const {isContentWrappedInScrollView} = useContext(ModalContext);
+
+    // Nested vertical ScrollViews can't share a drag: iOS keeps it in the inner one, Android gives it to the outer one.
+    const shouldScrollPrompt = shouldEnablePromptScroll && !isContentWrappedInScrollView;
 
     const isCentered = shouldCenterContent;
 
@@ -240,14 +208,13 @@ function ConfirmContent({
                         </View>
                     )}
                     <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
-                        <Header
-                            title={title}
-                            textStyles={titleStyles}
-                        />
+                        <HeaderTitle>
+                            <HeaderTitle.Text style={titleStyles}>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                         {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
                     {subtitleContent}
-                    {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
+                    {shouldScrollPrompt ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
                 {shouldStackButtons ? (

@@ -4,7 +4,6 @@ type PDFThumbnailProps = {
     /** Source URL for the preview PDF */
     previewSourceURL: string;
 
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
     /** Whether the PDF thumbnail can be loaded */
@@ -19,8 +18,8 @@ type PDFThumbnailProps = {
     /** Callback to call if PDF can't be loaded(corrupted) */
     onLoadError?: () => void;
 
-    /** Callback to call if PDF is loaded */
-    onLoadSuccess?: () => void;
+    /** Callback to call if PDF is loaded, with the document's page count when the renderer provides it */
+    onLoadSuccess?: (pageCount?: number) => void;
 };
 
 export default PDFThumbnailProps;

@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import Text from '@components/Text';
 
@@ -25,7 +25,6 @@ type CopyableTextFieldProps = {
     /** Custom styles for the outer most View */
     style?: StyleProp<ViewStyle>;
 
-    /** Custom styles for the displayed text */
     textStyle?: StyleProp<TextStyle>;
 
     /** Whether the text field should be expandable */

@@ -15,7 +15,6 @@ import usePressResponderProps from './PressResponder/usePressResponderProps';
 import useResponderRef from './PressResponder/useResponderRef';
 
 type PressableWithFeedbackProps = PressableProps & {
-    /** Style for the wrapper view */
     wrapperStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /**

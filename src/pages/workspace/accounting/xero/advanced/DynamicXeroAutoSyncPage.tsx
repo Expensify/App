@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -25,7 +25,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -37,9 +37,9 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction = settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.XERO_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -80,14 +80,13 @@ function DynamicXeroAutoSyncPage({policy}: WithPolicyConnectionsProps) {
                 />
                 {!!autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
-                        <MenuItemWithTopDescription
-                            title={
+                        <MenuItemField
+                            value={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                     ? translate(`workspace.xero.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                     : translate(`workspace.xero.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                             }
-                            description={translate('workspace.xero.accountingMethods.label')}
-                            shouldShowRightIcon
+                            name={translate('workspace.xero.accountingMethods.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.path))}
                         />
                     </OfflineWithFeedback>

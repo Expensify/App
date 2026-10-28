@@ -15,10 +15,7 @@ import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type PrevNextButtonsProps = {
-    /** Should the previous button be disabled */
     isPrevButtonDisabled?: boolean;
-
-    /** Should the next button be disabled */
     isNextButtonDisabled?: boolean;
 
     /** Moves a user to the next item */

@@ -2,6 +2,7 @@ import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 
 import getPlatform from '@libs/getPlatform';
 
@@ -34,8 +35,10 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
-    /** Whether the IOU is workspaces only */
     isWorkspacesOnly?: boolean;
+
+    /** Whether owned workspace chats should be left out of the list */
+    shouldExcludeWorkspaces?: boolean;
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
@@ -43,7 +46,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a time expense request */
     isTimeRequest?: boolean;
 
-    /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport?: boolean;
 
     /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
@@ -55,7 +57,6 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
 
     /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
@@ -67,7 +68,6 @@ type MoneyRequestParticipantsSelectorProps = {
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 
-    /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
 };
 
@@ -85,6 +85,7 @@ function MoneyRequestParticipantsSelector({
     isPerDiemRequest = false,
     isTimeRequest = false,
     isWorkspacesOnly = false,
+    shouldExcludeWorkspaces = false,
     isTransactionFromCreditCardImport = false,
     shouldExcludeP2P = false,
     initiallySelectedReportID,
@@ -100,6 +101,8 @@ function MoneyRequestParticipantsSelector({
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
+
+    useOpenRecipientPicker(shouldExcludeWorkspaces);
 
     useImperativeHandle(ref, () => ({
         focus: () => {
@@ -118,6 +121,7 @@ function MoneyRequestParticipantsSelector({
                     action={action}
                     participants={participants}
                     isWorkspacesOnly={isWorkspacesOnly}
+                    shouldExcludeWorkspaces={shouldExcludeWorkspaces}
                     isPerDiemRequest={isPerDiemRequest}
                     isTimeRequest={isTimeRequest}
                     isNative={isNative}

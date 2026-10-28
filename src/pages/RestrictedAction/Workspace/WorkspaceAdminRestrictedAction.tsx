@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceAdminRestrictedActionProps = {
@@ -30,11 +30,11 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
-    const openAdminsReport = useCallback(() => {
+    const openAdminsReport = () => {
         const reportID = policy?.chatReportIDAdmins?.toString();
         Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [policy?.chatReportIDAdmins]);
+    };
 
     return (
         <ScreenWrapper

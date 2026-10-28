@@ -29,7 +29,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => {
@@ -135,6 +135,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -150,7 +151,6 @@ describe('MoneyRequest', () => {
             allTransactionDrafts: {},
             selfDMReport,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionIDs: ['mock-txn-id'],
@@ -158,7 +158,9 @@ describe('MoneyRequest', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            isDraftChatReport: false,
             formatPhoneNumber,
+            rules: undefined,
         };
 
         beforeEach(async () => {
@@ -759,8 +761,10 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
+            moneyRequestReportTransactions: [],
             policy: fakePolicy,
             transaction: fakeTransaction,
             reportID: '1',
@@ -781,10 +785,10 @@ describe('MoneyRequest', () => {
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
             selfDMReport,
-            betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
+            isDraftChatReport: false,
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
@@ -796,8 +800,23 @@ describe('MoneyRequest', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             delegateAccountID: undefined,
-            participants: getMoneyRequestParticipantOptions(1, fakeReport, fakePolicy, {}, undefined, false, {}, undefined, translateLocal, undefined),
+            participants: getMoneyRequestParticipantOptions({
+                currentUserAccountID: 1,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: false,
+                rules: undefined,
+                reportAttributesDerived: {},
+                reportDraft: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            }),
             participantsPolicyTags: {},
+            rules: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1248,6 +1267,38 @@ describe('MoneyRequest', () => {
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
                 ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID, baseParams.backToReport),
+            );
+        });
+
+        it('should pass backToReport to navigateToConfirmationPage when provided', async () => {
+            // Given backToReport parameter for distance navigation
+            const backToReport = 'test-back-to-report';
+
+            // When distance navigation handles the request
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                backToReport,
+                shouldSkipConfirmation: false,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then it should pass backToReport to navigate to confirmation page
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    baseParams.transactionID,
+                    baseParams.reportID,
+                    backToReport,
+                    undefined,
+                    undefined,
+                ),
             );
         });
 
@@ -1712,39 +1763,59 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants when conciergeReportID is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should return participants when conciergeReportID is provided', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                'concierge123',
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
-                undefined,
-            );
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: 'concierge123',
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
-            const participants = getMoneyRequestParticipantOptions(
+            const participants = getMoneyRequestParticipantOptions({
                 currentUserAccountID,
-                fakeReport,
-                fakePolicy,
-                {},
-                'concierge456',
-                undefined,
-                undefined,
-                undefined,
-                translateLocal,
-                undefined,
-            );
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: 'concierge456',
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
             expect(Array.isArray(participants)).toBe(true);
@@ -1752,7 +1823,21 @@ describe('MoneyRequest', () => {
         });
 
         it('should return participants with privateIsArchived passed through', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: true,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
@@ -1761,29 +1846,85 @@ describe('MoneyRequest', () => {
                 ...createRandomReport(2, undefined),
                 participants: {},
             };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: dmReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: fakeReport,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
         it('should not mark participant as disabled when reportDraft is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
 
         it('should not mark participant as disabled when reportDrafts is undefined', () => {
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined, translateLocal, undefined);
+            const participants = getMoneyRequestParticipantOptions({
+                currentUserAccountID,
+                report: fakeReport,
+                policy: fakePolicy,
+                personalDetails: {},
+                conciergeReportID: undefined,
+                privateIsArchived: undefined,
+                reportAttributesDerived: undefined,
+                reportDraft: undefined,
+                rules: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                dateFnsLocale: undefined,
+                formatPhoneNumber,
+            });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
-            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // When reportDraft is undefined, getReportOrDraftReport falls back to the deprecatedAllReportsDraft collection,
             // and since no draft is set, isDisabled should be false
             expect(participants.at(0)).toMatchObject({isDisabled: false});
         });

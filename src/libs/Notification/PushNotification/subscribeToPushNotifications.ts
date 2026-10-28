@@ -114,6 +114,13 @@ function applyOnyxData<TKey extends OnyxKey>({reportID, onyxData, lastUpdateID, 
      */
     return getLastUpdateIDAppliedToClient()
         .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
+        .catch((error: unknown) => {
+            Log.alert('[PushNotification] Applying the updates failed, the watermark is held so the next update recovers the range', {
+                lastUpdateID,
+                previousUpdateID,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        })
         .then(() => NativeModules.PushNotificationBridge?.finishBackgroundProcessing());
 }
 

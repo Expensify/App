@@ -12,7 +12,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ReactNode} from 'react';
 import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
@@ -39,18 +39,13 @@ type HeaderPageLayoutProps = ChildrenProps &
         /** Style to apply to the header image container */
         headerContainerStyles?: StyleProp<ViewStyle>;
 
-        /** Style to apply to the ScrollView container */
         scrollViewContainerStyles?: StyleProp<ViewStyle>;
-
-        /** Style to apply to the children container */
         childrenContainerStyles?: StyleProp<ViewStyle>;
 
         /** Style to apply to the whole section container */
         style?: StyleProp<ViewStyle>;
 
-        /** Whether or not to show the offline indicator */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
-
         keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
     };
 function HeaderPageLayout({
@@ -74,13 +69,11 @@ function HeaderPageLayout({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
-    const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
-        return {
-            titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
-            iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
-        };
-    }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
+    const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
+    const {titleColor, iconFill} = {
+        titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
+        iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
+    };
 
     return (
         <ScreenWrapper

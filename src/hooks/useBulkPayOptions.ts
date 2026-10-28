@@ -24,7 +24,7 @@ import type {AccountData, Report} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 
-import {areInvoicesEnabledSelector} from '@selectors/Policy';
+import {areInvoicesEnabledSelector, policyDefaultBankAccountIDSelector} from '@selectors/Policy';
 import truncate from 'lodash/truncate';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
@@ -86,6 +86,7 @@ function useBulkPayOptions({
     const chatReport = liveChatReport ?? selectedChatReport;
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
     const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
+    const [defaultBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`, {selector: policyDefaultBankAccountIDSelector});
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -127,7 +128,7 @@ function useBulkPayOptions({
             }));
     };
 
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency, defaultBankAccountID);
     const businessBankAccountOptions =
         shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({
@@ -141,10 +142,10 @@ function useBulkPayOptions({
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
-    if (!selectedReportID || !selectedPolicyID) {
-        bulkPayButtonOptions = undefined;
-    } else if (onlyShowPayElsewhere) {
+    if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else if (!selectedReportID || !selectedPolicyID) {
+        bulkPayButtonOptions = undefined;
     } else {
         bulkPayButtonOptions = [];
 

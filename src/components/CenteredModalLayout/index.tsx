@@ -1,15 +1,9 @@
-import CenteredModalLayoutOverlay from '@components/CenteredModalLayoutOverlay';
+import DismissibleBackdrop from '@components/DismissibleBackdrop';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-
-import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
-
-import CONST from '@src/CONST';
 
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 
@@ -44,34 +38,27 @@ type CenteredModalLayoutProps = {
 
 function CenteredModalLayout({children, width, height, onBackdropPress, contentStyle, addBottomSafeAreaPadding = true}: CenteredModalLayoutProps) {
     const styles = useThemeStyles();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {onboardingIsMediumOrLargerScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const shouldDockToBottom = !onboardingIsMediumOrLargerScreenWidth;
 
-    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,
         style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
     });
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onBackdropPress, {shouldBubble: false});
-
     return (
-        <>
-            <CenteredModalLayoutOverlay onBackdropPress={onBackdropPress} />
-            <View
-                pointerEvents="box-none"
-                style={[styles.flex1, styles.alignItemsCenter, styles.getCenteredModalOuterView(shouldDockToBottom)]}
-            >
-                <FocusTrapForScreen>
-                    <View style={styles.getCenteredModalInnerView(shouldDockToBottom, width, height)}>
-                        <View style={safeAreaStyle}>{children}</View>
-                    </View>
-                </FocusTrapForScreen>
-            </View>
-        </>
+        <DismissibleBackdrop
+            onDismiss={onBackdropPress}
+            style={[styles.alignItemsCenter, styles.getCenteredModalOuterView(shouldDockToBottom)]}
+        >
+            <FocusTrapForScreen>
+                <View style={styles.getCenteredModalInnerView(shouldDockToBottom, width, height)}>
+                    <View style={safeAreaStyle}>{children}</View>
+                </View>
+            </FocusTrapForScreen>
+        </DismissibleBackdrop>
     );
 }
 

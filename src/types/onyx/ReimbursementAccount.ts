@@ -4,10 +4,11 @@ import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, 
 import type INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WiseKYCRequirement} from './WiseKYCReview';
 
 /** Steps to setup a reimbursement bank account */
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
@@ -26,7 +27,6 @@ type CorpayBeneficialOwner = {
     /** Residential address of the owner */
     residentialAddress?: string;
 
-    /** Ownership percentage */
     ownershipPercentage?: string;
 
     /** Nationality of the owner */
@@ -168,7 +168,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank account number */
     accountNumber?: string;
 
-    /** Bank account name */
     bankName?: BankName;
 
     /** Policy ID of the workspace the bank account is being set up on */
@@ -183,7 +182,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Last 4 digits of the account number */
     mask?: string;
 
-    /** Unique identifier for this account in Plaid */
     plaidAccountID?: string;
 
     /** Bank Account setup type (plaid or manual) */
@@ -217,8 +215,13 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Country user selects in first step */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
 
-    /** Corpay fields */
     corpay: Corpay;
+
+    /** Global reimbursement provider, derived by the server */
+    globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+
+    /** The business's Wise onboarding, the Wise counterpart of `corpay` above. The admin doing the setup sees the whole object here */
+    wise?: WiseBusinessOnboarding;
 
     /** Date the corpay bank account was created */
     created?: string;
@@ -232,17 +235,14 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
         externalApiResponses?: {
             /** provider name */
             companyTaxID?: {
-                /** status of check */
                 status: string;
             };
             /** provider name */
             lexisNexisInstantIDResult?: {
-                /** status of check */
                 status: string;
             };
             /** provider name */
             requestorIdentityID?: {
-                /** status of check */
                 status: string;
                 /** result with validation errors */
                 apiResult?: {
@@ -260,6 +260,55 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
             };
         };
     };
+};
+
+/** Wise onboarding data, stored under additionalData.wise */
+type WiseBusinessOnboarding = {
+    /** Onboarding status */
+    status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>;
+
+    /** The bank account's currency */
+    currency?: string;
+
+    /** Last saved step */
+    step?: string;
+
+    /** Business page answers. The bank account already holds the company's name, website, tax ID and address, so they are not stored here */
+    business?: {
+        /** The legal form, prefilled from the account's incorporation type where it maps cleanly */
+        companyType: ValueOf<typeof CONST.WISE.COMPANY_TYPE>;
+
+        companyRole: ValueOf<typeof CONST.WISE.COMPANY_ROLE>;
+        industryCategories: Array<TupleToUnion<typeof CONST.WISE.INDUSTRY_CATEGORIES>>;
+        description: string;
+    };
+
+    /** Representative page answers. The full SSN stays on the server */
+    representative?: {
+        /** Last four digits of the SSN */
+        ssnLast4?: string;
+
+        /** The representative has no SSN or ITIN */
+        hasNoSSN?: boolean;
+    };
+
+    /** KYC requirement answers, by requirement then by Wise's field name */
+    requirements?: {
+        ID_DOCUMENT?: {
+            issuingCountry: string;
+            documentType: string;
+        };
+    } & Record<string, Record<string, unknown>>;
+
+    /** Uploaded file keys, by requirement then by field */
+    documents?: Record<string, Record<string, string[]>>;
+
+    /**
+     * What the application still needs, one entry per Wise requirement type.
+     * Built by the server on every send and never stored. Before Submit it lists what the
+     * intake pre-collects; after Submit it is Wise's live review list.
+     */
+    kycRequirements?: WiseKYCRequirement[];
 };
 
 /** The step in an reimbursement account's ach data */
@@ -315,7 +364,6 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Where the request is successful */
     isSuccess?: boolean;
 
-    /** A date that indicates the user has been throttled */
     throttledDate?: string;
 
     /** Additional data for the account in setup */
@@ -336,9 +384,8 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Draft step of the setup flow from Onyx */
     draftStep?: BankAccountStep;
 
-    /** Should display modal to reset data */
     shouldShowResetModal?: boolean;
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, WiseBusinessOnboarding, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};

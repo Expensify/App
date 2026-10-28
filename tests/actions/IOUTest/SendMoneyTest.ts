@@ -1,6 +1,5 @@
 import {sendMoneyElsewhere} from '@libs/actions/IOU/SendMoney';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import type * as ReportActions from '@libs/actions/Report';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -36,14 +35,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual<typeof ReportActions>('@src/libs/actions/Report');
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
-
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 jest.mock('@libs/Sound', () => ({
@@ -54,16 +45,6 @@ jest.mock('@libs/Sound', () => ({
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: jest.fn(),
     addOptimization: jest.fn(),
-}));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
 }));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -105,7 +86,8 @@ describe('actions/IOU/SendMoney', () => {
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the pay IOU action when delegateAccountID is provided', async () => {
                 const DELEGATE_ACCOUNT_ID = 999;
-                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+                // sendMoneyElsewhere writes through writeWhenReady, so API.write would observe nothing.
+                const writeSpy = jest.spyOn(API, 'writeWhenReady').mockImplementation(jest.fn());
 
                 sendMoneyElsewhere({
                     report: {reportID: ''},

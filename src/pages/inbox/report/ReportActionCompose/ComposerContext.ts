@@ -1,7 +1,7 @@
 import type {Emoji} from '@assets/emojis/types';
 
-import type {TextSelection} from '@components/Composer/types';
-import type {Mention} from '@components/MentionSuggestions';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import type Mention from '@components/MentionSuggestions/types';
 
 import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
 
@@ -9,8 +9,8 @@ import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {RefObject} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
+import type {ComponentRef, RefObject} from 'react';
+import type {BlurEvent, View} from 'react-native';
 
 import {createContext, useContext} from 'react';
 
@@ -19,7 +19,7 @@ import type useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMa
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
-    onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
+    onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
     triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
@@ -83,10 +83,10 @@ type ComposerEditActions = {
 
 // Frozen — stable refs, set once
 type ComposerMeta = {
-    containerRef: RefObject<View | null>;
+    containerRef: RefObject<ComponentRef<typeof View> | null>;
     composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
-    actionButtonRef: RefObject<View | HTMLDivElement | null>;
+    actionButtonRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
     attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
     textRef: RefObject<string>;

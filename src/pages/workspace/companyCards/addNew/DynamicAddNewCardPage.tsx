@@ -1,13 +1,15 @@
-import ConfirmModal from '@components/ConfirmModal';
 import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -26,8 +28,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import AmexCustomFeed from './AmexCustomFeed';
@@ -47,12 +49,14 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {currentStep} = addNewCardFeed ?? {};
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading, cardFeeds, workspaceAccountID} = useIsBlockedToAddFeed(policyID);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -97,6 +101,29 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         );
     }
 
+    const handlePlaidExit = () => {
+        showConfirmModal({
+            title: translate('workspace.companyCards.addNewCard.exitModal.title'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
+            cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
+            prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
+        });
+    };
+
     let CurrentStep: React.JSX.Element;
     switch (currentStep) {
         case CONST.COMPANY_CARDS.STEP.SELECT_BANK:
@@ -106,7 +133,13 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <SelectFeedType />;
             break;
         case CONST.COMPANY_CARDS.STEP.CARD_TYPE:
-            CurrentStep = <CardTypeStep />;
+            CurrentStep = (
+                <CardTypeStep
+                    policyID={policyID}
+                    cardFeeds={cardFeeds}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
             CurrentStep = <BankConnection policyID={policyID} />;
@@ -130,7 +163,7 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <AmexCustomFeed />;
             break;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
-            CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
+            CurrentStep = <PlaidConnectionStep onExit={handlePlaidExit} />;
             break;
         case CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE:
             CurrentStep = <ImportFromFileStep />;
@@ -149,19 +182,6 @@ function DynamicAddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <View style={styles.flex1}>{CurrentStep}</View>
-            <ConfirmModal
-                isVisible={isModalVisible}
-                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
-                buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
-                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
-                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
-                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
-                onCancel={() => setIsModalVisible(false)}
-                onConfirm={() => {
-                    setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
-                }}
-            />
         </AccessOrNotFoundWrapper>
     );
 }

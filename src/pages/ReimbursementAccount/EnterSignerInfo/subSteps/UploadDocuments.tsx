@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type UploadDocumentsProps = SubPageProps & {policyID: string};
@@ -68,17 +68,11 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
         getEnvironmentURL().then(setEnvironmentUrl);
     }, []);
 
-    const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-    );
+    const STEP_FIELDS: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> = [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID];
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
-        },
-        [STEP_FIELDS, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    };
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: STEP_FIELDS,

@@ -1,5 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import FormHelpMessage from '@components/FormHelpMessage';
+import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,10 +9,10 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useRedirectOnDomainAccessChange from '@hooks/useRedirectOnDomainAccessChange';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRequestAdminshipError, requestDomainAdminship} from '@libs/actions/Domain';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
@@ -40,6 +41,8 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
     const [isRequestPending] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: (pendingActions) => !!pendingActions?.requestAdminship});
     const [requestError] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {selector: (errors) => errors?.requestAdminshipError});
 
+    const isRedirecting = useRedirectOnDomainAccessChange(domainAccountID, {shouldDismissWhenAdmin: true});
+
     // Tracks whether the user has submitted a request this visit, so navigating away on success doesn't also fire for a request that was already pending before the page mounted.
     const [hasSubmittedRequest, setHasSubmittedRequest] = useState(false);
     // The optimistic pending flag lands a render or two after the submit itself, so we can't treat "not pending yet" as "already settled" until we've actually seen it pending once.
@@ -66,42 +69,47 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
         return () => clearRequestAdminshipError(domainAccountID);
     }, [domainAccountID]);
 
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper testID="DomainAlreadyExistsPage">
             <HeaderWithBackButton
                 title={translate('domain.domainAlreadyExists.headerTitle')}
                 onBackButtonPress={goToDomainsList}
             />
-            <ConfirmationPage
-                illustration={EmptyStateDomainExists}
-                illustrationStyle={styles.domainAlreadyExistsIllustrationStyle}
-                heading={translate('domain.domainAlreadyExists.title')}
-                innerContainerStyle={styles.p10}
-                description={translate('domain.domainAlreadyExists.description')}
-                descriptionStyle={styles.textSupporting}
-                footerComponent={
-                    !!requestError && (
-                        <FormHelpMessage
-                            message={getLatestErrorMessage({errors: requestError})}
-                            style={styles.mb0}
-                        />
-                    )
-                }
-                shouldShowSecondaryButton
-                secondaryButtonText={translate('domain.common.neverMind')}
-                onSecondaryButtonPress={goToDomainsList}
-                shouldShowButton
-                buttonText={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.domainAlreadyExists.requestAccess')}
-                isButtonLoading={isRequestPending}
-                isButtonDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
-                onButtonPress={() => {
-                    if (!currentUserAccountID) {
-                        return;
-                    }
-                    setHasSubmittedRequest(true);
-                    requestDomainAdminship(domainAccountID, currentUserAccountID, !!isTransientDomainEntry);
-                }}
-            />
+            <ConfirmationPage>
+                <ConfirmationPage.Content
+                    style={styles.p10}
+                    requestErrors={requestError}
+                >
+                    <ConfirmationPage.Illustration
+                        illustration={EmptyStateDomainExists}
+                        illustrationStyle={styles.domainAlreadyExistsIllustrationStyle}
+                    />
+                    <ConfirmationPage.Heading>{translate('domain.domainAlreadyExists.title')}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Description style={styles.textSupporting}>{translate('domain.domainAlreadyExists.description')}</ConfirmationPage.Description>
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.SecondaryButton
+                        text={translate('domain.common.neverMind')}
+                        onPress={goToDomainsList}
+                    />
+                    <ConfirmationPage.PrimaryButton
+                        text={translate(hasPendingRequest ? 'domain.requestSent' : 'domain.domainAlreadyExists.requestAccess')}
+                        isLoading={isRequestPending}
+                        isDisabled={!isRequestPending && (!!hasPendingRequest || isOffline)}
+                        onPress={() => {
+                            if (!currentUserAccountID) {
+                                return;
+                            }
+                            setHasSubmittedRequest(true);
+                            requestDomainAdminship(domainAccountID, currentUserAccountID, !!isTransientDomainEntry);
+                        }}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }

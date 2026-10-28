@@ -18,7 +18,6 @@ type SubPageProps = {
     /** moves user to previous sub page */
     prevPage?: () => void;
 
-    /** resets to a specific page by name */
     resetToPage?: (pageName?: string) => void;
 };
 
@@ -26,7 +25,6 @@ type PageConfig<TProps extends SubPageProps, TPageName extends string = string> 
     /** unique page name used as URL parameter */
     pageName: TPageName;
 
-    /** component to render for this page */
     component: ComponentType<SubPageProps & TProps>;
 };
 
@@ -46,7 +44,6 @@ type UseSubPageProps<TProps extends SubPageProps, TPageName extends string = str
     /** array of page names to skip */
     skipPages?: TPageName[];
 
-    /** function that returns the route for a given page name and optional action */
     buildRoute: (pageName: TPageName, action?: 'edit') => Route;
 
     /**

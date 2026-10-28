@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
@@ -24,10 +24,11 @@ import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type DynamicSageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES>;
@@ -37,55 +38,52 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>(null);
     const policyID: string = route.params.policyID;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
 
     const navigateToEnterCredentials = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
 
-    const menuItems = useMemo(
-        () => [
-            {
-                title: translate('workspace.intacct.downloadExpensifyPackage'),
-                key: 'workspace.intacct.downloadExpensifyPackage',
-                icon: icons.Download,
-                iconRight: icons.NewWindow,
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    fileDownload(translate, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
-                },
-                onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    showContextMenu({
-                        type: CONST.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
-                        contextMenuAnchor: popoverAnchor.current,
-                    }),
-                shouldShowContextMenuHint: true,
-                numberOfLinesTitle: 2,
+    const menuItems = [
+        {
+            title: translate('workspace.intacct.downloadExpensifyPackage'),
+            key: 'workspace.intacct.downloadExpensifyPackage',
+            icon: icons.Download,
+            iconRight: icons.NewWindow,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                fileDownload(translate, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
             },
-            {
-                title: translate('workspace.intacct.followSteps'),
-                key: 'workspace.intacct.followSteps',
-                icon: icons.Task,
-                iconRight: icons.NewWindow,
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
-                },
-                onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    showContextMenu({
-                        type: CONST.CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
-                        contextMenuAnchor: popoverAnchor.current,
-                    }),
-                shouldShowContextMenuHint: true,
-                numberOfLinesTitle: 3,
+            onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
+                    contextMenuAnchor: popoverAnchor.current,
+                }),
+            shouldShowContextMenuHint: true,
+            numberOfLinesTitle: 2,
+        },
+        {
+            title: translate('workspace.intacct.followSteps'),
+            key: 'workspace.intacct.followSteps',
+            icon: icons.Task,
+            iconRight: icons.NewWindow,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
             },
-        ],
-        [icons.Download, icons.NewWindow, translate, icons.Task],
-    );
+            onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
+                    contextMenuAnchor: popoverAnchor.current,
+                }),
+            shouldShowContextMenuHint: true,
+            numberOfLinesTitle: 3,
+        },
+    ];
 
     return (
         <ScreenWrapper

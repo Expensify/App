@@ -1,10 +1,11 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ReplacementReason} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -23,7 +25,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -52,11 +54,11 @@ const OPTIONS: Option[] = [
     },
 ];
 
-type ReportCardLostPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED>;
+type ReportCardLostPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED>;
 
 function ReportCardLostPage({
     route: {
-        params: {cardID = '', isFromDomainCardDetail},
+        params: {cardID = ''},
     },
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
@@ -74,6 +76,7 @@ function ReportCardLostPage({
     const {isLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading});
 
     const physicalCard = cardList?.[cardID];
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_LOST_OR_DAMAGED.path);
 
     const {paddingBottom} = useSafeAreaPaddings();
 
@@ -108,7 +111,7 @@ function ReportCardLostPage({
             return;
         }
         startWithLoading(() => {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_VALIDATE_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED, !!isFromDomainCardDetail));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPLACE_VALIDATE_CODE.getRoute(reason?.key ?? OPTIONS_KEYS.DAMAGED)));
         });
     };
 
@@ -126,8 +129,7 @@ function ReportCardLostPage({
             return;
         }
 
-        const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
-        Navigation.goBack(cardDetailRoute, {compareParams: false});
+        Navigation.goBack(backPath);
     };
 
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
@@ -152,12 +154,11 @@ function ReportCardLostPage({
                     <>
                         <View>
                             <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
-                            <MenuItemWithTopDescription
-                                title={formattedAddress}
-                                description={translate('reportCardLostOrDamaged.address')}
-                                shouldShowRightIcon
+                            <MenuItemField
+                                name={translate('reportCardLostOrDamaged.address')}
+                                value={formattedAddress}
+                                numberOfLinesValue={2}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
-                                numberOfLinesTitle={2}
                             />
                             {isDamaged ? (
                                 <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>

@@ -5,7 +5,6 @@
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -103,7 +102,6 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
     const icons = useMemoizedLazyExpensifyIcons(['Bot', 'Gear', 'Profile', 'Heart', 'Info', 'QuestionMark', 'Lightbulb', 'Lock', 'Users', 'CreditCard', 'Wallet', 'Bolt']);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const subscriptionPlan = useSubscriptionPlan();
-    const {isBetaEnabled} = usePermissions();
     const isAgentAccount = useIsAgentAccount();
 
     const accountItems: MenuData[] = [
@@ -151,7 +149,7 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
         },
     ];
 
-    if (!isAgentAccount && isBetaEnabled(CONST.BETAS.CUSTOM_AGENT)) {
+    if (!isAgentAccount) {
         const rulesIndex = accountItems.findIndex((item) => item.screenName === SCREENS.SETTINGS.RULES.ROOT);
         accountItems.splice(rulesIndex + 1, 0, {
             translationKey: 'agentsPage.title',

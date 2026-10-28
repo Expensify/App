@@ -1,6 +1,8 @@
 import useTheme from '@hooks/useTheme';
 
-import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import {isMobileWebKit, isSafari} from '@libs/Browser';
+import {containsOnlyCustomEmoji} from '@libs/CustomEmojiUtils';
+import StringUtils from '@libs/StringUtils';
 
 import type {TextVariant} from '@styles/typography';
 import {textVariants} from '@styles/typography';
@@ -11,10 +13,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Platform, Text as RNText, StyleSheet} from 'react-native';
 
@@ -35,20 +37,11 @@ type TextProps = RNTextProps &
          */
         fontSize?: number;
 
-        /** The alignment of the text */
         textAlign?: TextStyle['textAlign'];
-
-        /** Any children to display */
         children: React.ReactNode;
-
-        /** The family of the font to use */
         family?: keyof FontUtilsType['fontFamily']['platform'];
-
-        /** Should apply default line height */
         shouldUseDefaultLineHeight?: boolean;
-
-        /** Reference to the outer element */
-        ref?: ForwardedRef<RNText>;
+        ref?: ForwardedRef<ComponentRef<typeof RNText>>;
     };
 
 function Text({
@@ -80,21 +73,21 @@ function Text({
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
 
-    const isOnlyCustomEmoji = useMemo(() => {
-        if (typeof children === 'string') {
-            return containsOnlyCustomEmoji(children.replace(CONST.UNICODE.LTR, ''));
-        }
-        if (Array.isArray(children)) {
-            return children.every((child) => {
-                return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
-            });
-        }
-        return false;
-    }, [children]);
+    const isOnlyCustomEmoji =
+        typeof children === 'string'
+            ? containsOnlyCustomEmoji(children.replace(CONST.UNICODE.LTR, ''))
+            : Array.isArray(children) &&
+              children.every((child) => {
+                  return child === null || child === undefined || (typeof child === 'string' && containsOnlyCustomEmoji(child));
+              });
 
     if (isOnlyCustomEmoji) {
         componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
     }
+
+    // WebKit (desktop Safari and every iOS browser) shows only the ellipsis for very long single-line texts, so we pass at most MAX_SINGLE_LINE_TEXT_LENGTH characters there.
+    const shouldTruncateChildren = (isSafari() || isMobileWebKit()) && props.numberOfLines === 1 && typeof children === 'string';
+    const displayedChildren = shouldTruncateChildren ? StringUtils.truncate(children, CONST.MAX_SINGLE_LINE_TEXT_LENGTH) : children;
 
     return (
         <RNText
@@ -106,7 +99,7 @@ function Text({
             accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
             {...props}
         >
-            {children}
+            {displayedChildren}
         </RNText>
     );
 }

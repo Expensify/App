@@ -23,7 +23,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {reportNameSelector} from '@selectors/ReportAttributes';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -45,10 +45,10 @@ function ReportPreviewHeader() {
     const {goToPrevious, goToNext} = useReportPreviewActions();
     const numberOfRequests = transactions.length;
 
-    const selectReportName = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID), [iouReportID]);
+    const selectReportName = (attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportNameSelector(attributes, iouReportID);
     const [derivedReportName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: selectReportName});
     const reportName = derivedReportName ?? iouReport?.reportName ?? '';
-    const formattedReportName = useMemo(() => Parser.htmlToText(reportName || (action.childReportName ?? '')), [reportName, action.childReportName]);
+    const formattedReportName = Parser.htmlToText(reportName || (action.childReportName ?? ''));
 
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
@@ -58,43 +58,28 @@ function ReportPreviewHeader() {
      * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
-    const expenseCount = useMemo(
-        () =>
-            translate('iou.expenseCount', {
-                count: numberOfRequests,
-            }),
-        [translate, numberOfRequests],
-    );
-
-    // A cancelled payment is a report level event and it isn't surfaced by the status badge, so we show it next to the expense count.
-    const supportingText = iouReport?.isCancelledIOU ? `${translate('iou.canceled')} ${CONST.DOT_SEPARATOR} ${expenseCount}` : expenseCount;
+    const expenseCount = translate('iou.expenseCount', {
+        count: numberOfRequests,
+    });
 
     const reportStateNum = iouReport?.stateNum ?? action?.childStateNum;
     const reportStatusNum = iouReport?.statusNum ?? action?.childStatusNum;
 
-    const reportStatus = useMemo(
-        () =>
-            getReportStatusTranslation({
-                stateNum: reportStateNum,
-                statusNum: reportStatusNum,
-                translate,
-            }),
-        [reportStateNum, reportStatusNum, translate],
-    );
+    const reportStatus = getReportStatusTranslation({
+        stateNum: reportStateNum,
+        statusNum: reportStatusNum,
+        translate,
+    });
 
     const shouldShowReportStatus = !!reportStatus && !!expenseCount;
 
-    const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, reportStateNum, reportStatusNum), [reportStateNum, reportStatusNum, theme]);
+    const reportStatusColorStyle = getReportStatusColorStyle(theme, reportStateNum, reportStatusNum);
 
-    const reportStatusTooltip = useMemo(
-        () =>
-            getReportStatusTooltipTranslation({
-                stateNum: reportStateNum,
-                statusNum: reportStatusNum,
-                translate,
-            }),
-        [reportStateNum, reportStatusNum, translate],
-    );
+    const reportStatusTooltip = getReportStatusTooltipTranslation({
+        stateNum: reportStateNum,
+        statusNum: reportStatusNum,
+        translate,
+    });
 
     return (
         <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
@@ -125,7 +110,7 @@ function ReportPreviewHeader() {
                                         tooltipText={reportStatusTooltip}
                                     />
                                 )}
-                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{supportingText}</Text>}
+                                {!shouldShowAccessPlaceHolder && <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>}
                             </View>
                         )
                     )}

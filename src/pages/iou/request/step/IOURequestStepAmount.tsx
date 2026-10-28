@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreMountDestination from '@hooks/usePreMountDestination';
 import useReportAttributes from '@hooks/useReportAttributes';
@@ -43,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {isLookingAroundUserSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 import type {AmountSubmitData} from './AmountSubmitDataSync';
@@ -57,7 +59,6 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    /** The transaction object being modified in Onyx */
     transaction: OnyxEntry<Transaction>;
 
     /** Whether the user input should be kept or not */
@@ -75,8 +76,10 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol, convertToDisplayString} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -108,19 +111,18 @@ function IOURequestStepAmount({
     // When editing, the `report` is the transaction thread which only has the current user as participant.
     // To correctly determine if this is a P2P expense, we need to traverse to the actual chat report
     // (e.g., the 1:1 DM) via the IOU/expense report's chatReportID.
-    const chatReportForP2PCheck = useMemo(() => {
-        if (!isEditing) {
-            return report;
-        }
-        // When editing, report is the transaction thread. We need to get the actual chat report.
-        // Transaction thread's chatReportID points to the IOU/expense report,
-        // and the IOU/expense report's chatReportID points to the actual chat.
-        if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
-            return actualChatReport;
-        }
+    let chatReportForP2PCheck;
+    if (!isEditing) {
+        chatReportForP2PCheck = report;
+    } else // When editing, report is the transaction thread. We need to get the actual chat report.
+    // Transaction thread's chatReportID points to the IOU/expense report,
+    // and the IOU/expense report's chatReportID points to the actual chat.
+    if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
+        chatReportForP2PCheck = actualChatReport;
+    } else {
         // Fallback to the passed report if we can't traverse
-        return report;
-    }, [isEditing, report, iouOrExpenseReport, actualChatReport]);
+        chatReportForP2PCheck = report;
+    }
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isCreateAction = action === CONST.IOU.ACTION.CREATE;
     const isSubmitAction = action === CONST.IOU.ACTION.SUBMIT;
@@ -167,13 +169,7 @@ function IOURequestStepAmount({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (isSplitBill || !skipConfirmation || !report?.reportID) {
-            return false;
-        }
-
-        return !(isReportArchived || isPolicyExpenseChat(report));
-    }, [report, isSplitBill, skipConfirmation, isReportArchived]);
+    const shouldSkipConfirmation: boolean = !(isSplitBill || !skipConfirmation || !report?.reportID) && !(isReportArchived || isPolicyExpenseChat(report));
 
     // Both self-DM signals are ORed on purpose. The navigate half (IOUAmountSubmission) reads participants at submit time,
     // but on a quick-action flow they are not populated yet when this pre-mount decision runs, so the participants check
@@ -217,8 +213,9 @@ function IOURequestStepAmount({
     };
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [allReportNVPs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const reportAttributesDerived = useReportAttributes();
@@ -229,9 +226,19 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
-                  translate,
-                  dateFnsLocale,
+            : getReportOption({
+                  participant,
+                  privateIsArchived,
+                  policy,
+                  personalDetails,
+                  conciergeReportID,
+                  reportAttributesDerived,
+                  reportDraft,
+                  currentUserAccountID: currentUserPersonalDetails.accountID,
+                  localize: {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber},
+                  rules,
+                  // Passing pendingDeleteMemberAccountIDs as undefined is intentional, getMoneyRequestParticipantsFromReport only report-backs policy expense chats, self DMs and invoice rooms.
+                  pendingDeleteMemberAccountIDs: undefined,
               });
     });
     const participant = participants.at(0);
@@ -251,8 +258,10 @@ function IOURequestStepAmount({
         }
         suppressDiscardPrompt();
         submitAmount({
+            isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
             getCurrencySymbol,
+            convertToDisplayString,
             translate,
             dateFnsLocale,
             report,

@@ -10,7 +10,7 @@ type BeneficialOwnerValues = {
     nationality: string;
     ownershipPercentage: string;
     dob: string;
-    ssnLast4: string;
+    ssn: string;
     street: string;
     city: string;
     state: string;
@@ -30,7 +30,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
             nationality: '',
             ownershipPercentage: '',
             dob: '',
-            ssnLast4: '',
+            ssn: '',
             street: '',
             city: '',
             state: '',
@@ -51,7 +51,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         nationality: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.NATIONALITY}`,
         ownershipPercentage: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.OWNERSHIP_PERCENTAGE}`,
         dob: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.DOB}`,
-        ssnLast4: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.SSN_LAST_4}`,
+        ssn: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.SSN}`,
         street: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STREET}`,
         city: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.CITY}`,
         state: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STATE}`,
@@ -69,7 +69,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         nationality: reimbursementAccountDraft[INPUT_KEYS.nationality] ?? '',
         ownershipPercentage: reimbursementAccountDraft[INPUT_KEYS.ownershipPercentage] ?? '',
         dob: reimbursementAccountDraft[INPUT_KEYS.dob] ?? '',
-        ssnLast4: reimbursementAccountDraft[INPUT_KEYS.ssnLast4] ?? '',
+        ssn: reimbursementAccountDraft[INPUT_KEYS.ssn] ?? '',
         street: reimbursementAccountDraft[INPUT_KEYS.street] ?? '',
         city: reimbursementAccountDraft[INPUT_KEYS.city] ?? '',
         state: reimbursementAccountDraft[INPUT_KEYS.state] ?? '',

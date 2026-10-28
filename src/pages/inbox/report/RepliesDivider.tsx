@@ -14,7 +14,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 type RepliesDividerProps = {
-    /** Whether we should hide thread divider line */
     shouldHideThreadDividerLine: boolean;
 };
 

@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -41,17 +42,15 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.DYNAMIC_PRIVATE_NOTES_EDIT> & {
-        /** The report currently being looked at */
         report: Report;
     };
 
 type PrivateNotesEditPageInternalProps = PrivateNotesEditPageProps & {
-    /** Draft private note */
     privateNoteDraft: string;
 };
 
@@ -60,22 +59,20 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetailsList = usePersonalDetails();
+    const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(originalNote);
     const {login} = useCurrentUserPersonalDetails();
 
     // We need to edit the note in markdown format, but display it in HTML format
-    const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim());
+    const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(originalNote, {accountIDToName}).trim());
 
     /**
      * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the private note and still have it in edit mode.
      */
-    const debouncedSavePrivateNote = useMemo(
-        () =>
-            lodashDebounce((text: string) => {
-                savePrivateNotesDraft(report.reportID, text);
-            }, 1000),
-        [report.reportID],
-    );
+    const debouncedSavePrivateNote = lodashDebounce((text: string) => {
+        savePrivateNotesDraft(report.reportID, text);
+    }, 1000);
 
     // To focus on the input field when the page loads
     const privateNotesInput = useRef<AnimatedTextInputRef | null>(null);
@@ -98,10 +95,9 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     );
 
     const savePrivateNote = () => {
-        const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), login ?? '', personalDetailsList);
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote, {accountIDToName}).trim(), login ?? '', personalDetailsList);
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
@@ -119,7 +115,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         }
     };
 
-    const validate = useCallback((): Errors => {
+    const validate = (): Errors => {
         const errors: Errors = {};
         const privateNoteLength = privateNote.trim().length;
         if (privateNoteLength > CONST.MAX_COMMENT_LENGTH) {
@@ -127,7 +123,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         }
 
         return errors;
-    }, [privateNote, translate]);
+    };
 
     return (
         <ScreenWrapper

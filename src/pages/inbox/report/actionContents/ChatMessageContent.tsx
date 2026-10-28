@@ -1,11 +1,10 @@
 import {AttachmentContext} from '@components/AttachmentContext';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
@@ -20,6 +19,7 @@ import {
 
 import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +30,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import ChatActionableButtons from './ChatActionableButtons';
+import ConciergeFeedbackPrompt from './ConciergeFeedbackPrompt';
 
 type ChatMessageContentProps = {
     action: OnyxTypes.ReportAction;
@@ -41,14 +42,26 @@ type ChatMessageContentProps = {
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isOnSearch: boolean;
+    isLatestConciergeFeedbackAction: boolean;
 };
 
-function ChatMessageContent({action, policyID, reportID, originalReportID, displayAsGroup, draftMessage, isHidden, updateHiddenState, isOnSearch}: ChatMessageContentProps) {
+function ChatMessageContent({
+    action,
+    policyID,
+    reportID,
+    originalReportID,
+    displayAsGroup,
+    draftMessage,
+    isHidden,
+    updateHiddenState,
+    isOnSearch,
+    isLatestConciergeFeedbackAction,
+}: ChatMessageContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
+    const shouldEditInComposer = useShouldEditInComposer();
+    const isEditingInline = !shouldEditInComposer && draftMessage !== undefined;
 
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
     const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
@@ -109,6 +122,13 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
                                 originalReportID={originalReportID}
                                 reportID={reportID}
                                 hasPendingFollowupListSkeleton={hasPendingFollowupListSkeleton}
+                            />
+                        )}
+                        {/* A message hidden by moderation has nothing to rate until the user reveals it */}
+                        {isLatestConciergeFeedbackAction && !isOnSearch && !isHidden && (
+                            <ConciergeFeedbackPrompt
+                                action={action}
+                                reportID={reportID}
                             />
                         )}
                     </View>

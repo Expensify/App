@@ -1,19 +1,10 @@
 import {importPlaidAccounts} from '@libs/actions/Plaid';
-import {
-    getCompanyCardFeed,
-    getCompanyFeeds,
-    getDefaultCardName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidCountry,
-    getPlaidInstitutionId,
-    isCustomFeed,
-    isSelectedFeedExpired,
-} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountry, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 
-import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,20 +20,17 @@ import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
 import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
-import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
-    /** The currently selected card feed */
     feedName: CompanyCardFeedWithDomainID | undefined;
 
     /** The ID of the workspace/policy */
     policyID: string;
 
-    /** Callback to show/hide the offline modal */
     setShouldShowOfflineModal: (shouldShow: boolean) => void;
 };
 
@@ -50,21 +38,8 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
-    const {translate} = useLocalize();
 
-    const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-
-    const companyCards = getCompanyFeeds(cardFeeds);
-    const selectedFeedData = feedName && companyCards[feedName];
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-
-    const fetchCompanyCards = () => {
-        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
-    };
-
-    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
+    const {isOffline} = useNetwork();
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
@@ -171,6 +146,14 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             cardName,
             encryptedCardNumber: cardID,
         };
+
+        // We assume admins only put the transactions they want in a CSV file, so there's no need to limit by date.
+        // Import all of them by default.
+        // Direct feeds keep today as the default because the bank can return months of history.
+        if (isCSVUploadFeed(selectedFeed)) {
+            cardToAssign.dateOption = CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING;
+            cardToAssign.startDate = '';
+        }
 
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {

@@ -123,7 +123,6 @@ type LabelItem = {
     /** Text horizontal anchor  */
     textAnchor?: TextAnchor;
 
-    /** Text vertical anchor  */
     verticalAnchor?: TextAnchor;
 };
 
@@ -134,22 +133,11 @@ type LegendItemEntry = {
     /** The color of the text */
     color?: Color;
 
-    /** Font size */
     fontSize?: number;
-
-    /** Font weight */
     fontWeight?: 'normal' | 'bold';
-
-    /** Font family */
     fontFamily?: string;
-
-    /** Font style */
     fontStyle?: string;
-
-    /** The color of the symbol */
     symbolColor?: Color;
-
-    /** Symbol size */
     symbolSize?: number;
 };
 
@@ -160,7 +148,6 @@ type LegendItem = {
     /** Position on the Y-axis */
     y: number;
 
-    /** Legend entries */
     entries: LegendItemEntry[];
 
     /** Space between entries */
@@ -182,9 +169,12 @@ type ProcessNodeResult = {
     yAxis: CartesianChartProps['yAxis'];
     domain: CartesianChartProps['domain'];
     domainPadding: CartesianChartProps['domainPadding'];
+    designPadding: CartesianChartProps['padding'];
     padding: CartesianChartProps['padding'];
-    // Pixel width the left y-axis actually needs for its widest label, used to shrink `padding.left` when it's larger than the content requires.
-    leftAxisLabelPadding: number | undefined;
+    leftAxisSize: number | undefined;
+    rightAxisSize: number | undefined;
+    bottomAxisSize: number | undefined;
+    topAxisSize: number | undefined;
     isHorizontal: boolean | undefined;
     categories: string[] | undefined;
     labelItems: LabelItem[];

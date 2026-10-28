@@ -1,5 +1,4 @@
 type CreateDomainSecurityGroupParams = {
-    /** Account ID of the domain */
     domainAccountID: number;
 
     /** Security group key, prefixed with the domain security group prefix */

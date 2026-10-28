@@ -21,12 +21,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
-import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -50,7 +52,6 @@ type UseReportActionsScrollParams = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
-    /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions that should be visible to the user */
@@ -74,7 +75,7 @@ type UseReportActionsScrollParams = {
     /** The report action ID the unread marker is anchored to, if any */
     unreadMarkerReportActionID: string | null;
 
-    /** The index of the unread report action in the sorted visible actions list (-1 if none) */
+    /** The index of the unread report action in the rendered actions list (-1 if none) */
     unreadMarkerReportActionIndex: number;
 
     /** Whether the report has newer actions to load */
@@ -100,7 +101,7 @@ type UseReportActionsScrollResult = {
     trackVerticalScrolling: (event: NativeSyntheticEvent<NativeScrollEvent> | undefined) => void;
 
     /** Viewability handler that drives the floating counter and badge visibility */
-    onViewableItemsChanged: (info: {viewableItems: ViewToken[]; changed: ViewToken[]}) => void;
+    onViewableItemsChanged: ViewableItemsChanged;
 
     /** Whether the floating "new messages" counter is visible */
     isFloatingMessageCounterVisible: boolean;
@@ -108,13 +109,12 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
-    /** Scrolls to the newest action and marks the report as read */
+    /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
-    /** Scrolls to the action badge target */
     scrollToActionBadgeTarget: () => void;
 
-    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout */
+    /** Completes a live-tail scroll-to-bottom once the list has laid out; call on every list layout and content size change */
     flushPendingScrollToBottom: () => void;
 
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
@@ -161,18 +161,22 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
+    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
@@ -218,27 +222,58 @@ function useReportActionsScroll({
         ...(shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: shouldAutoscrollToBottom ? CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD : 0, animateAutoScrollToBottom: false} : {}),
     };
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged, updatePillVisibility} =
-        useReportUnreadMessageScrollTracking({
-            reportID,
-            currentVerticalScrollingOffsetRef: scrollOffsetRef,
-            onUnreadActionVisible: completeSkippedMarkAsRead,
-            hasNewerActions,
-            unreadMarkerReportActionIndex,
-            isInverted: true,
-            shouldDisablePillTracking,
-            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            },
-            actionBadgeTargetIndex,
-            shouldBeAlignedToTop,
-        });
+    const {
+        isFloatingMessageCounterVisible,
+        setIsFloatingMessageCounterVisible,
+        isActionBadgeAboveViewport,
+        setIsActionBadgeAboveViewport,
+        trackVerticalScrolling,
+        onViewableItemsChanged,
+        updatePillVisibility,
+    } = useReportUnreadMessageScrollTracking({
+        reportID,
+        currentVerticalScrollingOffsetRef: scrollOffsetRef,
+        onUnreadActionVisible: completeSkippedMarkAsRead,
+        hasNewerActions,
+        unreadMarkerReportActionIndex,
+        isInverted: true,
+        // The list is hidden behind the expanded composer, so scrolling it must not bring the Latest messages pill back
+        shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
+        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        },
+        actionBadgeTargetIndex,
+        getVisibleIndexRange: () => {
+            const list = getListRef()?.current;
+            // getLayout is the one accessor that does not throw before FlashList has laid out
+            if (!list?.getLayout(0)) {
+                return undefined;
+            }
+            const range = list.computeVisibleIndices();
+            // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
+            return range.startIndex < 0 ? undefined : range;
+        },
+        shouldBeAlignedToTop,
+    });
+
+    const prevIsComposerFullSize = usePrevious(isComposerFullSize);
+    // Scroll events skipped pill tracking while expanded, so sync the Latest messages pill with the current offset
+    const syncPillAfterComposerCollapse = useEffectEvent(() => {
+        if (!prevIsComposerFullSize || isComposerFullSize || shouldDisablePillTracking) {
+            return;
+        }
+        updatePillVisibility();
+    });
+    useEffect(() => {
+        syncPillAfterComposerCollapse();
+    }, [isComposerFullSize]);
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
         conciergeChat,
         reportID,
         introSelected,
-        betas,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -254,6 +289,7 @@ function useReportActionsScroll({
         treatAsNoPaginationAnchor,
         prevIsLoadingInitialReportActions,
         reportLoadingState,
+        fullPolicySnapshot,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -368,6 +404,14 @@ function useReportActionsScroll({
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
+        if (unreadMarkerReportActionIndex >= 0) {
+            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex);
+            if (hasNewestReportAction) {
+                markNewestActionAsRead();
+            }
+            return;
+        }
+
         if (!hasNewestReportAction) {
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
@@ -376,11 +420,11 @@ function useReportActionsScroll({
                 reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                fullPolicySnapshot,
             });
             reportScrollManager.scrollToBottom();
             return;
@@ -393,7 +437,13 @@ function useReportActionsScroll({
         if (actionBadgeTargetIndex < 0) {
             return;
         }
-        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        // The expanded composer covers the list, so the target never becomes viewable to hide the pill
+        if (isComposerFullSize) {
+            setIsActionBadgeAboveViewport(false);
+            setIsFloatingMessageCounterVisible(false);
+        }
+        // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
     };
 
     const flushPendingScrollToBottom = () => {

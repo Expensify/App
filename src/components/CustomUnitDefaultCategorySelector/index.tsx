@@ -17,10 +17,7 @@ type CustomUnitDefaultCategorySelectorProps = {
     /** Currently selected category */
     defaultValue?: string;
 
-    /** Label to display on field */
     label: string;
-
-    /** Any additional styles to apply */
     wrapperStyle: StyleProp<ViewStyle>;
 
     /** Whether item is focused or active */

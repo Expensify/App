@@ -22,19 +22,13 @@ type PressableSubscriptAvatarProps = {
     /** Size of the subscript stack */
     size: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** The primary (main) avatar */
     primaryAvatar: IconType;
-
-    /** The secondary (subscript) avatar */
     secondaryAvatar: IconType;
-
-    /** Called with the pressed avatar */
     onAvatarPress: (avatar: IconType) => void;
 
     /** Sentry label applied to both pressables */
     sentryLabel: string;
 
-    /** Style for the avatar container */
     containerStyle?: StyleProp<ViewStyle>;
 };
 

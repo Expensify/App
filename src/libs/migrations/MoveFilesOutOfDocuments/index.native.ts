@@ -5,11 +5,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
+import removeStaleExportStagingDir from './removeStaleExportStagingDir';
 
 const OLD_ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 const NEW_ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
@@ -62,7 +63,16 @@ function moveAttachmentCache(): Promise<void> {
  * later launches skip it entirely.
  */
 function updateAttachmentRecordPaths(): Promise<void> {
-    return OnyxUtils.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
+    return new Promise<OnyxEntry<boolean>>((resolve) => {
+        // The migration runs before React renders, so its persisted flag cannot be read with useOnyx or supplied by a component
+        const connection = Onyx.connectWithoutView({
+            key: ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED,
+            callback: (hasMigrated) => {
+                Onyx.disconnect(connection);
+                resolve(hasMigrated);
+            },
+        });
+    }).then((hasMigrated) => {
         if (hasMigrated) {
             return;
         }
@@ -120,28 +130,12 @@ function removeStaleOnyxDump(): Promise<void> {
 }
 
 /**
- * Older app versions staged CSV/report exports in Documents/Expensify before handing them to the
- * iOS share sheet, and cancelling the sheet leaked the staged file. Exports are internal files
- * (current versions stage them in Caches), so the whole staging directory is removed.
- */
-function removeStaleExportStagingDir(): Promise<void> {
-    const stagingDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
-    return RNFS.exists(stagingDir).then((exists) => {
-        if (!exists) {
-            return;
-        }
-        return RNFS.unlink(stagingDir).then(() => {
-            Log.info('[Migrate Onyx] MoveFilesOutOfDocuments removed the old export staging directory');
-        });
-    });
-}
-
-/**
  * Internal app files used to live in the app's document directory, which iOS shows to the user
  * (and other apps) through the Files app because file sharing is enabled. This moves or removes
  * the ones older app versions left behind, so on iOS the directory only holds files the user
  * expects to see there: their downloads and queued receipt uploads. Android keeps the same
- * internal files under the same relative paths, so it runs the same cleanup.
+ * internal files under the same relative paths, so it runs the same cleanup, except for the
+ * export staging directory (see removeStaleExportStagingDir).
  */
 export default function (): Promise<void> {
     return (

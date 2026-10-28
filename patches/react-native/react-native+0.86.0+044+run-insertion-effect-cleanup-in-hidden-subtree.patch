@@ -1,0 +1,50 @@
+diff --git a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js
+index daab0e3..c742021 100644
+--- a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js
++++ b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-dev.js
+@@ -11346,12 +11346,11 @@ __DEV__ &&
+         case 11:
+         case 14:
+         case 15:
+-          offscreenSubtreeWasHidden ||
+-            commitHookEffectListUnmount(
+-              Insertion,
+-              deletedFiber,
+-              nearestMountedAncestor
+-            );
++          commitHookEffectListUnmount(
++            Insertion,
++            deletedFiber,
++            nearestMountedAncestor
++          );
+           offscreenSubtreeWasHidden ||
+             commitHookLayoutUnmountEffects(
+               deletedFiber,
+diff --git a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js
+index 2625bf6..f263080 100644
+--- a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js
++++ b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-prod.js
+@@ -7935,8 +7935,7 @@ function commitDeletionEffectsOnFiber(
+     case 11:
+     case 14:
+     case 15:
+-      offscreenSubtreeWasHidden ||
+-        commitHookEffectListUnmount(2, deletedFiber, nearestMountedAncestor);
++      commitHookEffectListUnmount(2, deletedFiber, nearestMountedAncestor);
+       offscreenSubtreeWasHidden ||
+         commitHookEffectListUnmount(4, deletedFiber, nearestMountedAncestor);
+       recursivelyTraverseDeletionEffects(
+diff --git a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js
+index 544c754..f0b460a 100644
+--- a/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js
++++ b/node_modules/react-native/Libraries/Renderer/implementations/ReactFabric-profiling.js
+@@ -8666,8 +8666,7 @@ function commitDeletionEffectsOnFiber(
+     case 11:
+     case 14:
+     case 15:
+-      offscreenSubtreeWasHidden ||
+-        commitHookEffectListUnmount(2, deletedFiber, nearestMountedAncestor);
++      commitHookEffectListUnmount(2, deletedFiber, nearestMountedAncestor);
+       offscreenSubtreeWasHidden ||
+         commitHookLayoutUnmountEffects(deletedFiber, nearestMountedAncestor, 4);
+       recursivelyTraverseDeletionEffects(

@@ -3,7 +3,7 @@ import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions, isActio
 import CONST from '@src/CONST';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 
-import {actionR14932, actionR98765} from '../../../__mocks__/reportData/actions';
+import {actionR14932, actionR98765, originalMessageR14932} from '../../../__mocks__/reportData/actions';
 import {transactionR14932, transactionR98765} from '../../../__mocks__/reportData/transactions';
 import createMock from '../../utils/createMock';
 
@@ -77,6 +77,21 @@ describe('getAllNonDeletedTransactions', () => {
         const result = getAllNonDeletedTransactions(transactions, reportActions, false, false);
         expect(result).toHaveLength(1);
         expect(result.at(0)?.transactionID).toBe(transactionR14932.transactionID);
+    });
+
+    test('should keep an expense carrying a reject error once the server has deleted its action', () => {
+        // Given: A reject the server refused, so it dropped the action for the expense from this report
+        const errorTimestamp = '1787676437627439';
+        const rejectedTransaction = {...transactionR14932, errorFields: {reject: {[errorTimestamp]: 'The expense has already been moved or rejected.'}}};
+        const deletedAction = {...actionR14932, originalMessage: {...originalMessageR14932, deleted: '2026-08-25 16:46:25.669'}};
+
+        // Then: The expense stays on the report so its error can be dismissed
+        const result = getAllNonDeletedTransactions({[rejectedTransaction.transactionID]: rejectedTransaction}, [deletedAction]);
+        expect(result.map((t) => t.transactionID)).toEqual([rejectedTransaction.transactionID]);
+
+        // And: The same expense without the error is dropped along with its deleted action
+        const withoutError = getAllNonDeletedTransactions({[transactionR14932.transactionID]: transactionR14932}, [deletedAction]);
+        expect(withoutError).toHaveLength(0);
     });
 
     test('should include transactions without IOU actions when includeOrphanedTransactions is true', () => {

@@ -2,9 +2,8 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {Ref} from 'react';
-import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 
 type TextSelection = {
     start: number;
@@ -12,14 +11,22 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
-    positionX?: number;
-    positionY?: number;
+type CustomSelectionChangeEvent = {
+    nativeEvent: {
+        selection: TextInputSelectionChangeEvent['nativeEvent']['selection'] & Pick<TextSelection, 'positionX' | 'positionY'>;
+    };
 };
 
-type ComposerRef = MarkdownTextInput & HTMLInputElement & HTMLTextAreaElement;
+type WebComposerRef = Pick<TextInput, 'clear' | 'blur' | 'focus' | 'isFocused'> & {
+    readonly scrollTop: number;
+    setSelection?: never;
+    setNativeProps?: never;
+    preventFocusOnFirstResponderOnce?: never;
+};
 
-type ComposerProps = Omit<TextInputProps, 'onClear'> &
+type ComposerRef = TextInput | WebComposerRef;
+
+type ComposerProps = Omit<TextInputProps, 'onClear' | 'onSelectionChange'> &
     ForwardedFSClassProps & {
         /** Indicate whether input is multiline */
         multiline?: boolean;
@@ -35,7 +42,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
 
         /**
          * Callback when the input was cleared using the .clear ref method.
-         * The text parameter will be the value of the text that was cleared.
+         * The text parameter is empty if live-markdown has not initialized its value.
          */
         onClear?: (text: string) => void;
 
@@ -59,16 +66,12 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         /** Update selection position on change */
         onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
-        /** Selection Object */
         selection?: TextSelection;
-
-        /** Should we calculate the caret position */
         shouldCalculateCaretPosition?: boolean;
 
         /** Function to check whether composer is covered up or not */
         checkComposerVisibility?: () => boolean;
 
-        /** Whether the full composer is open */
         isComposerFullSize?: boolean;
 
         /** Should make the input only scroll inside the element avoid scroll out to parent */
@@ -81,4 +84,4 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         ref?: Ref<ComposerRef>;
     };
 
-export type {TextSelection, ComposerProps, CustomSelectionChangeEvent, ComposerRef};
+export type {TextSelection, ComposerProps, CustomSelectionChangeEvent, ComposerRef, WebComposerRef};

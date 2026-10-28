@@ -46,7 +46,7 @@ import isNumericKeyboard from './isNumericKeyboard';
 const VALIDATE_DELAY = 200;
 
 type GenericFormInputErrors = Partial<Record<string, string>>;
-type InitialDefaultValue = false | Date | '';
+type InitialDefaultValue = false | Date | '' | [];
 
 function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
     switch (valueType) {
@@ -56,16 +56,17 @@ function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
             return false;
         case 'date':
             return new Date();
+        case 'stringList':
+        case 'files':
+        case 'listItems':
+            return [];
         default:
             return '';
     }
 }
 
 type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TFormID> & {
-    /** Children to render. */
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
-
-    /** Callback to validate the form */
     validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
@@ -77,7 +78,6 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether to remove invisible characters from strings before validation and submission */
     shouldTrimValues?: boolean;
 
-    /** Styles that will be applied to the submit button only */
     submitButtonStyles?: StyleProp<ViewStyle>;
 
     /** Whether to apply flex to the submit button */
@@ -99,16 +99,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether to render the submit button above the footer. */
     shouldRenderFooterAboveSubmit?: boolean;
 
-    /** Whether the form is loading */
     isLoading?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
-
-    /** Whether the submit button should stick to the bottom of the screen. */
     shouldSubmitButtonStickToBottom?: boolean;
 
     /** Fires at most once per frame during scrolling. */
@@ -134,8 +127,11 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether the confirm button should show a spinner immediately on press */
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
+    submitButtonAndFooterContainerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles for the submit button itself (`submitButtonStyles` targets the wrapping container) */
+    submitButtonInnerStyles?: StyleProp<ViewStyle>;
 };
 
 function FormProvider({
@@ -343,12 +339,12 @@ function FormProvider({
 
             const runSubmit = () => {
                 if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT) {
-                    KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
-                } else if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
-                    KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
-                } else {
-                    onSubmit(trimmedStringValues);
+                    return KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
                 }
+                if (keyboardSubmitBehavior === CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_AND_DISMISS) {
+                    return KeyboardUtils.dismissKeyboardAndExecute(() => onSubmit(trimmedStringValues));
+                }
+                return onSubmit(trimmedStringValues);
             };
 
             if (!shouldShowLoadingImmediatelyOnPress) {
@@ -415,12 +411,17 @@ function FormProvider({
         formWrapperRef.current?.scrollToEnd();
     }, []);
 
+    const scrollTo = useCallback((y: number) => {
+        formWrapperRef.current?.scrollTo(y);
+    }, []);
+
     useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
         submit,
         scrollToEnd,
+        scrollTo,
     }));
 
     const registerInput = useCallback<RegisterInput>(
@@ -604,7 +605,7 @@ function FormProvider({
                 isAlertVisible={isGeneralAlertVisible}
                 serverErrorFields={formState?.errorFields}
                 serverErrorMessage={errorMessage}
-                isLoading={!!formState?.isLoading || isLoading}
+                isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}

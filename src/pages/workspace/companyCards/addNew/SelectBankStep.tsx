@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isUsingStagingApi} from '@libs/ApiUtils';
+import {getActiveServer} from '@libs/ApiUtils';
 import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
 
 import variables from '@styles/variables';
@@ -24,7 +24,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function SelectBankStep() {
@@ -34,12 +34,12 @@ function SelectBankStep() {
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
     const bankSelected = addNewCard?.data?.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!bankSelected) {
             setHasError(true);
         } else {
@@ -53,7 +53,7 @@ function SelectBankStep() {
                 isEditing: false,
             });
         }
-    }, [bankSelected, isOtherBankSelected]);
+    };
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
@@ -61,9 +61,8 @@ function SelectBankStep() {
 
     const data = Object.values(CONST.COMPANY_CARDS.BANKS)
         .filter((bank) => {
-            // Only show Mock Bank when the frontend environment is not production or when using the staging server
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
-                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
+                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
             }
             if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
                 return false;
@@ -90,16 +89,13 @@ function SelectBankStep() {
             };
         });
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-            isDisabled: isOffline,
-            style: !hasError && styles.mt5,
-        }),
-        [hasError, isOffline, styles.mt5, submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+        isDisabled: isOffline,
+        style: !hasError && styles.mt5,
+    };
 
     return (
         <ScreenWrapper

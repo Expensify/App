@@ -1,4 +1,5 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -40,7 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ValidateCodeFormProps from './types';
@@ -169,21 +170,21 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     /**
      * Clear local sign in states
      */
-    const clearLocalSignInData = useCallback(() => {
+    const clearLocalSignInData = () => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
         setIsUsingRecoveryCode(false);
         setRecoveryCode('');
-    }, [setIsUsingRecoveryCode]);
+    };
 
     /**
      * Clears local and Onyx sign in states
      */
-    const clearSignInData = useCallback(() => {
+    const clearSignInData = () => {
         clearLocalSignInData();
         sessionActionsClearSignInData();
-    }, [clearLocalSignInData]);
+    };
 
     useImperativeHandle(ref, () => ({
         clearSignInData,
@@ -246,7 +247,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         if (account?.isLoading) {
             return;
         }
@@ -303,24 +304,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         } else {
             signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken);
         }
-    }, [
-        account?.isLoading,
-        account?.errors,
-        account?.requiresTwoFactorAuth,
-        credentials?.validateCode,
-        credentials?.accountID,
-        credentials?.login,
-        credentials?.authToken,
-        isUsingRecoveryCode,
-        recoveryCode,
-        twoFactorAuthCode,
-        validateCode,
-        preferredLocale,
-    ]);
+    };
 
-    const handleCountdownFinish = useCallback(() => {
+    const handleCountdownFinish = () => {
         setIsCountdownRunning(false);
-    }, []);
+    };
 
     return (
         <SafariFormWrapper>
@@ -434,8 +422,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 </View>
             )}
             <View>
-                <Button
-                    isDisabled={isOffline}
+                <ButtonDisabledWhenOffline
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mv3]}
@@ -444,7 +431,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SIGN_IN_BUTTON}
                 >
                     <Button.Text>{translate('common.signIn')}</Button.Text>
-                </Button>
+                </ButtonDisabledWhenOffline>
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>

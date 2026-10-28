@@ -72,6 +72,7 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         isLoading: false,
         currentUrl: '',
         isSupportalSession: false,
+        isDelegateSession: false,
     };
 
     beforeEach(async () => {
@@ -271,6 +272,59 @@ describe('SubmitPlanWelcomeModalGuard', () => {
 
             await markSessionReady({authToken: 'test-token', accountID: 123});
 
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('proactive navigation on workspace changes', () => {
+        it('should navigate when the user loses their last reportable workspace, such as an offline delete', async () => {
+            // Given a fully loaded user who would be eligible except that they have a reportable workspace
+            await setUpEligibleUser();
+            mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([{id: 'policy1'}]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1'});
+            await markSessionReady({authToken: 'test-token', accountID: 123});
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            // When the workspace is deleted offline, which only marks it pending delete and doesn't navigate or reload
+            mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            await waitForBatchedUpdates();
+
+            // Then the modal opens without waiting for a refresh or a navigation action
+            expect(mockNavigate).toHaveBeenCalledWith(submitPlanWelcomeRoute);
+        });
+
+        it('should not navigate on a workspace update while the user still has a reportable workspace', async () => {
+            // Given a fully loaded user who has a reportable workspace
+            await setUpEligibleUser();
+            mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([{id: 'policy1'}]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1'});
+            await markSessionReady({authToken: 'test-token', accountID: 123});
+            await waitForBatchedUpdates();
+            mockNavigate.mockClear();
+
+            // When an unrelated workspace update arrives
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {name: 'Renamed'});
+            await waitForBatchedUpdates();
+
+            // Then the modal is not opened, because the user can still create reports
+            expect(mockNavigate).not.toHaveBeenCalled();
+        });
+
+        it('should not recompute workspace eligibility for users without the EMPLOYER intent', async () => {
+            // Given a user who picked a different onboarding intent
+            await setUpEligibleUser();
+            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await markSessionReady({authToken: 'test-token', accountID: 123});
+            mockGetGroupPoliciesWhereReportCanBeCreated.mockClear();
+
+            // When a workspace update arrives
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            await waitForBatchedUpdates();
+
+            // Then the guard skips the eligibility check, so policy churn stays cheap for everyone else
+            expect(mockGetGroupPoliciesWhereReportCanBeCreated).not.toHaveBeenCalled();
             expect(mockNavigate).not.toHaveBeenCalled();
         });
     });

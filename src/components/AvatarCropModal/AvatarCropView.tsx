@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -21,11 +21,11 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {LayoutChangeEvent} from 'react-native';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import type {PanGestureActiveEvent} from 'react-native-gesture-handler';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
+import {GestureHandlerRootView, usePanGesture} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
 import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
@@ -37,7 +37,6 @@ type AvatarCropViewProps = {
     /** Link to image for cropping */
     imageUri?: string;
 
-    /** Name of the image */
     imageName?: string;
 
     /** Type of the image file */
@@ -91,19 +90,19 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
     const [isImageInitialized, setIsImageInitialized] = useState(false);
 
     // An onLayout callback, that initializes the image container, for proper render of an image
-    const initializeImageContainer = useCallback((event: LayoutChangeEvent) => {
+    const initializeImageContainer = (event: LayoutChangeEvent) => {
         setIsImageContainerInitialized(true);
         const {height, width} = event.nativeEvent.layout;
 
         // Even if the browser height is reduced too much, the relative height should not be negative
         const relativeHeight = Math.max(height - CONST.AVATAR_CROP_MODAL.CONTAINER_VERTICAL_MARGIN, CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
         setImageContainerSize(Math.floor(Math.min(relativeHeight, width)));
-    }, []);
+    };
 
     // An onLayout callback, that initializes the slider container size, for proper render of a slider
-    const initializeSliderContainer = useCallback((event: LayoutChangeEvent) => {
+    const initializeSliderContainer = (event: LayoutChangeEvent) => {
         setSliderContainerSize(event.nativeEvent.layout.width);
-    }, []);
+    };
 
     // In order to calculate proper image position/size/animation, we have to know its size.
     // And we have to update image size if image url changes.
@@ -135,16 +134,16 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
     /**
      * Validates that value is within the provided mix/max range.
      */
-    const clamp = useCallback((value: number, [min, max]: [number, number]) => {
+    const clamp = (value: number, [min, max]: [number, number]) => {
         'worklet';
 
         return interpolate(value, [min, max], [min, max], 'clamp');
-    }, []);
+    };
 
     /**
      * Returns current image size taking into account scale and rotation.
      */
-    const getDisplayedImageSize = useCallback(() => {
+    const getDisplayedImageSize = () => {
         'worklet';
 
         let height = imageContainerSize * scale.get();
@@ -159,42 +158,41 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
         }
 
         return {height, width};
-    }, [imageContainerSize, originalImageHeight, originalImageWidth, scale]);
+    };
 
     /**
      * Validates the offset to prevent overflow, and updates the image offset.
      */
-    const updateImageOffset = useCallback(
-        (offsetX: number, offsetY: number) => {
-            'worklet';
+    const updateImageOffset = (offsetX: number, offsetY: number) => {
+        'worklet';
 
-            const {height, width} = getDisplayedImageSize();
-            const maxOffsetX = (width - imageContainerSize) / 2;
-            const maxOffsetY = (height - imageContainerSize) / 2;
-            translateX.set(clamp(offsetX, [maxOffsetX * -1, maxOffsetX]));
-            translateY.set(clamp(offsetY, [maxOffsetY * -1, maxOffsetY]));
-            prevMaxOffsetX.set(maxOffsetX);
-            prevMaxOffsetY.set(maxOffsetY);
-        },
-        [getDisplayedImageSize, imageContainerSize, translateX, clamp, translateY, prevMaxOffsetX, prevMaxOffsetY],
-    );
+        const {height, width} = getDisplayedImageSize();
+        const maxOffsetX = (width - imageContainerSize) / 2;
+        const maxOffsetY = (height - imageContainerSize) / 2;
+        translateX.set(clamp(offsetX, [maxOffsetX * -1, maxOffsetX]));
+        translateY.set(clamp(offsetY, [maxOffsetY * -1, maxOffsetY]));
+        prevMaxOffsetX.set(maxOffsetX);
+        prevMaxOffsetY.set(maxOffsetY);
+    };
 
-    const newScaleValue = useCallback((newSliderValue: number, containerSize: number) => {
+    const newScaleValue = (newSliderValue: number, containerSize: number) => {
         'worklet';
 
         const {MAX_SCALE, MIN_SCALE} = CONST.AVATAR_CROP_MODAL;
         return (newSliderValue / containerSize) * (MAX_SCALE - MIN_SCALE) + MIN_SCALE;
-    }, []);
+    };
 
     /**
      * Calculates new x & y image translate value on image panning
      * and updates image's offset.
      */
-    const panGesture = Gesture.Pan().onChange((event) => {
-        const newX = translateX.get() + event.changeX;
-        const newY = translateY.get() + event.changeY;
+    const panGesture = usePanGesture({
+        onUpdate: (event) => {
+            const newX = translateX.get() + event.changeX;
+            const newY = translateY.get() + event.changeY;
 
-        updateImageOffset(newX, newY);
+            updateImageOffset(newX, newY);
+        },
     });
 
     // This effect is needed to recalculate the maximum offset values
@@ -231,7 +229,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
 
             isPressableEnabled.set(false);
         },
-        onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
+        onUpdate: (event: PanGestureActiveEvent) => {
             'worklet';
 
             const newSliderValue = clamp(translateSlider.get() + event.changeX, [0, sliderContainerSize]);
@@ -261,7 +259,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
 
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
-    const rotateImage = useCallback(() => {
+    const rotateImage = () => {
         rotation.set((value) => value - 90);
 
         const oldTranslateX = translateX.get();
@@ -271,11 +269,11 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
         const oldOriginalImageHeight = originalImageHeight.get();
         originalImageHeight.set(originalImageWidth.get());
         originalImageWidth.set(oldOriginalImageHeight);
-    }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY]);
+    };
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
     // then calls onSave callback
-    const cropAndSaveImage = useCallback(() => {
+    const cropAndSaveImage = () => {
         if (isLoading.get()) {
             return;
         }
@@ -311,7 +309,7 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
             .catch(() => {
                 isLoading.set(false);
             });
-    }, [isLoading, originalImageHeight, originalImageWidth, scale, translateX, imageContainerSize, translateY, imageType, imageName, imageUri, rotation, onSave]);
+    };
 
     const sliderOnPress = (locationX: number) => {
         // We are using the worklet directive here and running on the UI thread to ensure the Reanimated

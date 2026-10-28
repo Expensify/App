@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
@@ -16,18 +16,16 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 
 type FloatingPillButtonProps = {
-    /** Inner button variant */
     variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
     onPress?: () => void;
 
-    /** The icon to display */
     icon: IconAsset;
 
     /** The fill color for the icon */
@@ -36,7 +34,6 @@ type FloatingPillButtonProps = {
     /** The label text to display */
     label: string;
 
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 
@@ -74,7 +71,6 @@ type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
     isActive?: boolean;
 
-    /** Whether there are new messages */
     hasNewMessages: boolean;
 
     /** Callback to be called when user clicks the New Messages indicator */
@@ -112,43 +108,56 @@ function FloatingMessageCounter({
     const translateY = useSharedValue(MARKER_INACTIVE_TRANSLATE_Y);
 
     const shouldShowActionBadgePill = !!actionBadge && !!actionBadgeBrickRoadStatus;
-    const isError = actionBadgeBrickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const isVisible = isActive || shouldShowActionBadgePill;
 
-    const show = useCallback(() => {
+    // Keep the last shown pill while it slides out so hiding the action badge pill does not flash the Latest messages pill
+    const visibleActionBadge = shouldShowActionBadgePill ? {actionBadge, actionBadgeBrickRoadStatus} : undefined;
+    const [lastVisibleActionBadge, setLastVisibleActionBadge] = useState(visibleActionBadge);
+    if (
+        isVisible &&
+        (lastVisibleActionBadge?.actionBadge !== visibleActionBadge?.actionBadge || lastVisibleActionBadge?.actionBadgeBrickRoadStatus !== visibleActionBadge?.actionBadgeBrickRoadStatus)
+    ) {
+        setLastVisibleActionBadge(visibleActionBadge);
+    }
+    const renderedActionBadge = isVisible ? visibleActionBadge : lastVisibleActionBadge;
+    const shouldRenderActionBadgePill = !!renderedActionBadge;
+    const isError = renderedActionBadge?.actionBadgeBrickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+
+    const show = () => {
         'worklet';
 
         translateY.set(withSpring(MARKER_ACTIVE_TRANSLATE_Y));
-    }, [translateY]);
+    };
 
-    const hide = useCallback(() => {
+    const hide = () => {
         'worklet';
 
         translateY.set(withSpring(MARKER_INACTIVE_TRANSLATE_Y));
-    }, [translateY]);
+    };
 
     useEffect(() => {
-        if (isActive || shouldShowActionBadgePill) {
+        if (isVisible) {
             show();
         } else {
             hide();
         }
-    }, [isActive, shouldShowActionBadgePill, show, hide]);
+    }, [isVisible, show, hide]);
 
     const wrapperStyle = useAnimatedStyle(() => ({
         ...styles.floatingMessageCounterWrapper,
         transform: [{translateY: translateY.get()}],
     }));
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, shouldShowMarkAsDoneCopy);
+    const actionBadgeText = getActionBadgeText(renderedActionBadge?.actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     return (
         <Animated.View
-            accessibilityHint={translate(shouldShowActionBadgePill ? 'accessibilityHints.scrollToActionBadgeTarget' : 'accessibilityHints.scrollToNewestMessages')}
+            accessibilityHint={translate(shouldRenderActionBadgePill ? 'accessibilityHints.scrollToActionBadgeTarget' : 'accessibilityHints.scrollToNewestMessages')}
             style={wrapperStyle}
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    {shouldShowActionBadgePill ? (
+                    {shouldRenderActionBadgePill ? (
                         <FloatingPillButton
                             variant={isError ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={onActionBadgePress}
@@ -175,4 +184,4 @@ function FloatingMessageCounter({
 
 FloatingMessageCounter.displayName = 'FloatingMessageCounter';
 
-export default React.memo(FloatingMessageCounter);
+export default FloatingMessageCounter;

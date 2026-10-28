@@ -32,11 +32,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import {accountIDSelector, emailSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
@@ -49,7 +50,7 @@ let signUpEventPublishedForAccountID: number | undefined;
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const outerViewRef = React.useRef<View>(null);
+    const outerViewRef = React.useRef<ComponentRef<typeof View>>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
@@ -81,30 +82,28 @@ function OnboardingModalNavigator() {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
     }, [accountID, email]);
 
-    const handleOuterClick = useCallback(() => {
+    const handleOuterClick = () => {
         OnboardingRefManager.handleOuterClick();
-    }, []);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
     const customInterpolator = useModalCardStyleInterpolator();
-    const defaultScreenOptions = useMemo<PlatformStackNavigationOptions>(() => {
-        return {
-            headerShown: false,
-            animation: Animations.SLIDE_FROM_RIGHT,
-            animationTypeForReplace: 'pop',
+    const defaultScreenOptions: PlatformStackNavigationOptions = {
+        headerShown: false,
+        animation: Animations.SLIDE_FROM_RIGHT,
+        animationTypeForReplace: 'pop',
+        gestureDirection: 'horizontal',
+        web: {
+            // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
+            cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
             gestureDirection: 'horizontal',
-            web: {
-                // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-                cardStyleInterpolator: isMobileSafari() ? (props) => customInterpolator({props, enter: {kind: 'slide-from-width'}}) : CardStyleInterpolators.forHorizontalIOS,
-                gestureDirection: 'horizontal',
-                cardStyle: {
-                    height: '100%',
-                },
-                transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
+            cardStyle: {
+                height: '100%',
             },
-        };
-    }, [customInterpolator, shouldUseNarrowLayout]);
+            transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
+        },
+    };
 
     // If the account data is not loaded yet, we don't want to show the onboarding modal
     if (isLoadingOnyxValue(accountMetadata)) {

@@ -5,37 +5,23 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 
-import {isValid, parse} from 'date-fns';
+import {format, max, min} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
 type RangeDatePickerProps = {
-    /** The "From" date value */
     fromValue?: string;
-
-    /** The "To" date value */
     toValue?: string;
-
-    /** Callback when "From" date is selected */
     onFromSelected: (date: string) => void;
-
-    /** Callback when "To" date is selected */
     onToSelected: (date: string) => void;
 
     /** Force vertical stacking of calendars */
     forceVertical?: boolean;
 };
-
-function parseCalendarDate(dateValue?: string): Date | undefined {
-    if (!dateValue) {
-        return undefined;
-    }
-
-    const parsedDate = parse(dateValue, CONST.DATE.FNS_FORMAT_STRING, new Date());
-    return isValid(parsedDate) ? parsedDate : undefined;
-}
 
 function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forceVertical = false}: RangeDatePickerProps) {
     const styles = useThemeStyles();
@@ -43,8 +29,8 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const shouldStack = forceVertical || isSmallScreenWidth;
-    const fromMaxDate = parseCalendarDate(toValue) ?? CONST.CALENDAR_PICKER.MAX_DATE;
-    const toMinDate = parseCalendarDate(fromValue) ?? CONST.CALENDAR_PICKER.MIN_DATE;
+    const fromDate = DateUtils.parseCalendarDate(fromValue);
+    const toDate = DateUtils.parseCalendarDate(toValue);
 
     return (
         <View style={[!shouldStack && styles.flexRow, !shouldStack && styles.alignItemsStretch, styles.mh5, isSmallScreenWidth && styles.mt3]}>
@@ -52,10 +38,10 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
                 <View style={[styles.borderedContentCard, !shouldStack && styles.flex1]}>
                     <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.from')}</Text>
                     <CalendarPicker
-                        value={fromValue}
-                        onSelected={onFromSelected}
-                        minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                        maxDate={fromMaxDate}
+                        value={fromDate}
+                        defaultMonth={toDate && min([new Date(), toDate])}
+                        onSelected={(date) => onFromSelected(format(date, CONST.DATE.FNS_FORMAT_STRING))}
+                        isDateSelectable={(date) => DateUtils.isWithinCalendarPickerRange(date) && (!toDate || date <= toDate)}
                         headerContainerStyle={styles.ph4}
                     />
                 </View>
@@ -65,10 +51,10 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, forc
                 <View style={[styles.borderedContentCard, !shouldStack && styles.flex1]}>
                     <Text style={[styles.textLabelSupporting, styles.mb2, styles.ph4, styles.pt4]}>{translate('common.to')}</Text>
                     <CalendarPicker
-                        value={toValue}
-                        onSelected={onToSelected}
-                        minDate={toMinDate}
-                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                        value={toDate}
+                        defaultMonth={fromDate && max([new Date(), fromDate])}
+                        onSelected={(date) => onToSelected(format(date, CONST.DATE.FNS_FORMAT_STRING))}
+                        isDateSelectable={(date) => DateUtils.isWithinCalendarPickerRange(date) && (!fromDate || date >= fromDate)}
                         headerContainerStyle={styles.ph4}
                     />
                 </View>

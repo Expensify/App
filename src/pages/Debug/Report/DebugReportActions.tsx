@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -6,6 +6,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type DebugReportActionsProps = {
     reportID: string;
@@ -41,79 +42,72 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(reportID);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
 
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID),
     });
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, undefined, true);
     const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
 
-    const getReportActionDebugText = useCallback(
-        (reportAction: ReportAction) => {
-            const reportActionMessage = getReportActionMessage(reportAction);
-            const originalMessage = getOriginalMessage(reportAction);
+    const getReportActionDebugText = (reportAction: ReportAction) => {
+        const reportActionMessage = getReportActionMessage(reportAction);
+        const originalMessage = getOriginalMessage(reportAction);
 
-            if (!reportActionMessage) {
-                return '';
-            }
+        if (!reportActionMessage) {
+            return '';
+        }
 
-            if (!!reportActionMessage.deleted || (originalMessage && 'deleted' in originalMessage && originalMessage.deleted)) {
-                return `[${translate('parentReportAction.deletedMessage')}]`;
-            }
+        if (!!reportActionMessage.deleted || (originalMessage && 'deleted' in originalMessage && originalMessage.deleted)) {
+            return `[${translate('parentReportAction.deletedMessage')}]`;
+        }
 
-            if (isCreatedAction(reportAction)) {
-                return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage({
-                        report,
-                        policy,
-                        invoiceReceiverPolicy,
-                        participantPersonalDetailList,
-                        translate,
-                        localeCompare,
-                        conciergeReportID,
-                        derivedReportName,
-                        isReportArchived,
-                        formatPhoneNumber,
-                    }).messageText ?? translate('report.noActivityYet'),
-                );
-            }
+        if (isCreatedAction(reportAction)) {
+            return formatReportLastMessageText(
+                SidebarUtils.getWelcomeMessage({
+                    report,
+                    policy,
+                    invoiceReceiverPolicy,
+                    participantPersonalDetailList,
+                    translate,
+                    localeCompare,
+                    conciergeReportID,
+                    derivedReportName,
+                    isReportArchived,
+                    formatPhoneNumber,
+                }).messageText ?? translate('report.noActivityYet'),
+            );
+        }
 
-            if (reportActionMessage.html) {
-                return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
-            }
+        if (reportActionMessage.html) {
+            return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+        }
 
-            return getReportActionMessageText(reportAction);
-        },
-        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, derivedReportName, isReportArchived, formatPhoneNumber],
-    );
+        return getReportActionMessageText(reportAction);
+    };
 
-    const searchedReportActions = useMemo(() => {
-        return (sortedAllReportActions ?? [])
-            .filter((reportAction) => reportAction?.reportActionID)
-            .filter(
-                (reportAction) =>
-                    reportAction.reportActionID?.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
-            )
-            .map((reportAction) => ({
-                reportActionID: reportAction.reportActionID,
-                text: getReportActionDebugText(reportAction),
-                alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
-                keyForList: reportAction.reportActionID,
-            }));
-    }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
+    const searchedReportActions = (sortedAllReportActions ?? [])
+        .filter((reportAction) => reportAction?.reportActionID)
+        .filter(
+            (reportAction) =>
+                reportAction.reportActionID?.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+        )
+        .map((reportAction) => ({
+            reportActionID: reportAction.reportActionID,
+            text: getReportActionDebugText(reportAction),
+            alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
+            keyForList: reportAction.reportActionID,
+            titleStyles: styles.fontWeightNormal,
+        }));
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: translate('common.search'),
-            onChangeText: setSearchValue,
-            headerMessage: getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue),
-        }),
-        [debouncedSearchValue, searchValue, searchedReportActions.length, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList(translate, searchedReportActions.length > 0, debouncedSearchValue),
+    };
 
     return (
         <ScrollView style={styles.mv3}>
@@ -127,7 +121,6 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             </Button>
             <SelectionList
                 data={searchedReportActions}
-                style={{listItemTitleStyles: styles.fontWeightNormal}}
                 textInputOptions={textInputOptions}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
                 ListItem={SingleSelectListItem}

@@ -15,12 +15,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
+    canOverlayReceiptPDF,
     hasEReceipt,
     hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     isDistanceRequest,
     isManualDistanceRequest,
-    isMapBasedDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -57,10 +57,9 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string | number;
 
-    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
-    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    /** The transaction associated with this image, if any. Passed for handling eReceipts */
     transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
@@ -99,6 +98,15 @@ type ReportActionItemImageProps = {
     /** Whether the receipt can be hover-zoomed. When true, remote PDFs render the actual PDF on top of the thumbnail so magnification stays sharp (web only). */
     canZoomReceipt?: boolean;
 
+    /** 1-indexed page of a multi-page PDF to show in the high-res overlay */
+    pdfPage?: number;
+
+    /** Called once the high-res PDF overlay has loaded its pages. Only fires when `pdfPage` is set. */
+    onPDFLoadSuccess?: () => void;
+
+    /** Called when the high-res PDF overlay fails, leaving only the thumbnail */
+    onPDFLoadFailure?: () => void;
+
     /** Callback to be called when the image loads */
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 
@@ -131,6 +139,9 @@ function ReportActionItemImage({
     report: reportProp,
     shouldUseThumbnailImage,
     canZoomReceipt = false,
+    pdfPage,
+    onPDFLoadSuccess,
+    onPDFLoadFailure,
     onLoad,
     onLoadFailure,
 }: ReportActionItemImageProps) {
@@ -209,6 +220,8 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
             source: shouldUseThumbnailImage ? (effectiveThumbnail ?? effectiveImage ?? '') : originalImageSource,
+            fallbackIcon: icons.Receipt,
+            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
@@ -222,11 +235,10 @@ function ReportActionItemImage({
     // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
     // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
     // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
-    // Map/route distance requests are excluded: their hover overlay is a DistanceEReceipt card, not the PDF.
-    // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
+    // Page navigation also needs the real PDF for local files, whose thumbnail only shows page 1.
     const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
-    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
-    const shouldOverlayHighResPDF = canZoomReceipt && isRemotePDF && hasHoverSupport();
+    const canOverlayPDF = !!isPDF && canOverlayReceiptPDF(transaction) && !!pdfSourceURL;
+    const shouldOverlayHighResPDF = canZoomReceipt && canOverlayPDF && hasHoverSupport() && (!effectiveIsLocalFile || pdfPage !== undefined);
 
     const renderReceiptContent = (receiptImage: React.ReactNode) =>
         shouldOverlayHighResPDF ? (
@@ -238,7 +250,13 @@ function ReportActionItemImage({
                 >
                     <ReceiptPDFOverlay
                         sourceURL={pdfSourceURL}
-                        onLoadFailure={onLoadFailure}
+                        isAuthTokenRequired={!effectiveIsLocalFile}
+                        onLoadFailure={() => {
+                            onLoadFailure?.();
+                            onPDFLoadFailure?.();
+                        }}
+                        page={pdfPage}
+                        onLoadSuccess={onPDFLoadSuccess}
                     />
                 </View>
             </View>

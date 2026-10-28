@@ -1,6 +1,7 @@
-import Button from '@components/ButtonComposed';
+import Badge from '@components/Badge';
+import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
-import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
@@ -14,12 +15,11 @@ import type {EnableTravelSubPageProps} from '@pages/Travel/EnableTravel/types';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DomainItem = ListItem & {
     value: string;
-    isRecommended: boolean;
 };
 
 function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
@@ -28,18 +28,16 @@ function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
 
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
-    const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
-    const recommendedDomain = useMemo(() => getMostFrequentEmailDomain(domains, policy), [policy, domains]);
+    const domains = getAdminsPrivateEmailDomains(policy);
+    const recommendedDomain = getMostFrequentEmailDomain(domains, policy);
 
-    const data: DomainItem[] = useMemo(() => {
-        return domains.map((domain) => ({
-            value: domain,
-            isSelected: domain === selectedDomain,
-            keyForList: domain,
-            text: domain,
-            isRecommended: domain === recommendedDomain,
-        }));
-    }, [domains, recommendedDomain, selectedDomain]);
+    const data: DomainItem[] = domains.map((domain) => ({
+        value: domain,
+        isSelected: domain === selectedDomain,
+        keyForList: domain,
+        text: domain,
+        rightElement: domain === recommendedDomain ? <Badge text={translate('travel.domainSelector.recommended')} /> : undefined,
+    }));
 
     const handleContinue = () => {
         if (!selectedDomain) {
@@ -59,7 +57,8 @@ function DomainSelectorStep({policy, onNext}: EnableTravelSubPageProps) {
             <SelectionList
                 onSelectRow={(option) => setSelectedDomain(option.value)}
                 data={data}
-                ListItem={TravelDomainListItem}
+                ListItem={SingleSelectListItem}
+                selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.LEFT}
                 shouldShowTooltips
                 footerContent={
                     <Button

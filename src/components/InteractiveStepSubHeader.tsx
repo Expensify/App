@@ -13,34 +13,35 @@ type InteractiveStepSubHeaderProps = {
     /** List of the Route Name to navigate when the step is selected */
     stepNames: readonly string[];
 
-    /** Function to call when a step is selected */
     onStepSelected?: (stepName: string) => void;
-
-    /** The index of the step to start with */
     startStepIndex?: number;
 
     /** Description of the current step, appended to its accessibility label */
     currentStepAccessibilityDescription: string;
 
-    /** Reference to the outer element */
+    /** Whether screen readers hear that a step before the current one is completed */
+    shouldAnnounceCompletedSteps?: boolean;
+
     ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
 };
 
 type InteractiveStepSubHeaderHandle = {
-    /** Move to the next step */
     moveNext: () => void;
-
-    /** Move to the previous step */
     movePrevious: () => void;
-
-    /** Move to a specific step */
     moveTo: (step: number) => void;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAccessibilityDescription, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
+function InteractiveStepSubHeader({
+    stepNames,
+    startStepIndex = 0,
+    currentStepAccessibilityDescription,
+    shouldAnnounceCompletedSteps = false,
+    onStepSelected,
+    ref,
+}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
@@ -95,7 +96,11 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, currentStepAcc
                     >
                         <InteractiveStepButton
                             stepNumber={index + 1}
-                            stepLabel={translate('stepCounter', index + 1, stepNames.length)}
+                            stepLabel={
+                                isCompletedStep && shouldAnnounceCompletedSteps
+                                    ? translate('completedStep', translate('stepCounter', index + 1, stepNames.length))
+                                    : translate('stepCounter', index + 1, stepNames.length)
+                            }
                             currentStepDescription={isCurrentStep ? currentStepAccessibilityDescription : undefined}
                             isCurrentStep={isCurrentStep}
                             isLockedStep={isLockedStep}

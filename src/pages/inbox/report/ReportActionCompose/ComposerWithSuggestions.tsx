@@ -1,16 +1,18 @@
 import type {Emoji} from '@assets/emojis/types';
 
-import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -37,7 +39,9 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
+import useDebouncedSaveReportActionDraft from '@pages/inbox/report/useDebouncedSaveReportActionDraft';
 import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
 
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
@@ -50,36 +54,25 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-// eslint-disable-next-line no-restricted-imports
-import findNodeHandle from '@src/utils/findNodeHandle';
 
 import type {Ref, RefObject} from 'react';
-import type {
-    BlurEvent,
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeMethods,
-    TextInputContentSizeChangeEvent,
-    TextInputKeyPressEvent,
-    TextInputScrollEvent,
-} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInputContentSizeChangeEvent, TextInputKeyPressEvent} from 'react-native';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {DeviceEventEmitter, NativeModules, StyleSheet, View} from 'react-native';
-import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import type {SuggestionsRef} from './ReportActionCompose';
 
 import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
-import getCursorPosition from './getCursorPosition';
-import getScrollPosition from './getScrollPosition';
 import getUpdatedSyncSelection from './getUpdatedSyncSelection';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
+import shouldYieldFocusToSidePanelComposer from './shouldYieldFocusToSidePanelComposer';
 import SilentCommentUpdater from './SilentCommentUpdater';
 import Suggestions from './Suggestions';
+import useComposerSuggestions from './useComposerSuggestions';
 import useEditComposerToggle from './useEditComposerToggle';
 import useLastEditableAction from './useLastEditableAction';
 
@@ -90,35 +83,24 @@ type SyncSelection = {
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
-type ComposerWithSuggestionsRef = ComposerRef & {
-    /** Focus the composer */
+type ComposerWithSuggestionsRef = Pick<ComposerRef, 'blur' | 'isFocused'> & {
     focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
-
-    /** Replace the selection with text */
     replaceSelectionWithText: OnEmojiSelected;
-
-    /** Get the current text of the composer */
     getCurrentText: () => string;
 
     /**
      * Calling clear will immediately clear the input on the UI thread (its a worklet).
-     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     * Once the composer has cleared, onClear will be called with the value that was cleared.
      */
     clearWorklet: () => void;
 
-    /** Reset the height of the composer */
     resetHeight: () => void;
 };
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
-        /** Report ID */
         reportID: string;
-
-        /** Callback to focus composer */
         onFocus: () => void;
-
-        /** Callback to blur composer */
         onBlur: (event: BlurEvent) => void;
 
         /** Callback when layout of composer changes */
@@ -130,19 +112,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Callback when the composer got cleared on the UI thread */
         onClear?: (text: string) => void;
 
-        /** Whether the composer is full size */
         isComposerFullSize: boolean;
-
-        /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
-
-        /** Whether the menu is visible */
         isMenuVisible: boolean;
-
-        /** The placeholder for the input */
         inputPlaceholder: string;
-
-        /** Callback when a file is pasted */
         onPasteFile: (file: FileObject | FileObject[]) => void;
 
         /** Whether the input is disabled, defaults to false */
@@ -151,31 +124,14 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
-        /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-        /** Whether the scroll is likely to trigger a layout */
-        isScrollLikelyLayoutTriggered: RefObject<boolean>;
-
-        /** Function to raise the scroll is likely layout triggered */
-        raiseIsScrollLikelyLayoutTriggered: () => void;
 
         /** The ref to the suggestions */
         suggestionsRef: React.RefObject<SuggestionsRef | null>;
-
-        /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
-
-        /** Whether to include chronos */
         includeChronos?: boolean;
-
-        /** Whether report is from group policy */
         isGroupPolicyReport: boolean;
-
-        /** policy ID of the report */
         policyID?: string;
-
-        /** Reference to the outer element */
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
@@ -233,8 +189,6 @@ function ComposerWithSuggestions({
     disabled,
     onEnterKeyPress,
     measureParentContainer = () => {},
-    isScrollLikelyLayoutTriggered,
-    raiseIsScrollLikelyLayoutTriggered,
     onClear: onClearProp = () => {},
     onLayout,
 
@@ -256,15 +210,14 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePanelHiddenOrLargeScreen} = useSidePanelState();
+    const {isOffline} = useNetwork();
+    const {isSidePanelHiddenOrLargeScreen, shouldHideSidePanel} = useSidePanelState();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
-    const mobileInputScrollPosition = useRef(0);
-    const cursorPositionValue = useSharedValue({x: 0, y: 0});
-    const tag = useSharedValue(-1);
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
 
     const composerRef = useRef<ComposerRef | null>(null);
 
@@ -286,7 +239,7 @@ function ComposerWithSuggestions({
     });
 
     // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
-    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveDraft(saveReportActionDraft);
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending, cancelSaveDraft: cancelSaveReportActionDraft} = useDebouncedSaveReportActionDraft();
 
     // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
     // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
@@ -327,7 +280,17 @@ function ComposerWithSuggestions({
 
     const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: initialText.length, end: initialText.length});
 
+    const {measureParentContainerAndReportCursor, onSaveScrollAndHideSuggestionMenu, resetScrollPosition, raiseIsScrollLayoutTriggered} = useComposerSuggestions({
+        composerRef,
+        selection,
+        measureParentContainer,
+        suggestionsRef,
+    });
+
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     const commentRef = useRef(initialText);
 
@@ -336,6 +299,12 @@ function ComposerWithSuggestions({
     const shouldDelayAutoFocus = (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
+
+    // Synced in an effect rather than during render because this file is at its lint budget for render-time ref access.
+    const isInSidePanelRef = useRef(isInSidePanel);
+    useEffect(() => {
+        isInSidePanelRef.current = isInSidePanel;
+    }, [isInSidePanel]);
 
     /**
      * Focus the composer text input
@@ -346,7 +315,9 @@ function ComposerWithSuggestions({
     const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
         // If we're stacked above another RHP, wait for the transition to complete before focusing.
         const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+        // Another composer taking focus releases the claim, so it has to be read when the focus lands rather than now.
+        const canFocusAfterDelay = isInSidePanelRef.current ? () => !!ReportActionComposeFocusManager.sidePanelComposerRef.current : undefined;
+        focusComposerWithDelay(composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
     const shouldIgnoreEditSelectionResetRef = useRef(false);
@@ -415,7 +386,7 @@ function ComposerWithSuggestions({
         isTransitioningToPreExistingReport.current = false;
     }, []);
 
-    const animatedRef = useAnimatedRef<NativeMethods>();
+    const animatedRef = useAnimatedRef<ComposerRef>();
     /**
      * Set the TextInput Ref
      */
@@ -502,7 +473,7 @@ function ComposerWithSuggestions({
      */
     const updateComment = useCallback(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
-            raiseIsScrollLikelyLayoutTriggered();
+            raiseIsScrollLayoutTriggered();
 
             // previous text before change
             const prevText = lastTextRef.current;
@@ -566,14 +537,14 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
+            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldEditInComposer) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     debouncedSaveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
                     return;
                 }
 
-                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted);
+                saveReportActionDraft(editingReportID ?? reportID, editingReportAction, reportActions, newCommentConverted, isOffline);
                 return;
             }
 
@@ -588,7 +559,7 @@ function ComposerWithSuggestions({
             }
         },
         [
-            raiseIsScrollLikelyLayoutTriggered,
+            raiseIsScrollLayoutTriggered,
             selection.start,
             selection.end,
             findNewlyAddedChars,
@@ -597,7 +568,7 @@ function ComposerWithSuggestions({
             setText,
             onValueChange,
             editingState,
-            shouldUseNarrowLayout,
+            shouldEditInComposer,
             suggestionsRef,
             setCurrentEditMessageSelection,
             setEditingMessage,
@@ -608,6 +579,7 @@ function ComposerWithSuggestions({
             debouncedSaveReportActionDraft,
             debouncedSaveComment,
             currentUserAccountID,
+            isOffline,
         ],
     );
 
@@ -646,7 +618,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? ''));
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName, accountIDToName}), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -696,8 +668,11 @@ function ComposerWithSuggestions({
             lastReportAction,
             reportID,
             reportActions,
+            reportIDToName,
+            accountIDToName,
             updateComment,
             setCurrentEditMessageSelection,
+            isOffline,
         ],
     );
 
@@ -760,17 +735,6 @@ function ComposerWithSuggestions({
         [setCurrentEditMessageSelection, suggestionsRef, currentEditMessageSelection, selection],
     );
 
-    const hideSuggestionMenu = useCallback(
-        (e: TextInputScrollEvent) => {
-            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
-            if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
-                return;
-            }
-            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-        },
-        [suggestionsRef, isScrollLikelyLayoutTriggered],
-    );
-
     const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
             return false;
@@ -815,6 +779,17 @@ function ComposerWithSuggestions({
         } else {
             ReportActionComposeFocusManager.sidePanelComposerRef.current = composerRef.current;
         }
+    }, [isInSidePanel]);
+
+    // handleSidePanelFocus only releases the claim when another composer receives focus, so a Side Panel that closes while holding it
+    // would keep it forever and the guard in the modal-close effect below would strand focus on the document body.
+    useEffect(() => {
+        if (!isInSidePanel) {
+            return;
+        }
+        return () => {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        };
     }, [isInSidePanel]);
 
     /**
@@ -930,6 +905,20 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // The Side Panel composer only wins this race because it renders outside <StackView> and its effect flushes last, so the fire-time
+        // re-check would otherwise turn https://github.com/Expensify/App/pull/86658 into a regression. Reads shouldHideSidePanel rather than
+        // isSidePanelHiddenOrLargeScreen because the latter is true on extra-large screens even while the panel is on screen.
+        if (
+            shouldYieldFocusToSidePanelComposer({
+                isInSidePanel,
+                shouldHideSidePanel,
+                didModalJustClose: !!prevIsModalVisible,
+                hasSidePanelFocusClaim: !!ReportActionComposeFocusManager.sidePanelComposerRef.current,
+            })
+        ) {
+            return;
+        }
+
         // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
@@ -947,7 +936,19 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen, isInSidePanel]);
+    }, [
+        focus,
+        prevIsFocused,
+        editFocused,
+        prevIsModalVisible,
+        isFocused,
+        modal?.isVisible,
+        isNextModalWillOpenRef,
+        shouldAutoFocus,
+        isSidePanelHiddenOrLargeScreen,
+        shouldHideSidePanel,
+        isInSidePanel,
+    ]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -957,79 +958,25 @@ function ComposerWithSuggestions({
 
     useImperativeHandle(
         ref,
-        () =>
-            new Proxy(
-                {},
-                {
-                    get: (_target, prop) => {
-                        if (prop === 'focus') {
-                            return focus;
-                        }
-                        if (prop === 'replaceSelectionWithText') {
-                            return replaceSelectionWithText;
-                        }
-                        if (prop === 'getCurrentText') {
-                            return getCurrentText;
-                        }
-                        if (prop === 'clearWorklet') {
-                            return clearWorklet;
-                        }
-                        if (prop === 'resetHeight') {
-                            return resetHeight;
-                        }
-
-                        return composerRef.current?.[prop as keyof ComposerRef];
-                    },
-                },
-            ) as ComposerWithSuggestionsRef,
+        (): ComposerWithSuggestionsRef => ({
+            focus,
+            replaceSelectionWithText,
+            getCurrentText,
+            clearWorklet,
+            resetHeight,
+            blur: () => composerRef.current?.blur(),
+            isFocused: () => composerRef.current?.isFocused() ?? false,
+        }),
     );
 
     const onClear = useCallback(
         (textOnClear: string) => {
-            mobileInputScrollPosition.current = 0;
+            resetScrollPosition();
             // Note: use the value when the clear happened, not the current value which might have changed already
             onClearProp(textOnClear);
             updateComment('', true);
         },
-        [onClearProp, updateComment],
-    );
-
-    useEffect(() => {
-        // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(composerRef.current) ?? -1);
-    }, [tag]);
-
-    useFocusedInputHandler(
-        {
-            onSelectionChange: (event) => {
-                'worklet';
-
-                if (event.target === tag.get()) {
-                    cursorPositionValue.set({
-                        x: event.selection.end.x,
-                        y: event.selection.end.y,
-                    });
-                }
-            },
-        },
-        [],
-    );
-    const measureParentContainerAndReportCursor = useCallback(
-        (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef: composerRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-            measureParentContainer((x, y, width, height) => {
-                callback({
-                    x,
-                    y,
-                    width,
-                    height,
-                    scrollValue,
-                    cursorCoordinates: {x: xPosition, y: yPosition},
-                });
-            });
-        },
-        [measureParentContainer, cursorPositionValue, selection],
+        [onClearProp, updateComment, resetScrollPosition],
     );
 
     const isTouchEndedRef = useRef(false);
@@ -1128,7 +1075,7 @@ function ComposerWithSuggestions({
                     testID={CONST.COMPOSER.NATIVE_ID}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
-                    onScroll={hideSuggestionMenu}
+                    onScroll={onSaveScrollAndHideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
                     forwardedFSClass={forwardedFSClass}

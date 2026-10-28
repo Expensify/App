@@ -10,7 +10,6 @@ import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
 type IntegrationMessageProps = {
-    /** Integration report action to render. */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE>;
 };
 

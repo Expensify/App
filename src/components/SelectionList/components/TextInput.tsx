@@ -22,7 +22,6 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
 type TextInputProps = {
-    /** Reference to the BaseTextInput component */
     ref?: React.RefObject<BaseTextInputRef | null> | null;
 
     /** Configuration options for the text input including label, placeholder, validation, etc. */
@@ -31,7 +30,6 @@ type TextInputProps = {
     /**  */
     accessibilityLabel?: string;
 
-    /** Whether the text input is loading */
     isLoading?: boolean;
 
     /** The number of items in the data array, used to determine submit behavior */
@@ -40,22 +38,20 @@ type TextInputProps = {
     /** Callback function called when the text input is submitted */
     onSubmit?: () => void;
 
-    /** Function called when a key is pressed in the text input */
+    /** Lets a list clear its focused row on press, so plain Enter in the search input reaches the confirm button instead of toggling a row */
+    onPress?: () => void;
+
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
     onFocusChange: (focused: boolean) => void;
 
-    /** Whether to show the text input */
     shouldShowTextInput?: boolean;
-
-    /** Whether to show the loading placeholder */
     shouldShowLoadingPlaceholder?: boolean;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
 
-    /** Function to focus text input component */
     focusTextInput: () => void;
 };
 
@@ -66,6 +62,7 @@ function TextInput({
     isLoading = false,
     dataLength,
     onSubmit,
+    onPress,
     onKeyPress,
     onFocusChange,
     shouldShowLoadingPlaceholder,
@@ -118,12 +115,9 @@ function TextInput({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
 
-    const handleTextInputChange = useCallback(
-        (text: string) => {
-            onChangeText?.(text);
-        },
-        [onChangeText],
-    );
+    const handleTextInputChange = (text: string) => {
+        onChangeText?.(text);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -143,13 +137,13 @@ function TextInput({
         }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode, isScreenReaderEnabled]),
     );
 
-    const handleFocus = useCallback(() => {
+    const handleFocus = () => {
         onFocusChange(true);
-    }, [onFocusChange]);
+    };
 
-    const handleBlur = useCallback(() => {
+    const handleBlur = () => {
         onFocusChange(false);
-    }, [onFocusChange]);
+    };
 
     if (!shouldShowTextInput) {
         return null;
@@ -177,8 +171,10 @@ function TextInput({
                     selectTextOnFocus
                     spellCheck={false}
                     onSubmitEditing={onSubmit}
+                    onPress={onPress}
                     submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
                     isLoading={isLoading}
+                    shouldHideClearButton={false}
                     testID="selection-list-text-input"
                     errorText={errorText}
                     autoCorrect={!disableAutoCorrect}

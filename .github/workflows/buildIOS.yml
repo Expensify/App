@@ -27,6 +27,10 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: string
         default: 'false'
+      download-dsyms:
+        description: Download the prebuilt react-native dSYMs so Sentry can symbolicate its native frames. Off by default - it adds two large downloads per build.
+        type: boolean
+        default: false
 
     outputs:
       IOS_VERSION:
@@ -51,6 +55,7 @@ jobs:
     runs-on: blacksmith-12vcpu-macos-latest
     env:
       PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+      RCT_SYMBOLICATE_PREBUILT_FRAMEWORKS: ${{ inputs.download-dsyms && '1' || '0' }}
     outputs:
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
@@ -111,6 +116,29 @@ jobs:
 
       - name: Install New Expensify Gems
         run: bundle install
+
+      - name: Resolve react-native artifact version
+        id: resolve-rn-artifacts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # pod install resolves the same artifact through patched_ios_artifacts.rb, which picks the Hermes tag file from
+          # RCT_HERMES_V1_ENABLED. HybridApp pins that to '1' inside Mobile-Expensify/iOS/Podfile (invisible to this shell),
+          # so the cache key must assume Hermes V1 to stay in sync with what pod install downloads.
+          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" --hermes-version-file="$GITHUB_WORKSPACE/node_modules/react-native/sdks/.hermesv1version")
+          VERSION=$(echo "$RESULT" | jq -r '.version // "source"')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not resolve react-native artifact version from resolve-artifacts.ts output: $RESULT"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache react-native artifacts
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          path: ~/Library/Caches/Expensify/react-native-artifacts
+          key: ${{ runner.os }}-rn-artifacts-react-hybrid-${{ steps.resolve-rn-artifacts.outputs.VERSION }}-dsyms-${{ inputs.download-dsyms }}
 
       - name: Cache Pod dependencies
         # v5.0.1
@@ -212,8 +240,10 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # Match the 6h job timeout because Rock does not refresh credentials before uploading
+          role-duration-seconds: 21600
           aws-region: us-east-1
 
       - name: Prepare provisioning profiles JSON

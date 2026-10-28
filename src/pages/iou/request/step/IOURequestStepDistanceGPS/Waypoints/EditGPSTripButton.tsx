@@ -13,7 +13,7 @@ import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import {isTripStopped as isTripStoppedUtil} from '@src/libs/GPSDraftDetailsUtils';
+import {canGpsTripBeTrimmed} from '@src/libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -30,9 +30,7 @@ function EditGPSTripButton({action, iouType, transactionID, reportID, backToRepo
 
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-    const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
-
-    if (!isTripStopped) {
+    if (!canGpsTripBeTrimmed(gpsDraftDetails)) {
         return null;
     }
 

@@ -3,12 +3,11 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
-import colors from '@styles/theme/colors';
-
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -28,14 +27,12 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const handleCtaPress = () => {
-        Navigation.navigate(ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, false));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, bankAccountID, false)));
     };
 
     return (
         <BaseWidgetItem
             icon={icons.Bank}
-            iconBackgroundColor={colors.green100}
-            iconFill={colors.green500}
             title={translate('homePage.timeSensitiveSection.enterSignerInfo.title')}
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}

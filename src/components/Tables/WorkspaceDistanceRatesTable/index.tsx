@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -14,10 +15,11 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
@@ -28,6 +30,7 @@ type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'e
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
     policyID: string;
+    unit?: Unit;
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
@@ -42,7 +45,16 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, selectedKeys, canWriteDistanceRates, onRowSelectionChange, headerComponent}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({
+    ratesData,
+    policyID,
+    unit,
+    selectionEnabled,
+    selectedKeys,
+    canWriteDistanceRates,
+    onRowSelectionChange,
+    headerComponent,
+}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -59,8 +71,24 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             width: variables.tableStatusColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'name', label: translate('common.name'), sortable: true},
-        {key: 'rate', label: translate('workspace.distanceRates.rate'), sortable: true},
+        {
+            key: 'name',
+            label: translate('common.name'),
+            sortable: true,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
+        {
+            key: 'rate',
+            label: translate('workspace.distanceRates.rate'),
+            sortable: true,
+            styling: {
+                // Same chrome as the name column so the rate label lines up with the padded rate cell.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
@@ -81,11 +109,11 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             if (diff !== 0) {
                 return diff * orderMultiplier;
             }
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'name') {
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'rate') {
@@ -126,15 +154,12 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
           ]
         : undefined;
 
-    const statusLabels = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
-        }),
-        [translate],
-    );
+    const statusLabels = {
+        [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
+    };
 
     const renderItem = ({item, index}: ListRenderItemInfo<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow
@@ -144,6 +169,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
             statusLabels={statusLabels}
+            unit={unit}
         />
     );
 

@@ -6,7 +6,7 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, hasDependentTags} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
@@ -24,6 +24,7 @@ import {
     isSelfDM,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
+import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 import {
     calculateTaxAmount,
     getAmount,
@@ -32,6 +33,7 @@ import {
     getTaxValue,
     getUpdatedTransaction,
     isDistanceRequest,
+    isFailedScanAmountPlaceholder,
     isOnHold,
     isSplitChildTransaction,
     shouldShowAttendees,
@@ -41,6 +43,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {BulkEditActionContext} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -85,6 +88,7 @@ type BulkEditWriteOnyxData = {
             | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
         >
     >;
+    bulkEditActionContext?: BulkEditActionContext;
 };
 
 /** Returns a copy of the transaction without the attendee fields. Onyx MERGE leaves the absent keys untouched. */
@@ -100,6 +104,7 @@ function mergeBulkEditOnyxData(first: BulkEditWriteOnyxData, second: BulkEditWri
         optimisticData: [...first.optimisticData, ...second.optimisticData],
         successData: [...first.successData, ...second.successData],
         failureData: [...first.failureData, ...second.failureData],
+        bulkEditActionContext: first.bulkEditActionContext ?? second.bulkEditActionContext,
     };
 }
 
@@ -128,7 +133,12 @@ function removeUnchangedBulkEditFields(
         const currentValue = currentDetails[field as keyof TransactionDetails];
 
         const hasChanged = field === CONST.EDIT_REQUEST_FIELD.ATTENDEES ? !deepEqual(nextValue, currentValue) : nextValue !== currentValue;
-        if (hasChanged) {
+        // A failed-scan placeholder amount must always be treated as changed so that bulk-confirming the same
+        // displayed value (e.g. re-entering 0) still submits and clears the scan-failure error, mirroring the
+        // no-op bypass already used in IOUAmountSubmission.ts and TotalCell.tsx.
+        const isFailedScanAmountEdit = field === 'amount' && isFailedScanAmountPlaceholder(transaction);
+
+        if (isFailedScanAmountEdit || hasChanged) {
             filteredChanges = {
                 ...filteredChanges,
                 [field]: nextValue,
@@ -142,12 +152,16 @@ function removeUnchangedBulkEditFields(
 type UpdateMultipleMoneyRequestsParams = {
     transactionIDs: string[];
     changes: TransactionChanges;
+    /** Per-level tag edits from the bulk-edit draft, keyed by tag list index. */
+    bulkEditTagChanges?: Record<string, string>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     reports: OnyxCollection<OnyxTypes.Report>;
     transactions: OnyxCollection<OnyxTypes.Transaction>;
     reportActions: OnyxCollection<OnyxTypes.ReportActions>;
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>;
     policyTags: OnyxCollection<OnyxTypes.PolicyTagLists>;
+    /** Per-policy tags read state. A policy's tag list count is only trusted once its tags have fully loaded. */
+    policyTagsLoadingStates?: OnyxCollection<OnyxTypes.PolicyDataLoadingState>;
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
     hash?: number;
@@ -158,6 +172,8 @@ type UpdateMultipleMoneyRequestsParams = {
     personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
 function writeBulkEditMoneyRequest(
@@ -186,12 +202,14 @@ function writeBulkEditMoneyRequestAttendees(
 function updateMultipleMoneyRequests({
     transactionIDs,
     changes,
+    bulkEditTagChanges,
     policy,
     reports,
     transactions,
     reportActions,
     policyCategories,
     policyTags,
+    policyTagsLoadingStates,
     violations,
     reportNameValuePairs,
     hash,
@@ -202,6 +220,8 @@ function updateMultipleMoneyRequests({
     personalDetailsList,
     getCurrencyDecimals,
     getCurrencySymbol,
+    rules,
+    isVendorMatchingBetaEnabled,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -279,7 +299,16 @@ function updateMultipleMoneyRequests({
                 return true;
             }
 
-            return canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report: iouReport, policy: transactionPolicy, reportNameValuePairs});
+            return canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: field,
+                transaction,
+                report: iouReport,
+                policy: transactionPolicy,
+                reportNameValuePairs,
+                reportActions: transactionReportActions,
+                rules,
+            });
         };
 
         let transactionChanges: TransactionChanges = {};
@@ -312,8 +341,32 @@ function updateMultipleMoneyRequests({
         if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
             transactionChanges.category = changes.category;
         }
-        if (changes.tag && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-            transactionChanges.tag = changes.tag;
+
+        // Use bulkEditTagChanges to save tag changes. changes.tag is only for display.
+        const editedTagIndexes = bulkEditTagChanges ? Object.keys(bulkEditTagChanges) : [];
+        if (editedTagIndexes.length > 0 && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+            // Rebuild from each transaction's own tag to keep the unchanged levels. Apply each edited level in order.
+            const transactionPolicyTagList = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${transactionPolicy?.id}`];
+            const transactionHasDependentTags = hasDependentTags(transactionPolicy, transactionPolicyTagList);
+            const transactionHasMultipleTagLists = transactionPolicy?.hasMultipleTagLists ?? false;
+            // A partially loaded tag collection can hold fewer tag lists than the policy, so only drop values for removed
+            // tag lists once this policy's tags have fully loaded
+            const hasLoadedTransactionPolicyTags = !!policyTagsLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${transactionPolicy?.id}`]?.hasOnceLoaded;
+            const transactionTagListCount = hasLoadedTransactionPolicyTags ? getTagLists(transactionPolicyTagList).length : undefined;
+            let reconstructedTag = transaction.tag ?? '';
+            for (const editedIndex of editedTagIndexes.map(Number).sort((first, second) => first - second)) {
+                reconstructedTag = getUpdatedTransactionTag({
+                    transactionTag: reconstructedTag,
+                    selectedTagName: bulkEditTagChanges?.[editedIndex] ?? '',
+                    currentTag: '',
+                    tagListIndex: editedIndex,
+                    policyTags: transactionPolicyTagList,
+                    hasDependentTags: transactionHasDependentTags,
+                    hasMultipleTagLists: transactionHasMultipleTagLists,
+                    tagListCount: transactionTagListCount,
+                });
+            }
+            transactionChanges.tag = reconstructedTag;
         }
         if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
             transactionChanges.comment = getParsedComment(changes.comment);
@@ -517,6 +570,7 @@ function updateMultipleMoneyRequests({
                 ownerLogin: getLoginByAccountID(iouReport?.ownerAccountID, personalDetailsList),
                 isFromExpenseReport,
                 distanceOriginalPolicy,
+                isVendorMatchingBetaEnabled,
             });
             optimisticData.push(optimisticViolationsData);
             failureData.push({
@@ -566,7 +620,6 @@ function updateMultipleMoneyRequests({
                         updatedAttendees?.map(({avatarUrl, displayName, email}) => ({avatarUrl, displayName, ...(email ? {email} : {})})) ?? [],
                         getRecentAttendees(),
                         // Use || so empty-string emails fall back to displayName for the union key
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         (attendee) => attendee.email || attendee.displayName,
                     ).slice(0, CONST.IOU.MAX_RECENT_ATTENDEES),
                 },
@@ -841,6 +894,15 @@ function updateMultipleMoneyRequests({
             optimisticData: [...optimisticData, ...snapshotOptimisticData],
             successData: [...successData, ...snapshotSuccessData],
             failureData: [...failureData, ...snapshotFailureData],
+            ...(transactionThreadReportID && {
+                bulkEditActionContext: {
+                    actionID: modifiedExpenseReportActionID,
+                    threadReportID: transactionThreadReportID,
+                    parentReportID: iouReport?.reportID,
+                    parentActionID: reportAction?.reportActionID,
+                    isOptimisticThread: didCreateThreadInThisIteration || transactionThread?.ownerAccountID === CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+                },
+            }),
         };
         const attendeesOnyxData: BulkEditWriteOnyxData = {
             optimisticData: attendeesOptimisticData,

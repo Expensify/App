@@ -3,9 +3,11 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
+import type {PolicyOwner} from '@libs/actions/Policy/Policy';
 import {generateDefaultWorkspaceName, generatePolicyID} from '@libs/actions/Policy/Policy';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -18,15 +20,17 @@ import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {accountIDSelector, displayNameSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -47,7 +51,7 @@ type WorkspaceConfirmationSubmitFunctionParams = {
     name: string;
     currency: string;
     planType?: PolicyType;
-    owner?: string;
+    owner?: PolicyOwner;
     makeMeAdmin: boolean;
     avatarFile: File | CustomRNImageManipulatorResult | undefined;
     policyID: string;
@@ -60,13 +64,11 @@ type WorkspaceConfirmationFormProps = {
      */
     policyOwnerEmail?: string;
 
-    /** Submit function */
     onSubmit: (params: WorkspaceConfirmationSubmitFunctionParams) => void;
 
     /** Go back function */
     onBackButtonPress?: () => void;
 
-    /** Whether bottom safe area padding should be added */
     addBottomSafeAreaPadding?: boolean;
 
     /** Whether the submit button should display a loading spinner (e.g. while the new workspace is revealed) */
@@ -84,44 +86,41 @@ function WorkspaceConfirmationForm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isApprovedAccountant = !!account?.isApprovedAccountant;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
-            const name = values.name.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
+        const name = values.name.trim();
 
-            if (!isRequiredFulfilled(name)) {
-                errors.name = translate('workspace.editor.nameIsRequiredError');
-            } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-                // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        if (!isRequiredFulfilled(name)) {
+            errors.name = translate('workspace.editor.nameIsRequiredError');
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+            // code units.
+            addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        }
+
+        if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
+            errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+        }
+
+        // Only validate plan type and owner for approved accountants
+        if (isApprovedAccountant) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
+                errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
             }
 
-            if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
-                errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+            if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
+                errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
             }
+        }
 
-            // Only validate plan type and owner for approved accountants
-            if (isApprovedAccountant) {
-                if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
-                    errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
-                }
+        return errors;
+    };
 
-                if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
-                    errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
-                }
-            }
-
-            return errors;
-        },
-        [translate, isApprovedAccountant],
-    );
-
-    const policyID = useMemo(() => generatePolicyID(), []);
+    const policyID = generatePolicyID();
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -129,8 +128,9 @@ function WorkspaceConfirmationForm({
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
 
     const email = policyOwnerEmail || (session?.email ?? '');
-    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-    const defaultWorkspaceName = generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
+    const userDisplayName = usePersonalDetailByLogin(email, displayNameSelector);
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email, userDisplayName, translate);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(email, userDisplayName, lastWorkspaceNumber, translate);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -140,6 +140,7 @@ function WorkspaceConfirmationForm({
 
     const userOwner = draftValues?.owner ?? defaultOwner;
     const ownerDisplayName = userOwner;
+    const ownerAccountID = usePersonalDetailByLogin(userOwner, accountIDSelector);
 
     const [makeMeAdmin, setMakeMeAdmin] = useState(true);
     const currentUserEmail = session?.email ?? '';
@@ -218,7 +219,7 @@ function WorkspaceConfirmationForm({
                             name: val[INPUT_IDS.NAME],
                             currency: val[INPUT_IDS.CURRENCY],
                             planType: isApprovedAccountant ? val[INPUT_IDS.PLAN_TYPE] : undefined,
-                            owner: isApprovedAccountant ? val[INPUT_IDS.OWNER] : '',
+                            owner: isApprovedAccountant ? {email: val[INPUT_IDS.OWNER], accountID: ownerAccountID} : undefined,
                             makeMeAdmin: isApprovedAccountant && isOwnerDifferentFromCurrentUser ? makeMeAdmin : false,
                             avatarFile,
                             policyID,

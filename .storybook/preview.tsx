@@ -1,14 +1,18 @@
-import '@libs/Middleware/register';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 
+import registerMiddlewares from '@libs/Middleware/register';
+
 import colors from '@styles/theme/colors';
 
 import ComposeProviders from '@src/components/ComposeProviders';
 import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
+import KeyboardProvider from '@src/components/KeyboardProvider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
+import {ModalProvider} from '@src/components/Modal/Global/ModalContext';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -21,10 +25,14 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
+import currencyList from '../tests/unit/currencyList.json';
 import './fonts.css';
+
+registerMiddlewares();
 
 Onyx.init({
     keys: ONYXKEYS,
+    initialKeyStates: {[ONYXKEYS.CURRENCY_LIST]: currencyList},
 });
 
 IntlStore.load(CONST.LOCALES.EN);
@@ -35,9 +43,12 @@ const decorators = [
             components={[
                 OnyxListItemProvider,
                 LocaleContextProvider,
+                CurrencyListContextProvider,
                 HTMLEngineProvider,
                 SafeAreaProvider,
                 PortalProvider,
+                KeyboardProvider,
+                ModalProvider,
                 EnvironmentProvider,
                 KeyboardStateProvider,
                 SearchContextProvider,

@@ -1,120 +1,84 @@
-import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
+import {isControlPolicy, isPolicyFeatureEnabled, tryNavigateToSubmitWorkspaceUpgrade} from '@libs/PolicyUtils';
 
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
+
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
-import type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration, ActiveIntegrationState} from './types';
+import type {ActiveIntegration, ActiveIntegrationState} from './types';
 
-import {defaultAccountingActionsContextValue, defaultAccountingStateContextValue, popoverAnchorRefsInitialValue} from './default';
-
-const AccountingStateContext = createContext<AccountingStateContextType>(defaultAccountingStateContextValue);
-const AccountingActionsContext = createContext<AccountingActionsContextType>(defaultAccountingActionsContextValue);
+import {AccountingActionsContext, AccountingStateContext, useAccountingActions, useAccountingState} from './contexts';
+import {popoverAnchorRefsInitialValue} from './default';
 
 type AccountingContextProviderProps = ChildrenProps & {
     policy: OnyxEntry<Policy>;
 };
 
+// Names the connect-confirmation prompt on the global modal stack, so the two places that reach for it below cannot
+// drift apart.
+const ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID = 'accountingConnectionConfirmation';
+
 function AccountingContextProvider({children, policy}: AccountingContextProviderProps) {
-    const popoverAnchorRefs = useRef<Record<string, RefObject<View | null>>>(popoverAnchorRefsInitialValue);
+    const popoverAnchorRefs = useRef<Record<string, RefObject<ComponentRef<typeof View> | null>>>(popoverAnchorRefsInitialValue);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
+    const {showConfirmModal, closeModalByID} = useConfirmModal();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const policyID = policy?.id;
-    const accountingIcons = useMemoizedLazyExpensifyIcons([
-        'IntacctSquare',
-        'IntuitSquare',
-        'QBOSquare',
-        'XeroSquare',
-        'NetSuiteSquare',
-        'QBDSquare',
-        'CertiniaSquare',
-        'RilletSquare',
-        'DualEntrySquare',
-    ]);
-    const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
-    const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
-    const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
-    const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
-    const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
-    const [cardFeeds] = useCardFeeds(policyID);
-    const [cardLists] = useCardsLists();
 
-    const startIntegrationFlow = useCallback(
-        (newActiveIntegration: ActiveIntegration) => {
-            if (!policyID) {
+    // `removePolicyConnection` only runs once the user confirms, which can be a while after the flow started, so the
+    // policy is read at that point instead of the one captured when the prompt was shown.
+    const policyRef = useRef(policy);
+    useEffect(() => {
+        policyRef.current = policy;
+    }, [policy]);
+
+    const isDisconnectConfirmationPendingRef = useRef(false);
+
+    // Read through a ref so the unmount cleanup below can be registered once. `closeModalByID` takes a new identity
+    // whenever the modal stack changes, and an effect that listed it as a dependency would tear the prompt down as
+    // soon as any other modal opened.
+    const closeModalByIDRef = useRef(closeModalByID);
+    useEffect(() => {
+        closeModalByIDRef.current = closeModalByID;
+    }, [closeModalByID]);
+
+    useEffect(
+        () => () => {
+            // The prompt lives on the global modal stack, so it outlives this provider. An unanswered entry left
+            // behind would hand the next accounting provider the same promise under the same id, and the one answer
+            // the user eventually gives would then also run this provider's handler, against the workspace it
+            // captured rather than the one on screen.
+            if (!isDisconnectConfirmationPendingRef.current) {
                 return;
             }
-
-            if (tryNavigateToSubmitWorkspaceUpgrade(policy, true, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
-                return;
-            }
-
-            const accountingIntegrationData = getAccountingIntegrationData(
-                newActiveIntegration.name,
-                policyID,
-                translate,
-                {
-                    sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
-                    qbd: hasReusablePoliciesConnectedToQBD,
-                    certinia: hasReusablePoliciesConnectedToCertinia,
-                    rillet: hasReusablePoliciesConnectedToRillet,
-                    dualEntry: hasReusablePoliciesConnectedToDualEntry,
-                },
-                undefined,
-                undefined,
-                newActiveIntegration.integrationToDisconnect,
-                newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
-                undefined,
-                accountingIcons,
-                cardFeeds,
-                cardLists,
-                newActiveIntegration.isIntuitEnterpriseSuite,
-            );
-
-            const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
-            if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
-                );
-                return;
-            }
-            setActiveIntegration({
-                ...newActiveIntegration,
-                key: Math.random(),
-            });
+            isDisconnectConfirmationPendingRef.current = false;
+            closeModalByIDRef.current(ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID);
         },
-        [
-            policy,
-            policyID,
-            translate,
-            hasReusablePoliciesConnectedToSageIntacct,
-            hasReusablePoliciesConnectedToQBD,
-            hasReusablePoliciesConnectedToCertinia,
-            hasReusablePoliciesConnectedToRillet,
-            hasReusablePoliciesConnectedToDualEntry,
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-        ],
+        [],
     );
 
     const closeConfirmationModal = () => {
@@ -130,20 +94,161 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         });
     };
 
-    const stateValue = useMemo(
-        () => ({
-            activeIntegration,
-            popoverAnchorRefs,
-        }),
-        [activeIntegration],
-    );
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'CampfireSquare',
+        'ZohoBooksSquare',
+        'BusinessCentralSquare',
+    ]);
+    const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
+    const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
+    const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
+    const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
+    const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
+    const hasReusablePoliciesConnectedToCampfire = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE, policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardLists] = useCardsLists();
 
-    const actionsValue = useMemo(
-        () => ({
-            startIntegrationFlow,
-        }),
-        [startIntegrationFlow],
-    );
+    const startIntegrationFlow = (newActiveIntegration: ActiveIntegration) => {
+        if (!policyID) {
+            return;
+        }
+
+        if (
+            tryNavigateToSubmitWorkspaceUpgrade(
+                policy,
+                true,
+                CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias,
+                isUnifiedConnectionsBetaEnabled ? ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID) : undefined,
+            )
+        ) {
+            return;
+        }
+
+        const accountingIntegrationData = getAccountingIntegrationData(
+            newActiveIntegration.name,
+            policyID,
+            translate,
+            {
+                sageIntacct: hasReusablePoliciesConnectedToSageIntacct,
+                qbd: hasReusablePoliciesConnectedToQBD,
+                certinia: hasReusablePoliciesConnectedToCertinia,
+                rillet: hasReusablePoliciesConnectedToRillet,
+                dualEntry: hasReusablePoliciesConnectedToDualEntry,
+                campfire: hasReusablePoliciesConnectedToCampfire,
+            },
+            {
+                integrationToDisconnect: newActiveIntegration.integrationToDisconnect,
+                shouldDisconnectIntegrationBeforeConnecting: newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: newActiveIntegration.isIntuitEnterpriseSuite,
+                isUnifiedConnectionsBetaEnabled,
+            },
+        );
+
+        // Connections has no feature toggle, so turn it on here. The Control upgrade only enables the integration's own feature.
+        const shouldEnableConnections = isUnifiedConnectionsBetaEnabled && !isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        if (shouldEnableConnections) {
+            enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED);
+        }
+
+        const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
+        if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, workspaceUpgradeNavigationDetails.integrationAlias, workspaceUpgradeNavigationDetails.backToAfterWorkspaceUpgradeRoute),
+            );
+            return;
+        }
+        const activeIntegrationToStart = {
+            ...newActiveIntegration,
+            key: Math.random(),
+        };
+        // The setup pages redirect to More features while Connections is off, so they open a frame later, once the policy shows it on
+        if (shouldEnableConnections) {
+            requestAnimationFrame(() => setActiveIntegration(activeIntegrationToStart));
+        } else {
+            setActiveIntegration(activeIntegrationToStart);
+        }
+
+        const integrationToDisconnect = newActiveIntegration.integrationToDisconnect;
+        if (!newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting || !integrationToDisconnect) {
+            return;
+        }
+
+        // Mirrors `shouldShowConfirmationModal` below, which keeps `renderActiveIntegration()` from mounting the
+        // setup flow until the user has decided what to do with the connection that has to be disconnected first.
+        const connectionName = newActiveIntegration.isIntuitEnterpriseSuite
+            ? translate('workspace.accounting.intuitEnterpriseSuite')
+            : (CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[newActiveIntegration.name] ?? newActiveIntegration.name);
+        const modalCopy = isUnifiedConnectionsBetaEnabled
+            ? {
+                  title: translate('workspace.connections.replaceConnectionTitle'),
+                  prompt: translate('workspace.connections.replaceConnectionPrompt', getAccountingIntegrationDisplayName(policy, integrationToDisconnect, translate)),
+                  confirmText: translate('common.replace'),
+                  buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+              }
+            : {
+                  title: translate('workspace.accounting.connectTitle', connectionName),
+                  prompt: translate('workspace.accounting.connectPrompt', connectionName),
+                  confirmText: translate('workspace.accounting.setup'),
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+              };
+
+        isDisconnectConfirmationPendingRef.current = true;
+
+        showConfirmModal({
+            // `startIntegrationFlow` can run more than once for the same flow (the `useFocusEffect` in
+            // `PolicyAccountingPage` and `WorkspaceConnectionsPage` re-fires whenever `startIntegrationFlow` is
+            // re-created). A stable id keeps the repeat call updating this prompt in place instead of stacking a
+            // second copy behind it.
+            id: ACCOUNTING_CONNECTION_CONFIRMATION_MODAL_ID,
+            ...modalCopy,
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            // A repeat call for the same id is handed back the promise the first call got, so every call's handler
+            // runs on a single user answer. Only the first one may act, or the disconnect would be requested twice.
+            if (!isDisconnectConfirmationPendingRef.current) {
+                return;
+            }
+            isDisconnectConfirmationPendingRef.current = false;
+
+            if (result.action !== ModalActions.CONFIRM) {
+                setActiveIntegration(undefined);
+                return;
+            }
+
+            const currentPolicy = policyRef.current;
+
+            // If the policy went away while the prompt was open there is nothing to disconnect, so leave the
+            // confirmation state intact and keep `renderActiveIntegration()` held back.
+            if (!currentPolicy) {
+                return;
+            }
+
+            removePolicyConnection(currentPolicy, integrationToDisconnect);
+
+            closeConfirmationModal();
+        });
+    };
+
+    const stateValue = {
+        activeIntegration,
+        popoverAnchorRefs,
+    };
+
+    const actionsValue = {
+        startIntegrationFlow,
+    };
 
     const renderActiveIntegration = () => {
         if (!policyID || !activeIntegration) {
@@ -160,19 +265,22 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
                 dualEntry: hasReusablePoliciesConnectedToDualEntry,
+                campfire: hasReusablePoliciesConnectedToCampfire,
             },
-            policy,
-            activeIntegration.key,
-            undefined,
-            undefined,
-            undefined,
-            accountingIcons,
-            cardFeeds,
-            cardLists,
-            activeIntegration.isIntuitEnterpriseSuite,
+            {
+                policy,
+                key: activeIntegration.key,
+                expensifyIcons: accountingIcons,
+                cardFeeds,
+                cardList: cardLists,
+                isIntuitEnterpriseSuiteOverride: activeIntegration.isIntuitEnterpriseSuite,
+                isUnifiedConnectionsBetaEnabled,
+            },
         )?.setupConnectionFlow;
     };
 
+    // The confirmation prompt itself lives on the global modal stack and is shown from `startIntegrationFlow`, but this
+    // flag still has to gate the setup flow so it does not mount behind the prompt.
     const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;
 
     return (
@@ -180,33 +288,9 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             <AccountingActionsContext.Provider value={actionsValue}>
                 {children}
                 {!shouldShowConfirmationModal && renderActiveIntegration()}
-                {shouldShowConfirmationModal && (
-                    <AccountingConnectionConfirmationModal
-                        onConfirm={() => {
-                            if (!policyID || !activeIntegration?.integrationToDisconnect) {
-                                return;
-                            }
-                            removePolicyConnection(policy, activeIntegration?.integrationToDisconnect);
-                            closeConfirmationModal();
-                        }}
-                        integrationToConnect={activeIntegration.name}
-                        integrationDisplayName={activeIntegration.isIntuitEnterpriseSuite ? translate('workspace.accounting.intuitEnterpriseSuite') : undefined}
-                        onCancel={() => {
-                            setActiveIntegration(undefined);
-                        }}
-                    />
-                )}
             </AccountingActionsContext.Provider>
         </AccountingStateContext.Provider>
     );
-}
-
-function useAccountingState(): AccountingStateContextType {
-    return useContext(AccountingStateContext);
-}
-
-function useAccountingActions(): AccountingActionsContextType {
-    return useContext(AccountingActionsContext);
 }
 
 export {AccountingContextProvider, useAccountingState, useAccountingActions};

@@ -30,6 +30,9 @@ type RequiredFlags = {
     isCategoryRequired: boolean;
     isMerchantRequired: boolean | undefined;
     isDescriptionRequired: boolean;
+
+    /** The selected category's description hint, empty when it shouldn't be shown */
+    descriptionHint: string;
 };
 
 /** Caller-supplied visibility decisions before they are merged with derived flags */
@@ -41,13 +44,19 @@ type VisibilityFlags = {
     shouldShowTax: boolean;
 
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
-    isParticipantPickerVisible: boolean;
+    isParticipantPickerVisible?: boolean;
+
+    /**
+     * Whether the list renders a participant section ("To" / "Paid by") above the footer. The manual form draws a
+     * divider under it so the workspace row reads as its own section rather than as the first expense detail.
+     */
+    hasParticipantSection: boolean;
 };
 
 /** Shared error state surfaced into multiple fields */
 type ErrorState = {
     shouldDisplayFieldError: boolean;
-    formError: string;
+    formError: TranslationPaths | '';
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
 };
@@ -72,8 +81,8 @@ type CompactControls = {
 
 /** Receipt-related inputs threaded into the receipt section */
 type ReceiptOptions = {
-    receiptFilename: string;
-    receiptPath: string | number;
+    receiptFilename?: string;
+    receiptPath?: string | number;
     isLoadingReceipt?: boolean;
     isReceiptEditable?: boolean;
     shouldDisplayReceipt: boolean;

@@ -1,14 +1,14 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction, shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -16,13 +16,15 @@ import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/ut
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type QBOSectionType = {
     title?: string;
@@ -49,29 +51,26 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
     const isLocationEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qboConfig?.syncTax;
 
-    const [exportHintText, accountDescription] = useMemo(() => {
-        let hintText: string | undefined;
-        let description: string | undefined;
-        switch (qboConfig?.reimbursableExpensesExportDestination) {
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportCheckDescription');
-                description = translate('workspace.qbo.bankAccount');
-                break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                hintText = isTaxesEnabled ? undefined : translate('workspace.qbo.exportJournalEntryDescription');
-                description = translate('workspace.qbo.account');
-                break;
-            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportVendorBillDescription');
-                description = translate('workspace.qbo.accountsPayable');
-                break;
-            default:
-                description = translate('workspace.qbo.account');
-                break;
-        }
-
-        return [hintText, description];
-    }, [translate, qboConfig?.reimbursableExpensesExportDestination, isLocationEnabled, isTaxesEnabled]);
+    let hintText: string | undefined;
+    let description: string | undefined;
+    switch (qboConfig?.reimbursableExpensesExportDestination) {
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportCheckDescription');
+            description = translate('workspace.qbo.bankAccount');
+            break;
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            hintText = isTaxesEnabled ? undefined : translate('workspace.qbo.exportJournalEntryDescription');
+            description = translate('workspace.qbo.account');
+            break;
+        case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            hintText = isLocationEnabled ? undefined : translate('workspace.qbo.exportVendorBillDescription');
+            description = translate('workspace.qbo.accountsPayable');
+            break;
+        default:
+            description = translate('workspace.qbo.account');
+            break;
+    }
+    const [exportHintText, accountDescription] = [hintText, description];
 
     const sections: QBOSectionType[] = [
         {
@@ -133,14 +132,16 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
                 >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                        hintText={section.hintText}
-                    />
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                        <MenuItemField.Row
+                            name={section.description ?? ''}
+                            value={section.title}
+                        >
+                            {!!section.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={section.brickRoadIndicator} />}
+                            <MenuItem.Chevron />
+                        </MenuItemField.Row>
+                        {!!section.hintText && <MenuItem.HelpText message={section.hintText} />}
+                    </MenuItem.Root>
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

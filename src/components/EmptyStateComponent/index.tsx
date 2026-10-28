@@ -1,4 +1,4 @@
-import Button from '@components/ButtonComposed';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
@@ -12,7 +12,7 @@ import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFrag
 import CONST from '@src/CONST';
 
 import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {EmptyStateComponentProps} from './types';
@@ -37,14 +37,11 @@ function EmptyStateComponent({
     const styles = useThemeStyles();
     const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
-    const HeaderComponent = useMemo(
-        () => (
-            <ImageSVG
-                style={StyleSheet.flatten(headerContentStyles)}
-                src={headerMedia}
-            />
-        ),
-        [headerMedia, headerContentStyles],
+    const HeaderComponent = (
+        <ImageSVG
+            style={StyleSheet.flatten(headerContentStyles)}
+            src={headerMedia}
+        />
     );
 
     return (
