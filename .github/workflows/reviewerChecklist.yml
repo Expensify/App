@@ -22,8 +22,7 @@ jobs:
               - '!docs/**/*.md'
               - '!docs/**/*.csv'
 
-      # If the previous run of this check on the PR already passed, pass now. Checkout sometimes takes a minute or
-      # longer for reasons outside this workflow, and the checklist result does not depend on a fresh checkout.
+      # If the previous run of this check on the PR already passed, pass now.
       # Step names below are part of that decision: a path-filter skip is not a pass, but a previous short-circuit is.
       - name: Check previous run
         id: previous
