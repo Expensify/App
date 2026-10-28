@@ -27,6 +27,7 @@ import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
+import isPeriodAfterToday from './isPeriodAfterToday';
 import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
 
@@ -111,13 +112,7 @@ function SearchChartView({
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
         isLaterPeriod: (item) => {
             const range = getDateRange?.(item);
-            if (!range) {
-                return false;
-            }
-
-            // A date filter that starts partway through a group starts the group there too, e.g. Oct 10 for a range from Oct 10 to Dec 31
-            const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
-            return start > today;
+            return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
         translate,
         dateFnsLocale,

@@ -1,6 +1,7 @@
 /** Builds a CSV from the current period's loaded chart groups, without exporting individual expenses. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
+import isPeriodAfterToday from '@components/Search/isPeriodAfterToday';
 import type {GroupedItem, SearchGroupBy} from '@components/Search/types';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -9,17 +10,14 @@ import escapeCsvField from '@libs/escapeCsvField';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {Interval} from 'date-fns';
-
-import {eachDayOfInterval, eachMonthOfInterval, eachQuarterOfInterval, eachWeekOfInterval, eachYearOfInterval, format, parseISO} from 'date-fns';
-
 type BuildInsightsChartCSVParams = {
     data: GroupedItem[];
     groupBy: SearchGroupBy;
-    dateRange: {start?: string; end?: string};
+    dateFilterStart?: string;
     currency: string;
     getCurrencyDecimals: (currency: string) => number;
     translate: LocalizedTranslate;
+    today: string;
 };
 
 const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
@@ -28,25 +26,7 @@ const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
 };
 
-function getPeriodStarts(groupBy: SearchGroupBy, interval: Interval): Date[] {
-    switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.DAY:
-            return eachDayOfInterval(interval);
-        case CONST.SEARCH.GROUP_BY.WEEK:
-            // Search weeks start on Sunday, regardless of the display locale.
-            return eachWeekOfInterval(interval, {weekStartsOn: 0});
-        case CONST.SEARCH.GROUP_BY.MONTH:
-            return eachMonthOfInterval(interval);
-        case CONST.SEARCH.GROUP_BY.QUARTER:
-            return eachQuarterOfInterval(interval);
-        case CONST.SEARCH.GROUP_BY.YEAR:
-            return eachYearOfInterval(interval);
-        default:
-            return [];
-    }
-}
-
-function buildInsightsChartCSV({data, groupBy, dateRange, currency, getCurrencyDecimals, translate}: BuildInsightsChartCSVParams): string {
+function buildInsightsChartCSV({data, groupBy, dateFilterStart, currency, getCurrencyDecimals, translate, today}: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
     const groupHeader = translate(GROUP_HEADER_KEYS[groupBy] ?? 'common.date');
     const header = [groupHeader, translate('common.expenses'), translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
@@ -58,12 +38,10 @@ function buildInsightsChartCSV({data, groupBy, dateRange, currency, getCurrencyD
         currency: item.currency ?? currency,
     }));
 
-    if (getDateRange && dateRange.start && dateRange.end) {
-        const rowsByDate = new Map(rows.map((row) => [row.label, row]));
-        rows = getPeriodStarts(groupBy, {start: parseISO(dateRange.start), end: parseISO(dateRange.end)}).map((date) => {
-            const label = format(date, CONST.DATE.FNS_FORMAT_STRING);
-            return rowsByDate.get(label) ?? {label, count: 0, total: 0, currency};
-        });
+    if (getDateRange) {
+        // Ends the export at the last period that has expenses or has started
+        const lastKeptIndex = rows.findLastIndex((row) => !!row.count || !isPeriodAfterToday(row.label, today, dateFilterStart));
+        rows = rows.slice(0, lastKeptIndex + 1);
     }
 
     const csvRows = rows.map((row) =>
