@@ -11,6 +11,8 @@ import type {LinkingOptions} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import {Linking} from 'react-native';
 
+import {clearAmountForQuickActionLink, clearDraftForQuickActionLink} from './quickActionDraft';
+
 /**
  * Rules for dropping a deep link that would re-navigate to a screen the user is already on.
  */
@@ -44,6 +46,10 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
             const state = navigationRef.current?.getRootState();
             const focusedName = state ? findFocusedRoute(state)?.name : undefined;
             if (focusedName && skipRule.focusedScreens.includes(focusedName)) {
+                // The manual tab is still showing the last unfinished expense, so clear its amount for the new one.
+                if (focusedName === ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route) {
+                    clearAmountForQuickActionLink(url);
+                }
                 return;
             }
         }
@@ -65,6 +71,7 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
         if (!hasAuthToken() && getPathnameFromURL(url).includes(`/${ROUTES.REPORT}/`)) {
             return;
         }
+        clearDraftForQuickActionLink(url);
         listener(url);
     });
     return () => subscription.remove();
