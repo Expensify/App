@@ -13,6 +13,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -20,6 +21,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -36,7 +38,6 @@ type RAMOnlyReportLoadingState = OnyxEntry<{
 type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
-    conciergeChat: OpenReportActionParams['conciergeChat'];
     isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
     hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
     isOffline: boolean;
@@ -66,7 +67,6 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
-    conciergeChat,
     reportID,
     introSelected,
     isSelfTourViewed,
@@ -94,6 +94,22 @@ function useReportActionsNewActionLiveTail({
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
+    // Read the Concierge chat only when the jump happens, so the list does not subscribe to it
+    const openReportAtLiveTail = async () => {
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions: true,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot,
+        });
+    };
+
     const scrollToBottomForCurrentUserAction = useEffectEvent((isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -113,16 +129,7 @@ function useReportActionsNewActionLiveTail({
                 if (shouldJumpToLiveTail) {
                     if (liveTailJumpRef.current.stage === 'idle') {
                         liveTailJumpRef.current = {stage: 'open_report'};
-                        openReport({
-                            reportID,
-                            introSelected,
-                            conciergeChat,
-                            hasReportActions: true,
-                            currentUserAccountID,
-                            isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow,
-                            fullPolicySnapshot,
-                        });
+                        openReportAtLiveTail();
                     }
                     return;
                 }

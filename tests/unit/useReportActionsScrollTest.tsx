@@ -183,7 +183,6 @@ function makeAction(reportActionID: string, overrides: Partial<ReportAction> = {
 function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
     return {
         reportID: REPORT_ID,
-        conciergeChat: undefined,
         report: createMockReport({reportID: REPORT_ID}),
         transactionThreadReport: undefined,
         parentReportAction: undefined,
@@ -386,6 +385,7 @@ describe('useReportActionsScroll', () => {
             act(() => {
                 result.current.scrollToBottomAndMarkReportAsRead();
             });
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
             expect(mockOpenReport).toHaveBeenCalledTimes(1);
@@ -401,9 +401,29 @@ describe('useReportActionsScroll', () => {
             act(() => {
                 result.current.scrollToBottomAndMarkReportAsRead();
             });
+            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
             expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        });
+
+        it('reads the Concierge chat from Onyx when it opens the report', async () => {
+            // Given a Concierge chat in Onyx and a report whose newest action is not loaded. The hook does not subscribe to
+            // the Concierge chat, so it must read it at press time for the guided setup data openReport builds.
+            mockLastVisibleActionCreated = '2099-01-01 00:00:00.000';
+            const conciergeChat = createMockReport({reportID: 'concierge-scroll-1'});
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeChat.reportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChat.reportID}`, conciergeChat);
+            const {result} = await renderScroll();
+
+            // When the user presses the "Latest messages" pill
+            act(() => {
+                result.current.scrollToBottomAndMarkReportAsRead();
+            });
+            await waitForBatchedUpdates();
+
+            // Then openReport receives the Concierge chat that was in Onyx
+            expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat: expect.objectContaining({reportID: conciergeChat.reportID})}));
         });
     });
 

@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {useRoute} from '@react-navigation/native';
-import {getStableReportSelector} from '@selectors/Report';
 import React from 'react';
 
 import type ReportScreenNavigationProps from './types';
@@ -47,7 +46,6 @@ function ReportActions() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, {selector: getStableReportSelector});
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const isAppLoadPending = useIsAppLoadPending();
     const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
@@ -94,7 +92,6 @@ function ReportActions() {
     return (
         <>
             <ReportActionsList
-                conciergeChat={conciergeChat}
                 key={report.reportID}
                 reportID={report.reportID}
             />

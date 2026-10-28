@@ -30,6 +30,7 @@ import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -40,9 +41,6 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
-    /** The Concierge chat report */
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
-
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -143,7 +141,6 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
-    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -273,7 +270,6 @@ function useReportActionsScroll({
     }, [isComposerFullSize]);
 
     const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
-        conciergeChat,
         reportID,
         introSelected,
         isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -405,6 +401,22 @@ function useReportActionsScroll({
         return () => handle?.cancel();
     }, [lastAction]);
 
+    // Read the Concierge chat only when the user jumps, so the list does not subscribe to it
+    const openReportAtLiveTail = async () => {
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions: true,
+            currentUserAccountID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot,
+        });
+    };
+
     const scrollToBottomAndMarkReportAsRead = () => {
         setIsFloatingMessageCounterVisible(false);
 
@@ -420,16 +432,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({
-                reportID,
-                introSelected,
-                conciergeChat,
-                hasReportActions: true,
-                currentUserAccountID,
-                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                fullPolicySnapshot,
-            });
+            openReportAtLiveTail();
             reportScrollManager.scrollToBottom();
             return;
         }
