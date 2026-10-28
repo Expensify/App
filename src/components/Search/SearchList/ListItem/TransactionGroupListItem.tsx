@@ -332,21 +332,23 @@ function TransactionGroupListItemImpl({
     };
 
     const getHeader = (hovered: boolean) => {
+        const memberHeader = (
+            <MemberListItemHeader
+                member={groupItem as TransactionMemberGroupListItemType}
+                onCheckboxPress={handleSelectionButtonPress}
+                isDisabled={isDisabledOrEmpty}
+                columns={columns}
+                canSelectMultiple={canSelectMultiple}
+                isSelectAllChecked={isSelectAllChecked}
+                isIndeterminate={isIndeterminate}
+                onDownArrowClick={onExpandIconPress}
+                isExpanded={isExpanded}
+                isLargeScreenWidth={isLargeScreenWidth}
+            />
+        );
         const headers: Record<SearchGroupBy, React.ReactNode> = {
-            [CONST.SEARCH.GROUP_BY.FROM]: (
-                <MemberListItemHeader
-                    member={groupItem as TransactionMemberGroupListItemType}
-                    onCheckboxPress={handleSelectionButtonPress}
-                    isDisabled={isDisabledOrEmpty}
-                    columns={columns}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={isIndeterminate}
-                    onDownArrowClick={onExpandIconPress}
-                    isExpanded={isExpanded}
-                    isLargeScreenWidth={isLargeScreenWidth}
-                />
-            ),
+            [CONST.SEARCH.GROUP_BY.FROM]: memberHeader,
+            [CONST.SEARCH.GROUP_BY.APPROVER]: memberHeader,
             [CONST.SEARCH.GROUP_BY.CARD]: (
                 <CardListItemHeader
                     card={groupItem as TransactionCardGroupListItemType}

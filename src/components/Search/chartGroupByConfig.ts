@@ -46,11 +46,19 @@ type ChartGroupByConfig = {
  * Chart-specific configuration for each groupBy type - defines how to extract label and build filter query
  * for displaying grouped transaction data in charts.
  */
+const getMemberLabel = (item: GroupedItem) => (item as TransactionMemberGroupListItemType).formattedFrom ?? '';
+
 const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.FROM]: {
         titleIconName: 'Users',
-        getLabel: (item: GroupedItem) => (item as TransactionMemberGroupListItemType).formattedFrom ?? '',
+        getLabel: getMemberLabel,
         getFilterQuery: (item: GroupedItem) => `from:${(item as TransactionMemberGroupListItemType).accountID}`,
+    },
+    [CONST.SEARCH.GROUP_BY.APPROVER]: {
+        titleIconName: 'Users',
+        getLabel: getMemberLabel,
+        // Search has no approver filter yet, so a clicked approver opens the chart's whole query
+        getFilterQuery: () => '',
     },
     [CONST.SEARCH.GROUP_BY.CARD]: {
         titleIconName: 'CreditCard',

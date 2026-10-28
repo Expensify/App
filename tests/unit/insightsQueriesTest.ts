@@ -105,7 +105,8 @@ describe('insightsQueries', () => {
             expect(request?.headlineChart.chart.graphKey).toBe(COMPLIANCE_SPEC.headlineChart.graphKey);
             expect(Object.keys(parsePayload(request)?.insightsHashes ?? {})).toEqual(['violationsOverTime']);
             expect(new Set(request?.snapshotHashes).size).toBe(3);
-            expect(request?.hash).not.toBe(spend?.hash);
+            // The dashboard hash may match Spend's, since each dashboard's entry is keyed by its ID, but the violation filter keeps their snapshots apart
+            expect(request?.hash).toBe(spend?.hash);
             for (const hash of request?.snapshotHashes ?? []) {
                 expect(spend?.snapshotHashes).not.toContain(hash);
             }
