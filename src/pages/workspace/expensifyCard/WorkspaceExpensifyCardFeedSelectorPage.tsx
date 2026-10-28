@@ -82,11 +82,14 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    const {primaryFeeds, otherFeeds: allOtherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const {primaryFeeds: allPrimaryFeeds, otherFeeds: allOtherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    // A feed from an archived workspace can't take new cards, so it isn't offered for linking to this workspace
-    const otherFeeds = allOtherFeeds.filter((entry) => !isExpensifyCardFeedBackedByArchivedPolicy(entry.fundID, policies));
+    // A feed from an archived workspace can't take new cards, so it isn't offered here, whether it was already linked to
+    // this workspace before the archive (a primary feed) or would be linked now (an other feed)
+    const isFeedUsable = (entry: ExpensifyCardFeedEntry) => !isExpensifyCardFeedBackedByArchivedPolicy(entry.fundID, policies);
+    const primaryFeeds = allPrimaryFeeds.filter(isFeedUsable);
+    const otherFeeds = allOtherFeeds.filter(isFeedUsable);
     const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);

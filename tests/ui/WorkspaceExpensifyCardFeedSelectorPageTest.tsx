@@ -22,6 +22,7 @@ const ARCHIVED_FUND_ID = 11;
 const ACTIVE_FUND_ID = 22;
 
 // Mutable so a test can back the mocked hooks with feeds from other workspaces and the policies that own them.
+let mockPrimaryFeeds: Array<{settingsKey: string; fundID: number; settings: ExpensifyCardSettings}> = [];
 let mockOtherFeeds: Array<{settingsKey: string; fundID: number; settings: ExpensifyCardSettings}> = [];
 let mockPolicies: OnyxCollection<Policy>;
 let mockCanMemberWrite = false;
@@ -77,7 +78,7 @@ jest.mock('@hooks/useDefaultFundID', () => ({
 }));
 jest.mock('@hooks/useExpensifyCardFeedsForFeedSelector', () => ({
     __esModule: true,
-    default: () => ({primaryFeeds: [], otherFeeds: mockOtherFeeds}),
+    default: () => ({primaryFeeds: mockPrimaryFeeds, otherFeeds: mockOtherFeeds}),
 }));
 jest.mock('@libs/ExpensifyCardFeedSelectorUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
@@ -87,6 +88,16 @@ jest.mock('@libs/ExpensifyCardFeedSelectorUtils', () => {
         ...actual,
         getExpensifyCardFeedDescription: (_settings: unknown, _policies: unknown, _domains: unknown, fundID: number) => `Feed ${fundID}`,
     };
+});
+jest.mock('@components/SelectionList', () => {
+    const {Text, View} = jest.requireActual<typeof ReactNative>('react-native');
+    return ({data}: {data: Array<{keyForList: string; text: string}>}) => (
+        <View>
+            {data.map((item) => (
+                <Text key={item.keyForList}>{item.text}</Text>
+            ))}
+        </View>
+    );
 });
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => {
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
@@ -152,6 +163,7 @@ const navigation = createMock<FeedSelectorScreenProps['navigation']>({});
 
 describe('WorkspaceExpensifyCardFeedSelectorPage', () => {
     beforeEach(() => {
+        mockPrimaryFeeds = [];
         mockOtherFeeds = [];
         mockPolicies = undefined;
         mockCanMemberWrite = false;
@@ -212,6 +224,32 @@ describe('WorkspaceExpensifyCardFeedSelectorPage', () => {
 
         // Then there is nothing to pick, so the page says no feeds are available instead of offering a dead-end feed
         expect(screen.getByText('workspace.expensifyCard.noCardFeedsAvailable')).toBeOnTheScreen();
+        expect(screen.queryByText(`Feed ${ARCHIVED_FUND_ID}`)).not.toBeOnTheScreen();
+    });
+
+    it('does not offer a feed already linked to this workspace once its own workspace is archived', () => {
+        // Given two feeds linked to this workspace, one whose own workspace was archived after the link and one still active.
+        // The archived one stays a primary feed because this workspace is still in its linked policies.
+        mockCanMemberWrite = true;
+        mockPrimaryFeeds = [
+            {settingsKey: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${ARCHIVED_FUND_ID}`, fundID: ARCHIVED_FUND_ID, settings: {}},
+            {settingsKey: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${ACTIVE_FUND_ID}`, fundID: ACTIVE_FUND_ID, settings: {}},
+        ];
+        mockPolicies = {
+            [`${ONYXKEYS.COLLECTION.POLICY}archived`]: createMock<Policy>({id: 'archived', policyAccountID: ARCHIVED_FUND_ID, archivedDate: '2026-10-28 00:00:00.000'}),
+            [`${ONYXKEYS.COLLECTION.POLICY}active`]: createMock<Policy>({id: 'active', policyAccountID: ACTIVE_FUND_ID}),
+        };
+
+        // When the feed selector renders
+        render(
+            <WorkspaceExpensifyCardFeedSelectorPage
+                route={route}
+                navigation={navigation}
+            />,
+        );
+
+        // Then only the active feed can be picked, because the backend rejects issuing cards on an archived workspace's feed
+        expect(screen.getByText(`Feed ${ACTIVE_FUND_ID}`)).toBeOnTheScreen();
         expect(screen.queryByText(`Feed ${ARCHIVED_FUND_ID}`)).not.toBeOnTheScreen();
     });
 });
