@@ -54,6 +54,7 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'ThumbsUp',
     'CheckCircle',
     'Plane',
+    'Paycheck',
 ] as const satisfies readonly ExpensifyIconName[];
 
 type SearchTypeMenuItem = {
@@ -195,7 +196,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.BILLS,
             translationPath: 'billPay.bills',
             type: CONST.SEARCH.DATA_TYPES.BILL,
-            icon: 'Document',
+            icon: 'Paycheck',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.BILL}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
