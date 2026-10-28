@@ -411,6 +411,35 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
         });
 
+        it('drops Concierge when the gate mounts after its reply landed but before the label cleared', async () => {
+            // Given a completed Concierge reply that is the newest action while the server label is still on
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                userMessage: {
+                    reportActionID: 'userMessage',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID,
+                    created: '2026-10-23 12:10:39.426',
+                    message: [{type: 'TEXT', text: 'Is there a monthly limit?'}],
+                },
+                reply: {
+                    reportActionID: 'reply',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-23 12:12:36.000',
+                    message: [{type: 'TEXT', text: 'There is no monthly limit.'}],
+                },
+            });
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+
+            // When the report is opened in that window
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then no bubble shows on top of the reply, because the label did not turn on while the gate was watching
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
         it('never includes the current user, even when the server names their accountID', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CUSTOM_AGENT});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {

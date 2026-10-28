@@ -150,6 +150,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
                 QUESTION_ID,
             );
 
+            // When the indicators are evaluated for that report
             const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
 
             // Then the skeleton window no longer hides the indicators, since that message is a turn of its own
@@ -159,6 +160,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
         });
 
         it('keeps suppressing while only the question exists', async () => {
+            // Given a followup turn with no user message after the question
             await seedFollowupTurn(
                 {
                     [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
@@ -167,14 +169,17 @@ describe('useShouldSuppressConciergeIndicators', () => {
                 QUESTION_ID,
             );
 
+            // When the indicators are evaluated for that report
             const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
 
+            // Then the skeleton window still hides them, because no newer user turn exists
             await waitFor(() => {
                 expect(result.current).toBe(true);
             });
         });
 
         it('keeps suppressing when the only newer action is from Concierge', async () => {
+            // Given a followup turn where only Concierge commented after the question
             await seedFollowupTurn(
                 {
                     [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
@@ -184,8 +189,10 @@ describe('useShouldSuppressConciergeIndicators', () => {
                 QUESTION_ID,
             );
 
+            // When the indicators are evaluated for that report
             const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
 
+            // Then the skeleton window still hides them, because no newer user turn exists
             await waitFor(() => {
                 expect(result.current).toBe(true);
             });
@@ -199,6 +206,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
                 [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
             });
 
+            // When the indicators are evaluated for that report
             const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
 
             // Then behavior falls back to the pre-anchor suppression instead of guessing

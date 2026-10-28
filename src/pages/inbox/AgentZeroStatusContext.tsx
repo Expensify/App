@@ -188,8 +188,10 @@ function AgentZeroStatusGate({
     // that flash without waiting for the NVP clear.
     // A pregenerated followup reply, or an agent comment that was already newest when its label turned on, answers an
     // earlier question. It can sort after the user's next message, so it does not mean the current turn is answered.
+    // The baseline is only taken on a label change seen while mounted, since a label that is already on at mount may
+    // belong to a reply that has landed and is just waiting for the server clear.
     const serverAgentIDsKey = (serverAgentIDs ?? []).join(',');
-    const [labelBaseline, setLabelBaseline] = useState({key: serverAgentIDsKey, newestActionID: newestReportAction?.reportActionID});
+    const [labelBaseline, setLabelBaseline] = useState<{key: string; newestActionID: string | undefined}>({key: serverAgentIDsKey, newestActionID: undefined});
     if (labelBaseline.key !== serverAgentIDsKey) {
         setLabelBaseline({key: serverAgentIDsKey, newestActionID: newestReportAction?.reportActionID});
     }
