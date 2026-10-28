@@ -228,28 +228,6 @@ describe('TaxPickerModal', () => {
         expect(mockPopoverProps?.popoverDimensions?.height).toBe(getSelectionListPopoverContentHeight({optionCount: 2, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM);
     });
 
-    it('lets the sheet grow with a long list up to the window, short of the search threshold', async () => {
-        // Given a phone and a workspace with eleven rates, one short of the list showing its search input
-        const taxes = Object.fromEntries(Array.from({length: 11}, (_, index) => [`id_TAX_RATE_${index}`, {name: `Tax ${index}`, value: `${index}%`}]));
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {taxRates: {taxes}});
-        await waitForBatchedUpdates();
-
-        // When the expense form's tax rate list opens
-        render(
-            <TaxPickerModal
-                isVisible
-                onClose={jest.fn()}
-                policyID={POLICY_ID}
-                anchorPosition={{horizontal: 0, vertical: 0}}
-                shouldFitContentHeight
-            />,
-        );
-
-        // Then the sheet is as tall as the window allows, the same as the list with a search input, instead of stopping at the
-        // five rows of the wide-layout dropdown cap and leaving the rest to scroll
-        expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING);
-    });
-
     it('keeps the sheet above an open keyboard', () => {
         // Given a phone whose keyboard is open
         mockKeyboardHeight = 300;

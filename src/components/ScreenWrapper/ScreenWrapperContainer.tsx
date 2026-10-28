@@ -25,8 +25,6 @@ import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 
-import getScreenWrapperMaxHeight from './getScreenWrapperMaxHeight';
-
 type ScreenWrapperContainerProps = ForwardedFSClassProps &
     React.PropsWithChildren<{
         testID: string;
@@ -115,7 +113,7 @@ function ScreenWrapperContainer({
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
-    const maxHeight = shouldEnableMaxHeight ? getScreenWrapperMaxHeight(windowHeight) : undefined;
+    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
     const {isBlurred} = useInputBlurState();
     const {setIsBlurred} = useInputBlurActions();

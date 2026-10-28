@@ -1,7 +1,6 @@
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
-import isTextInputRef from '@components/TextInput/BaseTextInput/isTextInputRef';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -165,7 +164,7 @@ function CategoryPicker({
         hint: offlineMessage,
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
-        ref: (ref: BaseTextInputRef | null) => inputCallbackRef(isTextInputRef(ref) ? ref : null),
+        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
     return (
