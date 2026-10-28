@@ -8686,7 +8686,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>为了执行你的代理规则，我们为你创建了一个代理，并将其添加为你工作区的管理员。<br><br>你可以在 <a href="${agentsRoute}">“账户”&gt;“代理”</a> 中编辑代理的详细信息。</muted-text>`,
                 suggestionsTab: '建议',
-                writeTab: '编辑',
+                writeTab: '自定义',
                 findSuggestion: '查找规则',
                 emptySuggestionsTitle: '暂无可用建议',
                 emptySuggestionsSubtitle: '尝试编写您自己的规则。',

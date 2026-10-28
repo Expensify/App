@@ -8988,7 +8988,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar suas regras de agente, criamos um agente para você e o adicionamos como administrador do seu espaço de trabalho.<br><br>Edite os detalhes do seu agente em <a href="${agentsRoute}">Conta &gt; Agentes</a>.</muted-text>`,
                 suggestionsTab: 'Sugestões',
-                writeTab: 'Editar',
+                writeTab: 'Personalizado',
                 findSuggestion: 'Encontrar uma regra',
                 emptySuggestionsTitle: 'Nenhuma sugestão disponível',
                 emptySuggestionsSubtitle: 'Tente escrever sua própria regra.',
