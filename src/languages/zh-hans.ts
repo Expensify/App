@@ -4917,7 +4917,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             emptyRoomsSubtitle: '此工作区中的聊天室将显示在此处。',
             emptyRoomsArchivedTitle: '这些聊天室已被归档',
             emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
-                `<muted-text><centered-text><a href="${workspaceOverviewURL}">取消封存此工作区</a>以再次使用它们。</centered-text></muted-text>`,
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">取消归档此工作区</a>以再次使用它们。</centered-text></muted-text>`,
             edit: '编辑工作区',
             enabled: '已启用',
             disabled: '已禁用',

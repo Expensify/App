@@ -5063,7 +5063,7 @@ ${amount} voor ${merchant} - ${date}`,
             emptyRoomsSubtitle: 'Ruimtes in deze werkruimte verschijnen hier.',
             emptyRoomsArchivedTitle: 'Deze rooms zijn gearchiveerd',
             emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
-                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Haal dit werkruimte uit het archief</a> om ze opnieuw te gebruiken.</centered-text></muted-text>`,
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Haal deze werkruimte uit het archief</a> om ze opnieuw te gebruiken.</centered-text></muted-text>`,
             edit: 'Werkruimte bewerken',
             enabled: 'Ingeschakeld',
             disabled: 'Uitgeschakeld',
