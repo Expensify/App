@@ -10,6 +10,7 @@ import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type Rule from '@src/types/onyx/Rule';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
@@ -27,18 +28,33 @@ type ApprovalWorkflowRulesOnyxDataParams = {
 
     /** The rules as currently stored in Onyx, which `rulesDiff` is applied on top of. Used to roll back on failure. */
     previousRules: OnyxCollection<Rule>;
+
+    /**
+     * Members whose approver this save changes without any rule of theirs recording it, which happens when they fall
+     * back to a default workflow that routes through the employee list. They are marked pending so the surfaces
+     * showing their approver dim until the save lands.
+     */
+    membersWithPendingApprover?: string[];
+};
+
+type ApprovalWorkflowRulesOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.POLICY>;
+
+type ApprovalWorkflowRulesOnyxData = {
+    optimisticData: ApprovalWorkflowRulesOnyxUpdate[];
+    successData: ApprovalWorkflowRulesOnyxUpdate[];
+    failureData: ApprovalWorkflowRulesOnyxUpdate[];
 };
 
 /**
  * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
  * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}: ApprovalWorkflowRulesOnyxDataParams) {
+function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules, membersWithPendingApprover}: ApprovalWorkflowRulesOnyxDataParams): ApprovalWorkflowRulesOnyxData {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE>> = [];
+    const optimisticData: ApprovalWorkflowRulesOnyxUpdate[] = [];
+    const successData: ApprovalWorkflowRulesOnyxUpdate[] = [];
+    const failureData: ApprovalWorkflowRulesOnyxUpdate[] = [];
 
     for (const [ruleID, rule] of Object.entries(rulesDiff)) {
         const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
@@ -67,6 +83,15 @@ function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules}
         });
         successData.push({onyxMethod: Onyx.METHOD.MERGE, key: ruleKey, value: {pendingAction: null}});
         failureData.push(restore);
+    }
+
+    if (membersWithPendingApprover?.length) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        const markMembers = (pendingAction: PendingAction | null) => Object.fromEntries(membersWithPendingApprover.map((email) => [email, {pendingFields: {submitsTo: pendingAction}}]));
+
+        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE)}});
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(null)}});
+        failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(null)}});
     }
 
     return {optimisticData, successData, failureData};
