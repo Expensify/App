@@ -481,7 +481,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             customText={translate('common.more')}
             options={secondaryActions}
             isSplitButton={false}
-            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+            wrapperStyle={!isPolicyAdmin && shouldDisplayButtonsInSeparateLine ? styles.flexGrow1 : undefined}
         />
     );
 
