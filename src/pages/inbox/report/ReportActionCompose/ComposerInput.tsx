@@ -1,6 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
-import useIsAskConciergeChat from '@hooks/useIsAskConciergeChat';
+import useIsConciergeInboxDM from '@hooks/useIsConciergeInboxDM';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -85,7 +85,7 @@ function ComposerInput() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const isAskConciergeChat = useIsAskConciergeChat(reportID);
+    const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
     const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
@@ -97,7 +97,7 @@ function ComposerInput() {
     let inputPlaceholder = translate('reportActionCompose.writeSomething');
     if (includesConcierge && userBlockedFromConcierge) {
         inputPlaceholder = translate('reportActionCompose.blockedFromConcierge');
-    } else if (isAskConciergeChat) {
+    } else if (isConciergeInboxDM) {
         inputPlaceholder = translate(askConciergePlaceholderKey);
     } else if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
         inputPlaceholder = getRandomPlaceholder(translate);

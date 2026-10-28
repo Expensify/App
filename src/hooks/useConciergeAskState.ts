@@ -14,7 +14,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useIsAskConciergeChat from './useIsAskConciergeChat';
+import useIsConciergeInboxDM from './useIsConciergeInboxDM';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -33,14 +33,14 @@ type ConciergeAskState = {
 };
 
 function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
-    const isAskConciergeChat = useIsAskConciergeChat(reportID);
+    const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showFullHistory, isHistoryCollapsedByUser} = useConciergeChatHistoryState();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const hasFailedSendSelector = (actions: OnyxEntry<ReportActions>) => {
-        if (!isAskConciergeChat || !actions) {
+        if (!isConciergeInboxDM || !actions) {
             return false;
         }
 
@@ -52,13 +52,13 @@ function useConciergeAskState(reportID: string | undefined): ConciergeAskState {
     });
 
     const hasUnreadMessageFromOthersSelector = (report: OnyxEntry<Report>) =>
-        isAskConciergeChat && !!report?.lastReadTime && (report.lastVisibleActionCreated ?? '') > report.lastReadTime && report.lastActorAccountID !== currentUserAccountID;
+        isConciergeInboxDM && !!report?.lastReadTime && (report.lastVisibleActionCreated ?? '') > report.lastReadTime && report.lastActorAccountID !== currentUserAccountID;
     const [hasUnreadMessageFromOthers = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         selector: hasUnreadMessageFromOthersSelector,
     });
 
-    const isHistoryExpanded = isAskConciergeChat && (showFullHistory || !!route.params?.reportActionID);
-    const shouldShowWelcome = isAskConciergeChat && !isHistoryExpanded && (isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers;
+    const isHistoryExpanded = isConciergeInboxDM && (showFullHistory || !!route.params?.reportActionID);
+    const shouldShowWelcome = isConciergeInboxDM && !isHistoryExpanded && (isHistoryCollapsedByUser || !hasFailedSend) && !hasUnreadMessageFromOthers;
 
     return {
         isHistoryExpanded,
