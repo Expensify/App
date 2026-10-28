@@ -26,6 +26,7 @@ import {Keyboard, View} from 'react-native';
 import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
 import FormContext from './FormContext';
+import useKeepSubmitButtonInView from './useKeepSubmitButtonInView';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
@@ -102,6 +103,7 @@ function FormWrapper({
     serverErrorFields,
     serverErrorMessage,
     shouldScrollToEnd = false,
+    shouldKeepSubmitButtonInView = false,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
@@ -190,6 +192,8 @@ function FormWrapper({
         additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
         style: submitButtonStyles,
     });
+
+    const keepSubmitButtonInViewHandlers = useKeepSubmitButtonInView({isEnabled: shouldKeepSubmitButtonInView, scrollViewRef: formRef, contentRef: formContentRef});
 
     useImperativeHandle(ref, () => ({
         scrollToEnd,
@@ -280,6 +284,8 @@ function FormWrapper({
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
+                    onLayout={keepSubmitButtonInViewHandlers.onLayout}
+                    onContentSizeChange={keepSubmitButtonInViewHandlers.onContentSizeChange}
                 >
                     {scrollViewContent()}
                 </ScrollViewWithContext>
@@ -291,6 +297,8 @@ function FormWrapper({
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
+                    onLayout={keepSubmitButtonInViewHandlers.onLayout}
+                    onContentSizeChange={keepSubmitButtonInViewHandlers.onContentSizeChange}
                     onScroll={onScroll}
                 >
                     {scrollViewContent()}

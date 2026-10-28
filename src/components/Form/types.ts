@@ -191,6 +191,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
 
         shouldUseScrollView?: boolean;
 
+        /** Whether the form scrolls to its submit button when the keyboard opens, as long as the focused input stays visible */
+        shouldKeepSubmitButtonInView?: boolean;
+
         /** Container styles */
         style?: StyleProp<ViewStyle>;
 
