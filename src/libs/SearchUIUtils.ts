@@ -7479,11 +7479,17 @@ type GroupColumnWidthFlags = {
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowYear: boolean;
+    shouldShowYearSubmitted: boolean;
+    shouldShowYearApproved: boolean;
+    shouldShowYearPaid: boolean;
+    shouldShowYearPosted: boolean;
+    shouldShowYearExported: boolean;
     isActionColumnWide: boolean;
 };
 
 /**
- * Whether any transaction in a group needs the wide variant of the amount, tax, date, or action column.
+ * Whether any transaction in a group needs the wide variant of the amount, tax, action, or a date column (Date, Submitted,
+ * Approved, Paid, Posted, Exported). A date column is wide when one of its dates is from a past year, which adds the year.
  *
  * A group's sticky column sub-header and its transaction rows compute these from the same transactions but in two
  * separate components. Sharing this function is what keeps them from silently drifting apart, the way GroupHeader's
@@ -7493,6 +7499,11 @@ function getGroupColumnWidthFlags(transactions: TransactionListItemType[]): Grou
     let isAmountColumnWide = false;
     let isTaxAmountColumnWide = false;
     let showYear = false;
+    let shouldShowYearSubmitted = false;
+    let shouldShowYearApproved = false;
+    let shouldShowYearPaid = false;
+    let shouldShowYearPosted = false;
+    let shouldShowYearExported = false;
     let isActionColumnWide = false;
     for (const transaction of transactions) {
         if (transaction.isAmountColumnWide) {
@@ -7504,14 +7515,49 @@ function getGroupColumnWidthFlags(transactions: TransactionListItemType[]): Grou
         if (transaction.shouldShowYear) {
             showYear = true;
         }
+        if (transaction.shouldShowYearSubmitted) {
+            shouldShowYearSubmitted = true;
+        }
+        if (transaction.shouldShowYearApproved) {
+            shouldShowYearApproved = true;
+        }
+        if (transaction.shouldShowYearPaid) {
+            shouldShowYearPaid = true;
+        }
+        if (transaction.shouldShowYearPosted) {
+            shouldShowYearPosted = true;
+        }
+        if (transaction.shouldShowYearExported) {
+            shouldShowYearExported = true;
+        }
         if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
             isActionColumnWide = true;
         }
-        if (isAmountColumnWide && isTaxAmountColumnWide && showYear && isActionColumnWide) {
+        if (
+            isAmountColumnWide &&
+            isTaxAmountColumnWide &&
+            showYear &&
+            shouldShowYearSubmitted &&
+            shouldShowYearApproved &&
+            shouldShowYearPaid &&
+            shouldShowYearPosted &&
+            shouldShowYearExported &&
+            isActionColumnWide
+        ) {
             break;
         }
     }
-    return {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: showYear, isActionColumnWide};
+    return {
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        shouldShowYear: showYear,
+        shouldShowYearSubmitted,
+        shouldShowYearApproved,
+        shouldShowYearPaid,
+        shouldShowYearPosted,
+        shouldShowYearExported,
+        isActionColumnWide,
+    };
 }
 
 type GroupTableScrollLayout = {

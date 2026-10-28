@@ -15774,6 +15774,41 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getGroupColumnWidthFlags', () => {
+        const yearFlags = ['shouldShowYear', 'shouldShowYearSubmitted', 'shouldShowYearApproved', 'shouldShowYearPaid', 'shouldShowYearPosted', 'shouldShowYearExported'] as const;
+        const withoutYear = (transaction: TransactionListItemType): TransactionListItemType => ({
+            ...transaction,
+            ...Object.fromEntries(yearFlags.map((flag) => [flag, false])),
+        });
+
+        it.each(yearFlags)('widens the %s column of an expanded group when one of its transactions needs the year', (flag) => {
+            // Given a group where only the second transaction has a date from a past year in this column, as a group
+            // of expenses paid last year and this year would
+            const transactions = [withoutYear(getTransactionListItem(0)), {...withoutYear(getTransactionListItem(1)), [flag]: true}];
+
+            // When the group's column widths are computed for its rows and its sub-header
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then that date column is wide enough for the year, so the date isn't truncated, and the other date columns stay narrow
+            for (const otherFlag of yearFlags) {
+                expect(flags[otherFlag]).toBe(otherFlag === flag);
+            }
+        });
+
+        it('keeps every date column narrow when all the dates are from this year', () => {
+            // Given a group whose transactions have no date from a past year
+            const transactions = [withoutYear(getTransactionListItem(0)), withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then no date column reserves room for a year it doesn't show
+            for (const flag of yearFlags) {
+                expect(flags[flag]).toBe(false);
+            }
+        });
+    });
+
     describe('vendor column label', () => {
         test('Should label the vendor column as Vendor', () => {
             expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');

@@ -158,6 +158,11 @@ function GroupHeader({
         isAmountColumnWide: isSubHeaderAmountColumnWide,
         isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
         shouldShowYear: shouldSubHeaderShowYear,
+        shouldShowYearSubmitted: shouldSubHeaderShowYearSubmitted,
+        shouldShowYearApproved: shouldSubHeaderShowYearApproved,
+        shouldShowYearPaid: shouldSubHeaderShowYearPaid,
+        shouldShowYearPosted: shouldSubHeaderShowYearPosted,
+        shouldShowYearExported: shouldSubHeaderShowYearExported,
         isActionColumnWide: isSubHeaderActionColumnWide,
     } = getGroupColumnWidthFlags(groupItem.transactions);
 
@@ -337,6 +342,11 @@ function GroupHeader({
                     sortOrder={undefined}
                     sortBy={undefined}
                     shouldShowYear={shouldSubHeaderShowYear}
+                    shouldShowYearSubmitted={shouldSubHeaderShowYearSubmitted}
+                    shouldShowYearApproved={shouldSubHeaderShowYearApproved}
+                    shouldShowYearPaid={shouldSubHeaderShowYearPaid}
+                    shouldShowYearPosted={shouldSubHeaderShowYearPosted}
+                    shouldShowYearExported={shouldSubHeaderShowYearExported}
                     isAmountColumnWide={isSubHeaderAmountColumnWide}
                     isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
                     shouldShowSorting={false}
