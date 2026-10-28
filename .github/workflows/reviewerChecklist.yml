@@ -8,12 +8,6 @@ jobs:
   checklist:
     runs-on: blacksmith-4vcpu-ubuntu-2404
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    # Checkout is the slow step. These reads let us decide the check from the API before that checkout.
-    permissions:
-      actions: read
-      contents: read
-      issues: read
-      pull-requests: read
     steps:
       # pull_request_review is a pull-request event, so a token makes paths-filter use the pulls API instead of git.
       - name: Filter paths
