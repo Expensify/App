@@ -2432,6 +2432,7 @@
 "../../tests/ui/SubmitDetailsPageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/ui/TableTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/ui/TagSelectorTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	5
+"../../tests/ui/TalkToHumanPageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/ui/TransactionPreviewContentTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/TransactionReceiptOdometerReplaceTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/ui/UnreadIndicatorsTest.tsx"	"no-restricted-imports"	1
