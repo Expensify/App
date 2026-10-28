@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -234,52 +236,61 @@ function SearchSavePage() {
                 shouldHideFixErrorsAlert
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_VIEW_BUTTON}
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.NAME}
-                    ref={inputCallbackRef}
-                    placeholder={translate('common.name')}
-                    accessibilityLabel={translate('common.name')}
-                    role={CONST.ROLE.PRESENTATION}
-                />
-                <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
-                {appliedFilters.length > 0 ? (
-                    appliedFilters.map((filter) => (
-                        <View
-                            style={[styles.flexRow]}
-                            key={filter.id}
-                        >
-                            <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
-                            <Text style={[styles.label]}>
-                                <Text style={[styles.labelStrong]}>{filter.label}: </Text>
-                                <FilterValue
-                                    filterKey={filter.key}
-                                    value={filter.value}
-                                />
-                            </Text>
+                <FormFields>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.NAME}
+                        ref={inputCallbackRef}
+                        placeholder={translate('common.name')}
+                        accessibilityLabel={translate('common.name')}
+                        role={CONST.ROLE.PRESENTATION}
+                    />
+                    <FormFieldGroup>
+                        <Text style={styles.textLabelSupporting}>{translate('search.appliedFilters')}:</Text>
+                        <View>
+                            {appliedFilters.length > 0 ? (
+                                appliedFilters.map((filter) => (
+                                    <View
+                                        style={[styles.flexRow]}
+                                        key={filter.id}
+                                    >
+                                        <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
+                                        <Text style={[styles.label]}>
+                                            <Text style={[styles.labelStrong]}>{filter.label}: </Text>
+                                            <FilterValue
+                                                filterKey={filter.key}
+                                                value={filter.value}
+                                            />
+                                        </Text>
+                                    </View>
+                                ))
+                            ) : (
+                                <Text>{translate('common.none')}</Text>
+                            )}
                         </View>
-                    ))
-                ) : (
-                    <Text>{translate('common.none')}</Text>
-                )}
-
-                <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.display.label')}:</Text>
-                {appliedDisplays.length > 0 ? (
-                    appliedDisplays.map((filter) => (
-                        <View
-                            style={[styles.flexRow]}
-                            key={filter.label}
-                        >
-                            <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
-                            <Text style={[styles.label]}>
-                                <Text style={[styles.labelStrong]}>{filter.label}: </Text>
-                                {filter.value}
-                            </Text>
+                    </FormFieldGroup>
+                    <FormFieldGroup>
+                        <Text style={styles.textLabelSupporting}>{translate('search.display.label')}:</Text>
+                        <View>
+                            {appliedDisplays.length > 0 ? (
+                                appliedDisplays.map((filter) => (
+                                    <View
+                                        style={[styles.flexRow]}
+                                        key={filter.label}
+                                    >
+                                        <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
+                                        <Text style={[styles.label]}>
+                                            <Text style={[styles.labelStrong]}>{filter.label}: </Text>
+                                            {filter.value}
+                                        </Text>
+                                    </View>
+                                ))
+                            ) : (
+                                <Text>{translate('common.none')}</Text>
+                            )}
                         </View>
-                    ))
-                ) : (
-                    <Text>{translate('common.none')}</Text>
-                )}
+                    </FormFieldGroup>
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

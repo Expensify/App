@@ -1,6 +1,8 @@
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
@@ -32,7 +34,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -169,36 +170,38 @@ function DynamicIOURequestStepTime({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={INPUT_IDS.START_DATE}
-                    label={translate('iou.startDate')}
-                    defaultValue={currentStartDate}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                />
-                <View style={[styles.mt2, styles.mhn5]}>
+                <FormFields>
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
-                        inputID={INPUT_IDS.START_TIME}
-                        label={translate('iou.startTime')}
-                        defaultValue={currentDateAttributes?.start}
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.START_DATE}
+                        label={translate('iou.startDate')}
+                        defaultValue={currentStartDate}
+                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     />
-                </View>
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={INPUT_IDS.END_DATE}
-                    label={translate('iou.endDate')}
-                    defaultValue={currentEndDate}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                />
-                <View style={[styles.mt2, styles.mhn5]}>
+                    <FormMenuRows style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={TimeModalPicker}
+                            inputID={INPUT_IDS.START_TIME}
+                            label={translate('iou.startTime')}
+                            defaultValue={currentDateAttributes?.start}
+                        />
+                    </FormMenuRows>
                     <InputWrapper
-                        InputComponent={TimeModalPicker}
-                        inputID={INPUT_IDS.END_TIME}
-                        label={translate('iou.endTime')}
-                        defaultValue={currentDateAttributes?.end}
+                        InputComponent={DatePicker}
+                        inputID={INPUT_IDS.END_DATE}
+                        label={translate('iou.endDate')}
+                        defaultValue={currentEndDate}
+                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     />
-                </View>
+                    <FormMenuRows style={styles.mhn5}>
+                        <InputWrapper
+                            InputComponent={TimeModalPicker}
+                            inputID={INPUT_IDS.END_TIME}
+                            label={translate('iou.endTime')}
+                            defaultValue={currentDateAttributes?.end}
+                        />
+                    </FormMenuRows>
+                </FormFields>
             </FormProvider>
         </StepScreenWrapper>
     );

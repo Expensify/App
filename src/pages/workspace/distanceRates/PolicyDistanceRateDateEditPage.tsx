@@ -108,7 +108,7 @@ function PolicyDistanceRateDateEditPage({route}: PolicyDistanceRateDateEditPageP
                     validate={validate}
                     enabledWhenOffline
                     style={[styles.flexGrow1]}
-                    submitButtonStyles={[styles.mh5, styles.mt0]}
+                    submitButtonStyles={[styles.mh5]}
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mh5}>

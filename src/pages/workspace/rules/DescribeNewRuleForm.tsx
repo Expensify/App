@@ -158,7 +158,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             onAgentRuleFallback={offerAgentRule}
         >
             {children}
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt5, styles.mb3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                 <Text style={styles.textHeadlineLineHeightXXL}>{translate('workspace.rules.newRule.describeItBelow')}</Text>
                 <Icon
                     src={icons.Sparkles}

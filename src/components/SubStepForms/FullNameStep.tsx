@@ -1,8 +1,10 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +20,6 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
@@ -130,9 +131,11 @@ function FullNameStepImpl({
             style={[styles.mh5, styles.flexGrow1]}
             enabledWhenOffline={enabledWhenOfflineProp}
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, formSubtitle ? styles.mb3 : styles.mb6]}>{formTitle}</Text>
-                {!!formSubtitle && <Text style={[styles.mb5, styles.textSupporting]}>{formSubtitle}</Text>}
+            <FormHeader
+                title={formTitle}
+                description={formSubtitle}
+            />
+            <FormFields>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={firstNameInputID}
@@ -141,7 +144,6 @@ function FullNameStepImpl({
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues.firstName}
                     shouldSaveDraft={!isEditing}
-                    containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete="given-name"
                 />
@@ -153,17 +155,16 @@ function FullNameStepImpl({
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={defaultValues.lastName}
                     shouldSaveDraft={!isEditing}
-                    containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete="family-name"
                 />
-                {shouldShowHelpLinks && (
-                    <>
-                        <HelpLinks />
-                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
-                    </>
-                )}
-            </View>
+            </FormFields>
+            {shouldShowHelpLinks && (
+                <FormFieldGroup>
+                    <HelpLinks />
+                    {shouldShowPatriotActLink && <PatriotActLink />}
+                </FormFieldGroup>
+            )}
         </FormProvider>
     );
 }

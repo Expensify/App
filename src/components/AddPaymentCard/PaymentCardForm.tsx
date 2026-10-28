@@ -3,6 +3,8 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CurrencySelector from '@components/CurrencySelector';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -269,122 +271,121 @@ function PaymentCardForm({
                 style={[styles.mh5, styles.flexGrow1]}
                 shouldPreserveCustomValidationErrors
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.CARD_NUMBER}
-                    defaultValue={data?.cardNumber}
-                    label={translate(label.defaults.cardNumber)}
-                    aria-label={translate(label.defaults.cardNumber)}
-                    role={CONST.ROLE.PRESENTATION}
-                    ref={cardNumberRef}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
-                    onChangeText={onChangeCardNumber}
-                    value={cardNumber}
-                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    autoComplete="cc-number"
-                />
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.NAME_ON_CARD}
-                    defaultValue={data?.nameOnCard}
-                    label={translate(label.defaults.nameOnCard)}
-                    aria-label={translate(label.defaults.nameOnCard)}
-                    role={CONST.ROLE.PRESENTATION}
-                    containerStyles={[styles.mt5]}
-                    spellCheck={false}
-                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    autoComplete="cc-name"
-                />
-                <View style={[styles.flexRow, styles.mt5]}>
-                    <View style={[styles.mr2, styles.flex1]}>
-                        <InputWrapper
-                            defaultValue={data?.expirationDate}
-                            value={expirationDate}
-                            onChangeText={onChangeExpirationDate}
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.EXPIRATION_DATE}
-                            label={translate(label.defaults.expiration)}
-                            testID={label.defaults.expiration}
-                            aria-label={translate(label.defaults.expiration)}
-                            role={CONST.ROLE.PRESENTATION}
-                            placeholder={translate(label.defaults.expirationDate)}
-                            inputMode={CONST.INPUT_MODE.NUMERIC}
-                            maxLength={5}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            autoComplete="cc-exp"
-                        />
+                <FormFields>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.CARD_NUMBER}
+                        defaultValue={data?.cardNumber}
+                        label={translate(label.defaults.cardNumber)}
+                        aria-label={translate(label.defaults.cardNumber)}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={cardNumberRef}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
+                        onChangeText={onChangeCardNumber}
+                        value={cardNumber}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        autoComplete="cc-number"
+                    />
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.NAME_ON_CARD}
+                        defaultValue={data?.nameOnCard}
+                        label={translate(label.defaults.nameOnCard)}
+                        aria-label={translate(label.defaults.nameOnCard)}
+                        role={CONST.ROLE.PRESENTATION}
+                        spellCheck={false}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        autoComplete="cc-name"
+                    />
+                    <View style={styles.flexRow}>
+                        <View style={[styles.mr2, styles.flex1]}>
+                            <InputWrapper
+                                defaultValue={data?.expirationDate}
+                                value={expirationDate}
+                                onChangeText={onChangeExpirationDate}
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.EXPIRATION_DATE}
+                                label={translate(label.defaults.expiration)}
+                                testID={label.defaults.expiration}
+                                aria-label={translate(label.defaults.expiration)}
+                                role={CONST.ROLE.PRESENTATION}
+                                placeholder={translate(label.defaults.expirationDate)}
+                                inputMode={CONST.INPUT_MODE.NUMERIC}
+                                maxLength={5}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                autoComplete="cc-exp"
+                            />
+                        </View>
+                        <View style={styles.flex1}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.SECURITY_CODE}
+                                defaultValue={data?.securityCode}
+                                label={translate(label.defaults.securityCode)}
+                                aria-label={translate(label.defaults.securityCode)}
+                                role={CONST.ROLE.PRESENTATION}
+                                maxLength={4}
+                                inputMode={CONST.INPUT_MODE.NUMERIC}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                autoComplete="cc-csc"
+                            />
+                        </View>
                     </View>
-                    <View style={styles.flex1}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.SECURITY_CODE}
-                            defaultValue={data?.securityCode}
-                            label={translate(label.defaults.securityCode)}
-                            aria-label={translate(label.defaults.securityCode)}
-                            role={CONST.ROLE.PRESENTATION}
-                            maxLength={4}
-                            inputMode={CONST.INPUT_MODE.NUMERIC}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            autoComplete="cc-csc"
-                        />
-                    </View>
-                </View>
-                {!!showAddressField && (
-                    <View>
-                        <InputWrapper
-                            defaultValue={data?.addressStreet}
-                            InputComponent={AddressSearch}
-                            inputID={INPUT_IDS.ADDRESS_STREET}
-                            label={translate(label.defaults.billingAddress)}
-                            containerStyles={[styles.mt5]}
-                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                            // Limit the address search only to the USA until we fully can support international debit cards
-                            limitSearchesToCountry={CONST.COUNTRY.US}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                            autoComplete="street-address"
-                        />
-                    </View>
-                )}
-                <InputWrapper
-                    InputComponent={TextInput}
-                    defaultValue={data?.addressZipCode}
-                    inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
-                    label={translate('common.zipPostCode')}
-                    aria-label={translate('common.zipPostCode')}
-                    role={CONST.ROLE.PRESENTATION}
-                    containerStyles={[styles.mt5]}
-                    autoComplete="postal-code"
-                />
-                {!!showStateSelector && (
-                    <View style={[styles.mt4, styles.mhn5]}>
-                        <InputWrapper
-                            InputComponent={StateSelector}
-                            inputID={INPUT_IDS.ADDRESS_STATE}
-                        />
-                    </View>
-                )}
-                {!!showCurrencyField && (
-                    <View style={[styles.mt4, styles.mhn5]}>
-                        <InputWrapper
-                            defaultValue={defaultCurrency}
-                            InputComponent={CurrencySelector}
-                            inputID={INPUT_IDS.CURRENCY}
-                        />
-                    </View>
-                )}
-                {!!showAcceptTerms && (
-                    <View style={[styles.mt4, styles.ml1]}>
-                        <InputWrapper
-                            InputComponent={CheckboxWithLabel}
-                            accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
-                                'common.privacyPolicy',
-                            )}`}
-                            inputID={INPUT_IDS.ACCEPT_TERMS}
-                            defaultValue={!!data?.acceptTerms}
-                            LabelComponent={IAcceptTheLabel}
-                        />
-                    </View>
-                )}
+                    {!!showAddressField && (
+                        <View>
+                            <InputWrapper
+                                defaultValue={data?.addressStreet}
+                                InputComponent={AddressSearch}
+                                inputID={INPUT_IDS.ADDRESS_STREET}
+                                label={translate(label.defaults.billingAddress)}
+                                maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                                // Limit the address search only to the USA until we fully can support international debit cards
+                                limitSearchesToCountry={CONST.COUNTRY.US}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                autoComplete="street-address"
+                            />
+                        </View>
+                    )}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        defaultValue={data?.addressZipCode}
+                        inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
+                        label={translate('common.zipPostCode')}
+                        aria-label={translate('common.zipPostCode')}
+                        role={CONST.ROLE.PRESENTATION}
+                        autoComplete="postal-code"
+                    />
+                    {(!!showStateSelector || !!showCurrencyField) && (
+                        <FormMenuRows style={styles.mhn5}>
+                            {!!showStateSelector && (
+                                <InputWrapper
+                                    InputComponent={StateSelector}
+                                    inputID={INPUT_IDS.ADDRESS_STATE}
+                                />
+                            )}
+                            {!!showCurrencyField && (
+                                <InputWrapper
+                                    defaultValue={defaultCurrency}
+                                    InputComponent={CurrencySelector}
+                                    inputID={INPUT_IDS.CURRENCY}
+                                />
+                            )}
+                        </FormMenuRows>
+                    )}
+                    {!!showAcceptTerms && (
+                        <View style={styles.ml1}>
+                            <InputWrapper
+                                InputComponent={CheckboxWithLabel}
+                                accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
+                                    'common.privacyPolicy',
+                                )}`}
+                                inputID={INPUT_IDS.ACCEPT_TERMS}
+                                defaultValue={!!data?.acceptTerms}
+                                LabelComponent={IAcceptTheLabel}
+                            />
+                        </View>
+                    )}
+                </FormFields>
                 {footerContent}
             </FormProvider>
         </>

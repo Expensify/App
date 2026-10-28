@@ -29,7 +29,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/CompanyCardLayoutNameForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type CompanyCardLayoutNamePageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME>;
 
@@ -87,17 +86,15 @@ function CompanyCardLayoutNamePage({route}: CompanyCardLayoutNamePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.COMPANY_CARD_LAYOUT_NAME}
-                            label={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                            accessibilityLabel={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={defaultValue}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.COMPANY_CARD_LAYOUT_NAME}
+                        label={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                        accessibilityLabel={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={defaultValue}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

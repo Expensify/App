@@ -2,12 +2,14 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -171,21 +173,26 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     const errorMessage = getLatestErrorMessage(reimbursementAccount);
 
     return (
-        <ScrollView contentContainerStyle={styles.flexGrow1}>
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.formContent]}>
             <CollapsibleHeaderOnKeyboardGroupMember>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
-                <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            </CollapsibleHeaderOnKeyboardGroupMember>
-            {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
-                <MenuItemField
-                    key={id}
-                    name={description}
-                    onPress={interactive === false ? undefined : onPress}
-                    isDisabled={disabled}
-                    testID={id}
-                    value={title}
+                <FormHeader
+                    title={translate('addPersonalBankAccount.confirmationStepHeader')}
+                    description={translate('addPersonalBankAccount.confirmationStepSubHeader')}
+                    style={styles.ph5}
                 />
-            ))}
+            </CollapsibleHeaderOnKeyboardGroupMember>
+            <FormMenuRows>
+                {summaryItems.map(({id, description, title, interactive, disabled, onPress}) => (
+                    <MenuItemField
+                        key={id}
+                        name={description}
+                        onPress={interactive === false ? undefined : onPress}
+                        isDisabled={disabled}
+                        testID={id}
+                        value={title}
+                    />
+                ))}
+            </FormMenuRows>
             <FormProvider
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 validate={validate}
@@ -197,21 +204,21 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
                 isLoading={reimbursementAccount?.isLoading}
                 shouldHideFixErrorsAlert
             >
-                <InputWrapper
-                    InputComponent={CheckboxWithLabel}
-                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
-                    inputID="acceptTerms"
-                    LabelComponent={TermsAndConditionsLabel}
-                    style={[styles.mt3]}
-                    shouldSaveDraft
-                />
-                {!!errorMessage && (
-                    <FormHelpMessage
-                        style={[styles.mt3, styles.mbn1]}
-                        isError
-                        message={errorMessage}
+                <FormFieldGroup>
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
+                        aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
+                        inputID="acceptTerms"
+                        LabelComponent={TermsAndConditionsLabel}
+                        shouldSaveDraft
                     />
-                )}
+                    {!!errorMessage && (
+                        <FormHelpMessage
+                            isError
+                            message={errorMessage}
+                        />
+                    )}
+                </FormFieldGroup>
             </FormProvider>
         </ScrollView>
     );

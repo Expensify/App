@@ -1,10 +1,11 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -30,7 +31,6 @@ import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 type WorkspaceMemberDisplayNamePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME>;
 
@@ -98,8 +98,8 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                             shouldValidateOnBlur
                             shouldValidateOnChange
                         >
-                            <Text style={[styles.mb6]}>{translate('displayNamePage.isShownOnMemberProfile')}</Text>
-                            <View style={styles.mb4}>
+                            <FormHeader description={translate('displayNamePage.isShownOnMemberProfile')} />
+                            <FormFields>
                                 <InputWrapper
                                     InputComponent={TextInput}
                                     inputID={INPUT_IDS.FIRST_NAME}
@@ -110,8 +110,6 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                                     autoCapitalize="words"
                                     autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 />
-                            </View>
-                            <View>
                                 <InputWrapper
                                     InputComponent={TextInput}
                                     inputID={INPUT_IDS.LAST_NAME}
@@ -122,7 +120,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
                                     autoCapitalize="words"
                                     autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 />
-                            </View>
+                            </FormFields>
                         </FormProvider>
                     </>
                 )}

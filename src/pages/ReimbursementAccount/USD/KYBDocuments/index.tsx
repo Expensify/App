@@ -1,6 +1,9 @@
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
@@ -25,7 +28,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useState} from 'react';
+import React, {Fragment, useState} from 'react';
 import {View} from 'react-native';
 
 type KYBDocumentsProps = {
@@ -194,33 +197,38 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
-                submitButtonStyles={[styles.mb0]}
                 enabledWhenOffline={false}
                 shouldRenderFooterAboveSubmit
                 footerContent={footer}
                 isLoading={isLoading}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('documentsStep.beforeYouGo')}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>{translate('documentsStep.verificationFailed')}</Text>
-                {requiredDocuments.map((document, index) => (
-                    <View key={document.inputID}>
-                        <Text style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong, styles.mb3]}>{translate(document.title)}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('common.chooseFile')}
-                            uploadedFiles={uploadedFiles[document.inputID]}
-                            onUpload={(files) => handleSelectFile(files, document.inputID)}
-                            onRemove={(fileName) => handleRemoveFile(fileName, document.inputID)}
-                            setError={(error) => setUploadError(error, document.inputID)}
-                            fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
-                            acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
-                            value={uploadedFiles[document.inputID]}
-                            inputID={document.inputID}
-                        />
-                        <Text style={[styles.mutedTextLabel, styles.mt3]}>{translate(document.description)}</Text>
-                        {requiredDocuments.length > index + 1 && <View style={[styles.sectionDividerLine, styles.mv6]} />}
-                    </View>
-                ))}
+                <FormHeader
+                    title={translate('documentsStep.beforeYouGo')}
+                    description={translate('documentsStep.verificationFailed')}
+                />
+                <FormFields>
+                    {requiredDocuments.map((document, index) => (
+                        <Fragment key={document.inputID}>
+                            <FormFieldGroup>
+                                <Text style={[styles.textNormalThemeText, styles.textLineHeightNormal, styles.textStrong]}>{translate(document.title)}</Text>
+                                <InputWrapper
+                                    InputComponent={UploadFile}
+                                    buttonText={translate('common.chooseFile')}
+                                    uploadedFiles={uploadedFiles[document.inputID]}
+                                    onUpload={(files) => handleSelectFile(files, document.inputID)}
+                                    onRemove={(fileName) => handleRemoveFile(fileName, document.inputID)}
+                                    setError={(error) => setUploadError(error, document.inputID)}
+                                    fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                                    acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                                    value={uploadedFiles[document.inputID]}
+                                    inputID={document.inputID}
+                                />
+                                <Text style={styles.mutedTextLabel}>{translate(document.description)}</Text>
+                            </FormFieldGroup>
+                            {requiredDocuments.length > index + 1 && <View style={styles.sectionDividerLine} />}
+                        </Fragment>
+                    ))}
+                </FormFields>
             </FormProvider>
         </InteractiveStepWrapper>
     );

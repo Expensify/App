@@ -1,8 +1,8 @@
+import FormHeader from '@components/Form/Layout/FormHeader';
 /**
  * Modal where an admin describes a rule in plain English and Concierge fills in the open rule editor's form.
  */
 import Modal from '@components/Modal';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -89,7 +89,7 @@ function DescribeRuleModal({isVisible, onClose, policyID, ruleType, onRuleGenera
                 isCategoryEligible={isCategoryEligible}
                 onFinish={onClose}
             >
-                <Text style={[styles.textNormal, styles.textSupporting, styles.mb5]}>{translate('workspace.rules.newRule.describeRule')}</Text>
+                <FormHeader description={translate('workspace.rules.newRule.describeRule')} />
             </DescribeRuleForm>
         </Modal>
     );

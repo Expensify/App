@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomListFormSubmit from '@hooks/useNetSuiteImportAddCustomListForm';
@@ -56,19 +57,24 @@ function CustomListMappingStep({importCustomField, customSegmentType, onNext, is
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
             shouldHideFixErrorsAlert
             submitFlexEnabled={false}
             addBottomSafeAreaPadding
         >
-            <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey as TranslationPaths)}</Text>
-            <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
-            <InputWrapper
-                InputComponent={NetSuiteCustomFieldMappingPicker}
-                inputID={INPUT_IDS.MAPPING}
-                defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]}
+            <FormHeader
+                title={translate(titleKey as TranslationPaths)}
+                description={translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}
+                style={styles.ph5}
             />
+            <FormMenuRows style={styles.flex1}>
+                <InputWrapper
+                    InputComponent={NetSuiteCustomFieldMappingPicker}
+                    inputID={INPUT_IDS.MAPPING}
+                    defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.MAPPING]}
+                />
+            </FormMenuRows>
         </FormProvider>
     );
 }

@@ -1,6 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -28,7 +29,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesAutoApproveReportsUnderModalForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type RulesAutoApproveReportsUnderPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER>;
 
@@ -72,7 +72,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
+                    <FormFieldGroup>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
@@ -83,8 +83,8 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                             ref={inputCallbackRef}
                             displayAsTextInput
                         />
-                        <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.autoApproveReportsUnderDescription')}</Text>
-                    </View>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.autoApproveReportsUnderDescription')}</Text>
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

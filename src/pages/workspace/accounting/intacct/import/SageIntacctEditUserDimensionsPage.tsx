@@ -1,6 +1,8 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -109,7 +111,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                         clearSageIntacctPendingField(policyID, `${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${editedUserDimensionName}`);
                     }}
                 >
-                    <View style={[styles.mb4]}>
+                    <FormFields>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.INTEGRATION_NAME}
@@ -119,37 +121,37 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                             spellCheck={false}
                             defaultValue={editedUserDimensionName}
                         />
-                    </View>
-                    <View style={[]}>
-                        <InputWrapper
-                            InputComponent={DimensionTypeSelector}
-                            inputID={INPUT_IDS.DIMENSION_TYPE}
-                            aria-label="dimensionTypeSelector"
-                            defaultValue={editedUserDimension?.mapping}
-                        />
-                    </View>
-                    <View style={[styles.mhn5]}>
-                        <MenuItemAction
-                            title={translate('common.remove')}
-                            icon={icons.Trashcan}
-                            onPress={() => {
-                                showConfirmModal({
-                                    title: translate('workspace.intacct.removeDimension'),
-                                    prompt: translate('workspace.intacct.removeDimensionPrompt'),
-                                    confirmText: translate('common.remove'),
-                                    cancelText: translate('common.cancel'),
-                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                                    shouldEnableNewFocusManagement: true,
-                                }).then((result) => {
-                                    if (result.action !== ModalActions.CONFIRM) {
-                                        return;
-                                    }
-                                    removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
-                                    Navigation.goBack();
-                                });
-                            }}
-                        />
-                    </View>
+                        <FormMenuRows hasLabelAbove>
+                            <InputWrapper
+                                InputComponent={DimensionTypeSelector}
+                                inputID={INPUT_IDS.DIMENSION_TYPE}
+                                aria-label="dimensionTypeSelector"
+                                defaultValue={editedUserDimension?.mapping}
+                            />
+                            <View style={styles.mhn5}>
+                                <MenuItemAction
+                                    title={translate('common.remove')}
+                                    icon={icons.Trashcan}
+                                    onPress={() => {
+                                        showConfirmModal({
+                                            title: translate('workspace.intacct.removeDimension'),
+                                            prompt: translate('workspace.intacct.removeDimensionPrompt'),
+                                            confirmText: translate('common.remove'),
+                                            cancelText: translate('common.cancel'),
+                                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                                            shouldEnableNewFocusManagement: true,
+                                        }).then((result) => {
+                                            if (result.action !== ModalActions.CONFIRM) {
+                                                return;
+                                            }
+                                            removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
+                                            Navigation.goBack();
+                                        });
+                                    }}
+                                />
+                            </View>
+                        </FormMenuRows>
+                    </FormFields>
                 </OfflineWithFeedback>
             </FormProvider>
         </ConnectionLayout>

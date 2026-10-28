@@ -18,7 +18,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleDateForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function SearchEditMultipleDatePage() {
     const {translate} = useLocalize();
@@ -62,16 +61,14 @@ function SearchEditMultipleDatePage() {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.DATE}
-                        label={translate('common.date')}
-                        autoFocus
-                        defaultValue={currentDate}
-                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    />
-                </View>
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID={INPUT_IDS.DATE}
+                    label={translate('common.date')}
+                    autoFocus
+                    defaultValue={currentDate}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                />
             </FormProvider>
         </ScreenWrapper>
     );

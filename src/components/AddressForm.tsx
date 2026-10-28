@@ -21,6 +21,8 @@ import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
+import FormFields from './Form/Layout/FormFields';
+import FormMenuRows from './Form/Layout/FormMenuRows';
 import StateSelector from './StateSelector';
 import TextInput from './TextInput';
 
@@ -133,7 +135,7 @@ function AddressFormFields() {
     const isUSAForm = country === CONST.COUNTRY.US;
 
     return (
-        <>
+        <FormFields>
             <View>
                 <InputWrapper
                     InputComponent={AddressSearch}
@@ -155,7 +157,6 @@ function AddressFormFields() {
                     autoComplete="address-line1"
                 />
             </View>
-            <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.ADDRESS_LINE_2}
@@ -167,10 +168,9 @@ function AddressFormFields() {
                 shouldSaveDraft={shouldSaveDraft}
                 autoComplete="address-line2"
             />
-            <View style={styles.formSpaceVertical} />
-            {!shouldHideCountrySelector && (
-                <>
-                    <View style={styles.mhn5}>
+            {(!shouldHideCountrySelector || isUSAForm) && (
+                <FormMenuRows style={styles.mhn5}>
+                    {!shouldHideCountrySelector && (
                         <InputWrapper
                             InputComponent={CountrySelector}
                             inputID={INPUT_IDS.COUNTRY}
@@ -178,21 +178,19 @@ function AddressFormFields() {
                             onValueChange={onAddressChanged}
                             shouldSaveDraft={shouldSaveDraft}
                         />
-                    </View>
-                    <View style={styles.formSpaceVertical} />
-                </>
+                    )}
+                    {isUSAForm && (
+                        <InputWrapper
+                            InputComponent={StateSelector}
+                            inputID={INPUT_IDS.STATE}
+                            value={state as State}
+                            onValueChange={onAddressChanged}
+                            shouldSaveDraft={shouldSaveDraft}
+                        />
+                    )}
+                </FormMenuRows>
             )}
-            {isUSAForm ? (
-                <View style={styles.mhn5}>
-                    <InputWrapper
-                        InputComponent={StateSelector}
-                        inputID={INPUT_IDS.STATE}
-                        value={state as State}
-                        onValueChange={onAddressChanged}
-                        shouldSaveDraft={shouldSaveDraft}
-                    />
-                </View>
-            ) : (
+            {!isUSAForm && (
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.STATE}
@@ -205,7 +203,6 @@ function AddressFormFields() {
                     shouldSaveDraft={shouldSaveDraft}
                 />
             )}
-            <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.CITY}
@@ -217,7 +214,6 @@ function AddressFormFields() {
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
             />
-            <View style={styles.formSpaceVertical} />
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.ZIP_POST_CODE}
@@ -231,7 +227,7 @@ function AddressFormFields() {
                 shouldSaveDraft={shouldSaveDraft}
                 autoComplete="postal-code"
             />
-        </>
+        </FormFields>
     );
 }
 

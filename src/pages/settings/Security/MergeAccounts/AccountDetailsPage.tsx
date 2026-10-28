@@ -2,6 +2,8 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -191,31 +193,35 @@ function AccountDetailsPage() {
                     isSubmitButtonVisible={false}
                     ref={formRef}
                 >
-                    <View style={[styles.flexGrow1, styles.mt3]}>
-                        <View style={[styles.renderHTML]}>
-                            <RenderHTML html={translate('mergeAccountsPage.accountDetails.accountToMergeInto', userEmailOrPhone ?? '')} />
-                        </View>
-                        <InputWrapper
-                            ref={inputCallbackRef}
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                            autoCapitalize="none"
-                            label={translate('loginForm.phoneOrEmail')}
-                            aria-label={translate('loginForm.phoneOrEmail')}
-                            role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mt8]}
-                            autoCorrect={false}
-                            onChangeText={setEmail}
-                            value={email}
-                            inputMode={CONST.INPUT_MODE.EMAIL}
+                    <View style={[styles.flexGrow1, styles.formContent]}>
+                        <FormHeader
+                            description={
+                                <View style={[styles.renderHTML]}>
+                                    <RenderHTML html={translate('mergeAccountsPage.accountDetails.accountToMergeInto', userEmailOrPhone ?? '')} />
+                                </View>
+                            }
                         />
-                        <InputWrapper
-                            style={[styles.mt8]}
-                            InputComponent={CheckboxWithLabel}
-                            inputID={INPUT_IDS.CONSENT}
-                            label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
-                            aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
-                        />
+                        <FormFields>
+                            <InputWrapper
+                                ref={inputCallbackRef}
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                                autoCapitalize="none"
+                                label={translate('loginForm.phoneOrEmail')}
+                                aria-label={translate('loginForm.phoneOrEmail')}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoCorrect={false}
+                                onChangeText={setEmail}
+                                value={email}
+                                inputMode={CONST.INPUT_MODE.EMAIL}
+                            />
+                            <InputWrapper
+                                InputComponent={CheckboxWithLabel}
+                                inputID={INPUT_IDS.CONSENT}
+                                label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
+                                aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
+                            />
+                        </FormFields>
                     </View>
                     <FormAlertWithSubmitButton
                         isAlertVisible={!!genericError}
@@ -225,7 +231,6 @@ function AccountDetailsPage() {
                         message={genericError}
                         buttonText={translate('common.next')}
                         enabledWhenOffline={false}
-                        containerStyles={styles.mt3}
                         // This onSubmit triggers the FormProvider submit (via formRef), which already owns the press-loading mechanism
                         shouldShowLoadingImmediatelyOnPress={false}
                         isLoading={getValidateCodeForAccountMerge?.isLoading}

@@ -27,7 +27,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 type NamePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_NAME>;
 
@@ -96,18 +95,16 @@ function NamePage({
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            value={name}
-                            onChangeText={setName}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.NAME}
+                        label={translate('workspace.editor.nameInputLabel')}
+                        accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                        value={name}
+                        onChangeText={setName}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

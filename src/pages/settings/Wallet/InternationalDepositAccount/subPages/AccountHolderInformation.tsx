@@ -2,6 +2,9 @@ import AddressSearch from '@components/AddressSearch';
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
@@ -16,14 +19,12 @@ import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
-import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function getInputComponent(field: CorpayFormField) {
     if ((field.valueSet ?? []).length > 0) {
@@ -62,22 +63,6 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
         return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS], translate);
     };
 
-    const getStyle = (field: CorpayFormField, index: number) => {
-        if ((field.valueSet ?? []).length > 0) {
-            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-        }
-        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
-            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-        }
-        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
-            return [index === 0 ? styles.pb2 : styles.pv2];
-        }
-        if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY) {
-            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-        }
-        return [index === 0 ? styles.pb2 : styles.pv2];
-    };
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
@@ -85,50 +70,60 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
         >
-            <View style={styles.ph5}>
-                <CollapsibleHeaderOnKeyboardGroupMember>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
-                </CollapsibleHeaderOnKeyboardGroupMember>
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <FormHeader
+                    title={translate('addPersonalBankAccount.accountHolderInformationStepHeader')}
+                    style={styles.ph5}
+                />
+            </CollapsibleHeaderOnKeyboardGroupMember>
+            <FormFields style={styles.ph5}>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(b.id))
-                    .map((field, index) => {
+                    .map((field) => {
                         const inputComponent = getInputComponent(field);
-                        return (
-                            <View
-                                style={getStyle(field, index)}
+                        const input = (
+                            <InputWrapper
                                 key={field.id}
+                                InputComponent={inputComponent}
+                                inputID={field.id}
+                                defaultValue={formValues[field.id]}
+                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                                description={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? field.label : undefined}
+                                items={getItems(field)}
+                                shouldAllowChange={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
+                                optionsList={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? CONST.ALL_COUNTRIES : undefined}
+                                value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
+                                shouldSaveDraft={!isEditing}
+                                renamedInputKeys={{
+                                    street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
+                                    street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
+                                    city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderCity) ? '' : 'accountHolderCity',
+                                    state: '',
+                                    zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderPostal) ? '' : 'accountHolderPostal',
+                                    country: '',
+                                    lat: '',
+                                    lng: '',
+                                }}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
+                            />
+                        );
+                        if (inputComponent !== ValuePicker && inputComponent !== PushRowWithModal) {
+                            return input;
+                        }
+                        return (
+                            <FormMenuRows
+                                key={field.id}
+                                style={styles.mhn5}
                             >
-                                <InputWrapper
-                                    InputComponent={inputComponent}
-                                    inputID={field.id}
-                                    defaultValue={formValues[field.id]}
-                                    label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                                    description={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? field.label : undefined}
-                                    items={getItems(field)}
-                                    shouldAllowChange={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
-                                    optionsList={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? CONST.ALL_COUNTRIES : undefined}
-                                    value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
-                                    shouldSaveDraft={!isEditing}
-                                    renamedInputKeys={{
-                                        street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',
-                                        street2: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderAddress2) ? '' : 'accountHolderAddress2',
-                                        city: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderCity) ? '' : 'accountHolderCity',
-                                        state: '',
-                                        zipCode: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS]?.accountHolderPostal) ? '' : 'accountHolderPostal',
-                                        country: '',
-                                        lat: '',
-                                        lng: '',
-                                    }}
-                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
-                                />
-                            </View>
+                                {input}
+                            </FormMenuRows>
                         );
                     })}
-            </View>
+            </FormFields>
         </FormProvider>
     );
 }

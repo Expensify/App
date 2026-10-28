@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -18,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type SizeProps = SubPageProps;
 
@@ -62,8 +63,8 @@ function Size({onNext}: SizeProps) {
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            <View>
-                <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.subscriptionSize.yourSize')}</Text>
+            <FormHeader description={translate('subscription.subscriptionSize.yourSize')} />
+            <FormFieldGroup>
                 <InputWrapper
                     InputComponent={TextInput}
                     ref={inputCallbackRef}
@@ -75,9 +76,9 @@ function Size({onNext}: SizeProps) {
                     shouldSaveDraft
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
-                <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
-                <Text style={[styles.formHelp, styles.mt2]}>{translate('subscription.subscriptionSize.note')}</Text>
-            </View>
+                <Text style={styles.formHelp}>{translate('subscription.subscriptionSize.eachMonth')}</Text>
+                <Text style={styles.formHelp}>{translate('subscription.subscriptionSize.note')}</Text>
+            </FormFieldGroup>
         </FormProvider>
     );
 }

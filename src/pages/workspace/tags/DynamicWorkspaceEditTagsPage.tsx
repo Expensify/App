@@ -28,7 +28,6 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type DynamicWorkspaceEditTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAGS_EDIT>
@@ -95,17 +94,15 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
                     addBottomSafeAreaPadding
                     shouldUseStrictHtmlTagValidation
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.POLICY_TAGS_NAME}
-                            label={translate(`workspace.tags.customTagName`)}
-                            accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                            defaultValue={getCleanedTagName(tagListName)}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.POLICY_TAGS_NAME}
+                        label={translate(`workspace.tags.customTagName`)}
+                        accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                        defaultValue={getCleanedTagName(tagListName)}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

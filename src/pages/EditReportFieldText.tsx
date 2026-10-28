@@ -16,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {Str} from 'expensify-common';
 import React from 'react';
-import {View} from 'react-native';
 
 type EditReportFieldTextPageProps = {
     /** Value of the policy report field */
@@ -85,20 +84,18 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            <View style={styles.mb4}>
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={fieldKey}
-                    name={fieldKey}
-                    defaultValue={fieldValue}
-                    label={reportFieldName}
-                    accessibilityLabel={reportFieldName}
-                    role={CONST.ROLE.PRESENTATION}
-                    autoGrowSingleLine
-                    ref={inputCallbackRef}
-                    disabled={disabled}
-                />
-            </View>
+            <InputWrapper
+                InputComponent={TextInput}
+                inputID={fieldKey}
+                name={fieldKey}
+                defaultValue={fieldValue}
+                label={reportFieldName}
+                accessibilityLabel={reportFieldName}
+                role={CONST.ROLE.PRESENTATION}
+                autoGrowSingleLine
+                ref={inputCallbackRef}
+                disabled={disabled}
+            />
         </FormProvider>
     );
 }

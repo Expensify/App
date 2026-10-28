@@ -42,7 +42,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -204,21 +203,19 @@ function DynamicIOURequestStepMerchant({
                 shouldHideFixErrorsAlert
                 shouldUseStrictHtmlTagValidation
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        valueType="string"
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        defaultValue={initialMerchant}
-                        onValueChange={updateMerchantRef}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ROLE.PRESENTATION}
-                        editable={!isDiscardModalVisible}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <InputWrapper
+                    valueType="string"
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                    name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                    defaultValue={initialMerchant}
+                    onValueChange={updateMerchantRef}
+                    label={translate('common.merchant')}
+                    accessibilityLabel={translate('common.merchant')}
+                    role={CONST.ROLE.PRESENTATION}
+                    editable={!isDiscardModalVisible}
+                    ref={inputCallbackRef}
+                />
             </FormProvider>
         </StepScreenWrapper>
     );

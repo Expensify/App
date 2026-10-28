@@ -3,10 +3,10 @@ import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisable
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -92,7 +92,6 @@ function DynamicExitSurveyReasonPage() {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic, {isActive: !isOffline});
 
     const formTopMarginsStyle = styles.mt3;
-    const baseResponseInputContainerStyle = styles.mt3;
     const formMaxHeight = Math.floor(
         // windowHeight doesn't include status bar height in Android, so we need to add it here.
         // StatusBar.currentHeight is only available on Android.
@@ -135,8 +134,10 @@ function DynamicExitSurveyReasonPage() {
                 {isOffline && <ExitSurveyOffline />}
                 {!isOffline && (
                     <>
-                        <Text style={styles.headerAnonymousFooter}>{translate('exitSurvey.reasonPage.title')}</Text>
-                        <Text style={styles.mt2}>{translate('exitSurvey.reasonPage.subtitle')}</Text>
+                        <FormHeader
+                            title={translate('exitSurvey.reasonPage.title')}
+                            description={translate('exitSurvey.reasonPage.subtitle')}
+                        />
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.RESPONSE}
@@ -146,7 +147,6 @@ function DynamicExitSurveyReasonPage() {
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             ref={inputCallbackRef}
-                            containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft
                         />
                     </>

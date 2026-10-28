@@ -2,8 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -91,28 +92,24 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
 
         const inputComponent = getInputComponent(field);
         return (
-            <View
-                style={styles.mb6}
+            <InputWrapper
                 key={field.id}
-            >
-                <InputWrapper
-                    InputComponent={inputComponent}
-                    inputID={field.id}
-                    label={field.label}
-                    aria-label={field.label}
-                    role={CONST.ROLE.PRESENTATION}
-                    shouldSaveDraft={!isEditing}
-                    defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
-                    limitSearchesToCountry={reimbursementAccountDraft?.country}
-                    renamedInputKeys={{
-                        street: 'bankAddressLine1',
-                        city: 'bankCity',
-                        country: '',
-                    }}
-                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
-                />
-            </View>
+                InputComponent={inputComponent}
+                inputID={field.id}
+                label={field.label}
+                aria-label={field.label}
+                role={CONST.ROLE.PRESENTATION}
+                shouldSaveDraft={!isEditing}
+                defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
+                limitSearchesToCountry={reimbursementAccountDraft?.country}
+                renamedInputKeys={{
+                    street: 'bankAddressLine1',
+                    city: 'bankCity',
+                    country: '',
+                }}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
+            />
         );
     });
 
@@ -126,19 +123,17 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             isSubmitDisabled={!inputs}
             shouldHideFixErrorsAlert={(bankAccountDetailsFields?.length ?? 0) <= 1}
         >
-            <>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>
-                {corpayFields?.isLoading ? (
-                    <View style={[styles.flexGrow4, styles.alignItemsCenter]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={styles.flexGrow1}
-                        />
-                    </View>
-                ) : (
-                    inputs
-                )}
-            </>
+            <FormHeader title={translate('bankInfoStep.whatAreYour')} />
+            {corpayFields?.isLoading ? (
+                <View style={[styles.flexGrow4, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={styles.flexGrow1}
+                    />
+                </View>
+            ) : (
+                <FormFields>{inputs}</FormFields>
+            )}
         </FormProvider>
     );
 }

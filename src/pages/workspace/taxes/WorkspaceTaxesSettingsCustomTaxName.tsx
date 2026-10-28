@@ -28,7 +28,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
 import type {WorkspaceTaxCustomName} from '@src/types/form/WorkspaceTaxCustomName';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type WorkspaceTaxesSettingsCustomTaxNameProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME>;
@@ -86,18 +85,16 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.editor.nameInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            defaultValue={policy?.taxRates?.name}
-                            multiline={false}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.NAME}
+                        label={translate('workspace.editor.nameInputLabel')}
+                        accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                        defaultValue={policy?.taxRates?.name}
+                        multiline={false}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -10,7 +10,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type EditReportFieldDatePageProps = {
     /** Value of the policy report field */
@@ -51,20 +50,18 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            <View style={styles.mb4}>
-                <InputWrapper
-                    InputComponent={DatePicker}
-                    inputID={fieldKey}
-                    name={fieldKey}
-                    defaultValue={fieldValue}
-                    label={fieldName}
-                    accessibilityLabel={fieldName}
-                    role={CONST.ROLE.PRESENTATION}
-                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    autoFocus
-                />
-            </View>
+            <InputWrapper
+                InputComponent={DatePicker}
+                inputID={fieldKey}
+                name={fieldKey}
+                defaultValue={fieldValue}
+                label={fieldName}
+                accessibilityLabel={fieldName}
+                role={CONST.ROLE.PRESENTATION}
+                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                autoFocus
+            />
         </FormProvider>
     );
 }

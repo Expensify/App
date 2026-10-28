@@ -94,7 +94,7 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
-                    style={[styles.flex1, styles.ph5, styles.pb3]}
+                    style={[styles.flex1, styles.ph5]}
                 >
                     <InputWrapper
                         InputComponent={TextInput}

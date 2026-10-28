@@ -2,6 +2,8 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormOnyxValues, FormValue} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -42,7 +44,6 @@ import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/core';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 function findRoomOption<TValue extends string>(options: Array<{value: TValue}>, value: FormValue | undefined) {
     return options.find((option) => option.value === value);
@@ -292,15 +293,13 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                     enabledWhenOffline
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb5}>
+                    <FormFields>
                         <InputWrapper
                             ref={roomPageInputRef}
                             InputComponent={RoomNameInput}
                             inputID={INPUT_IDS.ROOM_NAME}
                             isFocused={isFocused}
                         />
-                    </View>
-                    <View style={styles.mb5}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.REPORT_DESCRIPTION}
@@ -313,61 +312,55 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                             shouldInterceptSwipe
                             type="markdown"
                         />
-                    </View>
-                    {isLocked ? (
-                        <View style={[styles.mhn5]}>
-                            <MenuItemField
-                                name={translate('workspace.common.workspace')}
-                                value={lockedPolicy?.name}
-                            />
-                        </View>
-                    ) : (
-                        <View style={[styles.mhn5]}>
+                        <FormMenuRows style={styles.mhn5}>
+                            {isLocked ? (
+                                <MenuItemField
+                                    name={translate('workspace.common.workspace')}
+                                    value={lockedPolicy?.name}
+                                />
+                            ) : (
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
+                                    inputID={INPUT_IDS.POLICY_ID}
+                                    label={translate('workspace.common.workspace')}
+                                    items={workspaceOptions}
+                                    value={policyID}
+                                    valueType="string"
+                                    onValueChange={(value) => setPolicyID(value)}
+                                />
+                            )}
+                            {isAdminPolicy && (
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
+                                    inputID={INPUT_IDS.WRITE_CAPABILITY}
+                                    label={translate('writeCapabilityPage.label')}
+                                    items={writeCapabilityOptions}
+                                    value={writeCapability}
+                                    onValueChange={(value) => {
+                                        const selectedOption = findRoomOption(writeCapabilityOptions, value);
+                                        if (selectedOption) {
+                                            setWriteCapability(selectedOption.value);
+                                        }
+                                    }}
+                                />
+                            )}
                             <InputWrapper
                                 InputComponent={ValuePicker}
-                                inputID={INPUT_IDS.POLICY_ID}
-                                label={translate('workspace.common.workspace')}
-                                items={workspaceOptions}
-                                value={policyID}
-                                valueType="string"
-                                onValueChange={(value) => setPolicyID(value)}
-                            />
-                        </View>
-                    )}
-                    {isAdminPolicy && (
-                        <View style={styles.mhn5}>
-                            <InputWrapper
-                                InputComponent={ValuePicker}
-                                inputID={INPUT_IDS.WRITE_CAPABILITY}
-                                label={translate('writeCapabilityPage.label')}
-                                items={writeCapabilityOptions}
-                                value={writeCapability}
+                                inputID={INPUT_IDS.VISIBILITY}
+                                label={translate('newRoomPage.visibility')}
+                                items={visibilityOptions}
                                 onValueChange={(value) => {
-                                    const selectedOption = findRoomOption(writeCapabilityOptions, value);
+                                    const selectedOption = findRoomOption(visibilityOptions, value);
                                     if (selectedOption) {
-                                        setWriteCapability(selectedOption.value);
+                                        setVisibility(selectedOption.value);
                                     }
                                 }}
+                                value={visibility}
+                                furtherDetails={visibilityDescription}
+                                shouldShowTooltips={false}
                             />
-                        </View>
-                    )}
-                    <View style={[styles.mb1, styles.mhn5]}>
-                        <InputWrapper
-                            InputComponent={ValuePicker}
-                            inputID={INPUT_IDS.VISIBILITY}
-                            label={translate('newRoomPage.visibility')}
-                            items={visibilityOptions}
-                            onValueChange={(value) => {
-                                const selectedOption = findRoomOption(visibilityOptions, value);
-                                if (selectedOption) {
-                                    setVisibility(selectedOption.value);
-                                }
-                            }}
-                            value={visibility}
-                            furtherDetails={visibilityDescription}
-                            shouldShowTooltips={false}
-                        />
-                    </View>
+                        </FormMenuRows>
+                    </FormFields>
                 </FormProvider>
             )}
         </ScreenWrapper>

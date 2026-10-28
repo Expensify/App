@@ -42,7 +42,7 @@ function BulletList({items, header}: BulletListProps) {
     };
 
     return (
-        <View style={[styles.w100, styles.mt2]}>
+        <View style={styles.w100}>
             {renderBulletListHeader()}
             <View>{items.map((item) => renderBulletPoint(item))}</View>
         </View>

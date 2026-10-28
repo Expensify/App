@@ -1,10 +1,11 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import StateSelector from '@components/StateSelector';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,18 +61,23 @@ function IncorporationStateBusiness({onNext, isEditing}: SubPageProps) {
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh0, styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
-            <InputWrapper
-                InputComponent={StateSelector}
-                inputID={COMPANY_INCORPORATION_STATE_KEY}
-                label={translate('businessInfoStep.incorporationState')}
-                defaultValue={defaultCompanyIncorporationState}
-                shouldSaveDraft={!isEditing}
-                wrapperStyle={[styles.ph5, styles.mt3]}
+            <FormHeader
+                title={translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}
+                style={styles.ph5}
             />
+            <FormMenuRows>
+                <InputWrapper
+                    InputComponent={StateSelector}
+                    inputID={COMPANY_INCORPORATION_STATE_KEY}
+                    label={translate('businessInfoStep.incorporationState')}
+                    defaultValue={defaultCompanyIncorporationState}
+                    shouldSaveDraft={!isEditing}
+                    wrapperStyle={styles.ph5}
+                />
+            </FormMenuRows>
         </FormProvider>
     );
 }

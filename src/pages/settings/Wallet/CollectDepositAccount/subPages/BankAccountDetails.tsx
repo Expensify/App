@@ -2,6 +2,9 @@ import AddressSearch from '@components/AddressSearch';
 import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import StatePicker from '@components/StatePicker';
 import Text from '@components/Text';
@@ -90,13 +93,16 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
         >
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountDetailsStepHeader')}</Text>
+            <FormHeader
+                title={translate('addPersonalBankAccount.accountDetailsStepHeader')}
+                style={styles.ph5}
+            />
+            <FormFields style={styles.ph5}>
                 {!!hasCurrencyChoice && (
-                    <View style={[styles.mhn5]}>
+                    <FormMenuRows style={styles.mhn5}>
                         <CurrencyPicker
                             label={translate('common.currency')}
                             value={formValues[INPUT_IDS.BANK_CURRENCY]}
@@ -106,7 +112,7 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
                             headerContent={currencyHeaderContent}
                             excludeCurrencies={excludedCurrencies}
                         />
-                    </View>
+                    </FormMenuRows>
                 )}
                 {Object.entries(fieldsMap).map(([fieldName, field]) => {
                     // The API only accepts a two letter code for US states, so offer the list rather than free text.
@@ -114,48 +120,54 @@ function BankAccountDetails({isEditing, onNext, formValues, fieldsMap, fieldsTyp
                     // Only the holder's own street searches, so picking a result cannot overwrite the bank's address.
                     const isSearchableAddress = fieldName === INPUT_IDS.ADDRESS_STREET;
 
-                    return (
-                        <View
-                            style={isUSState ? [styles.mhn5, styles.pv1] : [styles.pv2]}
-                            key={fieldName}
-                        >
-                            {!!isUSState && (
+                    if (isUSState) {
+                        return (
+                            <FormMenuRows
+                                key={fieldName}
+                                style={styles.mhn5}
+                            >
                                 <InputWrapper
                                     InputComponent={StatePicker}
                                     inputID={fieldName}
                                     shouldSaveDraft={!isEditing}
                                 />
-                            )}
-                            {!!isSearchableAddress && (
-                                <InputWrapper
-                                    InputComponent={AddressSearch}
-                                    inputID={fieldName}
-                                    defaultValue={formValues[fieldName]}
-                                    label={field.label}
-                                    shouldSaveDraft={!isEditing}
-                                    renamedInputKeys={ADDRESS_SEARCH_INPUT_KEYS}
-                                    limitSearchesToCountry={limitSearchesToCountry}
-                                    maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    autoComplete="street-address"
-                                />
-                            )}
-                            {!isUSState && !isSearchableAddress && (
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    inputID={fieldName}
-                                    defaultValue={formValues[fieldName]}
-                                    label={field.label}
-                                    placeholder={field.placeholder}
-                                    shouldSaveDraft={!isEditing}
-                                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                    {...autocorrectProps}
-                                />
-                            )}
-                        </View>
+                            </FormMenuRows>
+                        );
+                    }
+
+                    if (isSearchableAddress) {
+                        return (
+                            <InputWrapper
+                                key={fieldName}
+                                InputComponent={AddressSearch}
+                                inputID={fieldName}
+                                defaultValue={formValues[fieldName]}
+                                label={field.label}
+                                shouldSaveDraft={!isEditing}
+                                renamedInputKeys={ADDRESS_SEARCH_INPUT_KEYS}
+                                limitSearchesToCountry={limitSearchesToCountry}
+                                maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                                autoComplete="street-address"
+                            />
+                        );
+                    }
+
+                    return (
+                        <InputWrapper
+                            key={fieldName}
+                            InputComponent={TextInput}
+                            inputID={fieldName}
+                            defaultValue={formValues[fieldName]}
+                            label={field.label}
+                            placeholder={field.placeholder}
+                            shouldSaveDraft={!isEditing}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            {...autocorrectProps}
+                        />
                     );
                 })}
-            </View>
+            </FormFields>
         </FormProvider>
     );
 }

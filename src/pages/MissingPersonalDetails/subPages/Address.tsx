@@ -2,10 +2,12 @@ import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import StatePicker from '@components/StatePicker';
 import type {State} from '@components/StateSelector';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -145,11 +147,14 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
         >
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterAddress')}</Text>
+            <FormHeader
+                title={translate('privatePersonalDetails.enterAddress')}
+                style={styles.ph5}
+            />
+            <FormFields style={styles.ph5}>
                 <View>
                     <InputWrapper
                         InputComponent={AddressSearch}
@@ -179,27 +184,25 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
                     spellCheck={false}
-                    containerStyles={styles.mt5}
                     autoComplete="address-line2"
                 />
-                <View style={[styles.mt2, styles.mhn5]}>
+                <FormMenuRows style={styles.mhn5}>
                     <InputWrapper
                         InputComponent={CountryPicker}
                         inputID={INPUT_IDS.COUNTRY}
                         value={currentCountry}
                         onValueChange={handleAddressChange}
                     />
-                </View>
-                {isUSAForm ? (
-                    <View style={[styles.mt2, styles.mhn5]}>
+                    {isUSAForm && (
                         <InputWrapper
                             InputComponent={StatePicker}
                             inputID={INPUT_IDS.STATE}
                             value={state as State}
                             onValueChange={handleAddressChange}
                         />
-                    </View>
-                ) : (
+                    )}
+                </FormMenuRows>
+                {!isUSAForm && (
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.STATE}
@@ -209,7 +212,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                         value={state}
                         spellCheck={false}
                         onValueChange={handleAddressChange}
-                        containerStyles={styles.mt2}
                     />
                 )}
                 <InputWrapper
@@ -221,7 +223,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     defaultValue={city}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
-                    containerStyles={isUSAForm ? styles.mt2 : styles.mt5}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -233,10 +234,9 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubPagePr
                     defaultValue={zipcode}
                     hint={zipFormat}
                     onValueChange={handleAddressChange}
-                    containerStyles={styles.mt5}
                     autoComplete="postal-code"
                 />
-            </View>
+            </FormFields>
         </FormProvider>
     );
 }

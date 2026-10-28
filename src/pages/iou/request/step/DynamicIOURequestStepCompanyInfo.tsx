@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -144,7 +145,6 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             shouldShowWrapper
             testID="DynamicIOURequestStepCompanyInfo"
         >
-            <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('iou.companyInfoDescription')}</Text>
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM}
@@ -153,27 +153,29 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
                 submitButtonText={translate('iou.sendInvoice', formattedAmount)}
                 enabledWhenOffline
             >
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.COMPANY_NAME}
-                    name={INPUT_IDS.COMPANY_NAME}
-                    label={translate('iou.yourCompanyName')}
-                    accessibilityLabel={translate('iou.yourCompanyName')}
-                    role={CONST.ROLE.PRESENTATION}
-                    ref={inputCallbackRef}
-                    containerStyles={styles.mv4}
-                />
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.COMPANY_WEBSITE}
-                    name={INPUT_IDS.COMPANY_WEBSITE}
-                    inputMode={CONST.INPUT_MODE.URL}
-                    label={translate('iou.yourCompanyWebsite')}
-                    accessibilityLabel={translate('iou.yourCompanyWebsite')}
-                    role={CONST.ROLE.PRESENTATION}
-                    hint={translate('iou.yourCompanyWebsiteNote')}
-                    defaultValue={defaultWebsiteExample}
-                />
+                <FormHeader description={translate('iou.companyInfoDescription')} />
+                <FormFields>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.COMPANY_NAME}
+                        name={INPUT_IDS.COMPANY_NAME}
+                        label={translate('iou.yourCompanyName')}
+                        accessibilityLabel={translate('iou.yourCompanyName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.COMPANY_WEBSITE}
+                        name={INPUT_IDS.COMPANY_WEBSITE}
+                        inputMode={CONST.INPUT_MODE.URL}
+                        label={translate('iou.yourCompanyWebsite')}
+                        accessibilityLabel={translate('iou.yourCompanyWebsite')}
+                        role={CONST.ROLE.PRESENTATION}
+                        hint={translate('iou.yourCompanyWebsiteNote')}
+                        defaultValue={defaultWebsiteExample}
+                    />
+                </FormFields>
             </FormProvider>
         </StepScreenWrapper>
     );

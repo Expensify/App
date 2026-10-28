@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -33,7 +35,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryDescriptionHintForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type DynamicCategoryDescriptionHintPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DESCRIPTION_HINT>;
 
@@ -81,8 +82,8 @@ function DynamicCategoryDescriptionHintPage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
+                    <FormHeader description={translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)} />
+                    <FormFieldGroup>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMMENT_HINT}
@@ -95,8 +96,8 @@ function DynamicCategoryDescriptionHintPage({
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             excludedMarkdownStyles={['mentionReport']}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.descriptionHintSubtitle')}</Text>
-                    </View>
+                        <Text style={styles.mutedTextLabel}>{translate('workspace.rules.categoryRules.descriptionHintSubtitle')}</Text>
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

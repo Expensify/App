@@ -55,7 +55,7 @@ function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
             stepFields={STEP_FIELDS}
             dobInputID={PERSONAL_INFO_DOB_KEY}
             dobDefaultValue={dobDefaultValue}
-            footerComponent={<HelpLinks containerStyles={[styles.mt5]} />}
+            footerComponent={<HelpLinks />}
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );

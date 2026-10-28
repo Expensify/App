@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -25,7 +26,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesMaxExpenseAgeForm';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 type RulesMaxExpenseAgePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AGE>;
 
@@ -76,7 +76,7 @@ function RulesMaxExpenseAgePage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
+                    <FormFieldGroup>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.MAX_EXPENSE_AGE}
@@ -89,8 +89,8 @@ function RulesMaxExpenseAgePage({
                             onChangeText={onChangeMaxExpenseAge}
                             ref={inputCallbackRef}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.maxExpenseAgeDescription')}</Text>
-                    </View>
+                        <Text style={styles.mutedTextLabel}>{translate('workspace.rules.individualExpenseRules.maxExpenseAgeDescription')}</Text>
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

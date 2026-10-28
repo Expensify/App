@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -19,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function LegalNameStep({onNext}: EnableTravelSubPageProps) {
     const styles = useThemeStyles();
@@ -48,9 +48,11 @@ function LegalNameStep({onNext}: EnableTravelSubPageProps) {
             submitButtonText={translate('common.next')}
             enabledWhenOffline
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-            <Text style={[styles.textSupporting, styles.mb6]}>{translate('workspace.moreFeatures.travel.personalDetailsDescription')}</Text>
-            <View style={[styles.mb4]}>
+            <FormHeader
+                title={translate('privatePersonalDetails.enterLegalName')}
+                description={translate('workspace.moreFeatures.travel.personalDetailsDescription')}
+            />
+            <FormFields>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.LEGAL_FIRST_NAME}
@@ -64,8 +66,6 @@ function LegalNameStep({onNext}: EnableTravelSubPageProps) {
                     autoCapitalize="words"
                     autoComplete="given-name"
                 />
-            </View>
-            <View>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.LEGAL_LAST_NAME}
@@ -79,7 +79,7 @@ function LegalNameStep({onNext}: EnableTravelSubPageProps) {
                     autoCapitalize="words"
                     autoComplete="family-name"
                 />
-            </View>
+            </FormFields>
         </FormProvider>
     );
 }

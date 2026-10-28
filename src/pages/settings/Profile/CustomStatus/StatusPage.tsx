@@ -3,12 +3,14 @@ import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButton
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -38,7 +40,6 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 const initialEmoji = '💬';
 
@@ -172,55 +173,57 @@ function StatusPage() {
                 isSubmitButtonVisible={false}
                 enabledWhenOffline
             >
-                <View style={[styles.mh5, styles.mv1]}>
-                    <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
-                </View>
-                <View style={[styles.mt4]}>
-                    <View style={[styles.mb4, styles.ph5]}>
-                        <InputWrapper
-                            InputComponent={EmojiPickerButtonDropdown}
-                            inputID={INPUT_IDS.EMOJI_CODE}
-                            accessibilityLabel={INPUT_IDS.EMOJI_CODE}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={defaultEmoji}
-                            style={styles.mb3}
-                            onModalHide={() => {
-                                // On mobile Chrome, the input will blur immediately upon focus if the focus function is called right after the modal closes, even though the modal has fully closed.
-                                // Therefore, use the `focusComposerWithDelay` helper as used in `ComposerWithSuggestions` for this case.
-                                if (isMobileChrome()) {
-                                    focusComposerWithDelay(inputRef.current)(true);
-                                } else {
-                                    focusAfterModalClose(inputRef.current);
-                                }
-                            }}
-                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                            onInputChange={(emoji: string): void => {}}
-                        />
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            ref={isSmallScreenWidth ? undefined : inputCallbackRef}
-                            inputID={INPUT_IDS.STATUS_TEXT}
-                            role={CONST.ROLE.PRESENTATION}
-                            label={translate('statusPage.message')}
-                            accessibilityLabel={INPUT_IDS.STATUS_TEXT}
-                            defaultValue={defaultText}
-                        />
-                    </View>
-                    <MenuItemWithTopDescription
-                        title={customClearAfter}
-                        description={translate('statusPage.clearAfter')}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
-                        brickRoadIndicator={brickRoadIndicator}
+                <FormHeader
+                    description={translate('statusPage.statusExplanation')}
+                    style={styles.mh5}
+                />
+                <FormFields>
+                    <InputWrapper
+                        InputComponent={EmojiPickerButtonDropdown}
+                        inputID={INPUT_IDS.EMOJI_CODE}
+                        accessibilityLabel={INPUT_IDS.EMOJI_CODE}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={defaultEmoji}
+                        style={styles.mh5}
+                        onModalHide={() => {
+                            // On mobile Chrome, the input will blur immediately upon focus if the focus function is called right after the modal closes, even though the modal has fully closed.
+                            // Therefore, use the `focusComposerWithDelay` helper as used in `ComposerWithSuggestions` for this case.
+                            if (isMobileChrome()) {
+                                focusComposerWithDelay(inputRef.current)(true);
+                            } else {
+                                focusAfterModalClose(inputRef.current);
+                            }
+                        }}
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        onInputChange={(emoji: string): void => {}}
                     />
-                    {(!!currentUserEmojiCode || !!currentUserStatusText) && (
-                        <MenuItemAction
-                            title={translate('statusPage.clearStatus')}
-                            icon={icons.Trashcan}
-                            onPress={clearStatus}
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={isSmallScreenWidth ? undefined : inputCallbackRef}
+                        inputID={INPUT_IDS.STATUS_TEXT}
+                        role={CONST.ROLE.PRESENTATION}
+                        label={translate('statusPage.message')}
+                        accessibilityLabel={INPUT_IDS.STATUS_TEXT}
+                        defaultValue={defaultText}
+                        containerStyles={styles.mh5}
+                    />
+                    <FormMenuRows>
+                        <MenuItemWithTopDescription
+                            title={customClearAfter}
+                            description={translate('statusPage.clearAfter')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
+                            brickRoadIndicator={brickRoadIndicator}
                         />
-                    )}
-                </View>
+                        {(!!currentUserEmojiCode || !!currentUserStatusText) && (
+                            <MenuItemAction
+                                title={translate('statusPage.clearStatus')}
+                                icon={icons.Trashcan}
+                                onPress={clearStatus}
+                            />
+                        )}
+                    </FormMenuRows>
+                </FormFields>
                 {isInLandscapeMode && saveButton}
             </FormProvider>
 

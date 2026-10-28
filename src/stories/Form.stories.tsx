@@ -4,6 +4,8 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import Picker from '@components/Picker';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
@@ -17,8 +19,6 @@ import {clearErrors, setDraftValues, setErrors, setIsLoading} from '@userActions
 
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
-import styles from '@src/styles';
-import {defaultTheme} from '@src/styles/theme';
 import type {Form} from '@src/types/form';
 
 import type {ComponentType} from 'react';
@@ -27,8 +27,6 @@ import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-
-const defaultStyles = styles(defaultTheme);
 
 type FormStory = StoryFn<FormProviderProps & FormProviderOnyxProps>;
 
@@ -84,45 +82,63 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
 
     return (
         <FormProvider {...props}>
-            <View>
+            <FormFields>
+                <View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        accessibilityLabel="Routing number"
+                        label="Routing number"
+                        inputID="routingNumber"
+                        shouldSaveDraft
+                    />
+                </View>
                 <InputWrapper
                     InputComponent={TextInput}
                     role={CONST.ROLE.PRESENTATION}
-                    accessibilityLabel="Routing number"
-                    label="Routing number"
-                    inputID="routingNumber"
-                    shouldSaveDraft
+                    label="Account number"
+                    accessibilityLabel="Account number"
+                    inputID="accountNumber"
                 />
-            </View>
-            <InputWrapper
-                InputComponent={TextInput}
-                role={CONST.ROLE.PRESENTATION}
-                label="Account number"
-                accessibilityLabel="Account number"
-                inputID="accountNumber"
-                containerStyles={defaultStyles.mt4}
-            />
-            <InputWrapper
-                InputComponent={AddressSearch}
-                label="Street"
-                inputID="street"
-                containerStyles={defaultStyles.mt4}
-                hint={translate('common.noPO')}
-            />
-            <InputWrapper
-                InputComponent={DatePicker}
-                inputID="dob"
-                label="Date of Birth"
-                containerStyles={defaultStyles.mt4}
-            />
-            <View>
+                <InputWrapper
+                    InputComponent={AddressSearch}
+                    label="Street"
+                    inputID="street"
+                    hint={translate('common.noPO')}
+                />
+                <InputWrapper
+                    InputComponent={DatePicker}
+                    inputID="dob"
+                    label="Date of Birth"
+                />
+                <View>
+                    <InputWrapper
+                        InputComponent={Picker}
+                        label="Fruit"
+                        inputID="pickFruit"
+                        onInputChange={() => {}}
+                        shouldSaveDraft
+                        items={[
+                            {
+                                label: 'Select a Fruit',
+                                value: '',
+                            },
+                            {
+                                label: 'Orange',
+                                value: 'orange',
+                            },
+                            {
+                                label: 'Apple',
+                                value: 'apple',
+                            },
+                        ]}
+                    />
+                </View>
                 <InputWrapper
                     InputComponent={Picker}
-                    label="Fruit"
-                    inputID="pickFruit"
+                    label="Another Fruit"
+                    inputID="pickAnotherFruit"
                     onInputChange={() => {}}
-                    containerStyles={defaultStyles.mt4}
-                    shouldSaveDraft
                     items={[
                         {
                             label: 'Select a Fruit',
@@ -138,42 +154,20 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
                         },
                     ]}
                 />
-            </View>
-            <InputWrapper
-                InputComponent={Picker}
-                label="Another Fruit"
-                inputID="pickAnotherFruit"
-                onInputChange={() => {}}
-                containerStyles={defaultStyles.mt4}
-                items={[
-                    {
-                        label: 'Select a Fruit',
-                        value: '',
-                    },
-                    {
-                        label: 'Orange',
-                        value: 'orange',
-                    },
-                    {
-                        label: 'Apple',
-                        value: 'apple',
-                    },
-                ]}
-            />
-            <View style={defaultStyles.mt4}>
+                <FormMenuRows>
+                    <InputWrapper
+                        InputComponent={StateSelector}
+                        inputID="state"
+                        shouldSaveDraft
+                    />
+                </FormMenuRows>
                 <InputWrapper
-                    InputComponent={StateSelector}
-                    inputID="state"
-                    shouldSaveDraft
+                    InputComponent={CheckboxWithLabel}
+                    inputID="checkbox"
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
                 />
-            </View>
-            <InputWrapper
-                InputComponent={CheckboxWithLabel}
-                inputID="checkbox"
-                style={[defaultStyles.mb4, defaultStyles.mt5]}
-                // eslint-disable-next-line react/no-unstable-nested-components
-                LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
-            />
+            </FormFields>
         </FormProvider>
     );
 }

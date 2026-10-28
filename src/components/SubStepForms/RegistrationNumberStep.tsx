@@ -1,9 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 
@@ -73,21 +73,20 @@ function RegistrationNumberStepImpl({formID, onSubmit, inputID, defaultValue, is
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber', country)}</Text>
+            <FormHeader title={translate('businessInfoStep.whatsTheBusinessRegistrationNumber', country)} />
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.registrationNumber')}
                 aria-label={translate('businessInfoStep.registrationNumber')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={inputID as string}
-                containerStyles={[styles.mt6]}
                 defaultValue={defaultValue}
                 shouldSaveDraft={!isEditing}
                 autoFocus={!shouldDelayAutoFocus}
                 ref={internalInputRef}
                 forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
                     src={icons.QuestionMark}
                     width={12}

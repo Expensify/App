@@ -1,11 +1,12 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -187,27 +188,25 @@ function RulesRequireReceiptsPage({
                     addBottomSafeAreaPadding
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_RECEIPTS_SAVE}
                 >
-                    <Text style={[styles.textNormal, styles.textSupporting, styles.lh20, styles.pv2]}>{translate('workspace.rules.requireReceipts.description')}</Text>
-
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.rules.requireReceipts.requireReceipt')}
-                        switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireReceipt')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={styles.pv3}
-                        isActive={receiptEnabled}
-                        pendingAction={policy?.pendingFields?.maxExpenseAmountNoReceipt}
-                        errors={policy?.errorFields?.maxExpenseAmountNoReceipt ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoReceipt')}
-                        onToggle={(newValue) => {
-                            setReceiptEnabled(newValue);
-                            clearAmountConflictError();
-                            if (!newValue) {
-                                formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT);
-                            }
-                        }}
-                    />
-                    {receiptEnabled && (
-                        <View style={styles.pv2}>
+                    <FormHeader description={translate('workspace.rules.requireReceipts.description')} />
+                    <FormFields>
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.rules.requireReceipts.requireReceipt')}
+                            switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireReceipt')}
+                            shouldPlaceSubtitleBelowSwitch
+                            isActive={receiptEnabled}
+                            pendingAction={policy?.pendingFields?.maxExpenseAmountNoReceipt}
+                            errors={policy?.errorFields?.maxExpenseAmountNoReceipt ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoReceipt')}
+                            onToggle={(newValue) => {
+                                setReceiptEnabled(newValue);
+                                clearAmountConflictError();
+                                if (!newValue) {
+                                    formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT);
+                                }
+                            }}
+                        />
+                        {receiptEnabled && (
                             <InputWrapper
                                 InputComponent={AmountForm}
                                 inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_RECEIPT}
@@ -218,30 +217,27 @@ function RulesRequireReceiptsPage({
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
                                 onValueChange={clearAmountConflictError}
                             />
-                        </View>
-                    )}
+                        )}
 
-                    <View style={[styles.sectionDividerLine, styles.mv3]} />
+                        <View style={styles.sectionDividerLine} />
 
-                    <ToggleSettingOptionRow
-                        title={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
-                        switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={styles.pv3}
-                        isActive={itemizedEnabled}
-                        pendingAction={policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt}
-                        errors={policy?.errorFields?.maxExpenseAmountNoItemizedReceipt ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoItemizedReceipt')}
-                        onToggle={(newValue) => {
-                            setItemizedEnabled(newValue);
-                            clearAmountConflictError();
-                            if (!newValue) {
-                                formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT);
-                            }
-                        }}
-                    />
-                    {itemizedEnabled && (
-                        <View style={styles.pv2}>
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
+                            switchAccessibilityLabel={translate('workspace.rules.requireReceipts.requireItemizedReceipt')}
+                            shouldPlaceSubtitleBelowSwitch
+                            isActive={itemizedEnabled}
+                            pendingAction={policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt}
+                            errors={policy?.errorFields?.maxExpenseAmountNoItemizedReceipt ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policyID, 'maxExpenseAmountNoItemizedReceipt')}
+                            onToggle={(newValue) => {
+                                setItemizedEnabled(newValue);
+                                clearAmountConflictError();
+                                if (!newValue) {
+                                    formRef.current?.resetFormFieldError(INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT);
+                                }
+                            }}
+                        />
+                        {itemizedEnabled && (
                             <InputWrapper
                                 InputComponent={AmountForm}
                                 inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT}
@@ -252,15 +248,15 @@ function RulesRequireReceiptsPage({
                                 label={translate('workspace.rules.requireReceipts.requireAboveAmount')}
                                 onValueChange={clearAmountConflictError}
                             />
-                        </View>
-                    )}
+                        )}
 
-                    {!!amountConflictError && (
-                        <FormHelpMessage
-                            style={styles.mt2}
-                            message={amountConflictError}
-                        />
-                    )}
+                        {!!amountConflictError && (
+                            <FormHelpMessage
+                                style={[styles.mt0, styles.mb0]}
+                                message={amountConflictError}
+                            />
+                        )}
+                    </FormFields>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

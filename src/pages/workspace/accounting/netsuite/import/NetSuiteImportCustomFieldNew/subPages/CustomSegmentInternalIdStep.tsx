@@ -1,8 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -57,18 +58,18 @@ function CustomSegmentInternalIdStep({customSegmentType, onNext, isEditing, netS
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
             shouldHideFixErrorsAlert
             addBottomSafeAreaPadding
         >
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                    {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.customSegmentInternalIDTitle`)}
-                </Text>
-
+            <FormHeader
+                title={translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.customSegmentInternalIDTitle`)}
+                style={styles.ph5}
+            />
+            <FormFieldGroup style={styles.ph5}>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.INTERNAL_ID}
@@ -79,14 +80,14 @@ function CustomSegmentInternalIdStep({customSegmentType, onNext, isEditing, netS
                     ref={inputCallbackRef}
                     defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.INTERNAL_ID]}
                 />
-                <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
+                <View style={[styles.flex1, styles.renderHTML, styles.textDecorationSkipInkNone]}>
                     <RenderHTML
                         html={`<comment>${Parser.replace(
                             translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}InternalIDFooter`),
                         )}</comment>`}
                     />
                 </View>
-            </View>
+            </FormFieldGroup>
         </FormProvider>
     );
 }

@@ -2,6 +2,10 @@ import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar'
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -339,10 +343,8 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && (
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
-                    )}
-                    <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && <FormHeader title={translate('workspace.card.issueNewCard.inviteNewMember')} />}
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
                             <MultiAccountAvatar
                                 size={CONST.AVATAR_SIZE.XXX_LARGE}
@@ -354,8 +356,8 @@ function WorkspaceInviteMessageComponent({
                             />
                         </AvatarTooltipsProvider>
                     </View>
-                    <View style={styles.mb3}>
-                        <View style={[styles.mhn5, styles.mb3]}>
+                    <FormFields>
+                        <FormMenuRows style={styles.mhn5}>
                             {isInviteNewMemberStep && (
                                 <MenuItemField
                                     name={translate('common.member')}
@@ -400,49 +402,49 @@ function WorkspaceInviteMessageComponent({
                                     value={defaultOfficeLabel ? `${selectedWorkArrangementLabel}, ${defaultOfficeLabel}` : selectedWorkArrangementLabel}
                                 />
                             )}
-                        </View>
-                        <View style={[styles.mb3]}>
+                        </FormMenuRows>
+                        <FormFieldGroup>
                             <Text style={[styles.textSupportingNormal]}>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.WELCOME_MESSAGE}
+                                label={translate('workspace.inviteMessage.personalMessagePrompt')}
+                                accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
+                                autoCompleteType="off"
+                                type="markdown"
+                                autoCorrect={false}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                value={welcomeNote}
+                                onChangeText={(text: string) => {
+                                    setWelcomeNote(text);
+                                }}
+                                ref={(element: AnimatedTextInputRef | null) => {
+                                    if (!element) {
+                                        return;
+                                    }
+                                    if (!inputRef.current) {
+                                        updateMultilineInputRange(element);
+                                    }
+                                    inputCallbackRef(element);
+                                }}
+                                shouldSaveDraft
+                            />
+                        </FormFieldGroup>
+                    </FormFields>
+                    <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVITE_MESSAGE_PRIVACY_LINK}
+                        onPress={openPrivacyURL}
+                        role={CONST.ROLE.LINK}
+                        accessibilityLabel={translate('common.privacy')}
+                        href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                        style={styles.alignSelfStart}
+                    >
+                        <View style={[styles.flexRow]}>
+                            <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
                         </View>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.WELCOME_MESSAGE}
-                            label={translate('workspace.inviteMessage.personalMessagePrompt')}
-                            accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
-                            autoCompleteType="off"
-                            type="markdown"
-                            autoCorrect={false}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            value={welcomeNote}
-                            onChangeText={(text: string) => {
-                                setWelcomeNote(text);
-                            }}
-                            ref={(element: AnimatedTextInputRef | null) => {
-                                if (!element) {
-                                    return;
-                                }
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(element);
-                                }
-                                inputCallbackRef(element);
-                            }}
-                            shouldSaveDraft
-                        />
-                        <PressableWithoutFeedback
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVITE_MESSAGE_PRIVACY_LINK}
-                            onPress={openPrivacyURL}
-                            role={CONST.ROLE.LINK}
-                            accessibilityLabel={translate('common.privacy')}
-                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
-                            style={[styles.mt6, styles.alignSelfStart]}
-                        >
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
-                            </View>
-                        </PressableWithoutFeedback>
-                    </View>
+                    </PressableWithoutFeedback>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

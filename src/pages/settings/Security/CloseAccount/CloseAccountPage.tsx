@@ -1,6 +1,8 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -144,33 +146,37 @@ function CloseAccountPage() {
                         fsClass={CONST.FULLSTORY.CLASS.UNMASK}
                         style={[styles.flexGrow1]}
                     >
-                        <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.REASON_FOR_LEAVING}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            label={translate('closeAccountPage.enterMessageHere')}
-                            aria-label={translate('closeAccountPage.enterMessageHere')}
-                            role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mt5]}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-                        />
-                        <Text style={[styles.mt5]}>
-                            {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
-                        </Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                            autoCapitalize="none"
-                            label={translate('closeAccountPage.enterDefaultContact')}
-                            aria-label={translate('closeAccountPage.enterDefaultContact')}
-                            role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mt5]}
-                            autoCorrect={false}
-                            inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
-                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
-                        />
+                        <FormFields>
+                            <FormFieldGroup>
+                                <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.REASON_FOR_LEAVING}
+                                    autoGrowHeight
+                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                    label={translate('closeAccountPage.enterMessageHere')}
+                                    aria-label={translate('closeAccountPage.enterMessageHere')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                                />
+                            </FormFieldGroup>
+                            <FormFieldGroup>
+                                <Text>
+                                    {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
+                                </Text>
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                                    autoCapitalize="none"
+                                    label={translate('closeAccountPage.enterDefaultContact')}
+                                    aria-label={translate('closeAccountPage.enterDefaultContact')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    autoCorrect={false}
+                                    inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                                    forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+                                />
+                            </FormFieldGroup>
+                        </FormFields>
                     </View>
                 </FormProvider>
             </DelegateNoAccessWrapper>

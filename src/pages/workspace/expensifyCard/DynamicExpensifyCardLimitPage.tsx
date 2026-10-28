@@ -150,7 +150,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                     shouldHideFixErrorsAlert
                     onSubmit={submit}
                     style={styles.flex1}
-                    submitButtonStyles={[styles.mh5, styles.mt0]}
+                    submitButtonStyles={[styles.mh5]}
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     validate={validate}

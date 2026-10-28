@@ -2,6 +2,8 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -251,58 +253,60 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                         enabledWhenOffline
                         addBottomSafeAreaPadding
                     >
-                        <InputWrapper
-                            InputComponent={ValuePicker}
-                            inputID={INPUT_IDS.LIMIT_TYPE}
-                            label={translate('workspace.card.issueNewCard.chooseLimitType')}
-                            value={typeSelected}
-                            defaultValue={initialLimitType}
-                            items={data}
-                            onValueChange={(value) => {
-                                setTypeSelected(value as CardLimitType);
-                            }}
-                            shouldShowModal={false}
-                            addBottomSafeAreaPadding={false}
-                            alternateNumberOfSupportedLines={2}
-                        />
-
-                        {!!card?.nameValuePairs?.isVirtual && (
-                            <>
-                                <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
-                                <View style={[styles.ph5]}>
-                                    <ToggleSettingOptionRow
-                                        title={translate('workspace.card.issueNewCard.addExpirationDate')}
-                                        subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
-                                        isActive={expirationToggle}
-                                        onToggle={setExpirationToggle}
-                                        switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
-                                        shouldPlaceSubtitleBelowSwitch
-                                        wrapperStyle={[styles.mv3]}
-                                    />
-                                    {expirationToggle && (
-                                        <>
-                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
-                                            <InputWrapper
-                                                InputComponent={DatePicker}
-                                                inputID={INPUT_IDS.VALID_FROM}
-                                                label={translate('workspace.card.issueNewCard.startDate')}
-                                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                                                minDate={minDate}
-                                                defaultValue={validFromDefaultValue}
-                                            />
-                                            <InputWrapper
-                                                InputComponent={DatePicker}
-                                                inputID={INPUT_IDS.VALID_THRU}
-                                                label={translate('workspace.card.issueNewCard.endDate')}
-                                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                                                minDate={minDate}
-                                                defaultValue={validThruDefaultValue}
-                                            />
-                                        </>
-                                    )}
-                                </View>
-                            </>
-                        )}
+                        <FormFields>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.LIMIT_TYPE}
+                                label={translate('workspace.card.issueNewCard.chooseLimitType')}
+                                value={typeSelected}
+                                defaultValue={initialLimitType}
+                                items={data}
+                                onValueChange={(value) => {
+                                    setTypeSelected(value as CardLimitType);
+                                }}
+                                shouldShowModal={false}
+                                addBottomSafeAreaPadding={false}
+                                alternateNumberOfSupportedLines={2}
+                            />
+                            {!!card?.nameValuePairs?.isVirtual && (
+                                <>
+                                    <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5]} />
+                                    <FormFields style={styles.ph5}>
+                                        <ToggleSettingOptionRow
+                                            title={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                            subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
+                                            isActive={expirationToggle}
+                                            onToggle={setExpirationToggle}
+                                            switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                            shouldPlaceSubtitleBelowSwitch
+                                        />
+                                        {expirationToggle && (
+                                            <>
+                                                <FormFieldGroup>
+                                                    <Text style={styles.textLabelSupporting}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
+                                                    <InputWrapper
+                                                        InputComponent={DatePicker}
+                                                        inputID={INPUT_IDS.VALID_FROM}
+                                                        label={translate('workspace.card.issueNewCard.startDate')}
+                                                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                                        minDate={minDate}
+                                                        defaultValue={validFromDefaultValue}
+                                                    />
+                                                </FormFieldGroup>
+                                                <InputWrapper
+                                                    InputComponent={DatePicker}
+                                                    inputID={INPUT_IDS.VALID_THRU}
+                                                    label={translate('workspace.card.issueNewCard.endDate')}
+                                                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                                    minDate={minDate}
+                                                    defaultValue={validThruDefaultValue}
+                                                />
+                                            </>
+                                        )}
+                                    </FormFields>
+                                </>
+                            )}
+                        </FormFields>
                     </FormProvider>
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>

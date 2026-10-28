@@ -256,7 +256,6 @@ function DynamicIOURequestStepWaypoint({
                                 textInput.current = e as unknown as ComponentRef<typeof TextInput>;
                             }}
                             hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
-                            containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
                             onPress={selectWaypoint}

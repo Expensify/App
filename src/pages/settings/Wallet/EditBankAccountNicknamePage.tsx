@@ -1,9 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -83,7 +83,6 @@ function EditBankAccountNicknamePage({route}: EditBankAccountNicknamePageProps) 
                 title={translate('walletPage.editNickname')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
-            <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('walletPage.editNicknameInstruction')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_BANK_ACCOUNT_NICKNAME_FORM}
                 submitButtonText={translate('common.save')}
@@ -93,6 +92,7 @@ function EditBankAccountNicknamePage({route}: EditBankAccountNicknamePageProps) 
                 validate={validate}
                 shouldHideFixErrorsAlert
             >
+                <FormHeader description={translate('walletPage.editNicknameInstruction')} />
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NICKNAME}

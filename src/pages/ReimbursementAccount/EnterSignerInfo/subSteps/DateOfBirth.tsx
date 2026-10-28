@@ -4,7 +4,6 @@ import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormS
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
 
@@ -15,7 +14,6 @@ import React from 'react';
 
 function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const inputID = INPUT_IDS.SIGNER_DATE_OF_BIRTH;
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
@@ -38,7 +36,7 @@ function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
             stepFields={[inputID]}
             dobInputID={inputID}
             dobDefaultValue={defaultValue}
-            footerComponent={<WhyLink containerStyles={[styles.mt6]} />}
+            footerComponent={<WhyLink />}
         />
     );
 }

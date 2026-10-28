@@ -4,6 +4,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormOnyxValues, FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -278,7 +280,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                     // Block submit until the draft has loaded, so we never create the agent without the preset/photo it will restore.
                     isSubmitDisabled={isDraftLoading}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                    <FormFields style={styles.flex1}>
                         <View style={[styles.alignItemsCenter]}>
                             <AvatarButtonWithIcon
                                 text={translate('addAgentPage.editAvatar')}
@@ -300,7 +302,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                             defaultValue={defaultAgentName}
                         />
                         {isAddingCompanyAgent && (
-                            <View style={[styles.mhn5]}>
+                            <FormMenuRows style={styles.mhn5}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
                                     inputID={INPUT_IDS.ROLE}
@@ -309,7 +311,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                                     defaultValue={defaultRole}
                                     shouldShowTooltips={false}
                                 />
-                            </View>
+                            </FormMenuRows>
                         )}
                         <View
                             style={[
@@ -350,7 +352,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
                             />
                         </View>
                         <Text style={[styles.textLabelSupporting]}>{`${translate('addAgentPage.copilotNote')} ${translate('workspace.rules.agentRules.disclaimer')}`}</Text>
-                    </View>
+                    </FormFields>
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>

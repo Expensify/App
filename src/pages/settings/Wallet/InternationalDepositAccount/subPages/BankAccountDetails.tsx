@@ -2,6 +2,9 @@ import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeade
 import CurrencyPicker from '@components/CurrencyPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import TextInput from '@components/TextInput';
@@ -67,14 +70,17 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
         >
-            <View style={styles.ph5}>
-                <CollapsibleHeaderOnKeyboardGroupMember>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountDetailsStepHeader')}</Text>
-                </CollapsibleHeaderOnKeyboardGroupMember>
-                <View style={[styles.mhn5]}>
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <FormHeader
+                    title={translate('addPersonalBankAccount.accountDetailsStepHeader')}
+                    style={styles.ph5}
+                />
+            </CollapsibleHeaderOnKeyboardGroupMember>
+            <FormFields style={styles.ph5}>
+                <FormMenuRows style={styles.mhn5}>
                     <CurrencyPicker
                         label={translate('common.currency')}
                         value={formValues.bankCurrency}
@@ -84,42 +90,49 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
                         disabled={isOffline}
                         shouldShowFullPageOfflineView
                     />
-                </View>
+                </FormMenuRows>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_DETAILS] ?? {}).map((field) => {
                     const isValuePicker = (field.valueSet ?? []).length > 0;
-                    return (
-                        <View
-                            style={isValuePicker ? [styles.mhn5, styles.pv1] : [styles.pv2]}
+                    const input = (
+                        <InputWrapper
                             key={field.id}
+                            InputComponent={isValuePicker ? ValuePicker : TextInput}
+                            inputID={field.id}
+                            defaultValue={formValues[field.id]}
+                            label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
+                            items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
+                            shouldSaveDraft={!isEditing}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            {...(isValuePicker ? {} : getTextInputAutocorrectProps())}
+                        />
+                    );
+                    if (!isValuePicker) {
+                        return input;
+                    }
+                    return (
+                        <FormMenuRows
+                            key={field.id}
+                            style={styles.mhn5}
                         >
-                            <InputWrapper
-                                InputComponent={isValuePicker ? ValuePicker : TextInput}
-                                inputID={field.id}
-                                defaultValue={formValues[field.id]}
-                                label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
-                                items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
-                                shouldSaveDraft={!isEditing}
-                                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                                {...(isValuePicker ? {} : getTextInputAutocorrectProps())}
-                            />
-                        </View>
+                            {input}
+                        </FormMenuRows>
                     );
                 })}
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt4]}>
-                    <Icon
-                        src={icons.QuestionMark}
-                        width={12}
-                        height={12}
-                        fill={theme.icon}
-                    />
-                    <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
-                        <TextLink
-                            style={[styles.textMicro]}
-                            href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
-                        >
-                            {translate('addPersonalBankAccount.howDoWeProtectYourData')}
-                        </TextLink>
-                    </View>
+            </FormFields>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5]}>
+                <Icon
+                    src={icons.QuestionMark}
+                    width={12}
+                    height={12}
+                    fill={theme.icon}
+                />
+                <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
+                    <TextLink
+                        style={[styles.textMicro]}
+                        href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
+                    >
+                        {translate('addPersonalBankAccount.howDoWeProtectYourData')}
+                    </TextLink>
                 </View>
             </View>
         </FormProvider>

@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -127,8 +128,8 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                         submitButtonText={submitButtonText ?? translate('common.save')}
                         enabledWhenOffline
                     >
-                        <View style={[styles.mb4]}>
-                            {children}
+                        {children}
+                        <FormFields>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 ref={inputCallbackRef}
@@ -143,8 +144,6 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                                 autoCapitalize="words"
                                 autoComplete="given-name"
                             />
-                        </View>
-                        <View>
                             <InputWrapper
                                 InputComponent={TextInput}
                                 inputID={INPUT_IDS.LEGAL_LAST_NAME}
@@ -158,7 +157,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                                 autoCapitalize="words"
                                 autoComplete="family-name"
                             />
-                        </View>
+                        </FormFields>
                     </FormProvider>
                 )}
             </DelegateNoAccessWrapper>

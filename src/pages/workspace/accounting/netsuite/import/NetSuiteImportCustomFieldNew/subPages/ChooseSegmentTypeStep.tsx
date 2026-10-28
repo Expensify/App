@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
@@ -52,23 +53,26 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
             shouldUseScrollView
             shouldHideFixErrorsAlert
             submitFlexEnabled={false}
             addBottomSafeAreaPadding
         >
-            <Text style={[styles.ph5, styles.textHeadlineLineHeightXXL, styles.mb3]}>
-                {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType`)}
-            </Text>
-            <Text style={[styles.ph5, styles.mb3]}>{translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}</Text>
-            <InputWrapper
-                InputComponent={NetSuiteCustomSegmentMappingPicker}
-                inputID={INPUT_IDS.SEGMENT_TYPE}
-                defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.SEGMENT_TYPE]}
-                shouldSaveDraft
+            <FormHeader
+                title={translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentRecordType`)}
+                description={translate(`workspace.netsuite.import.importCustomFields.chooseOptionBelow`)}
+                style={styles.ph5}
             />
+            <FormMenuRows style={styles.flex1}>
+                <InputWrapper
+                    InputComponent={NetSuiteCustomSegmentMappingPicker}
+                    inputID={INPUT_IDS.SEGMENT_TYPE}
+                    defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.SEGMENT_TYPE]}
+                    shouldSaveDraft
+                />
+            </FormMenuRows>
         </FormProvider>
     );
 }

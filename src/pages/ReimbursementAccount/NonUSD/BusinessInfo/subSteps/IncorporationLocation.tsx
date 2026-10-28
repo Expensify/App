@@ -1,8 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -98,31 +99,36 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
             submitButtonStyles={[styles.mh5]}
             shouldHideFixErrorsAlert={!shouldGatherState}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whereWasTheBusinessIncorporated')}</Text>
-            {shouldGatherState && (
+            <FormHeader
+                title={translate('businessInfoStep.whereWasTheBusinessIncorporated')}
+                style={styles.mh5}
+            />
+            <FormMenuRows>
+                {shouldGatherState && (
+                    <InputWrapper
+                        InputComponent={PushRowWithModal}
+                        optionsList={selectedCountry === CONST.COUNTRY.US ? STATES_LIST_OPTIONS : PROVINCES_LIST_OPTIONS}
+                        description={translate('businessInfoStep.incorporationState')}
+                        modalHeaderTitle={translate('businessInfoStep.selectIncorporationState')}
+                        searchInputTitle={translate('businessInfoStep.findIncorporationState')}
+                        inputID={FORMATION_INCORPORATION_STATE}
+                        shouldSaveDraft={!isEditing}
+                        value={selectedState}
+                        onValueChange={handleSelectingState}
+                    />
+                )}
                 <InputWrapper
                     InputComponent={PushRowWithModal}
-                    optionsList={selectedCountry === CONST.COUNTRY.US ? STATES_LIST_OPTIONS : PROVINCES_LIST_OPTIONS}
-                    description={translate('businessInfoStep.incorporationState')}
-                    modalHeaderTitle={translate('businessInfoStep.selectIncorporationState')}
-                    searchInputTitle={translate('businessInfoStep.findIncorporationState')}
-                    inputID={FORMATION_INCORPORATION_STATE}
+                    optionsList={CONST.ALL_COUNTRIES}
+                    onValueChange={handleSelectingCountry}
+                    description={translate('businessInfoStep.incorporationCountry')}
+                    modalHeaderTitle={translate('countryStep.selectCountry')}
+                    searchInputTitle={translate('countryStep.findCountry')}
+                    inputID={FORMATION_INCORPORATION_COUNTRY_CODE}
                     shouldSaveDraft={!isEditing}
-                    value={selectedState}
-                    onValueChange={handleSelectingState}
+                    defaultValue={incorporationCountryInitialValue}
                 />
-            )}
-            <InputWrapper
-                InputComponent={PushRowWithModal}
-                optionsList={CONST.ALL_COUNTRIES}
-                onValueChange={handleSelectingCountry}
-                description={translate('businessInfoStep.incorporationCountry')}
-                modalHeaderTitle={translate('countryStep.selectCountry')}
-                searchInputTitle={translate('countryStep.findCountry')}
-                inputID={FORMATION_INCORPORATION_COUNTRY_CODE}
-                shouldSaveDraft={!isEditing}
-                defaultValue={incorporationCountryInitialValue}
-            />
+            </FormMenuRows>
         </FormProvider>
     );
 }

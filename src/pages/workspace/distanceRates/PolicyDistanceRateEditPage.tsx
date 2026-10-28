@@ -90,7 +90,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                     style={[styles.flexGrow1]}
                     shouldHideFixErrorsAlert
                     submitFlexEnabled={false}
-                    submitButtonStyles={[styles.mh5, styles.mt0]}
+                    submitButtonStyles={[styles.mh5]}
                     addBottomSafeAreaPadding
                 >
                     <InputWrapperWithRef

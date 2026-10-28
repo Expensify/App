@@ -1,11 +1,11 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
@@ -146,19 +146,18 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <Text style={[styles.mb5]}>
-                    {translate(
+                <FormHeader
+                    description={translate(
                         Str.extractEmailDomain(personalDetailsList?.[route.params.accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN
                             ? 'privateNotes.sharedNoteMessage'
                             : 'privateNotes.personalNoteMessage',
                     )}
-                </Text>
+                />
                 <OfflineWithFeedback
                     errors={{
                         ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
                     }}
                     onClose={() => clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
-                    style={[styles.mb3]}
                 >
                     <InputWrapper
                         InputComponent={TextInput}

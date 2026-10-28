@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -32,7 +33,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 function DynamicNewTaskDetailsPage() {
     const [task] = useOnyx(ONYXKEYS.TASK);
@@ -124,7 +124,7 @@ function DynamicNewTaskDetailsPage() {
                 onSubmit={onSubmit}
                 enabledWhenOffline
             >
-                <View style={styles.mb5}>
+                <FormFields>
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
@@ -141,8 +141,6 @@ function DynamicNewTaskDetailsPage() {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
-                </View>
-                <View style={styles.mb5}>
                     <InputWrapper
                         valueType="string"
                         InputComponent={TextInput}
@@ -158,7 +156,7 @@ function DynamicNewTaskDetailsPage() {
                         onValueChange={setLocalDescription}
                         type="markdown"
                     />
-                </View>
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

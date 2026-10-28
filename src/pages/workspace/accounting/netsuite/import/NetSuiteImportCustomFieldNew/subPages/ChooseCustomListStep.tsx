@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomListFormSubmit from '@hooks/useNetSuiteImportAddCustomListForm';
@@ -40,21 +41,26 @@ function ChooseCustomListStep({policyIDParam, onNext, isEditing, netSuiteCustomF
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
             shouldHideFixErrorsAlert
             addBottomSafeAreaPadding
         >
-            <Text style={[styles.mb3, styles.ph5, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.listNameTitle`)}</Text>
-            <InputWrapper
-                InputComponent={NetSuiteCustomListPicker}
-                inputID={INPUT_IDS.LIST_NAME}
-                policyID={policyIDParam}
-                isEditing={isEditing}
-                defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.LIST_NAME]}
+            <FormHeader
+                title={translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.listNameTitle`)}
+                style={styles.ph5}
             />
+            <FormMenuRows>
+                <InputWrapper
+                    InputComponent={NetSuiteCustomListPicker}
+                    inputID={INPUT_IDS.LIST_NAME}
+                    policyID={policyIDParam}
+                    isEditing={isEditing}
+                    defaultValue={netSuiteCustomFieldFormValues[INPUT_IDS.LIST_NAME]}
+                />
+            </FormMenuRows>
         </FormProvider>
     );
 }

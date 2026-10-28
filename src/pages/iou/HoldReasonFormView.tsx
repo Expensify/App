@@ -1,9 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -17,7 +17,6 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type HoldReasonFormViewProps = {
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => void;
@@ -57,19 +56,17 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <Text style={styles.mb6}>{translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})}</Text>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMMENT}
-                        valueType="string"
-                        name="comment"
-                        defaultValue={undefined}
-                        label={translate('iou.reason')}
-                        accessibilityLabel={translate('iou.reason')}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <FormHeader description={translate(isSubmitter ? 'iou.explainHold' : 'iou.explainHoldApprover', {count: expenseCount})} />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.COMMENT}
+                    valueType="string"
+                    name="comment"
+                    defaultValue={undefined}
+                    label={translate('iou.reason')}
+                    accessibilityLabel={translate('iou.reason')}
+                    ref={inputCallbackRef}
+                />
             </FormProvider>
         </ScreenWrapper>
     );

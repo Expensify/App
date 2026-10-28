@@ -2,6 +2,8 @@ import AmountForm from '@components/AmountForm';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -241,7 +243,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                 submitButtonText={translate('chronos.scheduleOOO')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
+                <FormFields>
                     <InputWrapper
                         InputComponent={DatePicker}
                         inputID={INPUT_IDS.DATE}
@@ -250,8 +252,6 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         value={startDate}
                         onValueChange={applyStartDate}
                     />
-                </View>
-                <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.TIME}
@@ -260,9 +260,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         placeholder="14:30"
                     />
-                </View>
-                {!isHourDuration && (
-                    <View style={styles.mb4}>
+                    {!isHourDuration && (
                         <InputWrapper
                             InputComponent={DatePicker}
                             inputID={INPUT_IDS.END_DATE}
@@ -272,40 +270,38 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                             minDate={startDateAsDate}
                             onValueChange={applyEndDate}
                         />
+                    )}
+                    <View>
+                        <InputWrapper
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.DURATION_AMOUNT}
+                            valueType="string"
+                            label={translate('chronos.durationAmount')}
+                            displayAsTextInput
+                            hideCurrencySymbol
+                            shouldShowCurrencyButton
+                            currencyButtonLabel={durationUnitButtonLabel}
+                            currencyButtonAccessibilityLabel={`${translate('common.select')}, ${durationUnitButtonLabel}`}
+                            currency={CONST.CURRENCY.USD}
+                            decimals={2}
+                            value={durationAmount}
+                            onValueChange={applyDurationAmount}
+                            onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
+                            isCurrencyPressable
+                            numberFormRef={durationAmountRef}
+                        />
+                        <ValueSelectorModal
+                            isVisible={isDurationUnitModalVisible}
+                            label={translate('chronos.durationUnit')}
+                            selectedItem={durationUnitItems.find((item) => item.value === selectedDurationUnit)}
+                            items={durationUnitItems}
+                            onClose={() => setIsDurationUnitModalVisible(false)}
+                            onItemSelected={applyDurationUnit}
+                            onBackdropPress={Navigation.dismissModal}
+                            shouldEnableKeyboardAvoidingView={false}
+                        />
                     </View>
-                )}
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={AmountForm}
-                        inputID={INPUT_IDS.DURATION_AMOUNT}
-                        valueType="string"
-                        label={translate('chronos.durationAmount')}
-                        displayAsTextInput
-                        hideCurrencySymbol
-                        shouldShowCurrencyButton
-                        currencyButtonLabel={durationUnitButtonLabel}
-                        currencyButtonAccessibilityLabel={`${translate('common.select')}, ${durationUnitButtonLabel}`}
-                        currency={CONST.CURRENCY.USD}
-                        decimals={2}
-                        value={durationAmount}
-                        onValueChange={applyDurationAmount}
-                        onCurrencyButtonPress={() => setIsDurationUnitModalVisible(true)}
-                        isCurrencyPressable
-                        numberFormRef={durationAmountRef}
-                    />
-                    <ValueSelectorModal
-                        isVisible={isDurationUnitModalVisible}
-                        label={translate('chronos.durationUnit')}
-                        selectedItem={durationUnitItems.find((item) => item.value === selectedDurationUnit)}
-                        items={durationUnitItems}
-                        onClose={() => setIsDurationUnitModalVisible(false)}
-                        onItemSelected={applyDurationUnit}
-                        onBackdropPress={Navigation.dismissModal}
-                        shouldEnableKeyboardAvoidingView={false}
-                    />
-                </View>
-                {shouldShowReason && (
-                    <View style={styles.mb4}>
+                    {shouldShowReason && (
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.REASON}
@@ -314,28 +310,26 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             placeholder="on vacation"
                         />
-                    </View>
-                )}
-                <View style={styles.mb4}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        outerWrapperStyle={styles.mhn5}
-                        title={selectedLeaveTypeItem?.label ?? ''}
-                        description={translate('chronos.leaveType')}
-                        onPress={() => setIsLeaveTypeModalVisible(true)}
-                    />
-                    <ValueSelectorModal
-                        isVisible={isLeaveTypeModalVisible}
-                        label={translate('chronos.leaveType')}
-                        selectedItem={selectedLeaveTypeItem}
-                        items={leaveTypeItems}
-                        onClose={() => setIsLeaveTypeModalVisible(false)}
-                        onItemSelected={applyLeaveType}
-                        onBackdropPress={Navigation.dismissModal}
-                        shouldEnableKeyboardAvoidingView={false}
-                    />
-                </View>
-                <View style={styles.mb4}>
+                    )}
+                    <FormMenuRows>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            outerWrapperStyle={styles.mhn5}
+                            title={selectedLeaveTypeItem?.label ?? ''}
+                            description={translate('chronos.leaveType')}
+                            onPress={() => setIsLeaveTypeModalVisible(true)}
+                        />
+                        <ValueSelectorModal
+                            isVisible={isLeaveTypeModalVisible}
+                            label={translate('chronos.leaveType')}
+                            selectedItem={selectedLeaveTypeItem}
+                            items={leaveTypeItems}
+                            onClose={() => setIsLeaveTypeModalVisible(false)}
+                            onItemSelected={applyLeaveType}
+                            onBackdropPress={Navigation.dismissModal}
+                            shouldEnableKeyboardAvoidingView={false}
+                        />
+                    </FormMenuRows>
                     <InputWrapper
                         InputComponent={PercentageForm}
                         inputID={INPUT_IDS.WORKING_PERCENTAGE}
@@ -343,7 +337,7 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
                         allowDecimal
                         role={CONST.ROLE.PRESENTATION}
                     />
-                </View>
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

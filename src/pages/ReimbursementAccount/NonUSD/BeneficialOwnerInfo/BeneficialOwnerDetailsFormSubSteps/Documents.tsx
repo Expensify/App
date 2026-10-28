@@ -1,5 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
@@ -107,122 +110,132 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
             shouldHideFixErrorsAlert={testForShouldHideFixErrorsAlert}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
-            <Text style={[styles.textSupporting, styles.mb5]}>{translate('ownershipInfoStep.pleaseUpload')}</Text>
-            <Text style={[styles.textSupporting, styles.mb6]}>{translate('ownershipInfoStep.acceptedFiles')}</Text>
-            {isDocumentNeededStatus.isProofOfOwnershipNeeded && (
-                <View>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.proofOfBeneficialOwner')}</Text>
-                    <InputWrapper
-                        InputComponent={UploadFile}
-                        buttonText={translate('ownershipInfoStep.chooseFile')}
-                        uploadedFiles={uploadedProofOfOwnership}
-                        onUpload={(files) => {
-                            handleSelectFile(files, uploadedProofOfOwnership, proofOfOwnershipInputID, setUploadedProofOfOwnership);
-                        }}
-                        onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedProofOfOwnership, proofOfOwnershipInputID, setUploadedProofOfOwnership);
-                        }}
-                        setError={(error) => {
-                            setUploadError(error, proofOfOwnershipInputID);
-                        }}
-                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
-                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
-                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
-                        value={defaultValues[proofOfOwnershipInputID]}
-                        inputID={proofOfOwnershipInputID}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mt6]}>
-                        {translate(country === CONST.COUNTRY.CA ? 'ownershipInfoStep.proofOfBeneficialOwnerDescriptionCA' : 'ownershipInfoStep.proofOfBeneficialOwnerDescription')}
-                    </Text>
-                    {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
-                        <View style={[styles.sectionDividerLine, styles.mv6]} />
-                    )}
-                </View>
-            )}
+            <FormHeader
+                title={translate('ownershipInfoStep.uploadDocuments')}
+                description={translate('ownershipInfoStep.pleaseUpload')}
+            >
+                <Text style={styles.textSupporting}>{translate('ownershipInfoStep.acceptedFiles')}</Text>
+            </FormHeader>
+            <FormFields>
+                {isDocumentNeededStatus.isProofOfOwnershipNeeded && (
+                    <>
+                        <FormFieldGroup>
+                            <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.proofOfBeneficialOwner')}</Text>
+                            <InputWrapper
+                                InputComponent={UploadFile}
+                                buttonText={translate('ownershipInfoStep.chooseFile')}
+                                uploadedFiles={uploadedProofOfOwnership}
+                                onUpload={(files) => {
+                                    handleSelectFile(files, uploadedProofOfOwnership, proofOfOwnershipInputID, setUploadedProofOfOwnership);
+                                }}
+                                onRemove={(fileName) => {
+                                    handleRemoveFile(fileName, uploadedProofOfOwnership, proofOfOwnershipInputID, setUploadedProofOfOwnership);
+                                }}
+                                setError={(error) => {
+                                    setUploadError(error, proofOfOwnershipInputID);
+                                }}
+                                fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                                maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                                acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                                value={defaultValues[proofOfOwnershipInputID]}
+                                inputID={proofOfOwnershipInputID}
+                            />
+                            <Text style={styles.mutedTextLabel}>
+                                {translate(country === CONST.COUNTRY.CA ? 'ownershipInfoStep.proofOfBeneficialOwnerDescriptionCA' : 'ownershipInfoStep.proofOfBeneficialOwnerDescription')}
+                            </Text>
+                        </FormFieldGroup>
+                        {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
+                            <View style={styles.sectionDividerLine} />
+                        )}
+                    </>
+                )}
 
-            {isDocumentNeededStatus.isCopyOfIDNeeded && (
-                <View>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.copyOfID')}</Text>
-                    <InputWrapper
-                        InputComponent={UploadFile}
-                        buttonText={translate('ownershipInfoStep.chooseFile')}
-                        uploadedFiles={uploadedCopyOfID}
-                        onUpload={(files) => {
-                            handleSelectFile(files, uploadedCopyOfID, copyOfIDInputID, setUploadedCopyOfID);
-                        }}
-                        onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedCopyOfID, copyOfIDInputID, setUploadedCopyOfID);
-                        }}
-                        setError={(error) => {
-                            setUploadError(error, copyOfIDInputID);
-                        }}
-                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
-                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
-                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
-                        value={defaultValues[copyOfIDInputID]}
-                        inputID={copyOfIDInputID}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mv6]} />}
-                </View>
-            )}
+                {isDocumentNeededStatus.isCopyOfIDNeeded && (
+                    <>
+                        <FormFieldGroup>
+                            <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.copyOfID')}</Text>
+                            <InputWrapper
+                                InputComponent={UploadFile}
+                                buttonText={translate('ownershipInfoStep.chooseFile')}
+                                uploadedFiles={uploadedCopyOfID}
+                                onUpload={(files) => {
+                                    handleSelectFile(files, uploadedCopyOfID, copyOfIDInputID, setUploadedCopyOfID);
+                                }}
+                                onRemove={(fileName) => {
+                                    handleRemoveFile(fileName, uploadedCopyOfID, copyOfIDInputID, setUploadedCopyOfID);
+                                }}
+                                setError={(error) => {
+                                    setUploadError(error, copyOfIDInputID);
+                                }}
+                                fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                                maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                                acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                                value={defaultValues[copyOfIDInputID]}
+                                inputID={copyOfIDInputID}
+                            />
+                            <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
+                        </FormFieldGroup>
+                        {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={styles.sectionDividerLine} />}
+                    </>
+                )}
 
-            {isDocumentNeededStatus.isProofOfAddressNeeded && (
-                <View>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.proofOfAddress')}</Text>
-                    <InputWrapper
-                        InputComponent={UploadFile}
-                        buttonText={translate('ownershipInfoStep.chooseFile')}
-                        uploadedFiles={uploadedAddressProof}
-                        onUpload={(files) => {
-                            handleSelectFile(files, uploadedAddressProof, addressProofInputID, setUploadedAddressProof);
-                        }}
-                        onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedAddressProof, addressProofInputID, setUploadedAddressProof);
-                        }}
-                        setError={(error) => {
-                            setUploadError(error, addressProofInputID);
-                        }}
-                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
-                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
-                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
-                        value={defaultValues[addressProofInputID]}
-                        inputID={addressProofInputID}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mv6]} />}
-                </View>
-            )}
+                {isDocumentNeededStatus.isProofOfAddressNeeded && (
+                    <>
+                        <FormFieldGroup>
+                            <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.proofOfAddress')}</Text>
+                            <InputWrapper
+                                InputComponent={UploadFile}
+                                buttonText={translate('ownershipInfoStep.chooseFile')}
+                                uploadedFiles={uploadedAddressProof}
+                                onUpload={(files) => {
+                                    handleSelectFile(files, uploadedAddressProof, addressProofInputID, setUploadedAddressProof);
+                                }}
+                                onRemove={(fileName) => {
+                                    handleRemoveFile(fileName, uploadedAddressProof, addressProofInputID, setUploadedAddressProof);
+                                }}
+                                setError={(error) => {
+                                    setUploadError(error, addressProofInputID);
+                                }}
+                                fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                                maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                                acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                                value={defaultValues[addressProofInputID]}
+                                inputID={addressProofInputID}
+                            />
+                            <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
+                        </FormFieldGroup>
+                        {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={styles.sectionDividerLine} />}
+                    </>
+                )}
 
-            {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
-                <View>
-                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('ownershipInfoStep.codiceFiscale')}</Text>
-                    <InputWrapper
-                        InputComponent={UploadFile}
-                        buttonText={translate('ownershipInfoStep.chooseFile')}
-                        uploadedFiles={uploadedCodiceFiscale}
-                        onUpload={(files) => {
-                            handleSelectFile(files, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
-                        }}
-                        onRemove={(fileName) => {
-                            handleRemoveFile(fileName, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
-                        }}
-                        setError={(error) => {
-                            setUploadError(error, codiceFiscaleInputID);
-                        }}
-                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
-                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
-                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
-                        value={defaultValues[codiceFiscaleInputID]}
-                        inputID={codiceFiscaleInputID}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
-                </View>
-            )}
+                {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
+                    <FormFieldGroup>
+                        <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.codiceFiscale')}</Text>
+                        <InputWrapper
+                            InputComponent={UploadFile}
+                            buttonText={translate('ownershipInfoStep.chooseFile')}
+                            uploadedFiles={uploadedCodiceFiscale}
+                            onUpload={(files) => {
+                                handleSelectFile(files, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
+                            }}
+                            onRemove={(fileName) => {
+                                handleRemoveFile(fileName, uploadedCodiceFiscale, codiceFiscaleInputID, setUploadedCodiceFiscale);
+                            }}
+                            setError={(error) => {
+                                setUploadError(error, codiceFiscaleInputID);
+                            }}
+                            fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                            maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                            acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                            value={defaultValues[codiceFiscaleInputID]}
+                            inputID={codiceFiscaleInputID}
+                        />
+                        <Text style={styles.mutedTextLabel}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
+                    </FormFieldGroup>
+                )}
+            </FormFields>
         </FormProvider>
     );
 }

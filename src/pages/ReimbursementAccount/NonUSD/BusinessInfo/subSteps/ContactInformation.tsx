@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -70,31 +71,34 @@ function ContactInformation({onNext, isEditing}: ContactInformationProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsTheBusinessContactInformation')}</Text>
-            <InputWrapper
-                InputComponent={TextInput}
-                label={translate('common.phoneNumber')}
-                aria-label={translate('common.phoneNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.TEL}
-                inputID={BUSINESS_CONTACT_NUMBER}
-                containerStyles={[styles.mt5, styles.mh5]}
-                defaultValue={phoneNumberDefaultValue}
-                shouldSaveDraft={!isEditing}
-                autoComplete="tel"
+            <FormHeader
+                title={translate('businessInfoStep.whatsTheBusinessContactInformation')}
+                style={styles.mh5}
             />
-            <InputWrapper
-                InputComponent={TextInput}
-                label={translate('common.email')}
-                aria-label={translate('common.email')}
-                role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.EMAIL}
-                inputID={BUSINESS_CONFIRMATION_EMAIL}
-                containerStyles={[styles.mt5, styles.mh5]}
-                defaultValue={confirmationEmailDefaultValue}
-                shouldSaveDraft={!isEditing}
-                autoComplete="email"
-            />
+            <FormFields style={styles.mh5}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    label={translate('common.phoneNumber')}
+                    aria-label={translate('common.phoneNumber')}
+                    role={CONST.ROLE.PRESENTATION}
+                    inputMode={CONST.INPUT_MODE.TEL}
+                    inputID={BUSINESS_CONTACT_NUMBER}
+                    defaultValue={phoneNumberDefaultValue}
+                    shouldSaveDraft={!isEditing}
+                    autoComplete="tel"
+                />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    label={translate('common.email')}
+                    aria-label={translate('common.email')}
+                    role={CONST.ROLE.PRESENTATION}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
+                    inputID={BUSINESS_CONFIRMATION_EMAIL}
+                    defaultValue={confirmationEmailDefaultValue}
+                    shouldSaveDraft={!isEditing}
+                    autoComplete="email"
+                />
+            </FormFields>
         </FormProvider>
     );
 }

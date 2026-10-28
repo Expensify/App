@@ -1,10 +1,10 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import type {Choice} from '@components/RadioButtons';
 import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
-import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -111,10 +111,11 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
     };
 
     return (
-        <View style={styles.flex1}>
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('additionalDetailsStep.helpTextIdologyQuestions')}</Text>
-            </View>
+        <View style={[styles.flex1, styles.formContent]}>
+            <FormHeader
+                title={translate('additionalDetailsStep.helpTextIdologyQuestions')}
+                style={styles.ph5}
+            />
             <FormProvider
                 formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
                 onSubmit={submitAnswers}
@@ -139,7 +140,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                         onInputChange={() => {}}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6, styles.mh5]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5]}>
                         <Icon
                             src={icons.QuestionMark}
                             width={12}

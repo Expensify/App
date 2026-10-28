@@ -1,9 +1,10 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
@@ -21,7 +22,6 @@ import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {InputModeOptions} from 'react-native';
 
 import React, {useRef} from 'react';
-import {View} from 'react-native';
 
 type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
     ForwardedFSClassProps & {
@@ -97,40 +97,36 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={[styles.mb0]}
             enabledWhenOffline={enabledWhenOffline}
             shouldHideFixErrorsAlert
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
-                {!!formDisclaimer && <Text style={[styles.textSupporting, styles.mt3]}>{formDisclaimer}</Text>}
-                <View style={[styles.flex1]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={inputId}
-                        label={inputLabel}
-                        aria-label={inputLabel}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt6]}
-                        inputMode={inputMode}
-                        defaultValue={defaultValue}
-                        maxLength={maxLength}
-                        shouldSaveDraft={!isEditing}
-                        shouldUseDefaultValue={shouldUseDefaultValue}
-                        disabled={disabled}
-                        placeholder={placeholder}
-                        autoFocus={!shouldDelayAutoFocus}
-                        ref={internalInputRef}
-                        forwardedFSClass={forwardedFSClass}
-                    />
-                </View>
-                {shouldShowHelpLinks && (
-                    <>
-                        <HelpLinks containerStyles={[styles.mt5]} />
-                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
-                    </>
-                )}
-            </View>
+            <FormHeader
+                title={formTitle}
+                description={formDisclaimer}
+            />
+            <InputWrapper
+                InputComponent={TextInput}
+                inputID={inputId}
+                label={inputLabel}
+                aria-label={inputLabel}
+                role={CONST.ROLE.PRESENTATION}
+                inputMode={inputMode}
+                defaultValue={defaultValue}
+                maxLength={maxLength}
+                shouldSaveDraft={!isEditing}
+                shouldUseDefaultValue={shouldUseDefaultValue}
+                disabled={disabled}
+                placeholder={placeholder}
+                autoFocus={!shouldDelayAutoFocus}
+                ref={internalInputRef}
+                forwardedFSClass={forwardedFSClass}
+            />
+            {shouldShowHelpLinks && (
+                <FormFieldGroup>
+                    <HelpLinks />
+                    {shouldShowPatriotActLink && <PatriotActLink />}
+                </FormFieldGroup>
+            )}
         </FormProvider>
     );
 }

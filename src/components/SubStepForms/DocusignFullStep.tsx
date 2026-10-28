@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
@@ -88,6 +89,14 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
     };
 
     const country = mapCurrencyToCountry(currency ?? '');
+    const isCanadaOrUS = country === CONST.COUNTRY.CA || country === CONST.COUNTRY.US;
+    const isAustralia = country === CONST.COUNTRY.AU;
+    let uploadTitle: string | undefined;
+    if (isCanadaOrUS) {
+        uploadTitle = translate('docusignStep.uploadAdditional');
+    } else if (isAustralia) {
+        uploadTitle = translate('docusignStep.pleaseUploadTheDirect');
+    }
 
     const handleBackButtonPress = () => {
         clearErrors(formID);
@@ -109,34 +118,30 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
                 onSubmit={onSubmit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
-                submitButtonStyles={[styles.mb0]}
                 enabledWhenOffline={false}
                 isLoading={isLoading}
             >
-                {(country === CONST.COUNTRY.CA || country === CONST.COUNTRY.US) && (
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb10]}>{translate('docusignStep.pleaseComplete')}</Text>
-                )}
-                {country === CONST.COUNTRY.AU && (
-                    <>
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('docusignStep.pleaseCompleteTheBusinessAccount')}</Text>
-                        <Text style={[styles.textSupporting, styles.mb10]}>{translate('docusignStep.pleaseCompleteTheDirect')}</Text>
-                    </>
+                {isCanadaOrUS && <FormHeader title={translate('docusignStep.pleaseComplete')} />}
+                {isAustralia && (
+                    <FormHeader
+                        title={translate('docusignStep.pleaseCompleteTheBusinessAccount')}
+                        description={translate('docusignStep.pleaseCompleteTheDirect')}
+                    />
                 )}
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    style={[styles.w100, styles.mb15]}
+                    style={styles.w100}
                     onPress={() => {
                         openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL);
                     }}
                 >
                     <Button.Text>{translate('docusignStep.takeMeTo')}</Button.Text>
                 </Button>
-                {(country === CONST.COUNTRY.CA || country === CONST.COUNTRY.US) && (
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.uploadAdditional')}</Text>
-                )}
-                {country === CONST.COUNTRY.AU && <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.pleaseUploadTheDirect')}</Text>}
-                <Text style={[styles.textHeadlineH2, styles.colorMuted, styles.mb10]}>{translate('docusignStep.pleaseUpload')}</Text>
+                <FormHeader
+                    title={uploadTitle}
+                    description={<Text style={[styles.textHeadlineH2, styles.colorMuted]}>{translate('docusignStep.pleaseUpload')}</Text>}
+                />
                 <InputWrapper
                     InputComponent={UploadFile}
                     buttonText={translate('common.chooseFile')}

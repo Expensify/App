@@ -2,6 +2,9 @@ import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
+import FormSection from '@components/Form/Layout/FormSection';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -140,15 +143,43 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 onSubmit={handleSubmit}
                 isSubmitDisabled={isSubmitDisabled}
                 submitButtonText={translate('common.save')}
-                submitButtonStyles={[styles.ph5, styles.mt0]}
+                submitButtonStyles={styles.ph5}
                 enabledWhenOffline
                 allowHTML
             >
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.textFields')}</Text>
-                <View style={[styles.mb5, styles.ph5, styles.gap5]}>
-                    {textFields.map(([key, value]) => {
-                        const numberOfLines = DebugUtils.getNumberOfLinesFromString((formDraftData?.[key as keyof typeof formDraftData] as string) ?? value);
-                        return (
+                <FormSection
+                    title={translate('debug.textFields')}
+                    style={styles.ph5}
+                >
+                    <FormFields>
+                        {textFields.map(([key, value]) => {
+                            const numberOfLines = DebugUtils.getNumberOfLinesFromString((formDraftData?.[key as keyof typeof formDraftData] as string) ?? value);
+                            return (
+                                <InputWrapper
+                                    key={key}
+                                    InputComponent={TextInput}
+                                    inputID={key}
+                                    accessibilityLabel={key}
+                                    shouldSaveDraft
+                                    forceActiveLabel
+                                    label={key}
+                                    numberOfLines={numberOfLines}
+                                    multiline={numberOfLines > 1}
+                                    defaultValue={value}
+                                    disabled={DETAILS_DISABLED_KEYS.includes(key)}
+                                    shouldInterceptSwipe
+                                />
+                            );
+                        })}
+                        {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
+                    </FormFields>
+                </FormSection>
+                <FormSection
+                    title={translate('debug.numberFields')}
+                    style={styles.ph5}
+                >
+                    <FormFields>
+                        {numberFields.map(([key, value]) => (
                             <InputWrapper
                                 key={key}
                                 InputComponent={TextInput}
@@ -157,81 +188,79 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                                 shouldSaveDraft
                                 forceActiveLabel
                                 label={key}
-                                numberOfLines={numberOfLines}
-                                multiline={numberOfLines > 1}
-                                defaultValue={value}
+                                defaultValue={String(value)}
                                 disabled={DETAILS_DISABLED_KEYS.includes(key)}
                                 shouldInterceptSwipe
                             />
-                        );
-                    })}
-                    {textFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
-                </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.numberFields')}</Text>
-                <View style={[styles.mb5, styles.ph5, styles.gap5]}>
-                    {numberFields.map(([key, value]) => (
-                        <InputWrapper
-                            key={key}
-                            InputComponent={TextInput}
-                            inputID={key}
-                            accessibilityLabel={key}
-                            shouldSaveDraft
-                            forceActiveLabel
-                            label={key}
-                            defaultValue={String(value)}
-                            disabled={DETAILS_DISABLED_KEYS.includes(key)}
-                            shouldInterceptSwipe
-                        />
-                    ))}
-                    {numberFields.length === 0 && <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>}
-                </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.constantFields')}</Text>
-                <View style={styles.mb5}>
-                    {constantFields.map(([key, value]) => (
-                        <InputWrapper
-                            key={key}
-                            InputComponent={ConstantSelector}
-                            inputID={key}
-                            formType={formType}
-                            name={key}
-                            shouldSaveDraft
-                            defaultValue={String(value)}
-                            policyID={policyID}
-                        />
-                    ))}
-                    {constantFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
-                </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.dateTimeFields')}</Text>
-                <View style={styles.mb5}>
-                    {dateTimeFields.map(([key, value]) => (
-                        <InputWrapper
-                            key={key}
-                            InputComponent={DateTimeSelector}
-                            inputID={key}
-                            name={key}
-                            shouldSaveDraft
-                            defaultValue={String(value)}
-                        />
-                    ))}
-                    {dateTimeFields.length === 0 && <Text style={[styles.textNormalThemeText, styles.ph5]}>{translate('debug.none')}</Text>}
-                </View>
-                <Text style={[styles.headerText, styles.ph5, styles.mb3]}>{translate('debug.booleanFields')}</Text>
-                <View style={[styles.mb5, styles.ph5, styles.gap5]}>
-                    {booleanFields.map(([key, value]) => (
-                        <InputWrapper
-                            key={key}
-                            InputComponent={CheckboxWithLabel}
-                            label={key}
-                            inputID={key}
-                            shouldSaveDraft
-                            accessibilityLabel={key}
-                            defaultValue={value}
-                        />
-                    ))}
-                    {booleanFields.length === 0 && <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>}
-                </View>
+                        ))}
+                        {numberFields.length === 0 && <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>}
+                    </FormFields>
+                </FormSection>
+                <FormSection
+                    title={translate('debug.constantFields')}
+                    style={styles.ph5}
+                >
+                    {constantFields.length > 0 ? (
+                        <FormMenuRows style={styles.mhn5}>
+                            {constantFields.map(([key, value]) => (
+                                <InputWrapper
+                                    key={key}
+                                    InputComponent={ConstantSelector}
+                                    inputID={key}
+                                    formType={formType}
+                                    name={key}
+                                    shouldSaveDraft
+                                    defaultValue={String(value)}
+                                    policyID={policyID}
+                                />
+                            ))}
+                        </FormMenuRows>
+                    ) : (
+                        <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>
+                    )}
+                </FormSection>
+                <FormSection
+                    title={translate('debug.dateTimeFields')}
+                    style={styles.ph5}
+                >
+                    {dateTimeFields.length > 0 ? (
+                        <FormMenuRows style={styles.mhn5}>
+                            {dateTimeFields.map(([key, value]) => (
+                                <InputWrapper
+                                    key={key}
+                                    InputComponent={DateTimeSelector}
+                                    inputID={key}
+                                    name={key}
+                                    shouldSaveDraft
+                                    defaultValue={String(value)}
+                                />
+                            ))}
+                        </FormMenuRows>
+                    ) : (
+                        <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>
+                    )}
+                </FormSection>
+                <FormSection
+                    title={translate('debug.booleanFields')}
+                    style={styles.ph5}
+                >
+                    <FormFields>
+                        {booleanFields.map(([key, value]) => (
+                            <InputWrapper
+                                key={key}
+                                InputComponent={CheckboxWithLabel}
+                                label={key}
+                                inputID={key}
+                                shouldSaveDraft
+                                accessibilityLabel={key}
+                                defaultValue={value}
+                            />
+                        ))}
+                        {booleanFields.length === 0 && <Text style={styles.textNormalThemeText}>{translate('debug.none')}</Text>}
+                    </FormFields>
+                </FormSection>
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
-                <View style={[styles.ph5, styles.mb3, styles.mt5]}>
+                <View style={styles.ph5}>
                     <Button
                         variant={CONST.BUTTON_VARIANT.DANGER}
                         size={CONST.BUTTON_SIZE.LARGE}

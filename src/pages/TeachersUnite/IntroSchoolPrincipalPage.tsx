@@ -1,9 +1,10 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -27,7 +28,6 @@ import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 
 function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
@@ -114,8 +114,8 @@ function IntroSchoolPrincipalPage() {
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.letsStart')}
             >
-                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerifyExpense')}</Text>
-                <View>
+                <FormHeader description={translate('teachersUnitePage.schoolPrincipalVerifyExpense')} />
+                <FormFields>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.FIRST_NAME}
@@ -126,8 +126,6 @@ function IntroSchoolPrincipalPage() {
                         autoCapitalize="words"
                         autoComplete="given-name"
                     />
-                </View>
-                <View style={styles.mv4}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LAST_NAME}
@@ -138,8 +136,6 @@ function IntroSchoolPrincipalPage() {
                         autoCapitalize="words"
                         autoComplete="family-name"
                     />
-                </View>
-                <View>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PARTNER_USER_ID}
@@ -151,7 +147,7 @@ function IntroSchoolPrincipalPage() {
                         autoCapitalize="none"
                         autoComplete="email"
                     />
-                </View>
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

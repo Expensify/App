@@ -1,6 +1,7 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -119,7 +120,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                 shouldValidateOnBlur
                 keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                <FormFieldGroup style={styles.flex1}>
                     <View
                         style={[
                             !shouldAutoGrowPromptInput &&
@@ -158,7 +159,7 @@ function DynamicEditPromptPage({route}: DynamicEditPromptPageProps) {
                         />
                     </View>
                     <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
-                </View>
+                </FormFieldGroup>
             </FormProvider>
         </ScreenWrapper>
     );

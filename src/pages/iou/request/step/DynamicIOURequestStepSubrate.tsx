@@ -1,12 +1,14 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
@@ -42,7 +44,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useNavigation} from '@react-navigation/native';
 import {SafeString} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -253,46 +254,47 @@ function DynamicIOURequestStepSubrate({
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
                 >
-                    <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
-                    <View style={[styles.mhn5]}>
-                        <InputWrapperWithRef
-                            InputComponent={ValuePicker}
-                            inputID={`subrate${pageIndex}`}
-                            label={translate('common.subrate')}
-                            value={subrateValue}
-                            defaultValue={currentSubrate?.id}
-                            items={validOptions}
-                            onValueChange={(value) => {
-                                setSubrateValue(value as string);
+                    <FormHeader description={translate('iou.subrateSelection')} />
+                    <FormFields>
+                        <FormMenuRows style={styles.mhn5}>
+                            <InputWrapperWithRef
+                                InputComponent={ValuePicker}
+                                inputID={`subrate${pageIndex}`}
+                                label={translate('common.subrate')}
+                                value={subrateValue}
+                                defaultValue={currentSubrate?.id}
+                                items={validOptions}
+                                onValueChange={(value) => {
+                                    setSubrateValue(value as string);
 
-                                // Focus the Quantity input after the ValuePicker modal closes.
-                                // TransitionTracker's callback fires synchronously inside Reanimated's animation
-                                // callback (outside React's event handler), so React flushes state updates async
-                                // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
-                                // and the modal's FocusTrap (web) deactivates, preventing focus from being stolen.
-                                TransitionTracker.runAfterTransitions({
-                                    callback: () => {
-                                        requestIdleCallback(() => textInputRef.current?.focus());
-                                    },
-                                    waitForUpcomingTransition: true,
-                                });
-                            }}
-                            onOpen={() => {
-                                textInputRef.current?.blur();
-                            }}
+                                    // Focus the Quantity input after the ValuePicker modal closes.
+                                    // TransitionTracker's callback fires synchronously inside Reanimated's animation
+                                    // callback (outside React's event handler), so React flushes state updates async
+                                    // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
+                                    // and the modal's FocusTrap (web) deactivates, preventing focus from being stolen.
+                                    TransitionTracker.runAfterTransitions({
+                                        callback: () => {
+                                            requestIdleCallback(() => textInputRef.current?.focus());
+                                        },
+                                        waitForUpcomingTransition: true,
+                                    });
+                                }}
+                                onOpen={() => {
+                                    textInputRef.current?.blur();
+                                }}
+                            />
+                        </FormMenuRows>
+                        <InputWrapperWithRef
+                            InputComponent={TextInput}
+                            inputID={`quantity${pageIndex}`}
+                            ref={textInputRef}
+                            label={translate('iou.quantity')}
+                            value={quantityValue}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            maxLength={CONST.IOU.QUANTITY_MAX_LENGTH}
+                            onChangeText={onChangeQuantity}
                         />
-                    </View>
-                    <InputWrapperWithRef
-                        InputComponent={TextInput}
-                        inputID={`quantity${pageIndex}`}
-                        ref={textInputRef}
-                        containerStyles={[styles.mt4]}
-                        label={translate('iou.quantity')}
-                        value={quantityValue}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        maxLength={CONST.IOU.QUANTITY_MAX_LENGTH}
-                        onChangeText={onChangeQuantity}
-                    />
+                    </FormFields>
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>

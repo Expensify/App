@@ -31,6 +31,9 @@ import type {FormInputErrors, FormOnyxValues} from './Form/types';
 import DatePicker from './DatePicker';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
+import FormFields from './Form/Layout/FormFields';
+import FormHeader from './Form/Layout/FormHeader';
+import FormMenuRows from './Form/Layout/FormMenuRows';
 import MenuItemAction from './MenuItem/presets/MenuItemAction';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
@@ -148,59 +151,69 @@ function VacationDelegateForm({
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            {!!description && <Text style={[styles.mh5, styles.mb4]}>{description}</Text>}
-            <VacationDelegateMenuItem
-                vacationDelegate={{delegate}}
-                label={translate('statusPage.vacationDelegate.chooseDelegate')}
-                errors={errors}
-                pendingAction={pendingAction}
-                onCloseError={onCloseError}
-                onPress={onChangeDelegate}
-            />
-            {/* The clear after date and time belong to the same pending save as the delegate, so they grey out with it */}
-            <OfflineWithFeedback
-                pendingAction={pendingAction}
-                shouldHideOnDelete={false}
-            >
-                <View style={styles.ph5}>
-                    {/* Shows the calendar icon while empty and the clear button once a date is picked, so the delegate can go back to never clearing.
-                        The earliest day is today in the form's timezone, so it matches the validation even when the device is in another timezone. */}
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID={INPUT_IDS.CLEAR_AFTER_DATE}
-                        label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
-                        defaultValue={savedClearDate}
-                        minDate={getLocalDateFromDatetime(undefined, timezone)}
-                        icon={icons.CalendarSolid}
-                        shouldSaveDraft
-                    />
-                </View>
-                {/* The time only means something once a day is picked. Until it is changed, the delegate clears at the end of that day. */}
-                {!!clearDate && (
-                    <View style={styles.mt2}>
-                        <InputWrapper
-                            InputComponent={TimeModalPicker}
-                            inputID={INPUT_IDS.CLEAR_AFTER_TIME}
-                            label={translate('statusPage.time')}
-                            defaultValue={savedClearDateTime || DateUtils.getEndOfToday()}
-                            shouldSaveDraft
-                        />
-                    </View>
-                )}
-                {/* The bottom margin matches the date input's own, so the remove button below sits the same distance from whichever is last */}
-                {!!formattedClearDateTime && (
-                    <Text style={[styles.mh5, styles.textLabelSupporting, styles.mt2, styles.mb2]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDateTime)}</Text>
-                )}
-            </OfflineWithFeedback>
-            {!!savedDelegateOnOpen && !!savedDelegate && (
-                <View style={styles.mt4}>
-                    <MenuItemAction
-                        title={translate('statusPage.vacationDelegate.removeDelegate')}
-                        icon={icons.Trashcan}
-                        onPress={onRemove}
-                    />
-                </View>
+            {!!description && (
+                <FormHeader
+                    description={description}
+                    style={styles.mh5}
+                />
             )}
+            <FormFields>
+                <FormMenuRows>
+                    <VacationDelegateMenuItem
+                        vacationDelegate={{delegate}}
+                        label={translate('statusPage.vacationDelegate.chooseDelegate')}
+                        errors={errors}
+                        pendingAction={pendingAction}
+                        onCloseError={onCloseError}
+                        onPress={onChangeDelegate}
+                    />
+                </FormMenuRows>
+                {/* The clear after date and time belong to the same pending save as the delegate, so they grey out with it */}
+                <OfflineWithFeedback
+                    pendingAction={pendingAction}
+                    shouldHideOnDelete={false}
+                >
+                    <FormFields>
+                        <View style={styles.ph5}>
+                            {/* Shows the calendar icon while empty and the clear button once a date is picked, so the delegate can go back to never clearing.
+                                The earliest day is today in the form's timezone, so it matches the validation even when the device is in another timezone. */}
+                            <InputWrapper
+                                InputComponent={DatePicker}
+                                inputID={INPUT_IDS.CLEAR_AFTER_DATE}
+                                label={translate('statusPage.vacationDelegate.clearAfterRecommended')}
+                                defaultValue={savedClearDate}
+                                minDate={getLocalDateFromDatetime(undefined, timezone)}
+                                icon={icons.CalendarSolid}
+                                shouldSaveDraft
+                            />
+                        </View>
+                        {/* The time only means something once a day is picked. Until it is changed, the delegate clears at the end of that day. */}
+                        {!!clearDate && (
+                            <FormMenuRows>
+                                <InputWrapper
+                                    InputComponent={TimeModalPicker}
+                                    inputID={INPUT_IDS.CLEAR_AFTER_TIME}
+                                    label={translate('statusPage.time')}
+                                    defaultValue={savedClearDateTime || DateUtils.getEndOfToday()}
+                                    shouldSaveDraft
+                                />
+                            </FormMenuRows>
+                        )}
+                        {!!formattedClearDateTime && (
+                            <Text style={[styles.mh5, styles.textLabelSupporting]}>{translate('statusPage.vacationDelegate.willClearOn', formattedClearDateTime)}</Text>
+                        )}
+                    </FormFields>
+                </OfflineWithFeedback>
+                {!!savedDelegateOnOpen && !!savedDelegate && (
+                    <FormMenuRows>
+                        <MenuItemAction
+                            title={translate('statusPage.vacationDelegate.removeDelegate')}
+                            icon={icons.Trashcan}
+                            onPress={onRemove}
+                        />
+                    </FormMenuRows>
+                )}
+            </FormFields>
         </FormProvider>
     );
 }

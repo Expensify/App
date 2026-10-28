@@ -29,7 +29,6 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function DynamicNewTaskTitlePage() {
     const styles = useThemeStyles();
@@ -86,20 +85,18 @@ function DynamicNewTaskTitlePage() {
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
             >
-                <View style={styles.mb5}>
-                    <InputWrapperWithRef
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={Parser.htmlToMarkdown(task?.title ?? '', {accountIDToName})}
-                        ref={inputCallbackRef}
-                        inputID={INPUT_IDS.TASK_TITLE}
-                        label={translate('task.title')}
-                        accessibilityLabel={translate('task.title')}
-                        autoGrowHeight
-                        type="markdown"
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                    />
-                </View>
+                <InputWrapperWithRef
+                    InputComponent={TextInput}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={Parser.htmlToMarkdown(task?.title ?? '', {accountIDToName})}
+                    ref={inputCallbackRef}
+                    inputID={INPUT_IDS.TASK_TITLE}
+                    label={translate('task.title')}
+                    accessibilityLabel={translate('task.title')}
+                    autoGrowHeight
+                    type="markdown"
+                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                />
             </FormProvider>
         </ScreenWrapper>
     );

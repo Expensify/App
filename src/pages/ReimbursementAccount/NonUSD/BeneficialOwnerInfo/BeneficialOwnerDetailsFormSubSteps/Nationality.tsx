@@ -1,8 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,22 +49,25 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
             validate={validate}
             onSubmit={handleSubmit}
             style={styles.flexGrow1}
-            submitButtonStyles={[styles.mb0, styles.mh5]}
+            submitButtonStyles={styles.mh5}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5, styles.mh5]}>
-                {translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourNationality' : 'ownershipInfoStep.whatsTheOwnersNationality')}
-            </Text>
-            <InputWrapper
-                InputComponent={PushRowWithModal}
-                optionsList={CONST.ALL_COUNTRIES}
-                onValueChange={(value) => setSelectedCountry(value as string)}
-                description={translate('common.country')}
-                modalHeaderTitle={translate('countryStep.selectCountry')}
-                searchInputTitle={translate('countryStep.findCountry')}
-                value={selectedCountry}
-                inputID={nationalityInputID}
-                shouldSaveDraft={false}
+            <FormHeader
+                title={translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourNationality' : 'ownershipInfoStep.whatsTheOwnersNationality')}
+                style={styles.mh5}
             />
+            <FormMenuRows>
+                <InputWrapper
+                    InputComponent={PushRowWithModal}
+                    optionsList={CONST.ALL_COUNTRIES}
+                    onValueChange={(value) => setSelectedCountry(value as string)}
+                    description={translate('common.country')}
+                    modalHeaderTitle={translate('countryStep.selectCountry')}
+                    searchInputTitle={translate('countryStep.findCountry')}
+                    value={selectedCountry}
+                    inputID={nationalityInputID}
+                    shouldSaveDraft={false}
+                />
+            </FormMenuRows>
         </FormProvider>
     );
 }

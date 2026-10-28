@@ -3,6 +3,7 @@
  */
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -71,7 +72,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
-            <View style={styles.flex1}>
+            <FormFieldGroup style={styles.flex1}>
                 <View style={inputWrapperStyles}>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -90,8 +91,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
-                <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
-            </View>
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
+            </FormFieldGroup>
         </FormProvider>
     );
 }

@@ -1,9 +1,11 @@
 import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +27,6 @@ import type {CorpayFormField} from '@src/types/onyx';
 
 import {SafeString} from 'expensify-common';
 import React from 'react';
-import {View} from 'react-native';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;
@@ -98,8 +99,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
 
         if (field.id === ACCOUNT_HOLDER_COUNTRY) {
             return (
-                <View
-                    style={[styles.mb6, styles.mhn5]}
+                <FormMenuRows
+                    style={styles.mhn5}
                     key={field.id}
                 >
                     <InputWrapper
@@ -112,35 +113,31 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         searchInputTitle={translate('countryStep.findCountry')}
                         inputID={field.id}
                     />
-                </View>
+                </FormMenuRows>
             );
         }
 
         const inputComponent = getInputComponent(field);
         return (
-            <View
-                style={styles.mb6}
+            <InputWrapper
                 key={field.id}
-            >
-                <InputWrapper
-                    InputComponent={inputComponent}
-                    inputID={field.id}
-                    label={field.label}
-                    aria-label={field.label}
-                    role={CONST.ROLE.PRESENTATION}
-                    defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
-                    shouldSaveDraft={!isEditing}
-                    limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
-                    renamedInputKeys={{
-                        street: 'accountHolderAddress1',
-                        city: 'accountHolderCity',
-                        country: 'accountHolderCountry',
-                    }}
-                    hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
-                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
-                />
-            </View>
+                InputComponent={inputComponent}
+                inputID={field.id}
+                label={field.label}
+                aria-label={field.label}
+                role={CONST.ROLE.PRESENTATION}
+                defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
+                shouldSaveDraft={!isEditing}
+                limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
+                renamedInputKeys={{
+                    street: 'accountHolderAddress1',
+                    city: 'accountHolderCity',
+                    country: 'accountHolderCountry',
+                }}
+                hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
+            />
         );
     });
 
@@ -153,10 +150,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={(accountHolderDetailsFields?.length ?? 0) <= 1}
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>
-                {inputs}
-            </View>
+            <FormHeader title={translate('bankInfoStep.whatAreYour')} />
+            <FormFields>{inputs}</FormFields>
         </FormProvider>
     );
 }

@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -83,33 +85,34 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={!shouldGatherBothEmails}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}</Text>
-            {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
-            {shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.bothSignersMustBeOnIllionReport')}</Text>}
-            {shouldGatherOnlySecondSignerEmail && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.signerMustBeOnIllionReport')}</Text>}
-            <InputWrapper
-                InputComponent={TextInput}
-                label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
-                aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
-                role={CONST.ROLE.PRESENTATION}
-                inputID={shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL}
-                inputMode={CONST.INPUT_MODE.EMAIL}
-                containerStyles={[styles.mt6]}
-                ref={!shouldGatherBothEmails ? inputCallbackRef : undefined}
-                autoComplete="email"
-            />
-            {shouldGatherBothEmails && (
+            <FormHeader title={translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}>
+                {!shouldGatherBothEmails && <Text style={styles.textSupporting}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
+                {shouldGatherBothEmails && <Text style={styles.textSupporting}>{translate('signerInfoStep.bothSignersMustBeOnIllionReport')}</Text>}
+                {shouldGatherOnlySecondSignerEmail && <Text style={styles.textSupporting}>{translate('signerInfoStep.signerMustBeOnIllionReport')}</Text>}
+            </FormHeader>
+            <FormFields>
                 <InputWrapper
                     InputComponent={TextInput}
-                    label={`${translate('common.email')} 2`}
-                    aria-label={`${translate('common.email')} 2`}
+                    label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
+                    aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputID={SECOND_SIGNER_EMAIL}
+                    inputID={shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL}
                     inputMode={CONST.INPUT_MODE.EMAIL}
-                    containerStyles={[styles.mt6]}
+                    ref={!shouldGatherBothEmails ? inputCallbackRef : undefined}
                     autoComplete="email"
                 />
-            )}
+                {shouldGatherBothEmails && (
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        label={`${translate('common.email')} 2`}
+                        aria-label={`${translate('common.email')} 2`}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={SECOND_SIGNER_EMAIL}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
+                        autoComplete="email"
+                    />
+                )}
+            </FormFields>
         </FormProvider>
     );
 }
