@@ -902,6 +902,50 @@ describe('OnyxDerived', () => {
             derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
         });
+
+        it("recomputes a one-transaction report's last action when only its transaction thread's actions change", async () => {
+            const expenseReportID = '20';
+            const parentChatReportID = '30';
+            const threadReportID = '40';
+
+            const iouAction = getFakeReportAction(100, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                reportID: expenseReportID,
+                created: '2024-01-01 10:00:00.000',
+                originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            });
+
+            // Given a one-transaction expense report whose combined last action comes from its transaction thread
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}` as const]: createMockReport({
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: parentChatReportID,
+                }),
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}` as const]: createMockReport({reportID: parentChatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}` as const]: {'100': iouAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}` as const]: {
+                    '200': getFakeReportAction(200, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-01-02 10:00:00.000'}),
+                },
+            });
+            await waitForBatchedUpdates();
+
+            let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
+            expect(derived?.lastActions?.[expenseReportID]?.reportActionID).toBe('200');
+
+            // When a newer comment is added to the transaction thread only (the parent's actions are untouched)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {
+                '201': getFakeReportAction(201, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-01-03 10:00:00.000'}),
+            });
+            await waitForBatchedUpdates();
+
+            // Then the parent's last action is recomputed from the combined actions and picks up the new thread comment
+            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.lastActions?.[expenseReportID]?.reportActionID).toBe('201');
+            expect(derived?.sortedActions?.[expenseReportID]?.at(0)?.reportActionID).toBe('201');
+        });
     });
 
     describe('nonPersonalAndWorkspaceCardList', () => {

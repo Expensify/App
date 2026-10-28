@@ -14,7 +14,6 @@ import type {
     PolicyTagLists,
     Report,
     ReportAction,
-    ReportActions,
     ReportMetadata,
     Rule,
     Transaction,
@@ -59,7 +58,6 @@ import {
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
-    getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
     getCompanyCardConnectionBrokenMessage,
@@ -273,13 +271,9 @@ Onyx.connectWithoutView({
 });
 
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
-const deprecatedLastReportActions: ReportActions = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
-let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
 // the caches were moved verbatim from OptionsListUtils. Migration to the derived value is tracked in issue #66381.
@@ -289,45 +283,25 @@ Onyx.connectWithoutView({
         if (!actions) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedAllReportActions = actions ?? {};
 
         // Iterate over the report actions to build the sorted report actions objects
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        for (const reportActions of Object.entries(deprecatedAllReportActions)) {
+        for (const reportActions of Object.entries(actions)) {
             const reportID = reportActions[0].split('_').at(1);
             if (!reportID) {
                 continue;
             }
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
+            const sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedAllSortedReportActions[reportID] = sortedReportActions;
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
-            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
-            // to the transaction thread or the report itself.
-            // Cache the result for O(1) lookup in renderItem.
+            // Cache the one-transaction thread ID for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]], getIsOffline());
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
-
-            if (transactionThreadReportID) {
-                const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                const isSelfDMReport = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, isSelfDMReport);
-            }
-
-            const firstReportAction = sortedReportActions.at(0);
-            if (!firstReportAction) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                delete deprecatedLastReportActions[reportID];
-            } else {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                deprecatedLastReportActions[reportID] = firstReportAction;
-            }
         }
     },
 });
@@ -532,7 +506,8 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     currentUserAccountID: number;
     oneTransactionThreadReportID?: string;
-    lastOriginalAction?: OnyxEntry<ReportAction>;
+    /** The unfiltered last action of the report (some action types are filtered out of lastAction, but some checks need the actual last action) */
+    lastOriginalAction: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
@@ -573,13 +548,10 @@ function getLastMessageTextForReport({
         }
     }
 
-    // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const lastOriginalReportAction = lastOriginalAction ?? (reportID ? deprecatedLastReportActions[reportID] : undefined);
     let lastMessageTextFromReport = '';
 
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
-        const archiveReason = (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        const archiveReason = (isClosedAction(lastOriginalAction) && getOriginalMessage(lastOriginalAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
@@ -978,7 +950,7 @@ function getLastMessageTextForReport({
     }
 
     // If the last report action is a pending moderation action, get the last message text from the last visible report action
-    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
+    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
@@ -1031,7 +1003,7 @@ function getLastMessageTextForReport({
     }
 
     // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
-    if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalReportAction) {
+    if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalAction) {
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
@@ -1227,7 +1199,7 @@ type GetReportAlternateTextParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     sortedActions?: Record<string, ReportAction[]>;
     oneTransactionThreadReportID?: string;
-    lastOriginalAction?: OnyxEntry<ReportAction>;
+    lastOriginalAction: OnyxEntry<ReportAction>;
     currentUserAccountID: number;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
