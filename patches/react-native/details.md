@@ -18,7 +18,7 @@
 - Expected release: React Native 0.89.0, unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the [scheduled 0.89 branch cut](https://reactnative.dev/releases/overview) on 2026-11-03.
 - Reproducer: https://github.com/react/react-native/pull/59360 adds the RNTester reproduction, without a runtime fix. The standalone reproduction and proposed anchor patch are in https://github.com/margelo/react-native-mvcp-reproducer.
 - Earlier proposal: https://github.com/react/react-native/pull/46247 closed without merging.
-- Removal: Drop this patch only when the adopted React Native release preserves all three anchoring behaviors described above. The upstream commit still calculates the anchor before mounting, so its inclusion alone does not replace this patch's scroll-event timing change.
+- Removal: Expected to be removable when the adopted React Native release contains `9bc1a28`. Before removing it, verify bidirectional pagination, changing row heights, and LegendList's positioned-anchor corrections with the patch disabled. Keep it on React Native 0.86 unless the upstream fix is backported.
 - E/App issue: 🛑
 - PR Introducing Patch: https://github.com/Expensify/App/pull/46315 (introduced), https://github.com/Expensify/App/pull/45289 (refactored)
 
