@@ -39,7 +39,7 @@ type TravelBillingPayableAccountSelectPageProps = {
 function TravelBillingPayableAccountSelectPage({
     policyID,
     displayName,
-    title = 'workspace.common.travelInvoicingPayableAccount',
+    title = 'workspace.common.travelBillingPayableAccount',
     data,
     connectionName,
     emptyStateTitle,

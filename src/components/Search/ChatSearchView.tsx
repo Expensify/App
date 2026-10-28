@@ -66,7 +66,7 @@ function ChatSearchView({
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
         // Chat rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
         <AnimatedExitRow
             shouldApplyAnimation={false}
@@ -74,7 +74,6 @@ function ChatSearchView({
         >
             <ChatListItem
                 showTooltip
-                isFocused={isItemFocused}
                 onSelectRow={handleSelectRow}
                 onLongPressRow={onLongPressRow}
                 canSelectMultiple={canSelectMultiple}

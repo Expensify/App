@@ -36,7 +36,7 @@ import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -44,7 +44,7 @@ import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import usePopoverMenuFocusManagement from './usePopoverMenuFocusManagement';
@@ -75,6 +75,12 @@ type PopoverMenuItem = MenuItemProps & {
 
     shouldCloseAllModals?: boolean;
     pendingAction?: PendingAction;
+
+    /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
+    errors?: Errors | null;
+
+    /** Callback to dismiss the item's errors */
+    onCloseError?: () => void;
 
     rightIcon?: IconAsset;
 
@@ -470,25 +476,20 @@ function BasePopoverMenu({
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
-    const {currentHeaderText, shouldAlwaysShowHeaderText} = useMemo(() => {
-        let currentItems = menuItems;
-        let currentHeader = headerText ?? '';
-        let shouldShow = true;
-
-        if (enteredSubMenuIndexes.length > 0) {
-            for (const index of enteredSubMenuIndexes) {
-                const item = currentItems.at(index);
-                if (!item?.subMenuItems) {
-                    break;
-                }
-                currentHeader = item.subMenuHeaderText ?? '';
-                shouldShow = !!item.subMenuHeaderText;
-                currentItems = item.subMenuItems;
+    let headerMenuItems = menuItems;
+    let currentHeaderText = headerText ?? '';
+    let shouldAlwaysShowHeaderText = true;
+    if (enteredSubMenuIndexes.length > 0) {
+        for (const index of enteredSubMenuIndexes) {
+            const item = headerMenuItems.at(index);
+            if (!item?.subMenuItems) {
+                break;
             }
+            currentHeaderText = item.subMenuHeaderText ?? '';
+            shouldAlwaysShowHeaderText = !!item.subMenuHeaderText;
+            headerMenuItems = item.subMenuItems;
         }
-
-        return {currentHeaderText: currentHeader, shouldAlwaysShowHeaderText: shouldShow};
-    }, [enteredSubMenuIndexes, headerText, menuItems]);
+    }
 
     const {
         effectiveRestoreFocusType,
@@ -623,7 +624,12 @@ function BasePopoverMenu({
             <>
                 {/* Compact popovers need tighter divider spacing than full-page sections. */}
                 {addSeparatorBefore === true && menuIndex > 0 && <View style={[styles.sectionDividerLine, styles.mh4, styles.mv2]} />}
-                <OfflineWithFeedback pendingAction={item.pendingAction}>
+                <OfflineWithFeedback
+                    pendingAction={item.pendingAction}
+                    errors={item.errors}
+                    onClose={item.onCloseError}
+                    errorRowStyles={styles.ph5}
+                >
                     <FocusableMenuItem
                         key={reactKey}
                         pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
@@ -699,22 +705,26 @@ function BasePopoverMenu({
             if (focusedIndex === -1) {
                 return;
             }
+            const staysOpenOnSelect = currentMenuItems.at(focusedIndex)?.shouldCloseModalOnSelect === false;
+
             selectItem(focusedIndex);
-            setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
+            // Keep focus on a stay-open item (e.g. an inline toggle) so the next arrow key continues from it; otherwise reset.
+            setFocusedIndex(staysOpenOnSelect ? focusedIndex : -1);
         },
         {isActive: isVisible && !isInteractiveElementFocused},
     );
 
-    const keyboardShortcutSpaceCallback = useCallback(
-        (e?: GestureResponderEvent | KeyboardEvent) => {
-            if (shouldUseScrollView) {
-                return;
-            }
-
+    const keyboardShortcutSpaceCallback = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (!shouldUseScrollView) {
             e?.preventDefault();
-        },
-        [shouldUseScrollView],
-    );
+        }
+
+        if (focusedIndex === -1 || currentMenuItems.at(focusedIndex)?.role !== CONST.ROLE.SWITCH) {
+            return;
+        }
+        selectItem(focusedIndex);
+        setFocusedIndex(focusedIndex);
+    };
 
     // On web, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
@@ -790,21 +800,31 @@ function BasePopoverMenu({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [menuItems, setFocusedIndex, isSearchEnabled]);
 
-    const menuContainerStyle = useMemo(() => {
-        if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
-        }
-
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
-
+    let menuContainerStyle;
+    if (isSmallScreenWidth) {
+        menuContainerStyle =
+            shouldEnableMaxHeight && !isInLandscapeMode
+                ? [
+                      {
+                          maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE,
+                      },
+                  ]
+                : [];
+    } else {
+        const stylesArray: ViewStyle[] = [
+            StyleSheet.flatten(styles.createMenuContainer),
+            {
+                width: variables.compactPopoverMenuWidth,
+            },
+            styles.pv2,
+        ];
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
             stylesArray.push({
                 maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT),
             });
         }
-
-        return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
+        menuContainerStyle = stylesArray;
+    }
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, isSearchEnabled && styles.pt0, scrollContainerStyle]) as ViewStyle) ?? {};
@@ -822,24 +842,11 @@ function BasePopoverMenu({
         ...restContainerStyles
     } = StyleSheet.flatten(containerStyles) ?? {};
 
-    const scrollViewPaddingStyles = useMemo(
-        () => ({
-            paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
-            paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
-            paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
-        }),
-        [
-            paddingTop,
-            containerPaddingTop,
-            menuContainerPaddingTop,
-            paddingBottom,
-            containerPaddingBottom,
-            menuContainerPaddingBottom,
-            paddingVertical,
-            containerPaddingVertical,
-            menuContainerPaddingVertical,
-        ],
-    );
+    const scrollViewPaddingStyles = {
+        paddingTop: paddingTop ?? containerPaddingTop ?? menuContainerPaddingTop,
+        paddingBottom: paddingBottom ?? containerPaddingBottom ?? menuContainerPaddingBottom,
+        paddingVertical: paddingVertical ?? containerPaddingVertical ?? menuContainerPaddingVertical ?? 0,
+    };
 
     return (
         <PopoverWithMeasuredContent
@@ -940,35 +947,6 @@ function BasePopoverMenu({
     );
 }
 
-export default React.memo(
-    PopoverMenu,
-    (prevProps, nextProps) =>
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- menuItems array is created inline in most usages with unstable references
-        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
-        prevProps.isVisible === nextProps.isVisible &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorPosition object is created inline in most usages
-        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
-        prevProps.anchorRef === nextProps.anchorRef &&
-        prevProps.headerText === nextProps.headerText &&
-        prevProps.searchInputOptions?.label === nextProps.searchInputOptions?.label &&
-        prevProps.searchInputOptions?.value === nextProps.searchInputOptions?.value &&
-        prevProps.searchInputOptions?.onChangeText === nextProps.searchInputOptions?.onChangeText &&
-        prevProps.searchInputOptions?.shouldShowEmptyState === nextProps.searchInputOptions?.shouldShowEmptyState &&
-        prevProps.searchInputOptions?.style === nextProps.searchInputOptions?.style &&
-        prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
-        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
-        prevProps.shouldSwitchPositionIfOverflow === nextProps.shouldSwitchPositionIfOverflow &&
-        prevProps.animationIn === nextProps.animationIn &&
-        prevProps.animationOut === nextProps.animationOut &&
-        prevProps.animationInTiming === nextProps.animationInTiming &&
-        prevProps.disableAnimation === nextProps.disableAnimation &&
-        prevProps.withoutOverlay === nextProps.withoutOverlay &&
-        prevProps.shouldEnableNewFocusManagement === nextProps.shouldEnableNewFocusManagement &&
-        prevProps.shouldReturnFocus === nextProps.shouldReturnFocus &&
-        prevProps.restoreFocusType === nextProps.restoreFocusType &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility &&
-        prevProps.shouldPutHeaderTextAfterBackButton === nextProps.shouldPutHeaderTextAfterBackButton,
-);
+export default PopoverMenu;
 export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};
