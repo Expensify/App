@@ -224,12 +224,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         });
     }, [category, categoryName, form, initialCategoryName, isEditing]);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 

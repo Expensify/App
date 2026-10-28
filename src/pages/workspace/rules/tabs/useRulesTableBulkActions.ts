@@ -35,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 const RULES_TAB = CONST.TAB.RULES;
@@ -210,7 +210,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
     const selectedRuleKeys = isTableSelectionTab(activeTab) ? getFilteredSelectedKeys(activeTab) : [];
 
-    const deleteSelectedForActiveTab = useCallback(() => {
+    const deleteSelectedForActiveTab = () => {
         if (!isTableSelectionTab(activeTab)) {
             return;
         }
@@ -283,22 +283,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
             deletePolicyCategoryTaxes(policy, selectedCategoryNames, getReviewWorkspaceSettingsTaskCompletion());
         }
         clearTableSelection();
-    }, [
-        isVendorMatchingBetaEnabled,
-        activeTab,
-        clearTableSelection,
-        defaultFundID,
-        expensifyCardSettings?.cardRules,
-        filteredSelectedExpenseDefaultKeys,
-        filteredSelectedFlagForReviewRuleKeys,
-        filteredSelectedRequireFieldsRuleKeys,
-        rules,
-        filteredSelectedSpendRuleKeys,
-        policy,
-        policyData,
-        policyID,
-        getReviewWorkspaceSettingsTaskCompletion,
-    ]);
+    };
 
     return {
         selectedRuleKeys,

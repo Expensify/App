@@ -4,7 +4,7 @@ import {setDisableDismissOnEscape} from '@userActions/Modal';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -19,7 +19,7 @@ import useOnyx from './useOnyx';
 function useReturnToOriginReport(explicitOriginReportID?: string) {
     const [originReportID] = useState(() => Navigation.getFocusedReportId() ?? Navigation.getTopmostReportId());
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    return useCallback(() => {
+    return () => {
         setDisableDismissOnEscape(false);
         const reportID = explicitOriginReportID ?? originReportID ?? conciergeReportID;
         if (!reportID) {
@@ -28,7 +28,7 @@ function useReturnToOriginReport(explicitOriginReportID?: string) {
         }
 
         Navigation.dismissModalWithReport({reportID});
-    }, [explicitOriginReportID, originReportID, conciergeReportID]);
+    };
 }
 
 export default useReturnToOriginReport;

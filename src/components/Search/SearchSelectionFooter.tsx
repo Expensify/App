@@ -3,6 +3,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
@@ -19,7 +20,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -164,6 +165,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const {currentSearchResults, currentSearchTransactionsByReportID, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {isOffline} = useNetwork();
     const activePolicy = useActivePolicy();
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -231,23 +233,17 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const metadataReportCount = metadata?.reportCount;
     const metadataCurrency = metadata?.currency;
     const metadataTotal = isSnapshotTotalFromEarlierBreakdown ? answeredFooterTotals?.totals[requestedFooterTotal] : metadata?.total;
-    const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
-    const excludedTransactionsKeys = useMemo(() => Object.keys(excludedTransactions), [excludedTransactions]);
+    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const excludedTransactionsKeys = Object.keys(excludedTransactions);
     const isExpenseType = currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const selectedExpenseCount = useMemo(
-        () => getTransactionCount(selectedTransactionsKeys, selectedTransactions, currentSearchResults?.data),
-        [currentSearchResults?.data, selectedTransactions, selectedTransactionsKeys],
-    );
+    const selectedExpenseCount = getTransactionCount(selectedTransactionsKeys, selectedTransactions, currentSearchResults?.data);
     // The Reports footer is also expense-based, so excluding one report removes each of its child expenses here.
-    const excludedExpenseCount = useMemo(
-        () => (isExpenseType || isReportsSearch ? getTransactionCount(excludedTransactionsKeys, excludedTransactions, currentSearchResults?.data) : 0),
-        [currentSearchResults?.data, excludedTransactions, excludedTransactionsKeys, isExpenseType, isReportsSearch],
-    );
+    const excludedExpenseCount = isExpenseType || isReportsSearch ? getTransactionCount(excludedTransactionsKeys, excludedTransactions, currentSearchResults?.data) : 0;
 
-    const excludedReportCount = useMemo(() => {
-        if (!isReportsSearch || excludedTransactionsKeys.length === 0) {
-            return 0;
-        }
+    let excludedReportCount;
+    if (!isReportsSearch || excludedTransactionsKeys.length === 0) {
+        excludedReportCount = 0;
+    } else {
         const excludedKeys = new Set(excludedTransactionsKeys);
         let count = 0;
         for (const [reportID, reportTransactions] of currentSearchTransactionsByReportID ?? []) {
@@ -264,135 +260,101 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                 count += 1;
             }
         }
-        return count;
-    }, [currentSearchTransactionsByReportID, excludedTransactions, excludedTransactionsKeys, isReportsSearch]);
+        excludedReportCount = count;
+    }
 
     // Individually-selected transactions (loose rows in a grouped view, or every row on a flat search).
-    const selectedTransactionIDs = useMemo(
-        () => selectedTransactionsKeys.map((key) => selectedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
-        [selectedTransactions, selectedTransactionsKeys],
-    );
-    const excludedTransactionIDs = useMemo(
-        () => excludedTransactionsKeys.map((key) => excludedTransactions[key]?.transaction?.transactionID).filter((transactionID): transactionID is string => !!transactionID),
-        [excludedTransactions, excludedTransactionsKeys],
-    );
-    const selectedReportIDs = useMemo(() => {
-        if (!isReportsSearch) {
-            return EMPTY_REPORT_IDS;
-        }
-        return selectedReports.map((report) => report.reportID).filter((reportID): reportID is string => !!reportID);
-    }, [isReportsSearch, selectedReports]);
-    const excludedReportIDs = useMemo(() => {
-        if (!isReportsSearch) {
-            return EMPTY_REPORT_IDS;
-        }
-        return [
-            ...new Set(
-                Object.values(excludedTransactions)
-                    .map((transaction) => transaction.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            ),
-        ];
-    }, [excludedTransactions, isReportsSearch]);
-    const selectedGroupKeys = useMemo(() => selectedTransactionsKeys.filter(isGroupEntry), [selectedTransactionsKeys]);
-    const excludedGroupKeys = useMemo(() => excludedTransactionsKeys.filter(isGroupEntry), [excludedTransactionsKeys]);
+    const selectedTransactionIDs = selectedTransactionsKeys
+        .map((key) => selectedTransactions[key]?.transaction?.transactionID)
+        .filter((transactionID): transactionID is string => !!transactionID);
+    const excludedTransactionIDs = excludedTransactionsKeys
+        .map((key) => excludedTransactions[key]?.transaction?.transactionID)
+        .filter((transactionID): transactionID is string => !!transactionID);
+    const selectedReportIDs = !isReportsSearch ? EMPTY_REPORT_IDS : selectedReports.map((report) => report.reportID).filter((reportID): reportID is string => !!reportID);
+    const excludedReportIDs = !isReportsSearch
+        ? EMPTY_REPORT_IDS
+        : [
+              ...new Set(
+                  Object.values(excludedTransactions)
+                      .map((transaction) => transaction.reportID)
+                      .filter((reportID): reportID is string => !!reportID),
+              ),
+          ];
+    const selectedGroupKeys = selectedTransactionsKeys.filter(isGroupEntry);
+    const excludedGroupKeys = excludedTransactionsKeys.filter(isGroupEntry);
 
     // Live default-currency source figures, keyed the same way as the conversion cache, captured from the current
     // selection/snapshot on every render. The freshness checks below compare these to the figures stamped when each
     // conversion was requested.
-    const transactionSourceByID = useMemo(() => {
-        const sources: Record<string, number> = {};
-        for (const transactions of [selectedTransactions, excludedTransactions]) {
-            for (const [key, transaction] of Object.entries(transactions)) {
-                const transactionID = transaction.transaction?.transactionID;
-                if (!isGroupEntry(key) && transactionID) {
-                    sources[transactionID] = getEntrySource(transaction);
-                }
+    const transactionSourceByID: Record<string, number> = {};
+    const groupSourceByKey: Record<string, number> = {};
+    for (const transactions of [selectedTransactions, excludedTransactions]) {
+        for (const [key, transaction] of Object.entries(transactions)) {
+            const transactionID = transaction.transaction?.transactionID;
+            if (!isGroupEntry(key) && transactionID) {
+                transactionSourceByID[transactionID] = getEntrySource(transaction);
+            }
+            if (isGroupEntry(key)) {
+                groupSourceByKey[key] = getEntrySource(transaction);
             }
         }
-        return sources;
-    }, [excludedTransactions, selectedTransactions]);
-    const groupSourceByKey = useMemo(() => {
-        const sources: Record<string, number> = {};
-        for (const transactions of [selectedTransactions, excludedTransactions]) {
-            for (const [key, transaction] of Object.entries(transactions)) {
-                if (isGroupEntry(key)) {
-                    sources[key] = getEntrySource(transaction);
-                }
-            }
-        }
-        return sources;
-    }, [excludedTransactions, selectedTransactions]);
+    }
 
     // Source figures for every loaded group, not just the selected ones. The grouped response caches every group's
     // converted value, so stamping them all lets a later selection of another group reuse the cache instead of
     // re-running the grouped query. Uses the same expense-signed figure as getEntrySource so a stamp always matches
     // the live source the freshness checks compare against.
-    const loadedGroupSourceByKey = useMemo(() => {
-        const data = currentSearchResults?.data;
-        if (!isGroupedSearch || !data) {
-            return EMPTY_SOURCES;
-        }
-        const sources: Record<string, number> = {};
+    let loadedGroupSourceByKey;
+    const data = currentSearchResults?.data;
+    if (!isGroupedSearch || !data) {
+        loadedGroupSourceByKey = EMPTY_SOURCES;
+    } else {
+        const loadedSources: Record<string, number> = {};
         for (const key of Object.keys(data)) {
             if (!isGroupEntry(key)) {
                 continue;
             }
             const group: unknown = data[key];
             if (group && typeof group === 'object' && 'total' in group && typeof group.total === 'number') {
-                sources[key] = -group.total;
+                loadedSources[key] = -group.total;
             }
         }
-        return sources;
-    }, [currentSearchResults?.data, isGroupedSearch]);
-    const reportSourceByID = useMemo(() => {
-        if (!isReportsSearch) {
-            return EMPTY_SOURCES;
-        }
-        const sources: Record<string, number> = {};
+        loadedGroupSourceByKey = loadedSources;
+    }
+    let reportSourceByID;
+    if (!isReportsSearch) {
+        reportSourceByID = EMPTY_SOURCES;
+    } else {
+        const reportSources: Record<string, number> = {};
         for (const report of selectedReports) {
             if (report.reportID) {
-                sources[report.reportID] = report.total;
+                reportSources[report.reportID] = report.total;
             }
         }
         for (const transaction of Object.values(excludedTransactions)) {
             if (transaction.reportID) {
-                sources[transaction.reportID] = (sources[transaction.reportID] ?? 0) + getEntrySource(transaction);
+                reportSources[transaction.reportID] = (reportSources[transaction.reportID] ?? 0) + getEntrySource(transaction);
             }
         }
-        return sources;
-    }, [excludedTransactions, isReportsSearch, selectedReports]);
+        reportSourceByID = reportSources;
+    }
 
     // A conversion is fresh only when its converted figure is cached AND the source it was stamped against still equals
     // the live source — so an inline edit that moves the live source makes it stale and triggers a refetch below.
-    const isTransactionFresh = useCallback(
-        (transactionID: string, currency: string) =>
-            convertedTransactions?.[transactionID]?.[currency] !== undefined && conversionSources?.transactions?.[transactionID]?.[currency] === transactionSourceByID[transactionID],
-        [conversionSources, convertedTransactions, transactionSourceByID],
-    );
-    const isGroupFresh = useCallback(
-        (key: string, currency: string) => convertedGroups?.[key]?.[currency] !== undefined && conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key],
-        [conversionSources, convertedGroups, groupSourceByKey],
-    );
-    const isReportFresh = useCallback(
-        (reportID: string, currency: string) => convertedReports?.[reportID]?.[currency] !== undefined && conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID],
-        [conversionSources, convertedReports, reportSourceByID],
-    );
+    const isTransactionFresh = (transactionID: string, currency: string) =>
+        convertedTransactions?.[transactionID]?.[currency] !== undefined && conversionSources?.transactions?.[transactionID]?.[currency] === transactionSourceByID[transactionID];
+    const isGroupFresh = (key: string, currency: string) => convertedGroups?.[key]?.[currency] !== undefined && conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key];
+    const isReportFresh = (reportID: string, currency: string) =>
+        convertedReports?.[reportID]?.[currency] !== undefined && conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID];
 
     // A conversion has been requested for the current live source when the stamp (written optimistically at request
     // time) matches it — the converted value may still be in flight. The fetch effect fires on this weaker predicate,
     // not on freshness: freshness also requires the value, so using it would fire a duplicate request when the
     // effect re-runs off its own optimistic stamp merge.
-    const wasTransactionRequested = useCallback(
-        (transactionID: string, currency: string) => conversionSources?.transactions?.[transactionID]?.[currency] === transactionSourceByID[transactionID],
-        [conversionSources, transactionSourceByID],
-    );
-    const wasGroupRequested = useCallback((key: string, currency: string) => conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key], [conversionSources, groupSourceByKey]);
-    const wasReportRequested = useCallback(
-        (reportID: string, currency: string) =>
-            conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID] || pendingReportConversionSources.current[reportID]?.[currency] === reportSourceByID[reportID],
-        [conversionSources, reportSourceByID],
-    );
+    const wasTransactionRequested = (transactionID: string, currency: string) => conversionSources?.transactions?.[transactionID]?.[currency] === transactionSourceByID[transactionID];
+    const wasGroupRequested = (key: string, currency: string) => conversionSources?.groups?.[key]?.[currency] === groupSourceByKey[key];
+    const wasReportRequested = (reportID: string, currency: string) =>
+        conversionSources?.reports?.[reportID]?.[currency] === reportSourceByID[reportID] || pendingReportConversionSources.current[reportID]?.[currency] === reportSourceByID[reportID];
 
     // A cash back row holds no expenses, so leaving it out still matches the server count while the server total nets it.
     // An unloaded page can still hold one, and matching counts mean that page has no expenses left to select.
@@ -464,18 +426,15 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // groups and/or individual transactions.
     const hasConvertibleSelection = isReportsSearch ? selectedReportIDs.length > 0 : selectedGroupKeys.length > 0 || selectedTransactionIDs.length > 0;
 
-    const areAllSelectedConverted = useMemo(() => {
-        if (!hasCustomFooterCurrency || !selectedCurrency) {
-            return false;
-        }
-        return isReportsSearch
+    const areAllSelectedConverted =
+        !(!hasCustomFooterCurrency || !selectedCurrency) &&
+        (isReportsSearch
             ? areAllSelectedReportsConverted(selectedReportIDs, (reportID) => isReportFresh(reportID, selectedCurrency))
             : areAllSelectedEntriesConverted(
                   selectedTransactions,
                   (key) => isGroupFresh(key, selectedCurrency),
                   (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
-              );
-    }, [hasCustomFooterCurrency, isGroupFresh, isReportFresh, isReportsSearch, isTransactionFresh, selectedCurrency, selectedReportIDs, selectedTransactions]);
+              ));
 
     const hasExcludedExpenses = isExpenseType && excludedTransactionsKeys.length > 0;
     const hasExcludedReports = isReportsSearch && excludedReportIDs.length > 0;
@@ -485,19 +444,15 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // A collapsed group is excluded as one entry with no expenses to classify, so nothing tells how much of it falls in
     // the breakdown. No figure is shown rather than one that still counts the group.
     const hasExcludedGroupUnderBreakdown = excludedGroupKeys.length > 0 && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
-    const areAllExcludedConverted = useMemo(() => {
-        if (!hasCustomFooterCurrency || !selectedCurrency || (!hasExcludedExpenses && !hasExcludedReports)) {
-            return false;
-        }
-        if (hasExcludedReports) {
-            return areAllSelectedReportsConverted(excludedReportIDs, (reportID) => isReportFresh(reportID, selectedCurrency));
-        }
-        return areAllSelectedEntriesConverted(
-            excludedTransactions,
-            (key) => isGroupFresh(key, selectedCurrency),
-            (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
-        );
-    }, [excludedReportIDs, excludedTransactions, hasCustomFooterCurrency, hasExcludedExpenses, hasExcludedReports, isGroupFresh, isReportFresh, isTransactionFresh, selectedCurrency]);
+    const areAllExcludedConverted =
+        !(!hasCustomFooterCurrency || !selectedCurrency || (!hasExcludedExpenses && !hasExcludedReports)) &&
+        (hasExcludedReports
+            ? areAllSelectedReportsConverted(excludedReportIDs, (reportID) => isReportFresh(reportID, selectedCurrency))
+            : areAllSelectedEntriesConverted(
+                  excludedTransactions,
+                  (key) => isGroupFresh(key, selectedCurrency),
+                  (transactionID) => isTransactionFresh(transactionID, selectedCurrency),
+              ));
 
     // Show the loading skeleton only while a conversion can still arrive — there is something to convert, the request
     // can be made (online) and hasn't failed. Otherwise the footer stays on the default-currency total instead of a
@@ -703,6 +658,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                         shouldCalculateTotals: true,
                         isLoading: false,
                         shouldShowLoading: false,
+                        shouldReturnTripRooms,
                     }),
                 ).finally(() => setIsAwaitingBreakdownTotal(false));
             }
@@ -718,21 +674,31 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         if (!isSnapshotTotalForOtherBreakdown || hasPartialSelection || isAwaitingBreakdownTotal || !currentSearchQueryJSON) {
             return;
         }
-        search({queryJSON: currentSearchQueryJSON, searchKey: currentSearchKey, offset: metadata?.offset ?? 0, shouldCalculateTotals: true, isLoading: false, shouldShowLoading: false});
-    }, [currentSearchKey, currentSearchQueryJSON, hasPartialSelection, isAwaitingBreakdownTotal, isSnapshotTotalForOtherBreakdown, metadata?.offset]);
+        search({
+            queryJSON: currentSearchQueryJSON,
+            searchKey: currentSearchKey,
+            offset: metadata?.offset ?? 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            shouldShowLoading: false,
+            shouldReturnTripRooms,
+        });
+    }, [currentSearchKey, currentSearchQueryJSON, hasPartialSelection, isAwaitingBreakdownTotal, isSnapshotTotalForOtherBreakdown, metadata?.offset, shouldReturnTripRooms]);
 
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
         applyFooterSelection({footerCount: nextCountType});
     };
 
-    const footerData = useMemo(() => {
-        if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
-            return {count: undefined, total: undefined, currency: undefined};
-        }
-
+    let footerData;
+    if (!shouldAllowFooterTotals && selectedTransactionsKeys.length === 0) {
+        footerData = {
+            count: undefined,
+            total: undefined,
+            currency: undefined,
+        };
+    } else {
         const selectedTransactionItems = Object.values(selectedTransactions);
         const fallbackCurrency = effectiveDefaultCurrency ?? selectedTransactionItems.at(0)?.groupCurrency ?? selectedTransactionItems.at(0)?.currency;
-
         if (shouldUseClientTotal) {
             const shouldUseConvertedSelectedTotal = hasCustomFooterCurrency && areAllSelectedConverted && !hasConversionFailed && !!selectedCurrency;
 
@@ -744,109 +710,76 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
             // from the reports' own expenses instead. A Reports search converts by report, so those expenses have no
             // converted figures of their own, so the breakdown stays in the default currency and is labelled as such.
             const shouldConvertSelectedTotal = shouldUseConvertedSelectedTotal && !(isReportsSearch && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL);
-
-            let total;
-            if (shouldConvertSelectedTotal && isReportsSearch && selectedCurrency) {
-                total = selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
-            } else {
-                total = selectedTransactionsKeys.reduce((acc, key) => {
-                    const transaction = selectedTransactions[key];
-                    if (!doesTransactionMatchFooterTotal(transaction.transaction, footerTotalBreakdown)) {
-                        return acc;
-                    }
-                    let convertedAmount;
-                    if (shouldConvertSelectedTotal && selectedCurrency) {
-                        if (isGroupEntry(key)) {
-                            convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
-                        } else if (transaction.transaction?.transactionID) {
-                            convertedAmount = convertedTransactions?.[transaction.transaction.transactionID]?.[selectedCurrency];
-                        }
-                    }
-                    return acc - (convertedAmount ?? getEntrySource(transaction));
-                }, 0);
-            }
-
-            return {count: selectedExpenseCount, total, currency: shouldConvertSelectedTotal ? selectedCurrency : fallbackCurrency};
-        }
-
-        if (hasExcludedGroupUnderBreakdown) {
-            return {
+            const total =
+                shouldConvertSelectedTotal && isReportsSearch && selectedCurrency
+                    ? selectedReportIDs.reduce((acc, reportID) => acc - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0)
+                    : selectedTransactionsKeys.reduce((acc, key) => {
+                          const transaction = selectedTransactions[key];
+                          if (!doesTransactionMatchFooterTotal(transaction.transaction, footerTotalBreakdown)) {
+                              return acc;
+                          }
+                          let convertedAmount;
+                          if (shouldConvertSelectedTotal && selectedCurrency) {
+                              if (isGroupEntry(key)) {
+                                  convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
+                              } else if (transaction.transaction?.transactionID) {
+                                  convertedAmount = convertedTransactions?.[transaction.transaction.transactionID]?.[selectedCurrency];
+                              }
+                          }
+                          return acc - (convertedAmount ?? getEntrySource(transaction));
+                      }, 0);
+            footerData = {
+                count: selectedExpenseCount,
+                total,
+                currency: shouldConvertSelectedTotal ? selectedCurrency : fallbackCurrency,
+            };
+        } else if (hasExcludedGroupUnderBreakdown) {
+            footerData = {
                 count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
                 total: undefined,
                 currency: effectiveDefaultCurrency ?? metadataCurrency,
             };
-        }
-
-        const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesTransactionMatchFooterTotal(excludedTransactions[key]?.transaction, footerTotalBreakdown));
-        if (
-            hasCustomFooterCurrency &&
-            isSearchTotalFresh &&
-            canConvertExcludedReports &&
-            ((!hasExcludedExpenses && !hasExcludedReports) || areAllExcludedConverted) &&
-            !hasConversionFailed &&
-            selectedCurrencyConvertedTotal
-        ) {
-            let excludedConvertedTotal = 0;
-            if (hasExcludedReports && selectedCurrency) {
-                excludedConvertedTotal = excludedReportIDs.reduce((total, reportID) => total - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
-            } else if (hasExcludedExpenses) {
-                excludedConvertedTotal = excludedKeysForTotal.reduce((total, key) => {
-                    const transaction = excludedTransactions[key];
-                    const transactionID = transaction.transaction?.transactionID;
-                    let convertedAmount;
-                    if (isGroupEntry(key)) {
-                        convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
-                    } else if (transactionID) {
-                        convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
-                    }
-                    return total - (convertedAmount ?? getEntrySource(transaction));
-                }, 0);
+        } else {
+            const excludedKeysForTotal = excludedTransactionsKeys.filter((key) => doesTransactionMatchFooterTotal(excludedTransactions[key]?.transaction, footerTotalBreakdown));
+            if (
+                hasCustomFooterCurrency &&
+                isSearchTotalFresh &&
+                canConvertExcludedReports &&
+                ((!hasExcludedExpenses && !hasExcludedReports) || areAllExcludedConverted) &&
+                !hasConversionFailed &&
+                selectedCurrencyConvertedTotal
+            ) {
+                let excludedConvertedTotal = 0;
+                if (hasExcludedReports && selectedCurrency) {
+                    excludedConvertedTotal = excludedReportIDs.reduce((total, reportID) => total - (convertedReports?.[reportID]?.[selectedCurrency] ?? 0), 0);
+                } else if (hasExcludedExpenses) {
+                    excludedConvertedTotal = excludedKeysForTotal.reduce((total, key) => {
+                        const transaction = excludedTransactions[key];
+                        const transactionID = transaction.transaction?.transactionID;
+                        let convertedAmount;
+                        if (isGroupEntry(key)) {
+                            convertedAmount = convertedGroups?.[key]?.[selectedCurrency];
+                        } else if (transactionID) {
+                            convertedAmount = convertedTransactions?.[transactionID]?.[selectedCurrency];
+                        }
+                        return total - (convertedAmount ?? getEntrySource(transaction));
+                    }, 0);
+                }
+                footerData = {
+                    count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount, 0),
+                    total: selectedCurrencyConvertedTotal.total - excludedConvertedTotal,
+                    currency: selectedCurrency,
+                };
+            } else {
+                const excludedTotal = hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(excludedKeysForTotal.map((key) => excludedTransactions[key])) : 0;
+                footerData = {
+                    count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
+                    total: metadataTotal === undefined ? undefined : metadataTotal - excludedTotal,
+                    currency: effectiveDefaultCurrency ?? metadataCurrency,
+                };
             }
-            return {
-                count: Math.max(selectedCurrencyConvertedTotal.count - excludedExpenseCount, 0),
-                total: selectedCurrencyConvertedTotal.total - excludedConvertedTotal,
-                currency: selectedCurrency,
-            };
         }
-
-        const excludedTotal = hasExcludedExpenses || hasExcludedReports ? getTransactionTotal(excludedKeysForTotal.map((key) => excludedTransactions[key])) : 0;
-        return {
-            count: metadataCount === undefined ? undefined : Math.max(metadataCount - excludedExpenseCount, 0),
-            total: metadataTotal === undefined ? undefined : metadataTotal - excludedTotal,
-            currency: effectiveDefaultCurrency ?? metadataCurrency,
-        };
-    }, [
-        areAllSelectedConverted,
-        areAllExcludedConverted,
-        canConvertExcludedReports,
-        convertedGroups,
-        convertedReports,
-        convertedTransactions,
-        effectiveDefaultCurrency,
-        excludedExpenseCount,
-        excludedReportIDs,
-        excludedTransactions,
-        excludedTransactionsKeys,
-        hasConversionFailed,
-        hasCustomFooterCurrency,
-        hasExcludedExpenses,
-        hasExcludedGroupUnderBreakdown,
-        hasExcludedReports,
-        isReportsSearch,
-        isSearchTotalFresh,
-        metadataCount,
-        metadataCurrency,
-        metadataTotal,
-        selectedCurrency,
-        selectedCurrencyConvertedTotal,
-        selectedExpenseCount,
-        selectedReportIDs,
-        selectedTransactions,
-        selectedTransactionsKeys,
-        shouldAllowFooterTotals,
-        shouldUseClientTotal,
-        footerTotalBreakdown,
-    ]);
+    }
 
     if (!shouldShowFooter) {
         return null;

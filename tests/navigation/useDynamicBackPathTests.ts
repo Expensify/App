@@ -7,6 +7,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 jest.mock('@hooks/useRootNavigationState', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => jest.fn());
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    normalizedConfigs: {},
     dynamicTabPatternToTabPaths: new Map(),
 }));
 jest.mock('@src/ROUTES', () => ({
