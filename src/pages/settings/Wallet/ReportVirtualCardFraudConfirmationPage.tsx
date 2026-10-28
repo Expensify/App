@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
 import getCardDetailsPathForCard from '@libs/Navigation/helpers/getCardDetailsPathForCard';
 
 import Navigation from '@navigation/Navigation';
@@ -46,8 +47,9 @@ function ReportVirtualCardFraudConfirmationPage({
             return;
         }
 
-        // Collapses the flow onto the reported card's page and points it at the replacement card.
-        Navigation.goBack(getCardDetailsPathForCard(cardDetailsPath, cardID), {compareParams: false});
+        // The fraud page stays under this one after a successful report, so its suffix has to go before the card page is pointed at the replacement card.
+        const reportedCardPath = removeDynamicRouteFromPath(cardDetailsPath, DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path) ?? cardDetailsPath;
+        Navigation.goBack(getCardDetailsPathForCard(reportedCardPath, cardID), {compareParams: false});
     };
 
     return (
