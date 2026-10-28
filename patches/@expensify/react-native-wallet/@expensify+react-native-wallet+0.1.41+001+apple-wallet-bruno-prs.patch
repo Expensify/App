@@ -1,0 +1,941 @@
+diff --git a/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt b/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt
+index dfa1a39..1d2e508 100644
+--- a/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt
++++ b/node_modules/@expensify/react-native-wallet/android/src/main/java/com/expensify/wallet/WalletModule.kt
+@@ -357,6 +357,10 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
+       .emit(eventName, params)
+   }
+ 
++  override fun presentAppleWalletPass(lastDigits: String, promise: Promise?) {
++    promise?.resolve(false)
++  }
++
+   override fun IOSPresentAddPaymentPassView(cardData: ReadableMap?, promise: Promise?) {
+     // no-op
+   }
+@@ -365,6 +369,22 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
+     // no-op
+   }
+ 
++  override fun canAddCardToAppleWallet(primaryAccountIdentifier: String, lastDigits: String, promise: Promise) {
++    promise.resolve(false)
++  }
++
++  override fun listAppleWalletPasses(promise: Promise) {
++    // no-op
++  }
++
++  override fun activateAppleWalletPass(passData: ReadableMap?, promise: Promise?) {
++    // no-op
++  }
++
++  override fun IOSFailAddPaymentPass(promise: Promise?) {
++    promise?.resolve(null)
++  }
++
+   override fun addListener(eventType: String?) {
+     // no-op
+   }
+diff --git a/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java b/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
+index 999f0cb..b65f6dc 100644
+--- a/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
++++ b/node_modules/@expensify/react-native-wallet/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
+@@ -65,6 +65,14 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
+   @DoNotStrip
+   public abstract void listTokens(Promise promise);
+ 
++  @ReactMethod
++  @DoNotStrip
++  public abstract void listAppleWalletPasses(Promise promise);
++
++  @ReactMethod
++  @DoNotStrip
++  public abstract void presentAppleWalletPass(String lastDigits, Promise promise);
++
+   @ReactMethod
+   @DoNotStrip
+   public abstract void IOSPresentAddPaymentPassView(ReadableMap cardData, Promise promise);
+@@ -73,6 +81,18 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
+   @DoNotStrip
+   public abstract void IOSHandleAddPaymentPassResponse(ReadableMap payload, Promise promise);
+ 
++  @ReactMethod
++  @DoNotStrip
++  public abstract void canAddCardToAppleWallet(String primaryAccountIdentifier, String lastDigits, Promise promise);
++
++  @ReactMethod
++  @DoNotStrip
++  public abstract void activateAppleWalletPass(ReadableMap passData, Promise promise);
++
++  @ReactMethod
++  @DoNotStrip
++  public abstract void IOSFailAddPaymentPass(Promise promise);
++
+   @ReactMethod
+   @DoNotStrip
+   public abstract void addListener(String eventType);
+diff --git a/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm b/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
+index 4981b78..4031c99 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
++++ b/node_modules/@expensify/react-native-wallet/ios/RNWallet.mm
+@@ -42,24 +42,32 @@ - (instancetype)init {
+                  reject:(RCTPromiseRejectBlock)reject)
+ {
+   @try {
+-    NSDictionary *cardDataDict = nil;
++    NSMutableDictionary *cardDataDict = nil;
++    NSString *primaryAccountIdentifier = nil;
+ 
+ #ifdef RCT_NEW_ARCH_ENABLED
+-    cardDataDict = @{
++    cardDataDict = [@{
+       @"network": [self safeString:cardData.network()],
+       @"cardHolderName": [self safeString:cardData.cardHolderName()],
+       @"lastDigits": [self safeString:cardData.lastDigits()],
+       @"cardDescription": [self safeString:cardData.cardDescription()],
+-    };
++    } mutableCopy];
++    primaryAccountIdentifier = [self safeString:cardData.primaryAccountIdentifier()];
+ #else
+-    cardDataDict = @{
++    cardDataDict = [@{
+       @"network": [self safeString:cardData[@"network"]],
+       @"cardHolderName": [self safeString:cardData[@"cardHolderName"]],
+       @"lastDigits": [self safeString:cardData[@"lastDigits"]],
+       @"cardDescription": [self safeString:cardData[@"cardDescription"]],
+-    };
++    } mutableCopy];
++    id rawIdentifier = cardData[@"primaryAccountIdentifier"];
++    primaryAccountIdentifier = [self safeString:[rawIdentifier isKindOfClass:[NSString class]] ? rawIdentifier : nil];
+ #endif
+ 
++    if (primaryAccountIdentifier.length > 0) {
++      cardDataDict[@"primaryAccountIdentifier"] = primaryAccountIdentifier;
++    }
++
+     dispatch_async(dispatch_get_main_queue(), ^{
+       [self->walletManager IOSPresentAddPaymentPassViewWithCardData:cardDataDict completion:^(OperationResult result, NSDictionary* data) {
+         [self handleWalletResponse:result data:data completedBlock:resolve errorPrefix:@"present_payment_pass_view_failed" defaultErrorMessage:@"Failed to present the payment pass view" rejecter:reject];
+@@ -106,6 +114,16 @@ - (instancetype)init {
+   }
+ }
+ 
++RCT_REMAP_METHOD(IOSFailAddPaymentPass,
++                 IOSFailAddPaymentPass:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  dispatch_async(dispatch_get_main_queue(), ^{
++    [self->walletManager IOSFailAddPaymentPass];
++    resolve(nil);
++  });
++}
++
+ RCT_REMAP_METHOD(getCardStatusBySuffix,
+                  getCardStatusBySuffix:(NSString *)last4Digits
+                  resolve:(RCTPromiseResolveBlock)resolve
+@@ -114,6 +132,16 @@ - (instancetype)init {
+   resolve([walletManager getCardStatusBySuffixWithLast4Digits:last4Digits]);
+ }
+ 
++RCT_REMAP_METHOD(presentAppleWalletPass,
++                 presentAppleWalletPass:(NSString *)lastDigits
++                 resolve:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  dispatch_async(dispatch_get_main_queue(), ^{
++    resolve(@([self->walletManager presentAppleWalletPassWithLastDigits:lastDigits]));
++  });
++}
++
+ RCT_REMAP_METHOD(getCardStatusByIdentifier,
+                  getCardStatusByIdentifier:(NSString *)identifier
+                  tsp:(NSString *)tsp
+@@ -123,6 +151,64 @@ - (instancetype)init {
+   resolve([walletManager getCardStatusByIdentifierWithIdentifier:identifier]);
+ }
+ 
++RCT_REMAP_METHOD(canAddCardToAppleWallet,
++                 canAddCardToAppleWallet:(NSString *)primaryAccountIdentifier
++                 lastDigits:(NSString *)lastDigits
++                 resolve:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  resolve(@([walletManager canAddCardToAppleWalletWithPrimaryAccountIdentifier:primaryAccountIdentifier lastDigits:lastDigits]));
++}
++
++RCT_REMAP_METHOD(listAppleWalletPasses,
++                 listAppleWalletPasses:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  resolve([walletManager listAppleWalletPasses]);
++}
++
++RCT_REMAP_METHOD(activateAppleWalletPass,
++#ifdef RCT_NEW_ARCH_ENABLED
++                 activateAppleWalletPass:(JS::NativeWallet::IOSPassActivationData &)passData
++#else
++                 activateAppleWalletPass:(NSDictionary *)passData
++#endif
++                 resolve:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  @try {
++    NSMutableDictionary *passDataDict = nil;
++
++#ifdef RCT_NEW_ARCH_ENABLED
++    passDataDict = [@{
++      @"passTypeIdentifier": [self safeString:passData.passTypeIdentifier()],
++      @"serialNumber": [self safeString:passData.serialNumber()],
++      @"activationData": [self safeString:passData.activationData()],
++    } mutableCopy];
++    std::optional<bool> isRemote = passData.isRemote();
++    if (isRemote.has_value()) {
++      passDataDict[@"isRemote"] = @(isRemote.value());
++    }
++#else
++    passDataDict = [@{
++      @"passTypeIdentifier": [self safeString:passData[@"passTypeIdentifier"]],
++      @"serialNumber": [self safeString:passData[@"serialNumber"]],
++      @"activationData": [self safeString:passData[@"activationData"]],
++    } mutableCopy];
++    id rawIsRemote = passData[@"isRemote"];
++    if ([rawIsRemote isKindOfClass:[NSNumber class]]) {
++      passDataDict[@"isRemote"] = rawIsRemote;
++    }
++#endif
++
++    [self->walletManager activateAppleWalletPassWithPassData:passDataDict completion:^(OperationResult result, NSDictionary* data) {
++      [self handleBooleanWalletResponse:result data:data completedBlock:resolve errorPrefix:@"activate_card_failed" defaultErrorMessage:@"Failed to activate the Apple Wallet pass" rejecter:reject];
++    }];
++  } @catch (NSException *exception) {
++    [self rejectWithErrorType:@"activate_card_failed" code:500 description:exception.reason ?: @"An unexpected error occurred." rejecter:reject];
++  }
++}
++
+ - (void)addCardToGoogleWallet:
+ #ifdef RCT_NEW_ARCH_ENABLED
+   (JS::NativeWallet::AndroidCardData &)cardData
+@@ -175,6 +261,20 @@ - (void)handleWalletResponse:(OperationResult)result
+   }
+ }
+ 
++- (void)handleBooleanWalletResponse:(OperationResult)result
++                               data:(NSDictionary *)data
++                     completedBlock:(RCTPromiseResolveBlock)resolve
++                        errorPrefix:(NSString *)errorPrefix
++                defaultErrorMessage:(NSString *)defaultErrorMsg
++                           rejecter:(RCTPromiseRejectBlock)reject {
++  if (result < 3) {
++    resolve(@([data[@"success"] boolValue]));
++  } else {
++    NSString *errorMessage = data[@"errorMessage"] ?: defaultErrorMsg ?: @"Operation failed";
++    [self rejectWithErrorType:errorPrefix code:1001 description:errorMessage rejecter:reject];
++  }
++}
++
+ - (NSString *)safeString:(NSString *)value {
+   return value ?: @"";
+ }
+diff --git a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+index 6b3e4c3..a34ec41 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/WalletManager.swift
+@@ -21,6 +21,8 @@ open class WalletManager: UIViewController {
+   private var addPaymentPassCompletionHandler: (CompletionHandler)?
+ 
+   private var addPassHandler: ((PKAddPaymentPassRequest) -> Void)?
++
++  private var addPassPrimaryAccountIdentifier: String?
+   
+   @objc public var packageName = "react-native-wallet"
+   
+@@ -111,10 +113,21 @@ open class WalletManager: UIViewController {
+     configuration.cardholderName = card.cardHolderName
+     configuration.primaryAccountSuffix = card.lastDigits
+     configuration.localizedDescription = String(card.cardDescription)
++    let primaryAccountIdentifier = card.primaryAccountIdentifier.map {
++      resolvedPrimaryAccountIdentifier($0, lastDigits: card.lastDigits)
++    }
++    if let primaryAccountIdentifier = primaryAccountIdentifier {
++      configuration.primaryAccountIdentifier = primaryAccountIdentifier
++    }
+ 
+     guard let enrollViewController = PKAddPaymentPassViewController(requestConfiguration: configuration, delegate: self) else {
++      let alreadyOnEveryDevice = primaryAccountIdentifier.map {
++        !passLibrary.canAddSecureElementPass(primaryAccountIdentifier: $0)
++      } ?? false
+       completion(.error, [
+-        "errorMessage": "InApp enrollment controller configuration fails"
++        "errorMessage": alreadyOnEveryDevice
++          ? "This card has already been added to all available devices."
++          : "InApp enrollment controller configuration fails"
+       ])
+       return
+     }
+@@ -134,6 +147,7 @@ open class WalletManager: UIViewController {
+       self.presentAddPaymentPassCompletionHandler = nil
+       self.addPaymentPassCompletionHandler = nil
+       self.addPassHandler = nil
++      self.addPassPrimaryAccountIdentifier = nil
+ 
+       let errorResponse: NSDictionary = [
+         "errorMessage": "EnrollViewController is no longer presented."
+@@ -150,6 +164,7 @@ open class WalletManager: UIViewController {
+ 
+       self.presentAddPaymentPassCompletionHandler = completion
+       self.addPassViewController = enrollViewController
++      self.addPassPrimaryAccountIdentifier = primaryAccountIdentifier
+       presentingViewController.present(enrollViewController, animated: true, completion: nil)
+     }
+   }
+@@ -184,6 +199,15 @@ open class WalletManager: UIViewController {
+     self.addPassHandler?(addPaymentPassRequest)
+     self.addPassHandler = nil
+   }
++
++  /// Closes the Add Payment Pass sheet when the issuer encrypt call fails.
++  /// The PassKit completion handler is dropped: there is no payload to give it.
++  @objc
++  public func IOSFailAddPaymentPass() {
++    self.addPassHandler = nil
++    self.addPaymentPassCompletionHandler = nil
++    hideModal()
++  }
+   
+   private func getPassActivationState(matching condition: (PKSecureElementPass) -> Bool) -> NSNumber {
+     let paymentPasses = passLibrary.passes(of: .payment)
+@@ -212,10 +236,238 @@ open class WalletManager: UIViewController {
+       return pass.primaryAccountIdentifier == identifier as String
+     }
+   }
++
++  @objc public func canAddCardToAppleWallet(primaryAccountIdentifier: NSString, lastDigits: NSString) -> Bool {
++    let suffix = lastDigits as String
++    let resolved = suffix.isEmpty
++      ? primaryAccountIdentifier as String
++      : resolvedPrimaryAccountIdentifier(primaryAccountIdentifier as String, lastDigits: suffix)
++    return passLibrary.canAddSecureElementPass(primaryAccountIdentifier: resolved)
++  }
++
++  private func provisioningTargetDevice(for primaryAccountIdentifier: String?) -> ProvisioningDeviceType {
++    guard let primaryAccountIdentifier = primaryAccountIdentifier else {
++      return .unknown
++    }
++
++    let onPhone = hasProvisionedPass(identifier: primaryAccountIdentifier, in: passLibrary.passes(of: .secureElement))
++    let onWatch = hasProvisionedPass(identifier: primaryAccountIdentifier, in: passLibrary.remoteSecureElementPasses)
++
++    if onPhone && !onWatch {
++      return .watch
++    }
++    if onWatch && !onPhone {
++      return .phone
++    }
++    return .unknown
++  }
++
++  private func resolvedPrimaryAccountIdentifier(_ identifier: String, lastDigits: String) -> String {
++    let passes = allSecureElementPasses()
++    if passes.contains(where: { $0.primaryAccountIdentifier == identifier }) {
++      return identifier
++    }
++
++    guard !lastDigits.isEmpty else {
++      return identifier
++    }
++
++    let suffixMatches = passes.filter {
++      $0.passActivationState != .deactivated && $0.primaryAccountNumberSuffix.hasSuffix(lastDigits)
++    }
++    let identifiers = Set(suffixMatches.map(\.primaryAccountIdentifier))
++    if identifiers.count == 1, let resolvedIdentifier = identifiers.first {
++      return resolvedIdentifier
++    }
++    return identifier
++  }
++
++  private func allSecureElementPasses() -> [PKSecureElementPass] {
++    let localPasses = passLibrary.passes(of: .secureElement)
++      .filter { !$0.isRemotePass }
++      .compactMap(\.secureElementPass)
++    return localPasses + passLibrary.remoteSecureElementPasses
++  }
++
++  private func hasProvisionedPass(identifier: String, in passes: [PKPass]) -> Bool {
++    passes.contains { pass in
++      guard !pass.isRemotePass, let securePass = pass.secureElementPass else {
++        return false
++      }
++      return isProvisioned(securePass, identifier: identifier)
++    }
++  }
++
++  private func hasProvisionedPass(identifier: String, in passes: [PKSecureElementPass]) -> Bool {
++    passes.contains { isProvisioned($0, identifier: identifier) }
++  }
++
++  private func isProvisioned(_ pass: PKSecureElementPass, identifier: String) -> Bool {
++    pass.primaryAccountIdentifier == identifier && pass.passActivationState != .deactivated
++  }
++
++  @objc public func listAppleWalletPasses() -> [NSDictionary] {
++    let localPasses = passLibrary.passes(of: .secureElement).compactMap { pass -> NSDictionary? in
++      guard pass.isRemotePass == false,
++            let secureElementPass = pass.secureElementPass else {
++        return nil
++      }
++
++      return makeAppleWalletPassDictionary(
++        passTypeIdentifier: pass.passTypeIdentifier,
++        serialNumber: pass.serialNumber,
++        primaryAccountIdentifier: secureElementPass.primaryAccountIdentifier,
++        lastDigits: secureElementPass.primaryAccountNumberSuffix,
++        activationState: secureElementPass.passActivationState.rawValue,
++        isRemote: pass.isRemotePass
++      )
++    }
++
++    let remotePasses = passLibrary.remoteSecureElementPasses.map { pass in
++      makeAppleWalletPassDictionary(
++        passTypeIdentifier: pass.passTypeIdentifier,
++        serialNumber: pass.serialNumber,
++        primaryAccountIdentifier: pass.primaryAccountIdentifier,
++        lastDigits: pass.primaryAccountNumberSuffix,
++        activationState: pass.passActivationState.rawValue,
++        isRemote: true
++      )
++    }
++
++    return localPasses + remotePasses
++  }
++
++  @objc public func activateAppleWalletPass(passData: NSDictionary, completion: @escaping CompletionHandler) {
++    guard passLibrary.isSecureElementPassActivationAvailable else {
++      completion(.error, [
++        "errorMessage": "Secure Element pass activation is not available for this device"
++      ])
++      return
++    }
++
++    guard
++      let passTypeIdentifier = passData["passTypeIdentifier"] as? String,
++      !passTypeIdentifier.isEmpty,
++      let serialNumber = passData["serialNumber"] as? String,
++      !serialNumber.isEmpty,
++      let activationDataString = passData["activationData"] as? String,
++      !activationDataString.isEmpty
++    else {
++      completion(.error, [
++        "errorMessage": "Invalid pass activation data"
++      ])
++      return
++    }
++
++    let isRemote = passData["isRemote"] as? Bool
++
++    guard let activationData = Data(base64Encoded: activationDataString) else {
++      completion(.error, [
++        "errorMessage": "activationData must be a valid base64 encoded string"
++      ])
++      return
++    }
++
++    guard let secureElementPass = findSecureElementPass(
++      passTypeIdentifier: passTypeIdentifier,
++      serialNumber: serialNumber,
++      isRemote: isRemote
++    ) else {
++      completion(.error, [
++        "errorMessage": "Secure Element pass not found"
++      ])
++      return
++    }
++
++    if secureElementPass.passActivationState == .activated {
++      completion(.completed, ["success": true])
++      return
++    }
++
++    guard secureElementPass.passActivationState == .requiresActivation else {
++      completion(.error, [
++        "errorMessage": "Secure Element pass is not eligible for activation. Current state: \(secureElementPass.passActivationState.rawValue)"
++      ])
++      return
++    }
++
++    passLibrary.activate(secureElementPass, activationData: activationData) { success, error in
++      if let error = error {
++        completion(.error, [
++          "errorMessage": error.localizedDescription
++        ])
++        return
++      }
++
++      completion(.completed, ["success": success])
++    }
++  }
++
++  @objc public func presentAppleWalletPass(lastDigits: NSString) -> Bool {
++    let candidates = passLibrary.passes(of: .secureElement)
++      .filter { !$0.isRemotePass }
++      .compactMap(\.secureElementPass)
++      .filter {
++        $0.primaryAccountNumberSuffix.hasSuffix(lastDigits as String) &&
++          $0.passActivationState != .deactivated
++      }
++    guard let pass = candidates.first(where: { $0.passActivationState == .requiresActivation }) ?? candidates.first else {
++      return false
++    }
++    passLibrary.present(pass)
++    return true
++  }
+   
+   private func isPassKitAvailable() -> Bool {
+     return PKAddPaymentPassViewController.canAddPaymentPass()
+   }
++
++  private func findSecureElementPass(passTypeIdentifier: String, serialNumber: String, isRemote: Bool?) -> PKSecureElementPass? {
++    if isRemote == true {
++      return passLibrary.remoteSecureElementPasses.first { pass in
++        pass.passTypeIdentifier == passTypeIdentifier && pass.serialNumber == serialNumber
++      }
++    }
++
++    if let pass = passLibrary.pass(withPassTypeIdentifier: passTypeIdentifier, serialNumber: serialNumber),
++       pass.isRemotePass == false {
++      return pass.secureElementPass
++    }
++
++    if isRemote == false {
++      return nil
++    }
++
++    return passLibrary.remoteSecureElementPasses.first { pass in
++      pass.passTypeIdentifier == passTypeIdentifier && pass.serialNumber == serialNumber
++    }
++  }
++
++  private func makeAppleWalletPassDictionary(
++    passTypeIdentifier: String,
++    serialNumber: String,
++    primaryAccountIdentifier: String?,
++    lastDigits: String?,
++    activationState: Int,
++    isRemote: Bool
++  ) -> NSDictionary {
++    let result = NSMutableDictionary(dictionary: [
++      "passTypeIdentifier": passTypeIdentifier,
++      "serialNumber": serialNumber,
++      "activationState": activationState,
++      "isRemote": isRemote
++    ])
++
++    if let primaryAccountIdentifier = primaryAccountIdentifier, !primaryAccountIdentifier.isEmpty {
++      result["primaryAccountIdentifier"] = primaryAccountIdentifier
++    }
++
++    if let lastDigits = lastDigits, !lastDigits.isEmpty {
++      result["lastDigits"] = lastDigits
++    }
++
++    return result
++  }
+   
+   private func hideModal() {
+     guard let enrollVC = addPassViewController else {
+@@ -261,7 +513,8 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+       let stringCertificates = certificates.map {
+         $0.base64EncodedString() as NSString
+       }
+-      let reqestCardData = AddPassResponse(status: .completed, nonce: stringNonce, nonceSignature: stringNonceSignature, certificates: stringCertificates)
++      let deviceType = provisioningTargetDevice(for: addPassPrimaryAccountIdentifier)
++      let reqestCardData = AddPassResponse(status: .completed, nonce: stringNonce, nonceSignature: stringNonceSignature, certificates: stringCertificates, deviceType: deviceType)
+       self.addPassHandler = handler
+       
+       // Retry the JS issuer callback if the user tries again to add a payment pass
+@@ -293,6 +546,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+       presentAddPaymentPassCompletionHandler = nil
+       addPaymentPassCompletionHandler = nil
+       addPassHandler = nil
++      addPassPrimaryAccountIdentifier = nil
+ 
+       let errorMessage = error?.localizedDescription ?? ""
+ 
+@@ -309,10 +563,28 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+         handler(.canceled, response.toNSDictionary())
+       }
+       
+-      // If the pass is returned complete the IOSHandleAddPaymentPassResponse function
++      // If the pass is returned complete the IOSHandleAddPaymentPassResponse function.
++      // A resolved dictionary (result < .error) carries the outcome. Rejecting
++      // would hide whether Wallet already showed its own message.
+       if let addPaymentPassHandler = addPaymentPassHandler {
+-        if pass != nil {
+-          addPaymentPassHandler(.completed, nil)
++        if let pass = pass {
++          let activationState = (pass.secureElementPass?.passActivationState ?? pass.passActivationState).rawValue
++          addPaymentPassHandler(.completed, [
++            "status": NSNumber(value: 0),
++            "activationState": NSNumber(value: activationState),
++          ])
++        } else if let nsError = error as NSError?,
++                  nsError.domain == PKPassKitErrorDomain,
++                  nsError.code == PKAddPaymentPassError.userCancelled.rawValue {
++          addPaymentPassHandler(.canceled, [
++            "status": NSNumber(value: 1),
++          ])
++        } else if let nsError = error as NSError? {
++          addPaymentPassHandler(.completed, [
++            "status": NSNumber(value: -1),
++            "errorDomain": nsError.domain,
++            "errorCode": NSNumber(value: nsError.code),
++          ])
+         } else {
+           addPaymentPassHandler(.error, [
+             "errorMessage": "Could not add card. \(errorMessage)."
+diff --git a/node_modules/@expensify/react-native-wallet/ios/stucts/AddPassResponse.swift b/node_modules/@expensify/react-native-wallet/ios/stucts/AddPassResponse.swift
+index 1df45b4..3512e45 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/stucts/AddPassResponse.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/stucts/AddPassResponse.swift
+@@ -1,16 +1,35 @@
+ import PassKit
+ 
++enum ProvisioningDeviceType: String {
++  case phone
++  case watch
++  case unknown
++}
++
+ struct AddPassResponse {
+   let status: OperationResult
+   let nonce: NSString?
+   let nonceSignature: NSString?
+   let certificates: [NSString]?
++  let deviceType: ProvisioningDeviceType?
++
++  init(status: OperationResult, nonce: NSString?, nonceSignature: NSString?, certificates: [NSString]?, deviceType: ProvisioningDeviceType? = nil) {
++    self.status = status
++    self.nonce = nonce
++    self.nonceSignature = nonceSignature
++    self.certificates = certificates
++    self.deviceType = deviceType
++  }
+   
+   func toNSDictionary() -> NSDictionary {
+     if status.rawValue > 0 {
+-      return [
++      var response: [String: Any] = [
+         "status": status.rawValue,
+       ]
++      if let deviceType = deviceType {
++        response["deviceType"] = deviceType.rawValue
++      }
++      return response as NSDictionary
+     }
+     
+     guard let nonce = nonce,
+@@ -19,12 +38,16 @@ struct AddPassResponse {
+       return [:]
+     }
+     
+-    return [
++    var response: [String: Any] = [
+       "status": status.rawValue,
+       "nonce": nonce,
+       "nonceSignature": nonceSignature,
+-      "certificates": certificates
++      "certificates": certificates,
+     ]
++    if let deviceType = deviceType {
++      response["deviceType"] = deviceType.rawValue
++    }
++    return response as NSDictionary
+   }
+ }
+ 
+diff --git a/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift b/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift
+index c02a3c7..1349915 100644
+--- a/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift
++++ b/node_modules/@expensify/react-native-wallet/ios/stucts/CardInfo.swift
+@@ -5,6 +5,7 @@ struct CardInfo {
+   let cardHolderName: String
+   let lastDigits: String
+   let cardDescription: String
++  let primaryAccountIdentifier: String?
+ 
+   init(cardData: NSDictionary) throws {
+     guard let networkString = cardData["network"] as? String, !networkString.isEmpty,
+@@ -19,6 +20,11 @@ struct CardInfo {
+     self.cardHolderName = cardHolderName
+     self.lastDigits = lastDigits
+     self.cardDescription = cardDescription
++    if let identifier = cardData["primaryAccountIdentifier"] as? String, !identifier.isEmpty {
++      self.primaryAccountIdentifier = identifier
++    } else {
++      self.primaryAccountIdentifier = nil
++    }
+   }
+ 
+   private static func getNetwork(from identifier: String) -> PKPaymentNetwork? {
+diff --git a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+index f15df6e..ccfb0e0 100644
+--- a/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
++++ b/node_modules/@expensify/react-native-wallet/src/NativeWallet.ts
+@@ -41,6 +41,7 @@ type IOSCardData = {
+   cardHolderName: string;
+   lastDigits: string;
+   cardDescription: string;
++  primaryAccountIdentifier?: string;
+ };
+ 
+ type onCardActivatedPayload = {
+@@ -53,14 +54,33 @@ type IOSAddPaymentPassData = {
+   nonce: string;
+   nonceSignature: string;
+   certificates: string[];
++  deviceType?: string;
+ };
+ 
++type IOSDeviceType = 'phone' | 'watch' | 'unknown';
++
+ type IOSEncryptPayload = {
+   encryptedPassData: string;
+   activationData: string;
+   ephemeralPublicKey: string;
+ };
+ 
++type IOSPassActivationData = {
++  passTypeIdentifier: string;
++  serialNumber: string;
++  activationData: string;
++  isRemote?: boolean;
++};
++
++type IOSWalletPassNative = {
++  passTypeIdentifier: string;
++  serialNumber: string;
++  primaryAccountIdentifier?: string;
++  lastDigits?: string;
++  activationState: number;
++  isRemote: boolean;
++};
++
+ type TokenizationStatus = 'canceled' | 'success' | 'error';
+ 
+ type TokenInfo = {
+@@ -78,8 +98,13 @@ export interface Spec extends TurboModule {
+   addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
+   resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
+   listTokens(): Promise<TokenInfo[]>;
++  listAppleWalletPasses(): Promise<IOSWalletPassNative[]>;
++  presentAppleWalletPass(lastDigits: string): Promise<boolean>;
+   IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
+   IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
++  canAddCardToAppleWallet(primaryAccountIdentifier: string, lastDigits: string): Promise<boolean>;
++  activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
++  IOSFailAddPaymentPass(): Promise<void>;
+   addListener: (eventType: string) => void;
+   removeListeners: (count: number) => void;
+ }
+@@ -109,7 +134,10 @@ export type {
+   onCardActivatedPayload,
+   Platform,
+   IOSAddPaymentPassData,
++  IOSDeviceType,
+   IOSEncryptPayload,
++  IOSPassActivationData,
++  IOSWalletPassNative,
+   TokenizationStatus,
+   TokenInfo,
+ };
+diff --git a/node_modules/@expensify/react-native-wallet/src/index.tsx b/node_modules/@expensify/react-native-wallet/src/index.tsx
+index d1801ff..cebc988 100644
+--- a/node_modules/@expensify/react-native-wallet/src/index.tsx
++++ b/node_modules/@expensify/react-native-wallet/src/index.tsx
+@@ -12,11 +12,36 @@ import type {
+   AndroidWalletData,
+   onCardActivatedPayload,
+   IOSAddPaymentPassData,
++  IOSDeviceType,
++  IOSPassActivationData,
++  IOSWalletPassNative,
+   TokenInfo,
+ } from './NativeWallet';
+ import {getCardState, getTokenizationStatus} from './utils';
+ import AddToWalletButton from './AddToWalletButton';
+ 
++type IOSWalletPass = {
++  passTypeIdentifier: string;
++  serialNumber: string;
++  primaryAccountIdentifier?: string;
++  lastDigits?: string;
++  activationState: CardStatus;
++  isRemote: boolean;
++};
++
++type AppleWalletAddResult = {
++  activationState?: CardStatus;
++  errorDomain?: string;
++  errorCode?: number;
++};
++
++/** Result of IOSHandleAddPaymentPassResponse: a retry nonce, or a finished add. */
++type AddPaymentPassResult = IOSAddPaymentPassData & {
++  activationState?: number;
++  errorDomain?: string;
++  errorCode?: number;
++};
++
+ function getModuleLinkingRejection() {
+   return Promise.reject(new Error(`Failed to load Wallet module, make sure to link ${PACKAGE_NAME} correctly`));
+ }
+@@ -131,9 +156,51 @@ async function listTokens(): Promise<TokenInfo[]> {
+   return Wallet.listTokens();
+ }
+ 
++function toIOSDeviceType(deviceType: string | undefined): IOSDeviceType {
++  switch (deviceType) {
++    case 'phone':
++    case 'watch':
++    case 'unknown':
++      return deviceType;
++    default:
++      return 'unknown';
++  }
++}
++
++async function canAddCardToAppleWallet(primaryAccountIdentifier: string, lastDigits?: string): Promise<boolean> {
++  if (Platform.OS === 'android') {
++    return false;
++  }
++
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++
++  return Wallet.canAddCardToAppleWallet(primaryAccountIdentifier, lastDigits ?? '');
++}
++
++async function listAppleWalletPasses(): Promise<IOSWalletPass[]> {
++  if (Platform.OS === 'android') {
++    return Promise.resolve([]);
++  }
++
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++
++  const passes = await Wallet.listAppleWalletPasses();
++  return passes.map((pass: IOSWalletPassNative) => ({
++    ...pass,
++    primaryAccountIdentifier: pass.primaryAccountIdentifier || undefined,
++    lastDigits: pass.lastDigits || undefined,
++    activationState: getCardState(pass.activationState),
++  }));
++}
++
+ async function addCardToAppleWallet(
+   cardData: IOSCardData,
+-  issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[]) => Promise<IOSEncryptPayload>,
++  issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[], deviceType: IOSDeviceType) => Promise<IOSEncryptPayload>,
++  onAddFinished?: (result: AppleWalletAddResult) => void,
+ ): Promise<TokenizationStatus> {
+   if (Platform.OS === 'android') {
+     throw new Error('addCardToAppleWallet is not available on Android');
+@@ -151,20 +218,78 @@ async function addCardToAppleWallet(
+   }
+ 
+   async function addPaymentPassToWallet(paymentPassData: IOSAddPaymentPassData): Promise<number> {
+-    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates);
+-    const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
+-    // Response is null when a pass is successfully added to the wallet or the user cancels the process
+-    // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
+-    if (response) {
++    let responseData: IOSEncryptPayload;
++    try {
++      responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
++    } catch (error) {
++      try {
++        await wallet.IOSFailAddPaymentPass();
++      } catch {
++        // Closing the sheet is best-effort. The issuer error is what the user sees.
++      }
++      throw error;
++    }
++    const response = (await wallet.IOSHandleAddPaymentPassResponse(responseData)) as AddPaymentPassResult | null;
++    // Try again returns a new nonce. A finished add has no nonce: status 1 is a
++    // user cancel, status -1 is an error Wallet already showed, otherwise success.
++    if (response?.nonce) {
+       return addPaymentPassToWallet(response);
+     }
++    if (response?.status === 1) {
++      return 1;
++    }
++    if (response?.status === -1) {
++      onAddFinished?.({
++        errorDomain: response.errorDomain,
++        errorCode: response.errorCode,
++      });
++      return -1;
++    }
++    onAddFinished?.(typeof response?.activationState === 'number' ? {activationState: getCardState(response.activationState)} : {});
+     return 0;
+   }
+   const status = await addPaymentPassToWallet(passData);
+   return getTokenizationStatus(status);
+ }
+ 
+-export type {AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, onCardActivatedPayload, TokenizationStatus, TokenInfo};
++async function activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean> {
++  if (Platform.OS === 'android') {
++    throw new Error('activateAppleWalletPass is not available on Android');
++  }
++
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++
++  return Wallet.activateAppleWalletPass(passData);
++}
++
++async function presentAppleWalletPass(lastDigits: string): Promise<boolean> {
++  if (Platform.OS === 'android') {
++    return false;
++  }
++
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++
++  return Wallet.presentAppleWalletPass(lastDigits);
++}
++
++export type {
++  AndroidCardData,
++  AndroidWalletData,
++  CardStatus,
++  IOSEncryptPayload,
++  IOSCardData,
++  IOSAddPaymentPassData,
++  IOSDeviceType,
++  IOSPassActivationData,
++  IOSWalletPass,
++  onCardActivatedPayload,
++  TokenizationStatus,
++  TokenInfo,
++};
+ export {
+   AddToWalletButton,
+   checkWalletAvailability,
+@@ -174,7 +299,11 @@ export {
+   addCardToGoogleWallet,
+   resumeAddCardToGoogleWallet,
+   listTokens,
++  canAddCardToAppleWallet,
++  listAppleWalletPasses,
++  presentAppleWalletPass,
+   addCardToAppleWallet,
++  activateAppleWalletPass,
+   addListener,
+   removeListener,
+ };
