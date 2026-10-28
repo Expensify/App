@@ -324,6 +324,7 @@ describe('DynamicEditAgentPage', () => {
         });
 
         it('keeps an already-open Edit page usable when another tab replaces its optimistic agent', async () => {
+            // Given an Edit screen is still showing the temporary agent while another tab finishes creation
             const optimisticAccountID = 5728193046572819;
             const realAccountID = 12346;
             const route = createMock<DynamicEditAgentPageRoute>({params: {accountID: optimisticAccountID}});
@@ -341,7 +342,7 @@ describe('DynamicEditAgentPage', () => {
             await act(async () => waitForBatchedUpdates());
             expect(JSON.stringify(toJSON())).toContain('Pending agent');
 
-            // This tab's route has not been redirected. It receives the latest shared state after the tab
+            // When this tab receives the latest shared state without its route having been redirected, the tab
             // processing CreateAgent has written the real data and removed the optimistic copies.
             await act(async () => {
                 await Onyx.multiSet({
@@ -353,22 +354,25 @@ describe('DynamicEditAgentPage', () => {
                 await waitForBatchedUpdates();
             });
 
+            // Then the mounted screen resolves the real data and requests route repair without showing not-found
             expect(route.params.accountID).toBe(optimisticAccountID);
-            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
             expect(JSON.stringify(toJSON())).toContain('Created agent');
             expect(JSON.stringify(toJSON())).toContain('Created instructions');
             expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
 
-            // Retaining an ID mapping must not hide a genuinely deleted agent or resurrect its old data.
+            // When the real agent is deleted, retaining its mapping must not resurrect the old data.
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: null});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, null);
                 await waitForBatchedUpdates();
             });
+            // Then the screen reports not-found even though the temporary-to-real mapping remains
             expect(JSON.stringify(toJSON())).toContain('notFound.notHere');
         });
 
         it('opens an optimistic route after creation has already completed', async () => {
+            // Given creation has finished, leaving only the real agent data and its retained ID mapping
             const optimisticAccountID = 6849302751684930;
             const realAccountID = 12347;
             await Onyx.multiSet({
@@ -376,6 +380,7 @@ describe('DynamicEditAgentPage', () => {
                 [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Already created instructions'},
                 [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
             });
+            // When an old temporary-ID route opens after the original replacement has already run
             const {toJSON} = render(
                 <DynamicEditAgentPage
                     route={createMock<DynamicEditAgentPageRoute>({params: {accountID: optimisticAccountID}})}
@@ -383,7 +388,8 @@ describe('DynamicEditAgentPage', () => {
                 />,
             );
             await act(async () => waitForBatchedUpdates());
-            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
+            // Then the retained mapping resolves the agent without requiring another replacement event
             expect(JSON.stringify(toJSON())).toContain('Already created agent');
             expect(JSON.stringify(toJSON())).toContain('Already created instructions');
             expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');

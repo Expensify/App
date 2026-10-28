@@ -85,6 +85,7 @@ beforeEach(async () => {
 });
 
 it.each([false, true])('saves a preset to the resolved agent when mapping exists on mount: %s', async (mappingExistsOnMount) => {
+    // Given a saved avatar belongs to the real agent but the screen opens with its temporary accountID
     const optimisticAccountID = 7345678901234567;
     const realAccountID = 14001;
     await Onyx.multiSet({
@@ -92,6 +93,7 @@ it.each([false, true])('saves a preset to the resolved agent when mapping exists
         [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
     });
     const mockSetParams = jest.fn();
+    // When the route opens, its mapping may already exist or arrive after mount
     render(
         <DynamicEditAgentAvatarPage
             route={createMock<AvatarProps['route']>({params: {accountID: optimisticAccountID}})}
@@ -105,7 +107,8 @@ it.each([false, true])('saves a preset to the resolved agent when mapping exists
             await waitForBatchedUpdates();
         });
     }
-    expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
+    // Then the route is repaired before saving a preset, so Save and Back target the existing agent
+    expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
     const presetButton = screen.getAllByLabelText('avatarPage.selectAvatar').at(0);
     if (!presetButton) {
         throw new Error('Expected at least one agent avatar preset button');

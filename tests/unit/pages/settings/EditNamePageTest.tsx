@@ -147,7 +147,35 @@ describe('EditNamePage', () => {
 
         expect(JSON.stringify(toJSON())).toContain('firstName::Old Name');
     });
-    it.each([false, true])('saves and returns to the resolved agent when mapping arrives before mount: %s', async (mappingExistsOnMount) => {
+    it('uses a numeric data ID when the resolved route came from a URL string', async () => {
+        // Given a completed agent opens with the string ID produced by the dynamic route parser
+        const realAccountID = 13002;
+        await Onyx.clear();
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: {accountID: realAccountID, displayName: 'Created name'}});
+        mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
+        render(
+            <EditNamePage
+                route={createMock<EditNamePageRoute>({params: {accountID: String(realAccountID)}})}
+                navigation={mockNavigation}
+            />,
+        );
+        await act(async () => waitForBatchedUpdates());
+
+        // When Name is saved without another optimistic mapping
+        act(() => mockSubmit({firstName: 'Updated name'}));
+
+        // Then the action receives the numeric data ID and the already-canonical route is unchanged
+        expect(updateAgentName).toHaveBeenCalledWith(realAccountID, 'Updated name', 'Created name');
+        expect(mockSetParams).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [false, false],
+        [false, true],
+        [true, false],
+        [true, true],
+    ])('saves the resolved agent with mapping on mount %s and string route ID %s', async (mappingExistsOnMount, useStringRouteID) => {
+        // Given the real agent name is saved while a route can still hold the temporary accountID
         const optimisticAccountID = 7234567890123456;
         const realAccountID = 13001;
         const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), ROUTES.SETTINGS_AGENTS);
@@ -158,9 +186,10 @@ describe('EditNamePage', () => {
         });
         mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
         jest.mocked(useDynamicBackPath).mockReturnValue(backPath);
+        // When the route opens, its mapping may already exist or arrive after mount
         render(
             <EditNamePage
-                route={createMock<EditNamePageRoute>({params: {accountID: optimisticAccountID}})}
+                route={createMock<EditNamePageRoute>({params: {accountID: useStringRouteID ? String(optimisticAccountID) : optimisticAccountID}})}
                 navigation={mockNavigation}
             />,
         );
@@ -172,7 +201,8 @@ describe('EditNamePage', () => {
             });
         }
 
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
+        // Then route repair, Save and Back all use the same resolved agent
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
         act(() => mockSubmit({firstName: 'Updated value'}));
         expect(updateAgentName).toHaveBeenCalledWith(realAccountID, 'Updated value', 'Saved name');
         expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);

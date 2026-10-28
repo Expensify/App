@@ -146,6 +146,7 @@ describe('EditPromptPage', () => {
         expect(JSON.stringify(toJSON())).toContain('prompt::Old prompt');
     });
     it.each([false, true])('saves and returns to the resolved agent when mapping arrives before mount: %s', async (mappingExistsOnMount) => {
+        // Given the real agent instructions are saved while a route can still hold the temporary accountID
         const optimisticAccountID = 7234567890123456;
         const realAccountID = 13001;
         const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), ROUTES.SETTINGS_AGENTS);
@@ -156,6 +157,7 @@ describe('EditPromptPage', () => {
         });
         mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
         jest.mocked(useDynamicBackPath).mockReturnValue(backPath);
+        // When the route opens, its mapping may already exist or arrive after mount
         render(
             <EditPromptPage
                 route={createMock<EditPromptPageRoute>({params: {accountID: optimisticAccountID}})}
@@ -170,7 +172,8 @@ describe('EditPromptPage', () => {
             });
         }
 
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID});
+        // Then route repair, Save and Back all use the same resolved agent
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
         act(() => mockSubmit({prompt: 'Updated value'}));
         expect(updateAgentPrompt).toHaveBeenCalledWith(realAccountID, 'Updated value', 'Saved prompt');
         expect(Navigation.goBack).toHaveBeenLastCalledWith(backPath);

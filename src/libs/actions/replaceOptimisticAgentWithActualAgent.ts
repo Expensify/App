@@ -1,4 +1,4 @@
-import {registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
+import {isValidAgentAccountID, registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPersonalDetail, personalDetailsHydrationPromise} from '@libs/PersonalDetailsStore';
@@ -72,11 +72,6 @@ const agentsHydrationPromise = new Promise<void>((resolve) => {
     });
 });
 
-// Number.isSafeInteger() also rejects the non-numeric values a malformed persisted mapping entry could hold at runtime.
-function isValidAgentAccountID(accountID: number): boolean {
-    return Number.isSafeInteger(accountID) && accountID > 0;
-}
-
 // The whole navigation state is walked because an agent screen buried under another one would otherwise keep the
 // dead ID and 404 on back navigation. Matching on screen name + accountID param avoids redirecting unrelated routes
 // that contain the same digits.
@@ -88,7 +83,7 @@ function redirectAgentSettingsScreens(accountIDs: Map<number, number>) {
             const realAccountID = AGENT_SETTINGS_SCREENS.has(route.name) && route.params && 'accountID' in route.params ? accountIDs.get(Number(route.params.accountID)) : undefined;
             // Unfocused routes (e.g. beneath a modal) only receive SET_PARAMS when their navigator's state key is the target.
             if (realAccountID && route.key) {
-                Navigation.setParams({accountID: realAccountID}, route.key, state?.key);
+                Navigation.setParams({accountID: String(realAccountID)}, route.key, state?.key);
             }
             if (route.state) {
                 statesToVisit.push(route.state);
@@ -137,7 +132,7 @@ function clearOptimisticAgentData(accountIDs: Map<number, number>) {
     if (updates.length > 0) {
         Onyx.update(updates);
     }
-    // Keep the identity mappings: another tab or an old URL can still need them after this cleanup.
+    // Keep the optimistic-to-real mappings: another tab or an old temporary URL may still need them.
 }
 
 function replaceOptimisticAgentWithActualAgent(optimisticAccountID: number, realAccountID: number) {

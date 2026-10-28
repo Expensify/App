@@ -8,6 +8,10 @@
  */
 const resolvedAgentAccountIDs = new Map<number, number>();
 
+function isValidAgentAccountID(accountID: unknown): accountID is number {
+    return typeof accountID === 'number' && Number.isSafeInteger(accountID) && accountID > 0;
+}
+
 function registerAgentAccountIDMapping(optimisticAccountID: number, realAccountID: number) {
     resolvedAgentAccountIDs.set(optimisticAccountID, realAccountID);
 }
@@ -16,4 +20,4 @@ function resolveAgentAccountID(accountID: number): number {
     return resolvedAgentAccountIDs.get(accountID) ?? accountID;
 }
 
-export {registerAgentAccountIDMapping, resolveAgentAccountID};
+export {isValidAgentAccountID, registerAgentAccountIDMapping, resolveAgentAccountID};

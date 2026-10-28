@@ -1,6 +1,9 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
 import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type * as NavigationModule from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -8,6 +11,7 @@ import type * as ReplaceOptimisticAgentWithActualAgentModule from '@src/libs/act
 import {replaceOptimisticAgentWithActualAgent} from '@src/libs/actions/replaceOptimisticAgentWithActualAgent';
 import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
@@ -136,6 +140,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
     });
 
     it('batches replacements and updates each report once without overwriting real participants', async () => {
+        // Given two pending agents share a report that already contains authoritative details for one real participant
         const firstOptimisticID = 7012345678901234;
         const secondOptimisticID = 7012345678901235;
         const firstRealID = 11001;
@@ -152,10 +157,12 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         mockIsReady.mockReturnValue(true);
         mockGetRootState.mockClear();
 
+        // When both mappings arrive together, report repair should be batched rather than repeated per agent
         replaceOptimisticAgentWithActualAgent(firstOptimisticID, firstRealID);
         replaceOptimisticAgentWithActualAgent(secondOptimisticID, secondRealID);
         await waitForBatchedUpdates();
 
+        // Then one navigation pass and one report update preserve the server-provided participant
         expect(mockGetRootState).toHaveBeenCalledTimes(1);
         expect(mergeSpy.mock.calls.filter(([key]) => key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toHaveLength(1);
         expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual({
@@ -308,8 +315,29 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         // Then only the two agent settings routes are redirected, each targeting its owning navigator's state key
         expect(mockSetParams).toHaveBeenCalledTimes(2);
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-name-route-key', 'agent-settings-stack-key');
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-name-route-key', 'agent-settings-stack-key');
+    });
+
+    it.each([
+        {basePath: ROUTES.SETTINGS_AGENTS, optimisticAccountID: 7701234567890123, realAccountID: 15001},
+        {basePath: ROUTES.WORKSPACE_AGENTS.getRoute('test-policy'), optimisticAccountID: 7701234567890124, realAccountID: 15002},
+    ])('preserves the router parameter type for Back to $basePath', async ({basePath, optimisticAccountID, realAccountID}) => {
+        // Given the real route parser supplies the parent that Back/Save will look for
+        const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), basePath);
+        const parsedParent = findFocusedRouteWithOnyxTabGuard(getStateFromPath(backPath));
+        const parsedAccountID = parsedParent?.params && 'accountID' in parsedParent.params ? parsedParent.params.accountID : undefined;
+        mockIsReady.mockReturnValue(true);
+        mockGetRootState.mockReturnValue(buildAgentEditNavigationState(optimisticAccountID));
+
+        // When reconciliation updates the mounted agent route
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then strict route comparison can reuse the parent instead of appending a duplicate Edit suffix
+        expect(parsedParent?.name).toBe(SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT);
+        expect(parsedAccountID).toBe(String(realAccountID));
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: parsedAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
     });
 
     it('waits for navigation to be ready before redirecting and clearing the optimistic agent', async () => {
@@ -346,7 +374,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
         // Then the screen is redirected and only the optimistic data is cleared
         expect(mockSetParams).toHaveBeenCalledTimes(1);
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
+        expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
         expect((await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST))?.[optimisticAccountID]).toBeUndefined();
         expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
         expect((await getOnyxValue(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING))?.[optimisticAccountID]).toBe(realAccountID);
@@ -485,7 +513,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
 
             // Then the screen is redirected, the DM participants are repaired against the hydrated report collection,
             // and the optimistic data is cleared while the mapping remains available to other tabs
-            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
             const report = await getColdStartOnyxValue(`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}`);
             expect(report?.participants).toStrictEqual({
                 [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -497,6 +525,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         });
 
         it.each([false, true])('retains completed mappings without cleanup writes and repairs orphan reports: %s', async (hasOrphanReport) => {
+            // Given cleanup has removed temporary agent records, with or without an interrupted report repair
             const optimisticAccountID = hasOrphanReport ? 7123456789012345 : 7123456789012346;
             const realAccountID = hasOrphanReport ? 12001 : 12002;
             const secondOptimisticID = hasOrphanReport ? 7123456789012347 : 7123456789012348;
@@ -521,12 +550,14 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             mockIsReady.mockReturnValue(true);
             mockGetRootState.mockClear();
             mockGetRootState.mockReturnValue(buildAgentEditNavigationState(optimisticAccountID));
+            // When a fresh session loads the retained mappings, their action and navigation resolution must recover
             require<typeof ReplaceOptimisticAgentWithActualAgentModule>('@src/libs/actions/replaceOptimisticAgentWithActualAgent');
             await waitForBatchedUpdates();
             const readColdStartValue = require<typeof GetOnyxValueModule>('../utils/getOnyxValue').default;
 
+            // Then completed cleanup causes no writes, while a report-only orphan is still repaired
             expect(mockGetRootState).toHaveBeenCalledTimes(1);
-            expect(mockSetParams).toHaveBeenCalledWith({accountID: realAccountID}, 'agents-edit-route-key', 'agent-settings-stack-key');
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)}, 'agents-edit-route-key', 'agent-settings-stack-key');
             expect(updateSpy).not.toHaveBeenCalled();
             expect(mergeSpy).toHaveBeenCalledTimes(hasOrphanReport ? 1 : 0);
             expect((await readColdStartValue(`${coldStartOnyxKeys.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual({
