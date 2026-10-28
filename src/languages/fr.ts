@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
         enableNotifications: {prompt: 'Vous souhaitez être averti lorsque Concierge répond ?', cta: 'Notifier'},
-        feedback: {prompt: 'Cette réponse était-elle utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
+        feedback: {prompt: 'Cela vous a-t-il été utile ?', useful: 'Réponse utile', notUseful: 'Réponse inutile', thanks: 'Merci pour votre retour !'},
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -10546,6 +10546,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publié',
                 hint: 'S’applique uniquement aux transactions par carte.',
             },
+            searchFilters: 'Filtres de recherche',
+            noFiltersSelected: 'Aucun filtre sélectionné',
         },
         display: {
             label: 'Affichage',
@@ -11973,6 +11975,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             aBankAccountIsLocked: 'Un compte bancaire est verrouillé',
             completeHrSetup: 'Terminer la configuration RH',
             theresAProblemWithAnHRConnection: 'Un problème est survenu avec une connexion RH',
+            theresAProblemWithYourAgent: 'Il y a un problème avec votre/vos agent(s)',
         },
     },
     emptySearchView: {

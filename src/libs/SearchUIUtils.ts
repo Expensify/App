@@ -221,6 +221,7 @@ import {
 } from './SearchQueryUtils';
 import {expenseStatusActionMapping, getSuggestedSearches, isEligibleForStatus, SEARCH_TYPE_MENU_ICON_NAMES} from './SearchSuggestionUtils';
 import StringUtils from './StringUtils';
+import tokenizedSearch from './tokenizedSearch';
 import {
     getAmount,
     getAttendees,
@@ -6388,10 +6389,28 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
 }
 
 function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && isCreatedDateType(type)) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && (isCreatedDateType(type) || type === CONST.SEARCH.DATA_TYPES.INVOICE)) {
         return 'search.filters.createdDate';
     }
     return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
+function isLabelMatchingSearchValue(label: string, searchValue: string): boolean {
+    return tokenizedSearch([label], searchValue, (item) => [item]).length > 0;
+}
+
+function isFilterMatchingSearchValue(filterKey: keyof typeof FILTER_VIEW_MAP, type: SearchDataTypes | undefined, searchValue: string, translate: LocalizedTranslate): boolean {
+    return isLabelMatchingSearchValue(translate(getFilterViewLabelKey(filterKey, type)), searchValue);
+}
+
+/** Keeps the filters whose label contains every word of the search value, dropping the sections left empty. */
+function getMatchingFilters(
+    filters: Array<Array<SearchFilter['key']>>,
+    type: SearchDataTypes | undefined,
+    searchValue: string,
+    translate: LocalizedTranslate,
+): Array<Array<SearchFilter['key']>> {
+    return filters.map((section) => section.filter((filterKey) => isFilterMatchingSearchValue(filterKey, type, searchValue, translate))).filter((section) => section.length > 0);
 }
 
 function mapFiltersFormToLabelValueList(
@@ -7719,6 +7738,9 @@ export {
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
     getFilterViewLabelKey,
+    isLabelMatchingSearchValue,
+    isFilterMatchingSearchValue,
+    getMatchingFilters,
     isCreatedDateType,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
