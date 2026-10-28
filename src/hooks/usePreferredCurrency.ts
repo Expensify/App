@@ -3,8 +3,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import {useMemo} from 'react';
-
 import useOnyx from './useOnyx';
 import {usePersonalDetail} from './usePersonalDetails';
 
@@ -23,7 +21,7 @@ function usePreferredCurrency(): PreferredCurrency {
     const [currentUserPersonalDetail] = usePersonalDetail(session?.accountID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
 
-    const paymentCardCurrency = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard)?.accountData?.currency, [fundList]);
+    const paymentCardCurrency = Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard)?.accountData?.currency;
 
     if (paymentCardCurrency) {
         return paymentCardCurrency;
