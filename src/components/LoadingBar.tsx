@@ -14,9 +14,11 @@ type LoadingBarProps = {
 
 const INDICATOR_MIDPOINT = '50%';
 
+const CONTAINER_FADE_DURATION = `${CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}ms` as const;
+
 const CONTAINER_TRANSITION = {
     transitionProperty: 'opacity',
-    transitionDuration: `${CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}ms`,
+    transitionDuration: CONTAINER_FADE_DURATION,
 } as const;
 
 const animations = css.create({
@@ -35,6 +37,14 @@ const animations = css.create({
     indicatorIdle: {width: '0%'},
     containerVisible: {opacity: 1, ...CONTAINER_TRANSITION},
     containerHidden: {opacity: 0, ...CONTAINER_TRANSITION},
+    // A CSS transition doesn't run on mount, so a bar that mounts visible fades in with this one-time animation instead
+    containerMountFadeIn: {
+        animationName: css.keyframes({
+            from: {opacity: 0},
+            to: {opacity: 1},
+        }),
+        animationDuration: CONTAINER_FADE_DURATION,
+    },
 });
 
 function LoadingBar({shouldShow}: LoadingBarProps) {
@@ -46,8 +56,11 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     const [isIndicatorAnimating, setIsIndicatorAnimating] = useState(shouldShow);
     const [indicatorKey, setIndicatorKey] = useState(0);
     const [prevShouldShow, setPrevShouldShow] = useState(shouldShow);
+    // Later shows and hides fade with the container transition
+    const [shouldFadeInOnMount, setShouldFadeInOnMount] = useState(shouldShow);
     if (shouldShow !== prevShouldShow) {
         setPrevShouldShow(shouldShow);
+        setShouldFadeInOnMount(false);
         if (shouldShow) {
             setIsIndicatorAnimating(true);
             setIndicatorKey((key) => key + 1);
@@ -65,7 +78,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     }, [shouldShow]);
 
     return (
-        <Animated.View style={[styles.progressBarWrapper, shouldShow ? animations.containerVisible : animations.containerHidden]}>
+        <Animated.View style={[styles.progressBarWrapper, shouldShow ? animations.containerVisible : animations.containerHidden, shouldFadeInOnMount && animations.containerMountFadeIn]}>
             <Animated.View
                 key={indicatorKey}
                 style={[styles.progressBar, isIndicatorAnimating && !isReducedMotionEnabled ? animations.indicator : animations.indicatorIdle]}
