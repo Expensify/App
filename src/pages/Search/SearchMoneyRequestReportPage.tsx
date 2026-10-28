@@ -42,7 +42,13 @@ import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
 
-import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
+import {
+    clearDeleteTransactionNavigateBackUrl,
+    clearDeleteTransactionNavigateBackUrlAfterTransitions,
+    createTransactionThreadReport,
+    openReport,
+    updateLastVisitTime,
+} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -124,6 +130,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         });
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
+
+    useEffect(() => () => clearDeleteTransactionNavigateBackUrlAfterTransitions(), []);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);

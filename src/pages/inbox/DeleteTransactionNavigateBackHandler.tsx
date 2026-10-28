@@ -3,7 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
 
-import {clearDeleteTransactionNavigateBackUrl} from '@userActions/Report';
+import {clearDeleteTransactionNavigateBackUrl, clearDeleteTransactionNavigateBackUrlAfterTransitions} from '@userActions/Report';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -35,6 +35,9 @@ function DeleteTransactionNavigateBackHandler() {
         });
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
+
+    // Native stack never renders a popped screen unfocused, so also clear on unmount.
+    useEffect(() => () => clearDeleteTransactionNavigateBackUrlAfterTransitions(), []);
 
     return null;
 }

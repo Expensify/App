@@ -83,6 +83,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -190,6 +191,7 @@ import {
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {startSendMessagePhase} from '@libs/telemetry/sendMessageSpans';
+import {doesDeleteNavigateBackUrlIncludeDuplicatesReview} from '@libs/TransactionNavigationUtils';
 import {
     getAmount,
     getCurrency,
@@ -7281,6 +7283,27 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
 }
 
+// Read when the clear fires, since the unmounting screen may not have the value yet.
+let deleteTransactionNavigateBackUrl: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+    callback: (value) => {
+        deleteTransactionNavigateBackUrl = value;
+    },
+});
+
+function clearDeleteTransactionNavigateBackUrlAfterTransitions() {
+    TransitionTracker.runAfterTransitions({
+        callback: () => {
+            if (!deleteTransactionNavigateBackUrl || doesDeleteNavigateBackUrlIncludeDuplicatesReview(deleteTransactionNavigateBackUrl)) {
+                return;
+            }
+            requestAnimationFrame(clearDeleteTransactionNavigateBackUrl);
+        },
+        waitForUpcomingTransition: true,
+    });
+}
+
 type DeleteAppReportProps = {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -9371,6 +9394,7 @@ export {
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
+    clearDeleteTransactionNavigateBackUrlAfterTransitions,
     clearIOUError,
     clearNewRoomFormError,
     setNewRoomFormLoading,
