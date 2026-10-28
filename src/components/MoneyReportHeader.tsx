@@ -25,7 +25,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import HeaderLoadingBar from './HeaderLoadingBar';
@@ -92,13 +92,10 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const singleTransactionID = transactions.length === 1 ? transactions.at(0)?.transactionID : undefined;
 
     const threadParentReportActionID = moneyRequestReport?.parentReportActionID;
-    const threadTransactionIDSelector = useCallback(
-        (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
-            const parentReportAction = threadParentReportActionID ? parentReportActions?.[threadParentReportActionID] : undefined;
-            return isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-        },
-        [threadParentReportActionID],
-    );
+    const threadTransactionIDSelector = (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
+        const parentReportAction = threadParentReportActionID ? parentReportActions?.[threadParentReportActionID] : undefined;
+        return isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    };
     const [threadTransactionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.parentReportID)}`, {selector: threadTransactionIDSelector});
 
     const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;

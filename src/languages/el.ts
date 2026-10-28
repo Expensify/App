@@ -558,7 +558,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
-        feedback: {prompt: 'Ήταν χρήσιμη αυτή η απάντηση;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
+        feedback: {prompt: 'Ήταν χρήσιμο αυτό;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',
@@ -1245,6 +1245,8 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
         },
+        compliance: 'Συμμόρφωση',
+        runningTotal: 'Τρέχον σύνολο',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -2569,8 +2571,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: 'Είστε βέβαιοι ότι θέλετε να συγχωνεύσετε λογαριασμούς;',
-            lossOfUnsubmittedData: (login: string) =>
-                `Η συγχώνευση των λογαριασμών σας είναι μη αναστρέψιμη και θα έχει ως αποτέλεσμα την απώλεια τυχόν μη υποβληθέντων εξόδων για τον/την <strong>${login}</strong>.`,
+            mergeIsIrreversible: (login: string) =>
+                `Η συγχώνευση των λογαριασμών σας είναι μη αναστρέψιμη. Όλες οι δαπάνες και οι αναφορές από τον λογαριασμό <strong>${login}</strong>, συμπεριλαμβανομένων των προσχεδίων και των μη καταχωρισμένων δαπανών, θα μετακινηθούν στον λογαριασμό που διατηρείτε.`,
             errors: {
                 fallback: 'Κάτι πήγε στραβά. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
                 incorrectSecurityCode: 'Εσφαλμένος ή μη έγκυρος κωδικός ασφαλείας. Δοκιμάστε ξανά ή ζητήστε έναν νέο κωδικό.',
@@ -2921,6 +2923,7 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Πληρώστε μέλη παγκοσμίως στο τοπικό τους νόμισμα.',
             getStarted: 'Ξεκινήστε',
             headerTitle: 'Παγκόσμιες αποζημιώσεις',
+            payingReportSubtitle: 'Οι τραπεζικοί λογαριασμοί της εταιρείας και των εργαζομένων χρησιμοποιούν διαφορετικά νομίσματα.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Πληρώστε ανθρώπους παγκοσμίως', subtitle: 'Ενεργοποιήστε τις παγκόσμιες αποζημιώσεις στον λογαριασμό USD σας.'},
     },
@@ -3085,6 +3088,8 @@ ${amount} για ${merchant} - ${date}`,
         manager: 'Διαχειριστής',
         makeOrTrackPaymentsTitle: 'Πληρωμές',
         makeOrTrackPaymentsDescription: 'Προσθέστε ένα εξουσιοδοτημένο πρόσωπο πληρωμής για πληρωμές που γίνονται στο Expensify ή παρακολουθήστε πληρωμές που έγιναν αλλού.',
+        collectEmployeeBankDetails: 'Συλλογή τραπεζικών στοιχείων υπαλλήλων',
+        collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των υπαλλήλων, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6904,6 +6909,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             currentTravelSpendInvoiceQueued: 'Θα δημιουργηθεί ένα νέο τιμολόγιο για τις ταξιδιωτικές σας δαπάνες και θα σας αποσταλεί σύντομα.',
                             currentTravelSpendInvoicePending: (amount: string) => `Ένα τιμολόγιο για ${amount} έχει αποσταλεί και αναμένει πληρωμή.`,
                             sendInvoiceNowCta: 'Στείλτε το τιμολόγιο τώρα',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) =>
+                                `Το μηνιαίο όριο δαπανών ανά μέλος δεν μπορεί να υπερβαίνει το τρέχον όριο ταξιδιού των ${travelLimit}.`,
                         },
                         setUpNewFeed: 'Ρυθμίστε μια νέα ροή ταξιδιών',
                         feedSelectorIntro:
@@ -7646,6 +7653,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7892,6 +7901,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Συγχρονισμός διακανονισμών κάρτας';
                         case 'campfireSyncTravelSettlements':
                             return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
+                        case 'digitsSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Digits';
+                        case 'digitsSyncConnection':
+                            return 'Γίνεται αρχικοποίηση σύνδεσης με το Digits';
+                        case 'digitsSyncImportData':
+                            return 'Φόρτωση δεδομένων';
+                        case 'digitsSyncPayments':
+                            return 'Συγχρονισμός πληρωμών προμηθευτών';
+                        case 'digitsSyncCardSettlements':
+                            return 'Συγχρονισμός διακανονισμών κάρτας';
+                        case 'digitsSyncTravelSettlements':
+                            return 'Συγχρονισμός εκκαθαρίσεων ταξιδιών';
                         case 'businessCentralSyncTitle':
                             return 'Συγχρονισμός δεδομένων Dynamics 365 Business Central';
                         case 'businessCentralSyncConnection':
@@ -7941,6 +7962,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncTravelBillingSettlementsNoAccountTooltip: 'Για να το ενεργοποιήσετε, ορίστε έναν λογαριασμό για τις εξαγωγές σας.',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'Για να το ξεκλειδώσετε, ενεργοποιήστε τον αυτόματο συγχρονισμό.',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
@@ -9007,13 +9029,10 @@ ${reportName}`,
                 restrictCardSpendDescription: 'Μπλοκάρετε ή περιορίστε τις δαπάνες στο σημείο πώλησης',
                 flagForReview: 'Σημείωση για έλεγχο',
                 flagForReviewDescription: 'Ειδοποίηση όταν πληρούνται οι προϋποθέσεις σας',
-                requireFields: 'Ορίστε απαιτήσεις πεδίου',
-                requireFieldsShort: 'Απαίτηση πεδίων',
+                requireFields: 'Απαίτηση πεδίων',
                 requireFieldsDescription: 'Αποδείξεις, κατηγορίες κ.λπ.',
                 applyExpenseDefaults: 'Εφαρμογή προεπιλογών δαπανών',
                 applyExpenseDefaultsDescription: 'Αυτόματη ενημέρωση πεδίων',
-                createAgentRule: 'Περιγράψτε τον κανόνα πράκτορα',
-                createAgentRuleDescription: 'Δημιουργήστε ευέλικτους κανόνες που εκτελούνται όταν τους χρειάζεστε.',
                 describeItBelow: 'Ή απλώς περιγράψτε τον παρακάτω',
                 describeRulePlaceholder: 'Αποκλεισμός όλων των δαπανών άνω των 2.000 $',
                 selectTemplateOrDescribe: 'Επιλέξτε ένα πρότυπο ή περιγράψτε έναν κανόνα για να συνεχίσετε',
@@ -10586,6 +10605,15 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Αυτόν τον μήνα',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Έως σήμερα μέσα στο έτος',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Τελευταίοι 12 μήνες',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Αυτή την εβδομάδα',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Την προηγούμενη εβδομάδα',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_QUARTER]: 'Αυτό το τρίμηνο',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_QUARTER]: 'Το προηγούμενο τρίμηνο',
+                    [CONST.SEARCH.DATE_PRESETS.THIS_YEAR]: 'Φέτος',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_YEAR]: 'Πέρυσι',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS]: 'Τελευταίες 30 ημέρες',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS]: 'Τελευταίες 90 ημέρες',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS]: 'Τελευταίοι 6 μήνες',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Τελευταία κατάσταση',
                 },
                 customDay: 'Προσαρμοσμένη ημέρα',
@@ -10696,6 +10724,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Καταχωρίστηκε',
                 hint: 'Ισχύει μόνο για συναλλαγές με κάρτα.',
             },
+            searchFilters: 'Φίλτρα αναζήτησης',
+            noFiltersSelected: 'Δεν έχουν επιλεγεί φίλτρα',
         },
         display: {
             label: 'Εμφάνιση',
@@ -10732,6 +10762,7 @@ ${reportName}`,
         noCategory: 'Χωρίς κατηγορία',
         noMerchant: 'Χωρίς έμπορο',
         noTag: 'Χωρίς ετικέτα',
+        noVendor: 'Χωρίς προμηθευτή',
         expenseType: 'Τύπος εξόδου',
         receiptType: 'Τύπος απόδειξης',
         receiptTypeValues: {
@@ -11910,6 +11941,10 @@ ${reportName}`,
                 one: '1 ενεργός χρήστης',
                 other: `${count} ενεργοί χρήστες`,
             }),
+            members: ({count}: {count: number}) => ({
+                one: '1 μέλος',
+                other: `${count} μέλη`,
+            }),
             state: {paid: 'Πληρωμένο', cleared: 'Εκκαθαρισμένο', failed: 'Απέτυχε', refunded: 'Επιστράφηκε', disputed: 'Αμφισβητούμενη', balanceTransfer: 'Μεταφορά υπολοίπου'},
             details: 'Στοιχεία πληρωμής',
             badge: {
@@ -11924,6 +11959,7 @@ ${reportName}`,
             billedTo: 'Χρέωση σε',
             activity: 'Δραστηριότητα',
             findActiveUser: 'Εύρεση ενεργού χρήστη',
+            findMember: 'Εύρεση μέλους',
             viewReceipt: 'Προβολή απόδειξης',
             viewInvoice: 'Προβολή τιμολογίου',
         },
@@ -12124,6 +12160,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Ένας τραπεζικός λογαριασμός είναι κλειδωμένος',
             completeHrSetup: 'Ολοκληρώστε τη ρύθμιση HR',
             theresAProblemWithAnHRConnection: 'Υπάρχει πρόβλημα με μια σύνδεση HR',
+            theresAProblemWithYourAgent: 'Υπάρχει πρόβλημα με τον/τους εκπρόσωπό σας',
         },
     },
     emptySearchView: {
@@ -12199,6 +12236,7 @@ ${reportName}`,
     export: {
         basicExport: 'Βασική εξαγωγή',
         currentView: 'Τρέχουσα προβολή',
+        currentViewGroupsOnly: 'Τρέχουσα προβολή (μόνο ομάδες)',
         reportLevelExport: 'Όλα τα δεδομένα - σε επίπεδο αναφοράς',
         expenseLevelExport: 'Όλα τα δεδομένα - επίπεδο δαπάνης',
         multipleTaxExport: 'Καναδική εξαγωγή πολλαπλών φόρων',

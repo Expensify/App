@@ -23,7 +23,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 type IssueNewCardConfirmValidateCodePageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -62,17 +62,14 @@ function IssueNewCardConfirmValidateCodePage({route}: IssueNewCardConfirmValidat
         clearIssueNewCardFlow(policyID);
     }, [backPath, isSuccessful, policyID, shouldUseBackToParam]);
 
-    const handleSubmit = useCallback(
-        (validateCode: string) => {
-            // The request carries no feedCountry, so the backend resolves it from the domain's provisioned card programs
-            issueExpensifyCard(defaultFundID, policyID, validateCode, assigneeTimeZone, data);
-        },
-        [data, defaultFundID, policyID, assigneeTimeZone],
-    );
+    const handleSubmit = (validateCode: string) => {
+        // The request carries no feedCountry, so the backend resolves it from the domain's provisioned card programs
+        issueExpensifyCard(defaultFundID, policyID, validateCode, assigneeTimeZone, data);
+    };
 
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

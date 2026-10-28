@@ -15,7 +15,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import {addMonths, addYears, clamp, format, isSameDay, isValid, setMonth, setYear, startOfDay, startOfMonth, subMonths, subYears} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
@@ -230,7 +230,7 @@ function CalendarPicker({
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph3;
 
-    const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
+    const getAccessibilityState = (isSelected: boolean) => ({selected: isSelected});
 
     const calendarWeeks = calendarDaysMatrix?.map((week) => (
         <View
