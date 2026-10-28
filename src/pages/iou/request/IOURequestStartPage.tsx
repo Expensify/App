@@ -166,10 +166,10 @@ function IOURequestStartPage({
         ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!iouRequestStartPolicies?.hasTimePolicy));
 
     // Mirrors the tabs rendered below so a stale persisted selectedTab that isn't valid for this iouType is rejected.
-    const availableTabs = useMemo<Set<SelectedTabRequest>>(() => {
-        if (!shouldUseTab) {
-            return new Set();
-        }
+    let availableTabs: Set<SelectedTabRequest>;
+    if (!shouldUseTab) {
+        availableTabs = new Set();
+    } else {
         const tabs = new Set<SelectedTabRequest>([CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]);
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             tabs.add(CONST.TAB_REQUEST.DISTANCE);
@@ -180,8 +180,8 @@ function IOURequestStartPage({
         if (shouldShowTimeOption) {
             tabs.add(CONST.TAB_REQUEST.TIME);
         }
-        return tabs;
-    }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+        availableTabs = tabs;
+    }
 
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
@@ -192,20 +192,18 @@ function IOURequestStartPage({
     }
     const isStaleTransactionDraft = latchedDraftStaleness?.isStale ?? false;
 
-    const transactionRequestType = useMemo(() => {
-        if (transaction?.iouRequestType && !isStaleTransactionDraft) {
-            return transaction.iouRequestType;
-        }
-        if (!shouldUseTab) {
-            return CONST.IOU.REQUEST_TYPE.MANUAL;
-        }
-        // selectedTab must be valid for the currently-rendered tab set; otherwise let
-        // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
-        if (selectedTab && availableTabs.has(selectedTab)) {
-            return selectedTab;
-        }
-        return undefined;
-    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
+    let transactionRequestType;
+    if (transaction?.iouRequestType && !isStaleTransactionDraft) {
+        transactionRequestType = transaction.iouRequestType;
+    } else if (!shouldUseTab) {
+        transactionRequestType = CONST.IOU.REQUEST_TYPE.MANUAL;
+    } else // selectedTab must be valid for the currently-rendered tab set; otherwise let
+    // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
+    if (selectedTab && availableTabs.has(selectedTab)) {
+        transactionRequestType = selectedTab;
+    } else {
+        transactionRequestType = undefined;
+    }
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -256,9 +254,7 @@ function IOURequestStartPage({
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
-    const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const focusTrapContainerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 

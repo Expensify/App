@@ -39,6 +39,8 @@ jest.mock('react-native-tab-view', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 describe('IOURequestStartPage', () => {

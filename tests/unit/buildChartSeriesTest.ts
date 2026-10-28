@@ -435,6 +435,30 @@ describe('buildChartSeries', () => {
         expect(rows.at(1)?.point.label).toBe('Q4 so far');
         expect(rows.at(1)?.point.shortLabel).toBe('Q4 2026');
     });
+
+    it('marks groups after the current period as not ended, keeping their own labels', () => {
+        // Given a finished quarter, the quarter in progress, and a later quarter holding future-dated expenses
+        const data = [quarterGroup(2, 100000), quarterGroup(3, 20000), quarterGroup(4, 5000)];
+        const quarterLabel = (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? item.formattedQuarter : '');
+
+        // When the series is built knowing which group is in progress and which come later
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel: quarterLabel,
+            getCurrencyDecimals,
+            getInProgressLabel: (item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 3 ? 'Q3 so far' : undefined),
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4,
+        });
+
+        // Then both periods that haven't ended are marked, so the line chart draws them dashed, and only the current one says "so far"
+        expect(rows.map((row) => row.point.isInProgress)).toEqual([false, true, true]);
+        expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026', 'Q3 so far', 'Q4 2026']);
+    });
 });
 
 describe('getSliceColorsByDataIndex', () => {

@@ -8,6 +8,7 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WiseKYCRequirement} from './WiseKYCReview';
 
 /** Steps to setup a reimbursement bank account */
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
@@ -301,6 +302,13 @@ type WiseBusinessOnboarding = {
 
     /** Uploaded file keys, by requirement then by field */
     documents?: Record<string, Record<string, string[]>>;
+
+    /**
+     * What the application still needs, one entry per Wise requirement type.
+     * Built by the server on every send and never stored. Before Submit it lists what the
+     * intake pre-collects; after Submit it is Wise's live review list.
+     */
+    kycRequirements?: WiseKYCRequirement[];
 };
 
 /** The step in an reimbursement account's ach data */

@@ -453,6 +453,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'created':
         case 'submitted':
         case 'approved':
+        case 'paid':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -484,6 +485,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'orderDealNumbers':
         case 'debitedCurrency':
         case 'creditedCurrency':
+        case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -638,6 +640,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -685,6 +688,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                paid: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1464,7 +1468,6 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 comment: 'string',
                 cardID: 'number',
                 missingFields: 'array',
-                isSupplierViolation: 'boolean',
                 startDate: 'string',
                 endDate: 'string',
                 nights: 'number',
