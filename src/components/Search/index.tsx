@@ -21,6 +21,7 @@ import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
 import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -58,6 +59,7 @@ import {
     isSearchPending,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTripListItemType,
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
@@ -126,6 +128,7 @@ import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
 import TaskSearchView from './TaskSearchView';
+import TripSearchView from './TripSearchView';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -207,6 +210,7 @@ function Search({
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -683,6 +687,15 @@ function Search({
                 return;
             }
 
+            if (isTripListItemType(item)) {
+                const tripRoute = ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: Navigation.getActiveRoute()});
+                if (openInternalRouteInNewTab(tripRoute, event)) {
+                    return;
+                }
+                requestAnimationFrame(() => Navigation.navigate(tripRoute));
+                return;
+            }
+
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
 
@@ -980,7 +993,7 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
+    const canSelectMultiple = !isChat && !isTask && !shouldReturnTripRooms && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
 
     useSaveSortedReportIDs(type, sortedData);
 
@@ -1293,6 +1306,7 @@ function Search({
                       shouldShowYearApproved: false,
                       shouldShowYearPosted: false,
                       shouldShowYearExported: false,
+                      shouldShowYearPaid: false,
                       shouldShowYearWithdrawn: false,
                   },
         [searchResults?.data, isExpenseReportType, type],
@@ -1321,6 +1335,7 @@ function Search({
             isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
             isPostedColumnWide: yearIndicators.shouldShowYearPosted,
             isExportedColumnWide: yearIndicators.shouldShowYearExported,
+            isPaidColumnWide: yearIndicators.shouldShowYearPaid,
             isWithdrawnColumnWide: yearIndicators.shouldShowYearWithdrawn,
             isAmountColumnWide: amountIndicators.shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: amountIndicators.shouldShowTaxAmountInWideColumn,
@@ -1332,6 +1347,7 @@ function Search({
             yearIndicators.shouldShowYearApproved,
             yearIndicators.shouldShowYearPosted,
             yearIndicators.shouldShowYearExported,
+            yearIndicators.shouldShowYearPaid,
             yearIndicators.shouldShowYearWithdrawn,
             amountIndicators.shouldShowAmountInWideColumn,
             amountIndicators.shouldShowTaxAmountInWideColumn,
@@ -1480,7 +1496,8 @@ function Search({
         );
     }
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = yearIndicators;
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearPaid, shouldShowYearWithdrawn} =
+        yearIndicators;
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = amountIndicators;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
     const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
@@ -1533,10 +1550,10 @@ function Search({
         );
     }
 
-    // Transaction lists (expense, invoice, trip) render through the flat or grouped view depending on groupBy;
-    // chat, expense-report and task each have their own dedicated view. Every view composes BaseSearchList
-    // directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // Transaction lists (expense, invoice, and trip without the TravelApproval beta) render through the flat or grouped view
+    // depending on groupBy; chat, expense-report, task and trip rooms each have their own dedicated view. Every view composes
+    // BaseSearchList directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !shouldReturnTripRooms;
 
     let searchTablePaddingRightStyle;
     if (!isTask) {
@@ -1557,12 +1574,14 @@ function Search({
                 shouldShowYearApproved={shouldShowYearApproved}
                 shouldShowYearPosted={shouldShowYearPosted}
                 shouldShowYearExported={shouldShowYearExported}
+                shouldShowYearPaid={shouldShowYearPaid}
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                 shouldShowSorting
                 groupBy={validGroupBy}
-                isExpenseReportView={isExpenseReportType}
+                // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
+                isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             />
         </View>
@@ -1624,6 +1643,8 @@ function Search({
         searchListContent = <ChatSearchView {...commonViewProps} />;
     } else if (isExpenseReportType) {
         searchListContent = <ExpenseReportSearchView {...commonViewProps} />;
+    } else if (shouldReturnTripRooms) {
+        searchListContent = <TripSearchView {...commonViewProps} />;
     } else {
         // TASK is the only remaining data type.
         searchListContent = <TaskSearchView {...commonViewProps} />;
