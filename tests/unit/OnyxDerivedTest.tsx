@@ -914,7 +914,7 @@ describe('OnyxDerived', () => {
                 reportID: expenseReportID,
                 created: '2024-01-01 10:00:00.000',
                 originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
-            } as Partial<ReportAction>);
+            });
 
             // Given a one-transaction expense report whose combined last action comes from its transaction thread
             await Onyx.multiSet({

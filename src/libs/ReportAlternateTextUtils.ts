@@ -14,7 +14,6 @@ import type {
     PolicyTagLists,
     Report,
     ReportAction,
-    ReportActions,
     ReportMetadata,
     Rule,
     Transaction,

@@ -349,7 +349,7 @@ async function computeBothSurfaces({
     const card: Card | undefined = getExpensifyCardFromReportAction({reportAction: lhnLastAction, policy, cardList, workspaceCardList: undefined});
 
     const lhnOption = SidebarUtils.getOptionData({
-        lastOriginalAction: undefined,
+        lastOriginalAction: sortedData?.lastActions?.[report.reportID],
         report,
         reportAttributes: reportAttributesDerived?.[report.reportID],
         oneTransactionThreadReport: oneTransactionThreadReportID ? reportsById[oneTransactionThreadReportID] : undefined,

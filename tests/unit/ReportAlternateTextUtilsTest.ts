@@ -495,6 +495,7 @@ describe('ReportAlternateTextUtils', () => {
 
         // When report and sidebar previews resolve the action.
         const lastMessage = getLastMessageTextForReport({
+            lastOriginalAction: undefined,
             dateFnsLocale: undefined,
             conciergeReportID: undefined,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
