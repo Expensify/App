@@ -179,3 +179,31 @@ npx wrangler deploy --dry-run --env test-staging
 ```
 
 Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.
+
+## PR-testing Worker
+
+[`src/prTesting.ts`](src/prTesting.ts) serves `https://<PR number>.pr-testing.expensify.com` from the existing public S3 prefix `https://ad-hoc-expensify-cash.s3.amazonaws.com/web/<PR number>/`. It shares the security headers and CSP definitions with the static-assets Worker, with PR-testing font and frame origins. It also allows the App template's inline script hashes.
+
+This is one wildcard Worker, not a Worker per PR. Ad-hoc builds still upload to S3 in `.github/workflows/buildAdHoc.yml`; no build or hosting changes are needed. The existing non-200-to-`index.html` fallback is preserved. `/`, `/index.html`, `/service-worker.js` and fallback HTML bypass forced edge caching. HTML also drops validators and gets `Cache-Control: no-cache` so each rewritten nonce matches its CSP.
+
+[`wrangler.pr-testing.jsonc`](wrangler.pr-testing.jsonc) is deliberately separate from the static-assets config: PR testing needs neither `dist/` nor an `ASSETS` or `PREVIOUS_BUILDS` binding. It retains the existing Worker name (`pr-testing-expensify`) and compatibility date. Its existing `*.pr-testing.expensify.com/*` route stays managed in Cloudflare, so deploys need no zone access.
+
+### Migration and deployment
+
+1. Grant `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` access to edit the existing `pr-testing-expensify` Worker, in addition to the staging and production Workers. Keep `CLOUDFLARE_ACCOUNT_ID` in GitHub secrets.
+2. Merge the App PR, then manually run **Deploy PR-testing Cloudflare Worker** (`.github/workflows/deployPRTestingWorker.yml`) on `main`. It requires membership in the web deployer, key holder or mobile deployer team, matching the old repository's deploy authorization. It runs the package's type check and tests before deploying.
+3. Verify an existing PR hostname, a deep link, its service worker and two different PR builds. Rebuild one PR and check that the new build appears without stale HTML or CSP errors.
+4. Only after that deployment is verified, merge the companion Cloudflare-Workers cleanup PR. Do not delete the live Worker or its wildcard route. If Workers Builds is connected to the old repository, disconnect that integration during the handoff so it cannot deploy the old code again.
+
+The workflow is manual, like the old repository's deploy workflow; it does not redeploy this shared Worker for every ad-hoc build. A rollback before cleanup can redeploy the previous commit from Cloudflare-Workers. After cleanup, use a previous Worker version in Cloudflare to roll back.
+
+Local verification, without credentials or uploading anything:
+
+```bash
+npm ci
+npm run typecheck
+npm test
+npx wrangler deploy --dry-run --config wrangler.pr-testing.jsonc
+```
+
+The PR-testing tests bundle the real configuration and run it in workerd with all requests to S3 intercepted. They verify PR isolation, edge-cache options, SPA fallbacks, nonce matching, shared security headers and service-worker caching without reading live builds.

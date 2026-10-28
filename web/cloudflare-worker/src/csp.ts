@@ -184,8 +184,16 @@ const PRODUCTION_CSP = buildCSP({
     scriptSrcHashes: INLINE_SCRIPT_HASHES,
 });
 
-function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins): string {
-    let csp = environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
+const PR_TESTING_CSP = buildCSP({
+    fontSrcHosts: ['https://*.pr-testing.expensify.com'],
+    frameSrcHosts: ['https://staging.expensify.com'],
+    scriptSrcHashes: INLINE_SCRIPT_HASHES,
+});
+
+type Environment = Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'] | 'pr-testing';
+
+function getCSP(environment: Environment, nonce: string, developmentOrigins?: DevelopmentOrigins): string {
+    let csp = environment === 'pr-testing' ? PR_TESTING_CSP : environment === 'staging' ? STAGING_CSP : PRODUCTION_CSP;
     if (environment === 'development') {
         const backendOrigins = [...new Set([DEVELOPMENT_OLDDOT_ORIGIN, ...(developmentOrigins?.backendOrigins ?? [])])];
         csp = buildCSP({
@@ -201,4 +209,4 @@ function getCSP(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'],
 }
 
 export {NONCE_PLACEHOLDER, getCSP};
-export type {DevelopmentOrigins};
+export type {DevelopmentOrigins, Environment};

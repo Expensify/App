@@ -271,7 +271,11 @@ describe('live development worker', () => {
             // When the entry point and an imported module change, without restarting Wrangler
             writeFileSync(
                 entryPath,
-                replaceOnce(entry, "headers.set('X-Content-Type-Options', 'nosniff');", "headers.set('X-Content-Type-Options', 'nosniff'); headers.set('X-Reload-Proof', 'entry');"),
+                replaceOnce(
+                    entry,
+                    'setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins);',
+                    "setSecurityHeaders(headers, env.ENVIRONMENT, nonce, developmentOrigins); headers.set('X-Reload-Proof', 'entry');",
+                ),
             );
             await waitForResponse((response) => response.headers.get('X-Reload-Proof') === 'entry');
             writeFileSync(cspPath, replaceOnce(csp, "'worker-src': [", "'worker-src': ['https://module-reload.invalid', "));

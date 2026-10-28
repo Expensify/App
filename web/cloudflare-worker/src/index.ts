@@ -1,9 +1,10 @@
 import type {DevelopmentOrigins} from './csp';
 
-import {getCSP, NONCE_PLACEHOLDER} from './csp';
+import {NONCE_PLACEHOLDER} from './csp';
 import {isAPIRequest} from './developmentAPIProxy';
 import getDevelopmentConfig from './developmentConfig';
 import fetchDevelopmentResponse from './fetchDevelopmentResponse';
+import {generateNonce, setSecurityHeaders} from './security';
 
 /** Content-hashed build output (`main-<16 hex>.bundle.js`, `main.<10 hex>.css`, ...), emitted at the root of `dist/`. */
 const HASHED_ASSET_PATH = /^\/[^/]+(?:-[0-9a-f]{16}\.bundle\.js|\.[0-9a-f]{10}\.[a-z0-9]+)$/;
@@ -26,12 +27,6 @@ const REVALIDATE_CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 
 const AASA_PATH = '/.well-known/apple-app-site-association';
 const LEGACY_AASA_PATH = '/apple-app-site-association';
-
-function generateNonce(): string {
-    const bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    return btoa(String.fromCharCode(...bytes));
-}
 
 function isHTMLResponse(response: Response): boolean {
     return response.headers.get('Content-Type')?.startsWith('text/html') ?? false;
@@ -87,16 +82,6 @@ function buildAssetRequest(request: Request, url: URL, pathSuffix = ''): Request
     assetRequest.headers.delete('If-None-Match');
     assetRequest.headers.delete('If-Modified-Since');
     return assetRequest;
-}
-
-function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins) {
-    headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    headers.set('Content-Security-Policy', getCSP(environment, nonce, developmentOrigins));
-    headers.set('X-Frame-Options', 'SAMEORIGIN');
-    headers.set('X-Content-Type-Options', 'nosniff');
-    headers.set('Referrer-Policy', 'origin-when-cross-origin');
-    // Used by react-native-release-profiler
-    headers.set('Document-Policy', 'js-profiling');
 }
 
 function createNotFoundResponse(environment: Env['ENVIRONMENT'] | DevelopmentEnv['ENVIRONMENT'], nonce: string, developmentOrigins?: DevelopmentOrigins): Response {
