@@ -80,7 +80,7 @@ function IOUReportAvatar({reportID, size, backdropColor, containerStyle, horizon
     const defaultAvatars = useDefaultAvatars();
     const [personalDetailsFromSnapshot] = useAllPersonalDetails();
     // On Search, the snapshot can hold an account missing from the live list. Fall back to the live list while the snapshot loads.
-    const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext);
+    const personalDetails = personalDetailsFromSnapshot ?? use(PersonalDetailsContext) ?? undefined;
 
     // The sender lookup reads the whole IOU report row, so it subscribes without a selector.
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
