@@ -314,7 +314,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
                     break;
                 }
-                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], policy.outputCurrency, isSharedCurrency ? storedGovernmentRateCountry : undefined);
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:

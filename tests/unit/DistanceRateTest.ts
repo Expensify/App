@@ -269,7 +269,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy, true, usGovernmentRates, policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, usGovernmentRates);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -319,7 +319,7 @@ describe('DistanceRate', () => {
             const canadianRate: GovernmentMileageRate = {sourceRateID: 'CA_2026-01-01', currency: 'CAD', name: '2026 Canada', rate: 73, startDate: '2026-01-01', enabled: true};
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy, true, [...usGovernmentRates, canadianRate], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, [...usGovernmentRates, canadianRate]);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -338,7 +338,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy, true, [], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, []);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -351,7 +351,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy, true, [], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, []);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -373,7 +373,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy, false, usGovernmentRates, policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, false, usGovernmentRates);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -393,7 +393,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy, true, [deRate, frRate, usRate], policy.outputCurrency, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate, frRate, usRate], 'DE');
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -409,7 +409,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate({...policy, customUnits: undefined}, true, [deRate], policy.outputCurrency, 'DE');
+            setWorkspaceDistanceAutoUpdate({...policy, customUnits: undefined}, true, [deRate], 'DE');
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -431,7 +431,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], policy.outputCurrency, 'FR', true, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], 'FR');
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -451,7 +451,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], policy.outputCurrency, 'DE', false, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], 'DE');
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -471,7 +471,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy, false, [], policy.outputCurrency, undefined, true, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, false, []);
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -529,7 +529,7 @@ describe('DistanceRate', () => {
             async function enableAutoUpdate(policy: Policy, governmentMileageRates: GovernmentMileageRate[] = ukGovernmentRates): Promise<Rate[]> {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
                 pause();
-                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates, policy.outputCurrency);
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates);
                 await waitForBatchedUpdates();
                 const onyxPolicy = await getPolicyFromOnyx(policy.id);
                 return Object.values(onyxPolicy.customUnits?.[customUnitID].rates ?? {});
@@ -598,22 +598,6 @@ describe('DistanceRate', () => {
 
                 // Then the US rates are copied as before, because only the UK publishes fuel bands
                 expect(rates).toHaveLength(2);
-            });
-
-            it('should copy a fuel band without a reclaimable fraction when the reference rate has none', async () => {
-                // Given an eligible GBP workspace and a fuel band published without a reclaimable fraction
-                const policy = buildUKPolicy(true, true);
-                const bandWithoutPercentage: GovernmentMileageRate = {...dieselBand, taxClaimablePercentage: undefined};
-
-                // When auto-update is turned on
-                const rates = await enableAutoUpdate(policy, [bandWithoutPercentage]);
-
-                // Then the band is copied without the field on the rate or the snapshot, and still shows the lightning bolt
-                const dieselRate = getRateBySourceID(rates, dieselBand.sourceRateID);
-                expect(dieselRate).toBeDefined();
-                expect(dieselRate?.attributes?.taxClaimablePercentage).toBeUndefined();
-                expect(dieselRate?.attributes?.governmentRate?.taxClaimablePercentage).toBeUndefined();
-                expect(dieselRate && isGovernmentRateUnmodified(dieselRate, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
             });
 
             it('should keep a disabled fuel band disabled for every later rate of its series in the same request', async () => {

@@ -41,7 +41,7 @@ function PolicyDistanceRateGovernmentRateCountryPage({route}: PolicyDistanceRate
         }
 
         // Saving a country turns the auto-update on with that country, or moves an enabled workspace to the new country
-        setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], policy.outputCurrency, selectedCountry, !!policy.shouldAutoUpdateGovernmentDistanceRates, currentCountry);
+        setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], selectedCountry);
         goBackToSettings();
     };
 

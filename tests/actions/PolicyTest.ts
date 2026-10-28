@@ -2673,31 +2673,48 @@ describe('actions/Policy', () => {
                 },
             });
 
-            it('copies only the fuel bands when a government rate country is given for GBP', () => {
+            it('copies only the fuel bands, without a government rate country, when the currency changes to GBP', () => {
                 // Given an eligible workspace
                 const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
                 const policy = buildEligiblePolicy();
 
-                // When the currency changes to GBP with GB as the government rate country
-                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentRateCountry: 'GB', governmentMileageRates: [ukStandardRate, petrolBand]});
+                // When the currency changes to GBP the way the currency page does it, since GBP maps to one country
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
 
-                // Then only the fuel band is copied optimistically, matching what the server copies
+                // Then only the fuel band is copied optimistically, matching what the server copies, and no country is sent because it only applies to EUR
                 const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
                 const params = requireRecord(requireCallArgument(apiCallArgs, 1));
                 expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['GB_PETROL_UP_TO_1400_2026-09-01']);
+                expect(params.governmentRateCountry).toBeUndefined();
 
                 apiWriteSpy.mockRestore();
             });
 
-            it('copies no rates optimistically when the currency changes to GBP without a country', () => {
-                // Given an eligible workspace
+            it('copies only the standard rate when the currency changes to GBP on a workspace that does not track tax', () => {
+                // Given a workspace with auto-update on but tax tracking off
                 const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
-                const policy = buildEligiblePolicy();
+                const policy = {...buildEligiblePolicy(), tax: {trackingEnabled: false}};
 
-                // When the currency changes to GBP the way the currency page does it, without a government rate country
+                // When the currency changes to GBP
                 Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
 
-                // Then no rates are copied optimistically, because the server copies the fuel bands and its response adds them
+                // Then only the standard rate is copied optimistically, since only workspaces tracking distance tax get the fuel bands
+                const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
+                const params = requireRecord(requireCallArgument(apiCallArgs, 1));
+                expect(Object.keys(parseJSONRecord(params.optimisticRateIDs))).toEqual(['GB_2011-04-06']);
+
+                apiWriteSpy.mockRestore();
+            });
+
+            it('copies no rates when the currency changes to GBP with auto-update off', () => {
+                // Given a workspace with auto-update off
+                const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+                const policy = {...buildEligiblePolicy(), shouldAutoUpdateGovernmentDistanceRates: false};
+
+                // When the currency changes to GBP
+                Policy.updateGeneralSettings(policy, policy.name, CONST.CURRENCY.GBP, {}, {governmentMileageRates: [ukStandardRate, petrolBand]});
+
+                // Then no rates are copied, because the server only copies government rates for workspaces that auto-update them
                 const apiCallArgs = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.UPDATE_WORKSPACE_GENERAL_SETTINGS);
                 const params = requireRecord(requireCallArgument(apiCallArgs, 1));
                 expect(params.optimisticRateIDs).toBeUndefined();
