@@ -884,7 +884,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(mockDismissMarketingWindow).toHaveBeenCalledTimes(1);
         expect(mockDismissMarketingWindow).toHaveBeenCalledWith(announcement.updateKey);
         expect(mockOpenExternalLink).toHaveBeenCalledTimes(1);
-        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.DISTANCE_EXPENSES_HELP_URL);
+        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL);
 
         const dismissCallOrder = mockDismissMarketingWindow.mock.invocationCallOrder.at(0) ?? Number.NaN;
         const openLinkCallOrder = mockOpenExternalLink.mock.invocationCallOrder.at(0) ?? Number.NaN;
@@ -917,8 +917,8 @@ describe('ProductMarketingWindowManager', () => {
         fireEvent.press(screen.getByText(ctaLabel));
         await waitForBatchedUpdatesWithAct();
 
-        // Then it works right away instead of waiting on data it never needed
-        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.DISTANCE_EXPENSES_HELP_URL);
+        // Then it works right away instead of waiting on data it never needed, and opens the admin help section
+        expect(mockOpenExternalLink).toHaveBeenCalledWith(CONST.DISTANCE_RATES_AUTO_UPDATE_HELP_URL);
     });
 
     it('uses the fixed-width bottom-right overlay on wide layouts', async () => {

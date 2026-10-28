@@ -56,7 +56,7 @@ function getActiveProductMarketingAnnouncement(isAdmin: boolean): ProductMarketi
         heading: isAdmin ? 'productMarketingWindow.admin.heading' : 'productMarketingWindow.member.heading',
         body: isAdmin ? 'productMarketingWindow.admin.body' : 'productMarketingWindow.member.body',
         ctaLabel: 'common.learnMore',
-        ctaUrl: CONST.DISTANCE_EXPENSES_HELP_URL,
+        ctaUrl: isAdmin ? CONST.DISTANCE_RATES_AUTO_UPDATE_HELP_URL : CONST.DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
     };
 }
 

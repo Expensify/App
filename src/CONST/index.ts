@@ -61,7 +61,9 @@ const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connecti
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
 const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
-const DISTANCE_EXPENSES_HELP_URL = 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses';
+const DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL = 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-reuse-a-route-from-a-frequent-trip';
+const DISTANCE_RATES_AUTO_UPDATE_HELP_URL =
+    'https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates#how-to-automatically-update-distance-rates-when-government-rates-change';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -762,7 +764,8 @@ const CONST = {
     CLAUDE_CONNECT_URL,
     CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
-    DISTANCE_EXPENSES_HELP_URL,
+    DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
+    DISTANCE_RATES_AUTO_UPDATE_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
