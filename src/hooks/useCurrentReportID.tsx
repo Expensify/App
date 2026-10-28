@@ -4,7 +4,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
 
-import React, {createContext, startTransition, useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, startTransition, useContext, useRef, useState} from 'react';
 
 type CurrentReportIDStateContextType = {
     currentReportID: string | undefined;
@@ -62,57 +62,47 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      * This function is used to update the currentReportID and currentRHPReportID
      * @param state root navigation state
      */
-    const updateCurrentReportID = useCallback(
-        (state: NavigationState) => {
-            /*
-             * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
-             * This helps prevent unnecessary re-renders.
-             */
-            const params = state?.routes?.[state.index]?.params;
-            if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
-                return;
+    const updateCurrentReportID = (state: NavigationState) => {
+        /*
+         * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
+         * This helps prevent unnecessary re-renders.
+         */
+        const params = state?.routes?.[state.index]?.params;
+        if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
+            return;
+        }
+
+        const reportID = Navigation.getTopmostReportId(state);
+
+        if (pendingReportIDRef.current !== reportID) {
+            if (pendingReportIDRef.current || reportID) {
+                pendingReportIDRef.current = reportID;
+                props.onSetCurrentReportID?.(reportID);
+                // Mark the report ID update as a non-urgent transition so React can keep the
+                // UI responsive to user input while the (potentially expensive) report screen
+                // re-render is processed in the background.
+                startTransition(() => {
+                    setCurrentReportID(reportID);
+                });
             }
+        }
 
-            const reportID = Navigation.getTopmostReportId(state);
+        const focusedTopRoute = state.routes[state.index];
+        const modalReportID = focusedTopRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && focusedTopRoute.state ? getFocusedRouteReportID(focusedTopRoute.state) : undefined;
 
-            if (pendingReportIDRef.current !== reportID) {
-                if (pendingReportIDRef.current || reportID) {
-                    pendingReportIDRef.current = reportID;
-                    props.onSetCurrentReportID?.(reportID);
-                    // Mark the report ID update as a non-urgent transition so React can keep the
-                    // UI responsive to user input while the (potentially expensive) report screen
-                    // re-render is processed in the background.
-                    startTransition(() => {
-                        setCurrentReportID(reportID);
-                    });
-                }
-            }
+        if (currentRHPReportID !== modalReportID && (currentRHPReportID || modalReportID)) {
+            setCurrentRHPReportID(modalReportID);
+        }
+    };
 
-            const focusedTopRoute = state.routes[state.index];
-            const modalReportID = focusedTopRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && focusedTopRoute.state ? getFocusedRouteReportID(focusedTopRoute.state) : undefined;
+    const actionsContextValue: CurrentReportIDActionsContextType = {
+        updateCurrentReportID,
+    };
 
-            if (currentRHPReportID !== modalReportID && (currentRHPReportID || modalReportID)) {
-                setCurrentRHPReportID(modalReportID);
-            }
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to re-render when onSetCurrentReportID changes
-        [setCurrentReportID, setCurrentRHPReportID, currentRHPReportID],
-    );
-
-    const actionsContextValue = useMemo<CurrentReportIDActionsContextType>(
-        () => ({
-            updateCurrentReportID,
-        }),
-        [updateCurrentReportID],
-    );
-
-    const stateContextValue = useMemo<CurrentReportIDStateContextType>(
-        () => ({
-            currentReportID,
-            currentRHPReportID,
-        }),
-        [currentReportID, currentRHPReportID],
-    );
+    const stateContextValue: CurrentReportIDStateContextType = {
+        currentReportID,
+        currentRHPReportID,
+    };
 
     return (
         <CurrentReportIDStateContext.Provider value={stateContextValue}>

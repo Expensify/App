@@ -27,7 +27,7 @@ import type {ComponentRef, ComponentType, MouseEvent, ReactNode} from 'react';
 import {Portal} from '@gorhom/portal';
 import {NavigationContext, NavigationRouteContext, useIsFocused} from '@react-navigation/native';
 import {CardAnimationContext} from '@react-navigation/stack';
-import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import React, {useContext, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import Overlay from './Overlay';
@@ -56,17 +56,17 @@ function TestToolsModalFrame({children, isPassThrough = false, isPortaled = fals
     const isAuthenticated = useIsAuthenticated();
     const showChrome = !isPassThrough;
 
-    const handleOuterClick = useCallback(() => {
+    const handleOuterClick = () => {
         // Release focus from any focused element before closing the modal
         blurActiveElement();
         requestAnimationFrame(() => {
             toggleTestToolsModal();
         });
-    }, []);
+    };
 
-    const handleInnerClick = useCallback((e: MouseEvent) => {
+    const handleInnerClick = (e: MouseEvent) => {
         e.stopPropagation();
-    }, []);
+    };
 
     const portaledInsetStyle = useMemo(() => (isPortaled ? {paddingLeft: left, paddingRight: right} : undefined), [isPortaled, left, right]);
 

@@ -20,7 +20,7 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 
 type TimezoneSelectPageProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'>;
 
@@ -72,33 +72,27 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
         isDisabled: !!timezone.automatic || currentSelectedTimezone === timezone.selected,
     };
 
-    const filterShownTimezones = useCallback(
-        (searchText: string) => {
-            setTimezoneInputText(searchText);
-            const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) ?? [];
-            setTimezoneOptions(
-                allTimezones.filter((tz) =>
-                    searchWords.every((word) =>
-                        tz.text
-                            .toLowerCase()
-                            .replaceAll(/[^a-z0-9]/g, ' ')
-                            .includes(word),
-                    ),
+    const filterShownTimezones = (searchText: string) => {
+        setTimezoneInputText(searchText);
+        const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+        setTimezoneOptions(
+            allTimezones.filter((tz) =>
+                searchWords.every((word) =>
+                    tz.text
+                        .toLowerCase()
+                        .replaceAll(/[^a-z0-9]/g, ' ')
+                        .includes(word),
                 ),
-            );
-        },
-        [allTimezones],
-    );
+            ),
+        );
+    };
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : '',
-            label: translate('timezonePage.timezone'),
-            value: timezoneInputText,
-            onChangeText: filterShownTimezones,
-        }),
-        [filterShownTimezones, timezoneInputText, timezoneOptions.length, translate],
-    );
+    const textInputOptions = {
+        headerMessage: timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : '',
+        label: translate('timezonePage.timezone'),
+        value: timezoneInputText,
+        onChangeText: filterShownTimezones,
+    };
 
     return (
         <ScreenWrapper

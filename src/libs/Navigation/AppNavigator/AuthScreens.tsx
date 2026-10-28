@@ -1,3 +1,4 @@
+import BulkActionStatusManager from '@components/BulkActionStatusManager';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
@@ -180,6 +181,7 @@ function AuthScreens() {
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
             <ExportDownloadStatusManager />
+            <BulkActionStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
