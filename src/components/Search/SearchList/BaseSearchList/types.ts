@@ -24,7 +24,7 @@ type BaseSearchListProps = Pick<
     | 'overrideItemLayout'
 > & {
     data: SearchListItem[];
-    renderItem: (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
+    renderItem: (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => React.JSX.Element;
 
     /** The columns that might change to trigger re-render via extraData */
     columns: SearchColumnType[];

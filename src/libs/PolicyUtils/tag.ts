@@ -264,10 +264,12 @@ function hasAnyTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>): boolean {
 }
 
 /**
- * Escape colon from tag name
+ * Escape colon from tag name. A colon preceded by an odd number of backslashes is already escaped and is left as-is,
+ * otherwise `\:` would become `\\:`, which is read as an escaped backslash followed by a tag level separator.
+ * A colon preceded by an even number of backslashes (e.g. `\\:`) is a bare separator, so it is escaped, matching `getTagArrayFromName`.
  */
 function escapeTagName(tag: string) {
-    return tag?.replaceAll(CONST.COLON, '\\:');
+    return tag?.replaceAll(/(?<!\\)((?:\\\\)*):/g, '$1\\:');
 }
 
 /**

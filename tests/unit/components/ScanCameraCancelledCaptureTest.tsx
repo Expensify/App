@@ -81,10 +81,10 @@ jest.mock('@libs/ReceiptStorage', () => ({
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry', () => ({
     __esModule: true,
-    default: () => ({handleCameraInitialized: jest.fn()}),
+    default: () => ({handleCameraConfigured: jest.fn(), handleSessionConfigSelected: jest.fn()}),
 }));
 
-jest.mock('react-native-vision-camera', () => ({useCameraFormat: () => undefined}));
+jest.mock('@hooks/useReceiptPhotoOutput', () => ({__esModule: true, default: () => ({photoOutput: {}, cameraAspectRatio: undefined, updatePhotoResolution: jest.fn()})}));
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
@@ -183,7 +183,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // Then the user is told the camera failed, and the failure is logged as a warning, as before
         expect(alertSpy).toHaveBeenCalledWith('receipt.cameraErrorTitle', 'receipt.cameraErrorMessage');
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', CAMERA_CLOSED_ERROR.message);
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', expect.objectContaining({message: CAMERA_CLOSED_ERROR.message}));
     });
 
     it('still logs a warning, without an alert, when the camera fails for another reason after the user left the scan screen', async () => {
@@ -198,7 +198,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // Then no alert appears on the screen the user went to, but the failure stays a warning because it is a real camera error, not a cancellation
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', writeError.message);
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', expect.objectContaining({message: writeError.message}));
         expect(mockLogInfo).not.toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', expect.anything(), expect.anything());
     });
 
@@ -215,7 +215,7 @@ describe('Scan camera capture cancelled by leaving the screen', () => {
 
         // Then no alert appears on the screen the user went to, but this is a real storage failure, so it stays a warning instead of being logged as a cancellation
         expect(alertSpy).not.toHaveBeenCalled();
-        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', saveError.message);
+        expect(mockLogWarn).toHaveBeenCalledWith('Error taking photo', expect.objectContaining({message: saveError.message}));
         expect(mockLogInfo).not.toHaveBeenCalledWith('Photo capture cancelled by leaving the screen', expect.anything(), expect.anything());
     });
 });

@@ -12,7 +12,7 @@ import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScree
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
@@ -34,20 +34,17 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source,
-            headerTitle,
-            originalFileName,
-            shouldShowNotFoundPage,
-            isLoading,
-            isWorkspaceAvatar: true,
-            maybeIcon: true,
-            onDownloadAttachment,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source,
+        headerTitle,
+        originalFileName,
+        shouldShowNotFoundPage,
+        isLoading,
+        isWorkspaceAvatar: true,
+        maybeIcon: true,
+        onDownloadAttachment,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer
