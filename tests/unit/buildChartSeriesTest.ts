@@ -765,6 +765,29 @@ describe('buildChartSeries labels for compared time buckets', () => {
         expect(rows.at(2)?.item).toBeUndefined();
     });
 
+    it('leaves out the compared days the current period has no day for when the chart ends before them', () => {
+        // Given February so far plotted by day against January, with February's later days empty and January's 29th to 31st unpaired
+        const {rows} = buildChartSeries({
+            data: [dayGroup('2026-02-15'), {...dayGroup('2026-02-16'), total: 0, count: 0}, {...dayGroup('2026-02-28'), total: 0, count: 0}],
+            comparison: {
+                data: ['2026-01-15', '2026-01-16', '2026-01-28', '2026-01-29', '2026-01-30', '2026-01-31'].map(dayGroup),
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-02-01', end: '2026-02-28'}, comparison: {start: '2026-01-01', end: '2026-01-31'}, monthsApart: 1},
+            },
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.DAY,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.DAY].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.DAY && item.day > '2026-02-15',
+        });
+
+        // Then the chart ends at today, rather than jumping from the 15th to January's last days
+        expect(rows.map((row) => row.point.label)).toEqual(['15th']);
+    });
+
     it('places a compared day the current period has no day for between the days around it', () => {
         // Given 2029 so far plotted by day against 2028, whose February 29 has no 2029 day to pair with
         const rows = buildDays(['2029-02-28', '2029-03-01'], ['2028-02-28', '2028-02-29', '2028-03-01'], {
