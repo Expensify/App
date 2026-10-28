@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function ImportTransactionsPage() {
@@ -37,15 +37,15 @@ function ImportTransactionsPage() {
     const [flipAmountSign, setFlipAmountSign] = useState(importedSpreadsheet?.importTransactionSettings?.flipAmountSign ?? false);
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const navigateToCardNameSelection = useCallback(() => {
+    const navigateToCardNameSelection = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME);
-    }, []);
+    };
 
-    const navigateToCurrencySelection = useCallback(() => {
+    const navigateToCurrencySelection = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY);
-    }, []);
+    };
 
-    const handleNext = useCallback(() => {
+    const handleNext = () => {
         if (!cardDisplayName) {
             setShouldShowError(true);
             return;
@@ -54,7 +54,7 @@ function ImportTransactionsPage() {
         setImportTransactionSettings(cardDisplayName, currency, isReimbursable, flipAmountSign);
         // No cardID = creating a new card
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute());
-    }, [cardDisplayName, currency, isReimbursable, flipAmountSign]);
+    };
 
     const shouldShowCardDisplayNameError = shouldShowError && !cardDisplayName;
 

@@ -95,7 +95,7 @@ function ExpenseFlatSearchView({
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         const isDisabled = isRowDeleted(item);
         // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
         const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
@@ -108,7 +108,6 @@ function ExpenseFlatSearchView({
             >
                 <TransactionListItem
                     showTooltip
-                    isFocused={isItemFocused}
                     onSelectRow={handleSelectRow}
                     onLongPressRow={onLongPressRow}
                     onSelectionButtonPress={toggle}

@@ -51,7 +51,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -112,21 +112,21 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const achData = reimbursementAccount?.achData;
     const shouldShowContinueModal = hasInProgressVBBA(achData, isNonUSDWorkspace, policy?.id);
 
-    const showAddBankAccountPermissionModal = useCallback(() => {
+    const showAddBankAccountPermissionModal = () => {
         showConfirmModal({
             title: translate('workspace.bankAccount.workspaceCurrencyNotSupported'),
             prompt: translate('workspace.bankAccount.notAllowedToAddBankAccount'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+    const confirmCurrencyChangeAndHideModal = () => {
         if (!policy) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {isForcedToChangeCurrency: true}));
-    }, [policy]);
+    };
 
     const workflowsBackTo = ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
 

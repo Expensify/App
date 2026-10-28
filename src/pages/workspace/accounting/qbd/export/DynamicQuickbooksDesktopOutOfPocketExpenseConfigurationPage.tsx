@@ -31,7 +31,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ValueOf} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type QBDSectionType = {
     title?: string;
@@ -56,29 +56,26 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
     const reimbursable = qbdConfig?.export.reimbursable;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.path);
 
-    const [exportHintText, accountDescription, accountsList] = useMemo(() => {
-        let hintText: string | undefined;
-        let description: string | undefined;
-        const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop);
-        switch (reimbursable) {
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
-                hintText = translate('workspace.qbd.exportCheckDescription');
-                description = translate('workspace.qbd.bankAccount');
-                break;
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
-                hintText = translate('workspace.qbd.exportJournalEntryDescription');
-                description = translate('workspace.qbd.account');
-                break;
-            case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                hintText = translate('workspace.qbd.exportVendorBillDescription');
-                description = translate('workspace.qbd.accountsPayable');
-                break;
-            default:
-                break;
-        }
-
-        return [hintText, description, accounts];
-    }, [policy?.connections?.quickbooksDesktop, reimbursable, translate]);
+    let hintText: string | undefined;
+    let description: string | undefined;
+    const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop);
+    switch (reimbursable) {
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+            hintText = translate('workspace.qbd.exportCheckDescription');
+            description = translate('workspace.qbd.bankAccount');
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+            hintText = translate('workspace.qbd.exportJournalEntryDescription');
+            description = translate('workspace.qbd.account');
+            break;
+        case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+            hintText = translate('workspace.qbd.exportVendorBillDescription');
+            description = translate('workspace.qbd.accountsPayable');
+            break;
+        default:
+            break;
+    }
+    const [exportHintText, accountDescription, accountsList] = [hintText, description, accounts];
 
     const sections: QBDSectionType[] = [
         {

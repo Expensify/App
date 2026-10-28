@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: Account;
@@ -43,42 +43,34 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: W
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.path);
 
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const data: CardListItem[] = useMemo(() => {
-        const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
-        return accounts.map((card) => ({
-            value: card,
-            text: card.name,
-            keyForList: card.name,
-            isSelected: card.id === nonReimbursableAccount,
-        }));
-    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
+    const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
+    const data: CardListItem[] = accounts.map((card) => ({
+        value: card,
+        text: card.name,
+        keyForList: card.name,
+        isSelected: card.id === nonReimbursableAccount,
+    }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath, {compareParams: false});
-    }, [backPath]);
+    };
 
-    const selectExportAccount = useCallback(
-        (row: CardListItem) => {
-            if (row.value.id !== nonReimbursableAccount && policyID) {
-                updateQuickbooksDesktopNonReimbursableExpensesAccount(policyID, row.value.id, nonReimbursableAccount);
-            }
-            goBack();
-        },
-        [nonReimbursableAccount, policyID, goBack],
-    );
+    const selectExportAccount = (row: CardListItem) => {
+        if (row.value.id !== nonReimbursableAccount && policyID) {
+            updateQuickbooksDesktopNonReimbursableExpensesAccount(policyID, row.value.id, nonReimbursableAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbd.noAccountsFound')}
-                subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbd.noAccountsFound')}
+            subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
     return (
         <SelectionScreen

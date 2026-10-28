@@ -72,6 +72,12 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 
+const mockAnnouncement = jest.fn<void, [unknown, boolean, unknown]>();
+jest.mock('@hooks/useAccessibilityAnnouncement', () => ({
+    __esModule: true,
+    default: (message: unknown, shouldAnnounce: boolean, options: unknown) => mockAnnouncement(message, shouldAnnounce, options),
+}));
+
 type TestInstance = ReturnType<typeof screen.UNSAFE_getByProps>;
 
 /** Whether a view around the element masks it in session recordings */
@@ -792,5 +798,40 @@ describe('DynamicFormFields', () => {
         // Then the screen fetches the requirements once with the typed answer, and typing alone fetches nothing
         expect(onRefreshRequirements).toHaveBeenCalledWith('bankCode', '0261');
         expect(rendered.get('bankCode')?.onValueChange).toBeUndefined();
+    });
+
+    it('announces that the questions changed when an answer shows new ones', () => {
+        // Given a business number asked only of businesses, on a page answered as a person
+        const content: DynamicFormContentItem[] = [
+            {
+                key: 'type',
+                type: 'select',
+                required: true,
+                values: [
+                    {key: 'PRIVATE', label: 'Person'},
+                    {key: 'BUSINESS', label: 'Business'},
+                ],
+            },
+            {key: 'ein', type: 'text', required: true, showWhen: {key: 'type', equals: ['BUSINESS']}},
+        ];
+        const {rerender} = render(
+            <DynamicFormFields
+                content={content}
+                values={{type: 'PRIVATE'}}
+            />,
+        );
+        const isAnnouncing = () => mockAnnouncement.mock.lastCall?.[1];
+        expect(isAnnouncing()).toBe(false);
+
+        // When the answer changes to a business, which shows the business number
+        rerender(
+            <DynamicFormFields
+                content={content}
+                values={{type: 'BUSINESS'}}
+            />,
+        );
+
+        // Then the change is announced, since a screen reader user can't see a question appear
+        expect(mockAnnouncement.mock.lastCall).toEqual(['dynamicForm.questionsChanged', true, expect.objectContaining({announcementKey: 1})]);
     });
 });

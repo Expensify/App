@@ -29,6 +29,15 @@ type CurrencyPickerProps = {
     /** Label for the input */
     label: string;
 
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
+
+    /** Name read by screen readers instead of the label, for a picker whose label alone does not say which value it belongs to */
+    accessibilityLabel?: string;
+
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
+
     value?: string;
     headerContent?: ReactNode;
 
@@ -47,7 +56,19 @@ type CurrencyPickerProps = {
     shouldShowFullPageOfflineView?: boolean;
 };
 
-function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({
+    label,
+    modalHeaderTitle,
+    accessibilityLabel,
+    shouldReadErrorWithLabel,
+    value,
+    errorText,
+    headerContent,
+    excludeCurrencies,
+    disabled = false,
+    shouldShowFullPageOfflineView = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -70,6 +91,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
             <MenuItem.Root
                 onPress={callFunctionIfActionIsAllowed(() => setIsPickerVisible(true), false, session)}
                 isDisabled={disabled}
+                accessibilityLabel={accessibilityLabel ? [accessibilityLabel, value ? `${value} - ${getCurrencySymbol(value)}` : undefined].filter(Boolean).join(', ') : undefined}
             >
                 <MenuItemField.Row
                     name={label}
@@ -82,6 +104,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     <MenuItem.HelpText
                         isError
                         message={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
                     />
                 )}
             </MenuItem.Root>
@@ -103,7 +126,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                     enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={label}
+                        title={modalHeaderTitle ?? label}
                         shouldShowBackButton
                         onBackButtonPress={hidePickerModal}
                     />

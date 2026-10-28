@@ -1,4 +1,4 @@
-import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationNudge} from '@pages/workspace/accounting/netsuite/utils';
+import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationNudge, shouldShowNetSuiteOAuthMigrationOption} from '@pages/workspace/accounting/netsuite/utils';
 
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -55,6 +55,56 @@ function makeNetSuitePolicy(overrides: NetSuiteMigrationOverrides): Policy {
 function makePolicyCollection(...policies: Policy[]): OnyxCollection<Policy> {
     return Object.fromEntries(policies.map((policy, index) => [`policy_${index}`, policy]));
 }
+
+describe('shouldShowNetSuiteOAuthMigrationOption', () => {
+    it('returns true for a verified TBA connection with an excluded sync setting', () => {
+        // Given a verified NetSuite TBA connection that imports taxes
+        const policy = makeNetSuitePolicy({syncTax: true});
+
+        // When checking whether to show the optional migration link
+        const result = shouldShowNetSuiteOAuthMigrationOption(policy);
+
+        // Then the link is available even though proactive migration nudges are limited
+        expect(result).toBe(true);
+    });
+
+    it('returns false for an OAuth 2.0 connection', () => {
+        // Given a NetSuite connection that already uses OAuth 2.0
+        const policy = makeNetSuitePolicy({authType: 'oauth2'});
+
+        // When checking whether to show the optional migration link
+        const result = shouldShowNetSuiteOAuthMigrationOption(policy);
+
+        // Then the link is hidden because the connection does not need migration
+        expect(result).toBe(false);
+    });
+
+    it('returns false for an unverified TBA connection', () => {
+        // Given an unverified NetSuite TBA connection
+        const policy = makeNetSuitePolicy({verified: false});
+
+        // When checking whether to show the optional migration link
+        const result = shouldShowNetSuiteOAuthMigrationOption(policy);
+
+        // Then the link is hidden because the connection is not active
+        expect(result).toBe(false);
+    });
+
+    it.each([
+        ['account ID', {accountID: undefined}],
+        ['token ID', {tokenID: undefined}],
+        ['token secret', {tokenSecret: undefined}],
+    ] satisfies Array<[string, NetSuiteMigrationOverrides]>)('returns false when the %s is missing', (_credentialName, overrides) => {
+        // Given a NetSuite TBA connection with an incomplete credential set
+        const policy = makeNetSuitePolicy(overrides);
+
+        // When checking whether to show the optional migration link
+        const result = shouldShowNetSuiteOAuthMigrationOption(policy);
+
+        // Then the link is hidden because there is no complete TBA connection to migrate
+        expect(result).toBe(false);
+    });
+});
 
 describe('shouldShowNetSuiteOAuthMigrationNudge', () => {
     describe('when the nudge SHOULD be shown', () => {

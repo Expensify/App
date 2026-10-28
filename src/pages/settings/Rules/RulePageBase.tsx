@@ -40,7 +40,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type RulePageBaseProps = {
@@ -100,17 +100,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     useEffect(() => () => clearDraftRule(), []);
 
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const categoriesSelector = useCallback(
-        (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
-            const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
-            return (
-                Object.values(categories ?? {})
-                    .filter((policyCategories) => hasEnabledOptions(policyCategories ?? {}))
-                    .flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0
-            );
-        },
-        [personalPolicyID],
-    );
+    const categoriesSelector = (allPolicyCategories: OnyxCollection<PolicyCategories>) => {
+        const categories = getAvailableNonPersonalPolicyCategories(allPolicyCategories, personalPolicyID);
+        return (
+            Object.values(categories ?? {})
+                .filter((policyCategories) => hasEnabledOptions(policyCategories ?? {}))
+                .flatMap((policyCategories) => Object.values(policyCategories ?? {})).length > 0
+        );
+    };
     const [hasPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: categoriesSelector,
     });

@@ -86,12 +86,12 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
         setDraftMerchantTypeRule(getMerchantTypeRuleFormFromMccGroup(groupID, currentCategory));
     }, [currentCategory, groupID]);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 

@@ -64,7 +64,7 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
                 <div {...handleProps}>
                     <div
                         aria-hidden
-                        // Takes the line's color while the handle itself is hovered, hinting that pressing grows it into the line.
+                        // Takes the line's color while the handle itself is hovered, hinting that dragging grows it into the line.
                         style={{...GRIP_STYLE, backgroundColor: isHovered ? theme.iconMenu : theme.border}}
                     />
                     <div

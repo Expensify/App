@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {ButtonProps} from './types';
@@ -51,6 +51,7 @@ function Button({
     sentryLabel,
     ref,
     accessibilityState,
+    hitSlop,
     accessibilityHasPopup,
 }: ButtonProps) {
     const theme = useTheme();
@@ -58,73 +59,58 @@ function Button({
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
 
-    const contextValue = useMemo(
-        () => ({
-            isHovered,
-            variant,
-            size,
-            onPress,
-            isDisabled,
-            isLoading,
-        }),
-        [isHovered, variant, size, onPress, isDisabled, isLoading],
-    );
+    const contextValue = {
+        isHovered,
+        variant,
+        size,
+        onPress,
+        isDisabled,
+        isLoading,
+    };
 
-    const buttonVariantStyles = useMemo(() => {
-        const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
-        if (!variant) {
-            return shouldUseDisabledStyles ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined;
-        }
-
+    let buttonVariantStyles;
+    const shouldUseDisabledStyles = isDisabled && !stayNormalOnDisable;
+    if (!variant) {
+        buttonVariantStyles = shouldUseDisabledStyles ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined;
+    } else {
         const {normal: defaultStyles, disabled: disabledStyles} = StyleUtils.getButtonVariantStyles(styles);
-        return [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
-    }, [isDisabled, stayNormalOnDisable, styles, variant, StyleUtils]);
+        buttonVariantStyles = [defaultStyles[variant], shouldUseDisabledStyles && disabledStyles[variant]];
+    }
 
-    const borderRadiusStyles = useMemo<Record<ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>, StyleProp<ViewStyle>>>(
-        () => ({
-            [CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT]: styles.noRightBorderRadius,
-            [CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT]: styles.noLeftBorderRadius,
-            [CONST.BUTTON_REMOVE_BORDER_RADIUS.ALL]: [styles.noRightBorderRadius, styles.noLeftBorderRadius],
-        }),
-        [styles.noRightBorderRadius, styles.noLeftBorderRadius],
-    );
+    const borderRadiusStyles: Record<ValueOf<typeof CONST.BUTTON_REMOVE_BORDER_RADIUS>, StyleProp<ViewStyle>> = {
+        [CONST.BUTTON_REMOVE_BORDER_RADIUS.RIGHT]: styles.noRightBorderRadius,
+        [CONST.BUTTON_REMOVE_BORDER_RADIUS.LEFT]: styles.noLeftBorderRadius,
+        [CONST.BUTTON_REMOVE_BORDER_RADIUS.ALL]: [styles.noRightBorderRadius, styles.noLeftBorderRadius],
+    };
 
-    const horizontalPaddingBySize = useMemo<Record<ValueOf<typeof CONST.BUTTON_SIZE>, ViewStyle>>(
-        () => ({
-            [CONST.BUTTON_SIZE.SMALL]: styles.ph2,
-            [CONST.BUTTON_SIZE.MEDIUM]: styles.ph3,
-            [CONST.BUTTON_SIZE.LARGE]: styles.ph4,
-        }),
-        [styles.ph2, styles.ph3, styles.ph4],
-    );
+    const horizontalPaddingBySize: Record<ValueOf<typeof CONST.BUTTON_SIZE>, ViewStyle> = {
+        [CONST.BUTTON_SIZE.SMALL]: styles.ph2,
+        [CONST.BUTTON_SIZE.MEDIUM]: styles.ph3,
+        [CONST.BUTTON_SIZE.LARGE]: styles.ph4,
+    };
 
-    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [
-            styles.button,
-            StyleUtils.getButtonSizeStyle(styles, size),
-            horizontalPaddingBySize[size],
-            buttonVariantStyles,
-            removeBorderRadius ? borderRadiusStyles[removeBorderRadius] : undefined,
-            styles.alignItemsStretch,
-            innerStyles,
-        ],
-        [styles, StyleUtils, size, horizontalPaddingBySize, buttonVariantStyles, removeBorderRadius, borderRadiusStyles, innerStyles],
-    );
+    const buttonStyles: StyleProp<ViewStyle> = [
+        styles.button,
+        StyleUtils.getButtonSizeStyle(styles, size),
+        horizontalPaddingBySize[size],
+        buttonVariantStyles,
+        removeBorderRadius ? borderRadiusStyles[removeBorderRadius] : undefined,
+        styles.alignItemsStretch,
+        innerStyles,
+    ];
 
-    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(() => [buttonStyles, blendOpacity && styles.buttonBlendContainer], [buttonStyles, blendOpacity, styles.buttonBlendContainer]);
+    const buttonContainerStyles: StyleProp<ViewStyle> = [buttonStyles, blendOpacity && styles.buttonBlendContainer];
 
-    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        if (!blendOpacity) {
-            return undefined;
-        }
-
+    let buttonBlendForegroundStyle: StyleProp<ViewStyle>;
+    if (!blendOpacity) {
+        buttonBlendForegroundStyle = undefined;
+    } else {
         const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
-
-        return {
+        buttonBlendForegroundStyle = {
             backgroundColor,
             opacity,
         };
-    }, [buttonStyles, blendOpacity]);
+    }
 
     let loadingIndicatorColor = theme.text;
     if (variant === CONST.BUTTON_VARIANT.DANGER) {
@@ -141,6 +127,7 @@ function Button({
             testID={testID}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={accessibilityState}
+            hitSlop={hitSlop}
             accessibilityHasPopup={accessibilityHasPopup}
             sentryLabel={sentryLabel}
             role={CONST.ROLE.BUTTON}
