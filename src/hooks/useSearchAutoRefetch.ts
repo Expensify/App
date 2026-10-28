@@ -18,6 +18,7 @@ import {useEffect, useRef} from 'react';
 
 import useIsInPreloadedTab from './useIsInPreloadedTab';
 import useNetwork from './useNetwork';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 type UseSearchAutoRefetch = {
     /** Current Search snapshot */
@@ -69,6 +70,7 @@ function useSearchAutoRefetch({
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
 
@@ -85,6 +87,11 @@ function useSearchAutoRefetch({
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        // Trip rows don't change when transactions or report actions do
+        if (shouldReturnTripRooms) {
+            return;
+        }
+
         // A preloaded tab refreshes its whole snapshot on first open, so a refetch deferred while hidden would only repeat it.
         if (isInPreloadedTab) {
             return;
@@ -191,6 +198,7 @@ function useSearchAutoRefetch({
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
+        shouldReturnTripRooms,
         isInPreloadedTab,
     ]);
 

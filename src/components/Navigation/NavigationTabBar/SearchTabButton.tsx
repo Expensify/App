@@ -31,6 +31,7 @@ type SearchTabButtonProps = {
 };
 
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
@@ -50,7 +51,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             startNavigateToReportsTabSpans();
 
             Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
-        });
+        }, session);
     };
 
     if (isWideLayout) {

@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -165,11 +166,13 @@ function SearchPage({route}: SearchPageProps) {
     const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
     const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
 
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
     const handleSearchAction = (value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
         }
     };
 
