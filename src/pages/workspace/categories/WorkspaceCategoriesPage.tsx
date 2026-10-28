@@ -416,16 +416,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
-        if (!canWriteCategories && secondaryActions.length === 0) {
-            return null;
-        }
-
+    const getBulkActionOptions = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
         const selectedCategoriesObject = selectedCategoryKeys.map((key) => policyCategories?.[key]);
 
-        if (canWriteCategories && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
+        if (canWriteCategories) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: icons.Trashcan,
@@ -534,7 +530,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     },
                 });
             }
+        }
 
+        return options;
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteCategories && secondaryActions.length === 0) {
+            return null;
+        }
+
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        if (canWriteCategories && isSmallScreenWidth && canSelectMultiple) {
             return (
                 <ButtonWithDropdownMenu
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -542,7 +550,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
-                    options={options}
+                    options={getBulkActionOptions()}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedCategoryKeys.length}
@@ -684,6 +692,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={setSelectedCategoryKeys}
                         headerComponent={hasVisibleCategories ? headerContent : undefined}
+                        bulkActionOptions={canWriteCategories ? getBulkActionOptions() : undefined}
                     />
                 )}
             </ScreenWrapper>

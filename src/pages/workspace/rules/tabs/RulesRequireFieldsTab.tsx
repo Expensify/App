@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Table from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceRequireFieldsTable from '@components/Tables/WorkspaceRequireFieldsTable';
@@ -20,6 +21,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React from 'react';
 
@@ -30,9 +32,12 @@ type RulesRequireFieldsTabProps = {
     onSelectionChange: (selectedRowKeys: string[]) => void;
     showReadOnlyModal: () => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rules support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent}: RulesRequireFieldsTabProps) {
+function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent, bulkActionOptions}: RulesRequireFieldsTabProps) {
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -93,6 +98,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             headerComponent={headerComponent}
+            bulkActionOptions={bulkActionOptions}
             emptyState={requireFieldsEmptyState}
         />
     );

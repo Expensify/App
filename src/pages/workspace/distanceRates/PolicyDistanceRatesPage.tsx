@@ -376,7 +376,8 @@ function PolicyDistanceRatesPage({
 
     const headerButtons = canWriteDistanceRates ? (
         <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
+            {/* The wide layout offers the bulk actions in the floating bar over the table instead, so its header keeps the page's own buttons no matter what is selected. */}
+            {!shouldUseNarrowLayout || !isMobileSelectionModeEnabled ? (
                 <>
                     <Button
                         onPress={addRate}
@@ -471,6 +472,7 @@ function PolicyDistanceRatesPage({
                         onRowSelectionChange={setSelectedDistanceRates}
                         canWriteDistanceRates={canWriteDistanceRates}
                         headerComponent={distanceRatesTableHeader}
+                        bulkActionOptions={canWriteDistanceRates ? getBulkActionsButtonOptions() : undefined}
                     />
                 )}
             </ScreenWrapper>

@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
 
@@ -8,6 +9,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
+
+import type CONST from '@src/CONST';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -37,6 +41,9 @@ type WorkspaceReportFieldListValuesTableProps = {
     headerComponent?: React.ReactElement;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     isInvoicePage: boolean;
+
+    /** The actions the selected values support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
 export default function WorkspaceReportFieldListValuesTable({
@@ -46,6 +53,7 @@ export default function WorkspaceReportFieldListValuesTable({
     headerComponent,
     onRowSelectionChange,
     isInvoicePage,
+    bulkActionOptions,
 }: WorkspaceReportFieldListValuesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -128,6 +136,7 @@ export default function WorkspaceReportFieldListValuesTable({
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

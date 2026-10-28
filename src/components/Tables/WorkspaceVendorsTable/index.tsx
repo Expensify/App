@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import Switch from '@components/Switch';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 import Table, {composeTableListHeader} from '@components/Table';
@@ -12,6 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -45,9 +47,12 @@ type WorkspaceVendorsTableProps = {
 
     /** Page-level content rendered above the table header inside the scrollable list */
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected vendors support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent}: WorkspaceVendorsTableProps) {
+function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys = [], onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceVendorsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -143,6 +148,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

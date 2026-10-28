@@ -254,29 +254,31 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
+    const getBulkActionOptions = (): Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> => [
+        {
+            icon: expensifyIcons.Trashcan,
+            text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
+            value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+            shouldSkipFocusRestore: true,
+            onSelected: async () => {
+                const {action} = await showConfirmModal({
+                    title: translate('workspace.perDiem.deletePerDiemRate'),
+                    prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                });
+                if (action === ModalActions.CONFIRM) {
+                    handleDeletePerDiemRates();
+                }
+            },
+        },
+    ];
+
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
-
-        if (canWritePerDiem && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedSubRateKeys.length > 0)) {
-            options.push({
-                icon: expensifyIcons.Trashcan,
-                text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
-                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                shouldSkipFocusRestore: true,
-                onSelected: async () => {
-                    const {action} = await showConfirmModal({
-                        title: translate('workspace.perDiem.deletePerDiemRate'),
-                        prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
-                        confirmText: translate('common.delete'),
-                        cancelText: translate('common.cancel'),
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                    });
-                    if (action === ModalActions.CONFIRM) {
-                        handleDeletePerDiemRates();
-                    }
-                },
-            });
-
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        if (canWritePerDiem && shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
             return (
                 <ButtonWithDropdownMenu
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -284,7 +286,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     shouldAlwaysShowDropdownMenu
                     size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
-                    options={options}
+                    options={getBulkActionOptions()}
                     isSplitButton={false}
                     style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedSubRateKeys.length}
@@ -400,6 +402,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     onRowSelectionChange={setSelectedSubRateKeys}
                     headerComponent={hasVisibleSubRates ? subtitleContent : undefined}
                     emptyState={emptyState}
+                    bulkActionOptions={canWritePerDiem ? getBulkActionOptions() : undefined}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
