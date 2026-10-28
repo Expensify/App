@@ -1035,6 +1035,10 @@ const CONST = {
         CORPAY: 'CORPAY',
     },
     WISE: {
+        /** Wise's legal pages, linked from the terms page of the onboarding */
+        TERMS_URL: 'https://wise.com/terms-and-conditions',
+        PRIVACY_URL: 'https://wise.com/privacy-policy',
+
         /** Server-derived state of the Wise onboarding */
         ONBOARDING_STATUS: {
             IN_REVIEW: 'IN_REVIEW',
@@ -8154,7 +8158,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            TRAVEL_BILLING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-billing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
