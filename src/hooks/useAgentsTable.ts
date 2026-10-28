@@ -3,9 +3,9 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {TableHandle} from '@components/Table';
 import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/AgentsTable';
 
-import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent, openAgentsPage} from '@libs/actions/Agent';
+import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
-import {getLatestError} from '@libs/ErrorUtils';
+import {getAgentErrors} from '@libs/AgentUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -43,11 +43,7 @@ function handleErrorClose(pendingAction: PendingAction | null | undefined, accou
 /**
  * Hook that derives the current user's manageable agent rows from Onyx and exposes selection and bulk-delete helpers for the Agents table.
  */
-function useAgents() {
-    useEffect(() => {
-        openAgentsPage();
-    }, []);
-
+function useAgentsTable() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
@@ -72,8 +68,7 @@ function useAgents() {
         }
         const pendingAction = agent.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-        if (!isOffline && isPendingDeletion) {
+        if (isPendingDeletion && !isOffline) {
             return [];
         }
 
@@ -92,13 +87,7 @@ function useAgents() {
             ownerDisplayName = domainNameSelector(domain) ?? (ownerDetails?.login ? Str.extractEmailDomain(ownerDetails.login) : undefined);
         }
 
-        const mergedErrors = {
-            ...getLatestError(agent.errors ?? undefined),
-            ...getLatestError(agent.nameErrors ?? undefined),
-            ...getLatestError(agent.promptErrors ?? undefined),
-            ...getLatestError(agent.avatarErrors ?? undefined),
-        };
-        const rowErrors = getLatestError(mergedErrors);
+        const agentErrors = getAgentErrors(agent);
 
         return [
             {
@@ -111,7 +100,7 @@ function useAgents() {
                 ownerType: agent.ownerType,
                 ownerPolicyID,
                 pendingAction,
-                errors: Object.keys(rowErrors).length > 0 ? rowErrors : undefined,
+                errors: Object.keys(agentErrors ?? {}).length > 0 ? agentErrors : undefined,
                 disabled: isPendingDeletion,
                 canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),
@@ -169,6 +158,7 @@ function useAgents() {
         }
         clearSelectedAgents();
     };
+
     const askForConfirmationToDelete = async () => {
         const ruleBotEnforcedPolicy = selectedAgentKeys.map((accountIDString) => getRuleBotEnforcedPolicy(Number(accountIDString), allPolicies)).find(Boolean);
         if (ruleBotEnforcedPolicy) {
@@ -194,4 +184,4 @@ function useAgents() {
     return {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef};
 }
 
-export default useAgents;
+export default useAgentsTable;

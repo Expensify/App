@@ -540,7 +540,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '¿Quieres que te avisemos cuando Concierge responda?',
             cta: 'Notificar',
         },
-        feedback: {prompt: '¿Te ha sido útil esta respuesta?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
+        feedback: {prompt: '¿Te ha sido útil?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1188,6 +1188,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Sube ${percentage}`,
             decrease: (percentage: string) => `Baja ${percentage}`,
         },
+        compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
     },
     allSettingsScreen: {
@@ -10367,6 +10368,8 @@ ${reportName}`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Publicado',
                 hint: 'Solo se aplica a las transacciones con tarjeta.',
             },
+            searchFilters: 'Filtros de búsqueda',
+            noFiltersSelected: 'No se han seleccionado filtros',
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'De',
@@ -12131,6 +12134,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Una cuenta bancaria está bloqueada',
             completeHrSetup: 'Completa la configuración de RR. HH.',
             theresAProblemWithAnHRConnection: 'Hay un problema con una conexión de RR. HH.',
+            theresAProblemWithYourAgent: 'Hay un problema con tu(s) agente(s)',
         },
     },
     emptySearchView: {

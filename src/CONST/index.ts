@@ -1460,13 +1460,13 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_PAGE: 'insightsPage',
         INSIGHTS_COMPARE: 'insightsCompare',
+        INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
         SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
-        COMPANY_AGENTS: 'companyAgents',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
@@ -9646,6 +9646,7 @@ const CONST = {
         HAS_MERGE_HR_SETUP_NEEDED: 'hasMergeHRSetupNeeded',
         HAS_HR_CONNECTION_ERROR: 'hasHRConnectionError',
         HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER: 'hasApprovalWorkflowNonMemberApprover',
+        HAS_AGENT_ERRORS: 'hasAgentErrors',
     },
 
     DEBUG: {
@@ -10281,6 +10282,7 @@ const CONST = {
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -11142,12 +11144,15 @@ const CONST = {
     INSIGHTS: {
         DASHBOARD: {
             SPEND: 'spend',
+            COMPLIANCE: 'compliance',
         },
         SEARCH_KEY: {
             SPEND: 'insightsSpend',
+            COMPLIANCE: 'insightsCompliance',
         },
         GRAPH: {
             SPEND_OVER_TIME: 'spendOverTime',
+            VIOLATIONS_OVER_TIME: 'violationsOverTime',
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',

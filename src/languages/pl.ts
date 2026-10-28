@@ -554,7 +554,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Zwiń rozumowanie',
         expandReasoning: 'Rozwiń rozumowanie',
         enableNotifications: {prompt: 'Chcesz otrzymywać powiadomienia, gdy Concierge odpowie?', cta: 'Powiadom'},
-        feedback: {prompt: 'Czy ta odpowiedź była pomocna?', useful: 'Przydatna odpowiedź', notUseful: 'Nieprzydatna odpowiedź', thanks: 'Dzięki za opinię!'},
+        feedback: {prompt: 'Czy to było pomocne?', useful: 'Przydatna odpowiedź', notUseful: 'Nieprzydatna odpowiedź', thanks: 'Dzięki za opinię!'},
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1216,6 +1216,7 @@ const translations: TranslationDeepObject<typeof en> = {
             increase: (percentage: string) => `Wzrost o ${percentage}`,
             decrease: (percentage: string) => `Spadek o ${percentage}`,
         },
+        compliance: 'Zgodność',
         runningTotal: 'Suma narastająco',
     },
     allSettingsScreen: {
@@ -10454,6 +10455,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Zaksięgowane',
                 hint: 'Dotyczy tylko transakcji kartą.',
             },
+            searchFilters: 'Filtry wyszukiwania',
+            noFiltersSelected: 'Nie wybrano filtrów',
         },
         display: {
             label: 'Wyświetl',
@@ -11881,6 +11884,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             aBankAccountIsLocked: 'Konto bankowe jest zablokowane',
             completeHrSetup: 'Dokończ konfigurację HR',
             theresAProblemWithAnHRConnection: 'Wystąpił problem z połączeniem HR',
+            theresAProblemWithYourAgent: 'Wystąpił problem z twoim(i) agentem(ami)',
         },
     },
     emptySearchView: {
