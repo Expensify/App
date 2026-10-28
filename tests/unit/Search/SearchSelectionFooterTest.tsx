@@ -73,7 +73,7 @@ const mockAreAllMatchingItemsSelected = {current: false};
 // The loaded rows of each report, which is what tells a report excluded down to its last row from a part-excluded one.
 const mockTransactionsByReportID: {current: Map<string, Array<{transactionID: string}>>} = {current: new Map()};
 const mockShouldUseLiveData = {current: false};
-const mockCurrentSearchResults: {current: SearchResults | undefined} = {current: undefined};
+const mockCurrentSearchResults: {current: {data: Record<string, unknown>} | undefined} = {current: undefined};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
     useSearchResultsContext: () => ({
@@ -346,6 +346,113 @@ describe('SearchSelectionFooter', () => {
         expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({countType: CONST.SEARCH.FOOTER_COUNT.EXPENSES, count: 2, total: 200, currency: CONST.CURRENCY.USD}));
     });
 
+    it('counts and totals the rows of a group checked through its header as the whole group, including the rows not loaded', async () => {
+        // Given a group of 692 expenses checked through its header with only two of its rows loaded, next to an expense of another group checked on its own
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockCurrentSearchResults.current = {data: {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}}};
+        mockSelectedTransactions.current = {
+            transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey, isSelectedViaGroup: true},
+            transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey, isSelectedViaGroup: true},
+            transaction3: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: `${CONST.SEARCH.GROUP_PREFIX}2026_10_03`},
+        };
+
+        // When the footer shows that selection, which is short of the 694 matching expenses
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 694, 13020)} />);
+        await waitForBatchedUpdates();
+
+        // Then it counts and totals what an export of the selection covers, which is the whole group plus the other expense
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 693, total: 13090, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('subtracts one expense for a row excluded from Select all after its group was checked through the header', async () => {
+        // Given Select all with one row unchecked, where the row still carries the claim of the group header that checked it
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        mockCurrentSearchResults.current = {data: {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}}};
+        mockSelectedTransactions.current = {};
+        mockExcludedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey, isSelectedViaGroup: true}};
+        mockAreAllMatchingItemsSelected.current = true;
+
+        // When the footer shows the selection
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 694, 13020)} />);
+        await waitForBatchedUpdates();
+
+        // Then only that row leaves the count and the total, since the rest of its group stays selected
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 693, total: 12920, currency: CONST.CURRENCY.USD}));
+    });
+
+    describe('a row checked again inside a group excluded whole from Select all', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
+        const searchHash = mockSearchQueryContext.current.currentSearchHash;
+
+        beforeEach(() => {
+            // Select all over ten expenses, a five-expense group excluded whole, and one of its rows checked again on its own
+            mockCurrentSearchResults.current = {data: {[groupKey]: {count: 5, total: 500, currency: CONST.CURRENCY.USD}}};
+            mockExcludedTransactions.current = {[groupKey]: {...buildSelectedTransaction(CONST.CURRENCY.USD), displayAmount: 500}};
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey, transaction: {...createRandomTransaction(1), transactionID: 'transaction1'}},
+            };
+            mockAreAllMatchingItemsSelected.current = true;
+        });
+
+        async function chooseFooterCurrency(currency: string) {
+            await act(async () => {
+                mockCapturedFooterProps.current?.onCurrencyChange?.(currency);
+                await waitForBatchedUpdates();
+            });
+        }
+
+        it('counts and totals the row alongside the expenses still selected', async () => {
+            // Given the selection above
+
+            // When the footer shows it
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 1000)} />);
+            await waitForBatchedUpdates();
+
+            // Then the row is back in the count and the total, as its checkbox shows, rather than going with its group's exclusion
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 6, total: 600, currency: CONST.CURRENCY.USD}));
+        });
+
+        it('adds the row back to a total converted to another currency', async () => {
+            // Given converted figures for the whole search, the excluded group and the row, each still matching the figures it was converted from
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 10, total: 2000}}},
+                groups: {[groupKey]: {[CONST.CURRENCY.EUR]: -1000}},
+                transactions: {transaction1: {[CONST.CURRENCY.EUR]: -200}},
+                sources: {
+                    searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 1000}},
+                    groups: {[groupKey]: {[CONST.CURRENCY.EUR]: -500}},
+                    transactions: {transaction1: {[CONST.CURRENCY.EUR]: -100}},
+                },
+            });
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 1000)} />);
+            await waitForBatchedUpdates();
+
+            // When the footer is switched to that currency
+            await chooseFooterCurrency(CONST.CURRENCY.EUR);
+
+            // Then the row's converted amount comes back into the converted total
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 6, total: 1200, currency: CONST.CURRENCY.EUR}));
+        });
+
+        it('converts the row as well before showing a converted total', async () => {
+            // Given converted figures for the whole search and the excluded group, but none yet for the row
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 10, total: 2000}}},
+                groups: {[groupKey]: {[CONST.CURRENCY.EUR]: -1000}},
+                sources: {searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 1000}}, groups: {[groupKey]: {[CONST.CURRENCY.EUR]: -500}}},
+            });
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 1000)} />);
+            await waitForBatchedUpdates();
+
+            // When the footer is switched to that currency
+            await chooseFooterCurrency(CONST.CURRENCY.EUR);
+
+            // Then the row's conversion is requested, and the footer stays on the default currency until it arrives rather than mixing the two
+            expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR, transactionIDList: 'transaction1'}));
+            expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
+        });
+    });
+
     it('does not request the same report conversion twice before the optimistic source stamp is observed', async () => {
         setSearchQuery('type:expense-report');
         mockSelectedTransactions.current = {transaction2: buildSelectedTransaction(CONST.CURRENCY.USD, undefined, -100, 'report2')};
@@ -426,6 +533,23 @@ describe('SearchSelectionFooter', () => {
 
             // Then the group still comes off the count, but no figure is shown that would still include it
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 169, total: undefined}));
+        });
+
+        it('adds a row checked again inside the group back onto the count under a breakdown', async () => {
+            // Given a select-all with the collapsed group unchecked and one of its expenses checked again on its own, on the reimbursable breakdown
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockAreAllMatchingItemsSelected.current = true;
+            mockExcludedTransactions.current = {[GROUP_KEY]: buildSelectedTransaction(CONST.CURRENCY.USD, CONST.CURRENCY.USD, -50000)};
+            mockSelectedTransactions.current = {transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: GROUP_KEY}};
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 172, 80000, CONST.SEARCH.DATA_TYPES.EXPENSE, undefined, true);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then the row comes back onto the count, as on the plain total and the selection button, while no figure is shown
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 170, total: undefined}));
         });
 
         it('keeps the total selector under a breakdown, so the plain total can still be picked', async () => {

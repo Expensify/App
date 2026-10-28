@@ -13,24 +13,27 @@ type GroupCheckboxArgs = {
 
     /** The rows the group carries */
     groupTransactions: TransactionListItemType[];
+
+    /** How many rows the group holds, loaded or not, or undefined where the group carries no count */
+    groupCount: number | undefined;
 };
 
 /** What a group's checkbox shows. Every surface that draws one reads it from here, so they cannot disagree. */
-function useGroupCheckboxState({groupKey, groupTransactions}: GroupCheckboxArgs): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
+function useGroupCheckboxState({groupKey, groupTransactions, groupCount}: GroupCheckboxArgs): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
     const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
 
-    return getGroupCheckboxState({groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+    return getGroupCheckboxState({groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, groupCount});
 }
 
 /** The same, plus the group's rows stamped with the live selection, for the call sites that render those rows. */
-function useGroupChildren({groupKey, groupTransactions}: GroupCheckboxArgs): {
+function useGroupChildren({groupKey, groupTransactions, groupCount}: GroupCheckboxArgs): {
     transactions: TransactionListItemType[];
     isSelectAllChecked: boolean;
     isIndeterminate: boolean;
 } {
     // Read once: the checkbox state and the stamp answer the same question of the same three values, and must not diverge.
     const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
-    const params = {groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
+    const params = {groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, groupCount};
 
     // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded.
     const transactions: TransactionListItemType[] = groupTransactions.map((transactionItem) => ({

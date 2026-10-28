@@ -13,7 +13,7 @@ import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 
-import {getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionEntry, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -293,9 +293,16 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                   });
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
                   const typedGroupTransactions = groupTransactions as TransactionListItemType[];
+                  const shownTransactionIDs = new Set(typedGroupTransactions.map((transaction) => transaction.transactionID));
+                  const hiddenTransactionIDs = Object.keys(subSnapshot.data)
+                      .filter(isTransactionEntry)
+                      .map((key) => subSnapshot.data[key]?.transactionID)
+                      .filter((transactionID): transactionID is string => !!transactionID && !shownTransactionIDs.has(transactionID));
                   return {
                       ...item,
                       transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
+                      hiddenTransactionIDs,
+                      hasMoreTransactions: subSnapshot.search?.hasMoreResults,
                   };
               });
 

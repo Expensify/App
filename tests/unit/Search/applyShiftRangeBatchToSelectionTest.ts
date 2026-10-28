@@ -79,6 +79,60 @@ describe('applyShiftRangeBatchToSelection', () => {
         expect(Object.keys(updated)).toEqual(['t1']);
     });
 
+    it('does not count a group as wholly selected once a range gives back its loaded row, though rows kept off the page make up the count', () => {
+        // Given a two-expense group whose one loaded row is selected along with two rows a refresh kept off the page, one of them deleted elsewhere
+        const loaded = makeChild(1, 'c1');
+        const selection: SelectedTransactions = {
+            c1: {...buildEntry(loaded)[1], groupKey: 'groupA'},
+            c2: {...buildEntry(makeChild(2, 'c2'))[1], groupKey: 'groupA'},
+            c3: {...buildEntry(makeChild(3, 'c3'))[1], groupKey: 'groupA'},
+        };
+        const lookups = {...lookupsFor(new Map([['c1', 'groupA']]), new Map([['groupA', [loaded]]])), getGroupCount: () => 2};
+
+        // When a range gives back the loaded row
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [loaded]), selection, false, lookups);
+
+        // Then the kept rows no longer stand for the whole group, so a bulk delete leaves the unchecked row on screen
+        expect(updated.c2?.isEntireGroupSelected).toBe(false);
+        expect(updated.c3?.isEntireGroupSelected).toBe(false);
+    });
+
+    it('gives back the rows a refresh left off the page along with the group a range no longer covers', () => {
+        // Given a group-by group a range selected whole, with one loaded row and one row a refresh left off the loaded page, both standing for the group
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}groupA`;
+        const loaded = makeChild(1, 'c1');
+        const leftOut = makeChild(2, 'c2');
+        const group = makeGroup(groupKey, [loaded]);
+        const selection: SelectedTransactions = {
+            c1: {...buildEntry(loaded)[1], groupKey, isSelectedViaGroup: true},
+            c2: {...buildEntry(leftOut)[1], groupKey, isSelectedViaGroup: true},
+        };
+        const lookups = lookupsFor(new Map([['c1', groupKey]]), new Map([[groupKey, [loaded]]]));
+
+        // When the range shrinks and gives the group back
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [group]), selection, false, lookups);
+
+        // Then both rows go, as when the group's header is unchecked, so the row left off the page cannot check the group again
+        expect(updated).toEqual({});
+    });
+
+    it('keeps a checked expense that moved to another report when a range gives back the report it came from', () => {
+        // Given a report a range selected, and one of its expenses since moved to another report, so the expense's entry still names the report it came from
+        const kept = makeChild(1, 'c1');
+        const moved = makeChild(2, 'c2');
+        const report = buildReportGroup(1, 'report1', [kept]);
+        const selection: SelectedTransactions = {
+            c1: {...buildEntry(kept)[1], groupKey: 'report1'},
+            c2: {...buildEntry(moved)[1], groupKey: 'report1'},
+        };
+
+        // When the range shrinks and gives the report back
+        const updated = applyShiftRangeBatchToSelection(batchOf([], [report]), selection, false, lookupsFor());
+
+        // Then only the report's own expense goes, since a report carries every expense it holds and the moved one now sits in another report
+        expect(Object.keys(updated)).toEqual(['c2']);
+    });
+
     it('returns the map it was given when the batch writes nothing, so the commit bails on identity', () => {
         // Given a row already selected exactly as the range would write it
         const first = makeChild(1, 't1');

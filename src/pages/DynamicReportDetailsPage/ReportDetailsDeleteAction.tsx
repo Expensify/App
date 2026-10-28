@@ -92,7 +92,7 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
             if (deleteResult.action === 'redirected') {
                 return;
             }
-            removeTransaction(iouTransactionID);
+            removeTransaction(iouTransactionID, {isDeleted: true});
         }
     };
 

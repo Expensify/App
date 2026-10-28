@@ -55,8 +55,19 @@ const children: TransactionListItemType[] = [buildTransactionRow(1, '1'), buildT
 /** A selection entry per key. Only `isSelected` is read here, so any real entry shape will do. */
 const select = (...keys: string[]): SelectedTransactions => Object.fromEntries(keys.map((key) => [key, mapEmptyReportToSelectedEntry(buildCategoryGroup(key))[1]]));
 
-const buildHeaderItem = (rows: TransactionListItemType[]): GroupHeaderItemType => ({
+type GroupState = {
+    isExpanded: boolean;
+
+    /** The group-by search's count, which can still hold an expense that left the group */
+    count: number;
+
+    /** Whether the group's own search has more expenses to load */
+    hasMoreTransactions: boolean | undefined;
+};
+
+const buildHeaderItem = (rows: TransactionListItemType[], groupState?: GroupState): GroupHeaderItemType => ({
     ...buildCategoryGroup(GROUP_KEY, rows),
+    ...(groupState ? {count: groupState.count, hasMoreTransactions: groupState.hasMoreTransactions} : {}),
     listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
     keyForList: `header_${GROUP_KEY}`,
     groupKeyForList: GROUP_KEY,
@@ -109,7 +120,7 @@ const baseActions = {
 /** Wide enough that the sub-header's column widths never exceed it, so no horizontal scroller is involved here. */
 const WINDOW_WIDTH = 1500;
 
-function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn()) {
+function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedTransactions, onCheckboxPress = jest.fn(), groupState?: GroupState) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <ScreenWrapperStatusContext value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
@@ -118,11 +129,11 @@ function renderGroupHeader(rows: TransactionListItemType[], selection: SelectedT
                     actions={baseActions}
                 >
                     <GroupHeader
-                        item={buildHeaderItem(rows)}
+                        item={buildHeaderItem(rows, groupState)}
                         groupBy={CONST.SEARCH.GROUP_BY.CATEGORY}
                         searchType={CONST.SEARCH.DATA_TYPES.EXPENSE}
                         canSelectMultiple
-                        isExpanded={false}
+                        isExpanded={groupState?.isExpanded ?? false}
                         onToggle={jest.fn()}
                         onSelectRow={jest.fn()}
                         onCheckboxPress={onCheckboxPress}
@@ -177,6 +188,33 @@ describe('GroupHeader', () => {
     it('reads unchecked when none of the rows it carries are', () => {
         renderGroupHeader(children, {});
         expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: false});
+    });
+
+    it('reads checked while open once every row it shows is checked, though its count still holds an expense that left it', () => {
+        // Given an open group whose own search has returned all of its rows, each one checked, while the group-by count still reads one more
+        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: true, count: 4, hasMoreTransactions: false});
+
+        // When its checkbox is drawn
+        // Then it reads checked, since the rows a group's own search returned are the whole group
+        expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+    });
+
+    it('reads checked while closed with the same rows checked, since its rows are the whole group whether it is open or not', () => {
+        // Given the same group closed
+        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: false, count: 4, hasMoreTransactions: false});
+
+        // When its checkbox is drawn
+        // Then it reads checked, as it does open, so closing a group never changes what its checkbox shows
+        expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+    });
+
+    it('reads partly checked while its own search has more to load, since its count is then the whole group', () => {
+        // Given a group with the same rows checked whose own search has more expenses to load
+        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: true, count: 4, hasMoreTransactions: true});
+
+        // When its checkbox is drawn
+        // Then it reads partly checked, since the expense it has not loaded is not selected
+        expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: true});
     });
 
     it('answers from its own key while it carries no rows, since there is nothing else to ask', () => {
