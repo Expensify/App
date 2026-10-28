@@ -3086,7 +3086,7 @@ ${amount} για ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Συλλογή τραπεζικών στοιχείων υπαλλήλων',
         collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των υπαλλήλων, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
         businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
-        businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπικές μεταφορές. Όλοι οι άλλοι δίνουν στοιχεία για διεθνή εμβάσματα.',
+        businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
