@@ -26493,8 +26493,7 @@ var GithubUtils_default = GithubUtils;
 // node_modules/@actions/github/lib/github.js
 var context2 = new Context();
 
-// .github/actions/javascript/didPreviousReviewerChecklistPass/didPreviousReviewerChecklistPass.ts
-var WORKFLOW_FILE = "reviewerChecklist.yml";
+// .github/actions/javascript/didCheckAlreadyPassForPR/didCheckAlreadyPassForPR.ts
 var RUNS_PER_PAGE = 20;
 function belongsToPullRequest(run2, pullNumber, shas) {
   if (run2.pull_requests?.some((pullRequest) => pullRequest.number === pullNumber)) {
@@ -26502,7 +26501,7 @@ function belongsToPullRequest(run2, pullNumber, shas) {
   }
   return !!run2.head_sha && shas.has(run2.head_sha);
 }
-async function didPreviousRunPass(pullNumber, headRef) {
+async function didCheckAlreadyPass(pullNumber, headRef, workflowFile, event) {
   const commits = await GithubUtils_default.paginate(
     GithubUtils_default.octokit.pulls.listCommits,
     {
@@ -26520,41 +26519,43 @@ async function didPreviousRunPass(pullNumber, headRef) {
     owner: CONST_default.GITHUB_OWNER,
     repo: CONST_default.APP_REPO,
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    workflow_id: WORKFLOW_FILE,
+    workflow_id: workflowFile,
     branch: headRef,
-    event: "pull_request_review",
+    event,
     status: CONST_default.RUN_STATUS.COMPLETED,
     // eslint-disable-next-line @typescript-eslint/naming-convention
     per_page: RUNS_PER_PAGE
   });
   const previousRun = data.workflow_runs.find((run2) => run2.id !== context2.runId && belongsToPullRequest(run2, pullNumber, shas));
   if (!previousRun) {
-    info(`No previous reviewer checklist run found for PR #${pullNumber}.`);
+    info(`No previous completed ${workflowFile} run found for PR #${pullNumber}.`);
     return false;
   }
-  info(`Previous run ${previousRun.html_url} concluded ${previousRun.conclusion ?? "unknown"}.`);
+  info(`Previous ${workflowFile} run ${previousRun.html_url} concluded ${previousRun.conclusion ?? "unknown"}.`);
   return previousRun.conclusion === CONST_default.RUN_STATUS_CONCLUSION.SUCCESS;
 }
 function run() {
   const pullNumber = Number(getInput("PR_NUMBER", { required: true }));
   const headRef = getInput("HEAD_REF", { required: true });
+  const workflowFile = getInput("WORKFLOW_FILE", { required: true });
+  const event = getInput("EVENT", { required: true });
   GithubUtils_default.initOctokitWithToken(getInput("GITHUB_TOKEN", { required: true }));
-  return didPreviousRunPass(pullNumber, headRef).then((passed) => {
+  return didCheckAlreadyPass(pullNumber, headRef, workflowFile, event).then((passed) => {
     setOutput("PASSED", passed);
     if (passed) {
-      info("Previous reviewer checklist run passed.");
+      info(`Previous ${workflowFile} run passed.`);
     }
   }).catch((error2) => {
-    console.warn("Could not check the previous reviewer checklist run, so the check will run.", error2);
+    console.warn(`Could not check whether ${workflowFile} already passed, so the check will run.`, error2);
     setOutput("PASSED", false);
   });
 }
 if (import.meta.main) {
   run();
 }
-var didPreviousReviewerChecklistPass_default = run;
+var didCheckAlreadyPassForPR_default = run;
 export {
-  didPreviousReviewerChecklistPass_default as default
+  didCheckAlreadyPassForPR_default as default
 };
 /*! Bundled license information:
 

@@ -1,5 +1,5 @@
-name: 'Did previous reviewer checklist pass'
-description: 'Whether the latest completed reviewer checklist run for this pull request succeeded, including on an older commit.'
+name: 'Did check already pass for PR'
+description: 'Whether the latest completed run of a workflow for this pull request succeeded, including on an older commit.'
 inputs:
   GITHUB_TOKEN:
     description: Auth token for repository API calls
@@ -9,6 +9,12 @@ inputs:
     required: true
   HEAD_REF:
     description: Pull request head branch. Used to list workflow runs; a run only counts if it belongs to this pull request.
+    required: true
+  WORKFLOW_FILE:
+    description: Workflow file name, such as reviewerChecklist.yml
+    required: true
+  EVENT:
+    description: Workflow event to match, such as pull_request_review
     required: true
 outputs:
   PASSED:

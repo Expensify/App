@@ -31,11 +31,13 @@ jobs:
       - name: Check previous run
         id: previous
         if: steps.filter.outputs.should_run == 'true'
-        uses: ./.github/actions/javascript/didPreviousReviewerChecklistPass
+        uses: ./.github/actions/javascript/didCheckAlreadyPassForPR
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          WORKFLOW_FILE: reviewerChecklist.yml
+          EVENT: pull_request_review
 
       - name: reviewerChecklist.js
         if: steps.filter.outputs.should_run == 'true' && steps.previous.outputs.PASSED != 'true'
