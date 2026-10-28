@@ -1,3 +1,118 @@
-# Repository Guidelines
+# AGENTS.md - Expensify App
 
-All repository guidelines and instructions have been consolidated into [CLAUDE.md](./CLAUDE.md). Please read that file for project structure, build commands, coding style, and testing guidelines.
+`CLAUDE.md` only imports this file, so Claude Code and OpenCode share these instructions. Edit this file, not `CLAUDE.md`.
+
+## Coding Standards
+
+CI enforces the `app-coding-standards` rules with the `code-inline-reviewer` agent. Follow these steps for every code change:
+
+1. **Before writing or editing code**, load the `app-coding-standards` skill (`.claude/skills/app-coding-standards/SKILL.md`) and read the full rule file in `rules/` for every rule category that applies to the files you touch (`PERF-*`, `CONSISTENCY-*`, `CLEAN-REACT-PATTERNS-*`, `UI-*`, and `ONYX-*`). `SKILL.md` is only an index: the conditions, exceptions, and required fixes are in the rule files.
+2. **Before committing or creating a PR**, run the `code-inline-reviewer` agent (`.claude/agents/code-inline-reviewer.md`) on your diff, the same way CI does. Use `git diff main...HEAD` instead of `gh pr diff` when no PR exists yet. If your tool cannot run it as a subagent, follow its instructions yourself. Fix every violation, or explain in the PR why an exception applies.
+
+## HybridApp Architecture
+
+- The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
+- NewDot refers to the New Expensify App, OldDot or Expensify Classic refers to our Old expensify app and website
+
+### Key Integration Points
+
+- App (NewDot) and Mobile-Expensify (OldDot) are combined into a single mobile application
+- The HybridApp module (`@expensify/react-native-hybrid-app`) manages transitions between OldDot and NewDot
+- Build process merges `.env` files from both repositories
+- Mobile-Expensify environment variables supersede App variables
+- Mobile builds **must** be initiated from the Mobile-Expensify directory
+
+### Build Modes
+
+- **Standalone**: Pure NewDot application (web)
+- **HybridApp**: Combined OldDot + NewDot (mobile apps)
+- Controlled via `STANDALONE_NEW_DOT` environment variable
+
+## Navigation & Routing
+
+### Key Navigators
+
+- **AuthScreens**: Authenticated app screens
+- **PublicScreens**: Login and onboarding screens
+- **RHP (Right Hand Pane)**: Contextual panels — settings and details
+- **Central Pane**: Main content area
+- **LHN (Left Hand Navigation)**: Report list and navigation
+
+## State Management
+
+Onyx (`react-native-onyx`) is our custom offline-first key-value store; keys are defined in `src/ONYXKEYS.ts`.
+
+### Reading Onyx data (`useOnyx`, `Onyx.connectWithoutView`, `Onyx.get`)
+
+Prefer pure functions taking data as params over direct Onyx reads: callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages. Justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. `Onyx.get` and `Onyx.multiGet` are one-shot reads for event handlers in components, pages and hooks. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-onyxconnectwithoutview-onyxget-and-onyxmultiget).
+
+## Related Repositories
+
+### Mobile-Expensify (Submodule)
+
+- **Path**: `App/Mobile-Expensify/`
+- **Purpose**: Legacy OldDot application and mobile build source
+- **Critical**: All mobile builds originate from this directory
+- Contains platform-specific code for iOS and Android
+- Manages the HybridApp integration layer
+- **Submodule pointer**: bumped automatically by OSBotify on every merge to Mobile-Expensify `main`
+
+## Development Practices
+
+### React Native Best Practices
+
+Use the `/react-native-best-practices` skill when working on performance-sensitive code, native modules, or release preparation. This ensures code respects established best practices from the start, resulting in more consistent code, fewer review iterations, and better resilience against regressions.
+
+### Memoization
+
+React Compiler auto-memoizes code in components and hooks (excluding `tests/`). `oxc-transform-react` runs it on web (see `config/rsbuild/`), on native (see `config/repack/`) and under Jest (see `config/babel/oxcJestTransformer.js`), all with the options in `config/babel/oxcReactCompilerConfig.js`. The compliance check and the ESLint processor use the same compiler via `config/reactCompiler/checkWithOxc.mjs`, and the ESLint processor only relaxes manual-memoization rules when it memoizes the file.
+
+Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that compile with React Compiler.
+
+### Code Quality
+
+- **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Design tokens**: font sizes come from `<Text variant="...">`, and paddings or margins that differ between narrow and wide layouts come from `useLayoutSpacing()` (`cardPaddingHorizontal`, `pageGutter`, ...). Never write `shouldUseNarrowLayout ? styles.ph5 : styles.ph8` or a raw `fontSize`. See `contributingGuides/STYLING.md`.
+
+### Post-Edit Checklist (IMPORTANT)
+
+**ALWAYS run these steps after making code changes, before committing:**
+
+1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
+2. **TypeScript**: Run `npm run typecheck` after changes that may affect typing (types, interfaces, or function signatures). It runs the TypeScript 7 native compiler and is the required merge gate in CI.
+3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI: new components/hooks must compile, and existing compiled files must not regress. See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+4. **Spelling**: Run `npm run spell-changed` to catch spelling errors (it discovers changed files itself; pass an explicit file list only if you want to check specific files instead). CI validates with cspell, which remains the required merge gate.
+
+### Testing
+
+App tests use Jest. Tests for `.github/` and `scripts/` live in `tests/tooling/` and run under `bun:test` (`npm run test:bun`) — see `tests/tooling/README.md`.
+
+Every test case must be documented with `// Given`, `// When` and `// Then` comments explaining **why** the test does what it does — see [tests/README.md](tests/README.md#documenting-tests).
+
+## Special Considerations
+
+### Offline-First Architecture
+
+- All features work offline
+- Optimistic updates with rollback
+- Queue-based request handling
+- Conflict resolution strategies
+
+## Customer-Facing Help Site
+
+- **NewDot Help**: https://help.expensify.com/new-expensify/hubs/
+- **OldDot/Expensify Classic Help**: https://help.expensify.com/expensify-classic/hubs/
+
+## Development Environment
+
+### Browser Testing
+
+Use the `/playwright-app-testing` skill to test and debug the App in a browser. Use this skill after making frontend changes to verify your work, or when the user requests testing.
+
+### Mobile Device Testing
+
+Use the `/agent-device` skill to drive the App on iOS and Android (simulators or real devices) for interactive testing, performance profiling, bug reproduction, and device-specific debugging.
+
+### Sentry Analysis
+
+Use the Sentry skill whenever the user wants to analyze any data from Sentry: spans, metrics, crashes, crash free rate, etc.
