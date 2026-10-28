@@ -89,21 +89,21 @@ function SubmittingButton({variant, text, onAnimationFinish, shouldShowMarkAsDon
         clearPendingExpenseAction(reportID);
     }, [didSubmissionFail, reportID]);
 
-    const showLoading = !hasFailedSubmission && (isDEWSubmission ? !!pendingExpenseAction : isShowingLoading);
-    const shouldShowIcon = !showLoading && !hasFailedSubmission;
+    const shouldShowLoading = !hasFailedSubmission && (isDEWSubmission ? !!pendingExpenseAction : isShowingLoading);
+    const shouldShowIcon = !shouldShowLoading && !hasFailedSubmission;
 
     return (
         <Animated.View
             // Unlike an exiting layout animation, CSS animation never retains this view after cancellation.
             style={{
-                animationName: showLoading ? 'none' : hideAnimation,
+                animationName: shouldShowLoading ? 'none' : hideAnimation,
                 animationDelay: hasFailedSubmission ? 0 : CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION,
                 animationDuration: isReducedMotionEnabled ? 0 : CONST.ANIMATION_SUBMIT_DURATION,
                 animationTimingFunction: 'linear',
                 animationFillMode: 'forwards',
             }}
             onCSSAnimationEnd={({animationName}) => {
-                if (showLoading || animationName !== hideAnimation.name) {
+                if (shouldShowLoading || animationName !== hideAnimation.name) {
                     return;
                 }
                 onAnimationFinish();
@@ -111,7 +111,7 @@ function SubmittingButton({variant, text, onAnimationFinish, shouldShowMarkAsDon
         >
             <Button
                 variant={variant}
-                isLoading={showLoading}
+                isLoading={shouldShowLoading}
                 isDisabled
                 stayNormalOnDisable
             >
