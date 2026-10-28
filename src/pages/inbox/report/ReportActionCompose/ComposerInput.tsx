@@ -29,6 +29,7 @@ import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSe
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
 
@@ -87,6 +88,7 @@ function ComposerInput() {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
     const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
@@ -114,6 +116,7 @@ function ComposerInput() {
                 policyID={report?.policyID}
                 includeChronos={chatIncludesChronos(report)}
                 isGroupPolicyReport={isGroupPolicyReport}
+                shouldSkipAutoFocus={shouldSkipAutoFocus}
                 isMenuVisible={isMenuVisible}
                 inputPlaceholder={inputPlaceholder}
                 isComposerFullSize={isComposerFullSize}
