@@ -56,7 +56,10 @@ describe('insightsFilterParsing', () => {
 
         it('reads the deprecated year-to-date preset as this year', () => {
             // Given a dashboard saved before Year to date was replaced by This year
-            const parsed = parseInsightsFilters('groupBy:month groupCurrency:USD date:year-to-date');
+            const query = 'groupBy:month groupCurrency:USD date:year-to-date';
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(query);
 
             // Then it reads back as This year, so the date picker checks the row it lists
             expect(parsed.date).toEqual({preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR});
