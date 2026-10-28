@@ -1,5 +1,6 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import type {ThreeDotsMenuHandle} from '@components/ThreeDotsMenu/types';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -25,10 +26,11 @@ import ROUTES from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 
+import type {RefObject} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {WorkspaceRowData} from '.';
 
@@ -49,6 +51,9 @@ type WorkspaceRowThreeDotsMenuProps = {
 
     /** ID of the workspace with a deletion in progress, if any */
     pendingDeletePolicyID?: string;
+
+    /** Ref to the menu, shared with the row so it can re-measure the open menu when the row moves */
+    threeDotsMenuRef: RefObject<ThreeDotsMenuHandle | null>;
 };
 
 /**
@@ -56,8 +61,7 @@ type WorkspaceRowThreeDotsMenuProps = {
  * primitive-valued subscriptions, and mounts the leave/transfer flows on demand so their heavier
  * subscriptions (the full policy entry) exist only while the corresponding action is in progress.
  */
-function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID}: WorkspaceRowThreeDotsMenuProps) {
-    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace, pendingDeletePolicyID, threeDotsMenuRef}: WorkspaceRowThreeDotsMenuProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -90,7 +94,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, onArchiveWorkspace,
             return;
         }
         threeDotsMenuRef?.current?.hidePopoverMenu();
-    }, [isLoadingBill]);
+    }, [isLoadingBill, threeDotsMenuRef]);
 
     const isDefault = activePolicyID === item.policyID;
     const isOwner = item.ownerAccountID === currentUserPersonalDetails.accountID;
