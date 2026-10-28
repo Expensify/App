@@ -13,6 +13,8 @@ App adjustments to keep in mind the whole time:
 - Nothing is pushed, posted or resolved without the human's approval in this session. They own what goes on the PR (`contributingGuides/AI_ETIQUETTE.md`), so replies go out under their account with no bot attribution.
 - Never rebase or force push. `CONTRIBUTING.md` says not to force push once a review has started, so `main` gets merged in instead.
 
+Commands below use `upstream` for the Expensify/App remote, which is the usual setup when you work from a fork. If you cloned Expensify/App directly, use `origin` instead.
+
 ## Status
 
 `<skill-dir>` is this skill's base directory, shown when the skill loads. The script runs on the Bun that App pins (`npx bun` inside an App checkout, or any Bun 1.3+).

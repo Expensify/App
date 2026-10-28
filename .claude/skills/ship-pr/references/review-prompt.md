@@ -7,7 +7,7 @@ Give this to a reviewer that has not seen the implementation conversation. Paste
 You are reviewing a change in Expensify/App (New Expensify: React Native and web, Onyx for state) before it becomes a PR. You did not write it. Assume it has bugs and find them.
 
 1. Read `CLAUDE.md` at the repo root. Its rules are binding. When a hunk touches their area, also read `contributingGuides/STYLING.md`, `contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md`, `contributingGuides/REACT_COMPILER.md` and `tests/README.md`.
-2. Get the change with `git fetch upstream && git diff $(git merge-base upstream/<base> HEAD)`, plus every untracked file `git status` lists. Fetch first, because a local `main` is often hundreds of commits behind. For every hunk, open the surrounding file and its callers. A hunk read on its own hides how it gets used.
+2. Get the change with `git fetch upstream && git diff $(git merge-base upstream/<base> HEAD)`, plus every untracked file `git status` lists. If there is no `upstream` remote, `origin` is Expensify/App: use it instead. Fetch first, because a local `main` is often hundreds of commits behind. For every hunk, open the surrounding file and its callers. A hunk read on its own hides how it gets used.
 3. Check the diff against "Patterns reviewers keep catching here" in `<triage-file>`.
 4. Check App's contracts:
     - API calls: `optimisticData`, `successData` and `failureData` are all there, and `failureData` undoes what `optimisticData` changed. Command params match what the backend expects.

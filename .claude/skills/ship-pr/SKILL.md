@@ -9,6 +9,8 @@ You're done when the human only has judgment calls left on the PR: the checks ar
 
 Run every step. If one can't run, say which one and why in the handoff. Nothing gets committed, pushed or posted without the human's approval: they own what goes on the PR (`contributingGuides/AI_ETIQUETTE.md`).
 
+Commands below use `upstream` for the Expensify/App remote, which is the usual setup when you work from a fork. If you cloned Expensify/App directly, use `origin` instead.
+
 ## 1. Checks
 
 Run what CI runs for what you touched, and fix everything:
@@ -22,7 +24,7 @@ npm run spell-changed
 npm test -- <test files for the code you changed>        # direct test files; CI runs the full suite
 ```
 
-- `lint-changed` and `spell-changed` diff against `origin/main`. If `origin` is your fork and its `main` is behind upstream, they also check files you didn't touch: ignore findings there.
+- `lint-changed` and `spell-changed` diff against `origin/main`. If `origin` is your fork, sync its `main` with Expensify/App first (`git fetch upstream && git push origin upstream/main:main`), so they only see your changes.
 - Skip `--findRelatedTests`. Core libs are imported almost everywhere, so it pulls in most of the suite (over 10 minutes for `MoneyRequestReportUtils`). CI runs everything in about 2.5 minutes.
 
 Then the repo rules the tooling cannot see (`CLAUDE.md`, `tests/README.md`):
@@ -30,7 +32,7 @@ Then the repo rules the tooling cannot see (`CLAUDE.md`, `tests/README.md`):
 - Every test has `// Given`, `// When`, `// Then` comments explaining why.
 - A bug fix comes with a test that fails without the fix, or the handoff says why it can't.
 - A new `Onyx.connectWithoutView` has a comment justifying it. In a component it also needs `@frontend-performance` approval linked in the PR body.
-- New strings exist in every file under `src/languages/`. PRs from forks don't get translations generated automatically.
+- New strings go in `src/languages/en.ts` only. The other locales are generated from it by `scripts/generateTranslations.ts`. On a PR from a fork that doesn't run automatically, so say in the handoff that someone from Expensify has to run it.
 - No new `useMemo`, `useCallback` or `React.memo` in a file the React Compiler handles.
 - The `Mobile-Expensify` submodule pointer didn't move by accident: `git diff --ignore-submodules=none upstream/main -- Mobile-Expensify`.
 

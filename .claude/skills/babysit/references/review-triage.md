@@ -17,7 +17,7 @@ A plausible defect in code this PR adds or changes: wrong behavior, broken offli
 
 Draft a reply with the one fact that disproves it, then resolve the thread once it's posted. Common shapes:
 
-- Pre-existing: `git blame` against `upstream/main` shows the flagged lines predate the branch. If it's real and cheap to fix, it gets a follow-up issue.
+- Pre-existing: `git blame` against Expensify/App's `main` (`upstream/main` from a fork, `origin/main` otherwise) shows the flagged lines predate the branch. If it's real and cheap to fix, it gets a follow-up issue.
 - Misread library behavior: cite the source of the installed version under `node_modules/` (Onyx, react-navigation, React Native).
 - Already guaranteed: name the type, helper, or selector that makes the case impossible.
 - Intentional trade-off: link the proposal comment on the issue, or the PR body line that states it.
