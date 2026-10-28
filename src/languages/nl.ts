@@ -6099,12 +6099,16 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Rillet.',
             exportReimbursable: {
                 label: 'Vergoedbare uitgaven exporteren als',
-                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'}, REIMBURSEMENT: {label: 'Vergoedingen'}},
+                values: {
+                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'},
+                    REIMBURSEMENT: {label: 'Gespecificeerde vergoedingen'},
+                    VENDOR_BILL: {label: 'Gespecificeerde leveranciersfacturen'},
+                },
                 description:
                     'We maken een gespecificeerde leveranciersfactuur of terugbetaling voor elk Expensify-rapport. Als de periode is afgesloten, boeken we naar de eerstvolgende open periode.',
             },
             exportDate: {
-                label: 'Datum van impact op grootboek',
+                label: 'Boekdatum grootboek',
                 description: 'Gebruik deze datum bij het exporteren van rapporten naar Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6140,7 +6144,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
             },
             syncReimbursedReports: 'Vergoede rapporten synchroniseren',
-            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening aangemaakt.',
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een betaling op deze rekening gegenereerd.',
             syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor verrekening van Expensify Kaart', description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.'},
             syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
@@ -6182,8 +6186,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description:
                     'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in Rillet op deze rekening als een journaalpost.',
             },
-            reimbursementAccount: {label: 'Vergoedingsrekening', description: 'Kies waar je declareerbare uitgaven wilt exporteren.'},
-            achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en we maken de betaling in Rillet aan.'},
+            reimbursementAccount: {
+                label: 'Vergoedingsrekening',
+                description: 'Kies waar je terugbetaalbare uitgaven wilt exporteren.',
+                accountRequiredError: 'Selecteer een Rillet-vergoedingsrekening.',
+            },
+            achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en wij maken de betaling aan in Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-configuratie',
@@ -11811,7 +11819,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             theresAReportWithErrors: 'Er is een rapport met fouten',
             theresAWorkspaceWithCustomUnitsErrors: 'Er is een werkruimte met fouten in aangepaste eenheden',
             theresAProblemWithAWorkspaceMember: 'Er is een probleem met een werkruimtelid',
-            theresAProblemWithAWorkspaceReimbursementExport: 'Er was een probleem met een exportinstelling voor een workspace-verbinding.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Er is een probleem opgetreden met een exportinstelling voor een werkruimteverbinding.',
             theresAProblemWithAContactMethod: 'Er is een probleem met een contactmethode',
             aContactMethodRequiresVerification: 'Een contactmethode vereist verificatie',
             theresAProblemWithAPaymentMethod: 'Er is een probleem met een betaalmethode',

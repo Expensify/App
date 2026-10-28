@@ -6145,12 +6145,16 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Rillet.',
             exportReimbursable: {
                 label: 'Exporter les dépenses remboursables en tant que',
-                values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Factures fournisseurs'}, REIMBURSEMENT: {label: 'Remboursements'}},
+                values: {
+                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Factures fournisseurs'},
+                    REIMBURSEMENT: {label: 'Remboursements détaillés'},
+                    VENDOR_BILL: {label: 'Factures fournisseur détaillées'},
+                },
                 description:
-                    'Nous créerons une facture fournisseur détaillée ou un remboursement pour chaque note de frais Expensify. Si la période est close, nous la comptabiliserons sur la prochaine période ouverte.',
+                    'Nous créerons une facture fournisseur détaillée ou un remboursement pour chaque note de frais Expensify. Si la période est clôturée, nous l’enregistrerons sur la prochaine période ouverte.',
             },
             exportDate: {
-                label: "Date d'effet dans le grand livre",
+                label: 'Date d’impact dans le grand livre',
                 description: 'Utiliser cette date lors de l’exportation des notes de frais vers Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6192,7 +6196,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 },
             },
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
-            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un règlement de facture est généré sur ce compte.',
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement est généré sur ce compte.',
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
             syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
@@ -6234,8 +6238,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description:
                     'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans Rillet sous forme d’écriture de journal.',
             },
-            reimbursementAccount: {label: 'Compte de remboursement', description: 'Choisissez où exporter les dépenses remboursables.'},
-            achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez d’où payer les notes de frais et nous créerons le paiement dans Rillet.'},
+            reimbursementAccount: {
+                label: 'Compte de remboursement',
+                description: 'Choisissez où exporter les dépenses remboursables.',
+                accountRequiredError: 'Veuillez sélectionner un compte de remboursement Rillet.',
+            },
+            achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez l’origine de paiement des notes de frais et nous créerons le paiement dans Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuration DualEntry',
@@ -11920,7 +11928,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAReportWithErrors: 'Il y a une note de frais avec des erreurs',
             theresAWorkspaceWithCustomUnitsErrors: 'Il existe un espace de travail avec des erreurs d’unités personnalisées',
             theresAProblemWithAWorkspaceMember: 'Il y a un problème avec un membre de l’espace de travail',
-            theresAProblemWithAWorkspaceReimbursementExport: 'Un problème s’est produit avec un paramètre d’exportation de connexion d’espace de travail.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Un problème est survenu avec un paramètre d’exportation de connexion d’espace de travail.',
             theresAProblemWithAContactMethod: 'Un problème est survenu avec une méthode de contact',
             aContactMethodRequiresVerification: 'Une méthode de contact nécessite une vérification',
             theresAProblemWithAPaymentMethod: 'Un problème est survenu avec un moyen de paiement',
