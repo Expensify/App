@@ -277,7 +277,7 @@ function AuthScreensInitHandler() {
         return () => task.cancel();
     }, [isLoadingApp, tabNavigatorStateKey]);
 
-    // Rendered here only to reuse the two values this handler already reads.
+    // Its own component, so its Onyx reads re-render only the preload. Rendered here to reuse isLoadingApp and tabNavigatorStateKey.
     return (
         <SearchTabPreload
             isLoadingApp={isLoadingApp}

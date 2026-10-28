@@ -11,6 +11,7 @@ import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import type * as SearchWriteActionsProviderModule from '@components/Search/SearchWriteActionsProvider';
 import type {SearchData, SearchSelectionActionsValue, SelectedTransactionInfo} from '@components/Search/types';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
+import type * as PlaybackContextModule from '@components/VideoPlayerContexts/PlaybackContext';
 
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
 import useNetwork from '@hooks/useNetwork';
@@ -137,6 +138,16 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
+});
+
+// Spies on the shared video player reset, keeping the rest of the playback context real.
+const mockResetVideoPlayerData = jest.fn();
+jest.mock('@components/VideoPlayerContexts/PlaybackContext', () => {
+    const actualPlaybackContext = jest.requireActual<typeof PlaybackContextModule>('@components/VideoPlayerContexts/PlaybackContext');
+    return {
+        ...actualPlaybackContext,
+        usePlaybackActionsContext: () => ({...actualPlaybackContext.usePlaybackActionsContext(), resetVideoPlayerData: mockResetVideoPlayerData}),
+    };
 });
 
 function lastWriteActionsRender() {
@@ -299,8 +310,6 @@ const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJ
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
-        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true, isSmallScreenWidth: true}));
-
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [
@@ -321,6 +330,7 @@ describe('SearchPageNarrow', () => {
     });
 
     beforeEach(() => {
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true, isSmallScreenWidth: true}));
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
@@ -1791,5 +1801,26 @@ describe('SearchPageNarrow', () => {
 
         // Then the totals stay, because they belong to the Search the user can still see
         expect(mockClearFooterConversion).not.toHaveBeenCalled();
+    });
+
+    it('resets the shared video player only once a wide preloaded tab is opened', async () => {
+        // Given a wide layout, where Search resets the shared video player on mount, and the idle preload building the tab hidden
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: false, isSmallScreenWidth: false}));
+        const page = renderPage(undefined, true);
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then a video the user is watching in the visible report keeps playing
+        expect(mockResetVideoPlayerData).not.toHaveBeenCalled();
+
+        // When the user opens the tab
+        page.rerender(getSearchPage(undefined, false));
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // Then the player is reset once, as on any other wide visit to Search
+        expect(mockResetVideoPlayerData).toHaveBeenCalledTimes(1);
     });
 });

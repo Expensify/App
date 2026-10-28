@@ -55,6 +55,14 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
         cancelSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB);
     }, [isInPreloadedTab, isPreloadedContentReady]);
 
+    // Once opened, a later tap no longer reveals a preloaded tab.
+    useEffect(() => {
+        if (isInPreloadedTab) {
+            return;
+        }
+        clearSearchTabContentReady();
+    }, [isInPreloadedTab]);
+
     // Unmounted before its first content was on screen, e.g. on sign out, nothing else would end the preload span.
     useEffect(
         () => () => {

@@ -48,7 +48,7 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
 }));
 
-// Real by default; a test can hold the saved Spend query as still loading from storage.
+// Real by default. A test can hold the saved Spend query as still loading from storage.
 jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
     __esModule: true,
     default: jest.fn(jest.requireActual<{default: (...args: unknown[]) => boolean}>('@src/types/utils/isLoadingOnyxValue').default),

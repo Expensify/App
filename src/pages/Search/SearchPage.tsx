@@ -7,6 +7,7 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useHasFilterBars from '@hooks/useHasFilterBars';
 import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useLocalize from '@hooks/useLocalize';
 import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -93,8 +94,10 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = lastNonEmptySearchResults;
     }
 
+    // A preloaded tab mounts hidden, so it resets the shared video player only once opened, not over a video playing elsewhere.
+    const isInPreloadedTab = useIsInPreloadedTab();
     useEffect(() => {
-        if (shouldUseNarrowLayout) {
+        if (shouldUseNarrowLayout || isInPreloadedTab) {
             return;
         }
         resetVideoPlayerData();
@@ -105,7 +108,7 @@ function SearchPage({route}: SearchPageProps) {
             resetVideoPlayerData();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isInPreloadedTab]);
 
     // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
     // A cancelled wide submit pre-mount was never shown, so its unmount must not drop the totals of the visible Search.
