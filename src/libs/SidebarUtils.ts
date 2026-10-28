@@ -468,6 +468,48 @@ function updateReportsToDisplayInLHN({
 /**
  * Categorizes reports into their respective LHN groups
  */
+type LHNGroupName = 'pinnedAndGBRReports' | 'errorReports' | 'draftReports' | 'nonArchivedReports' | 'archivedReports';
+
+const LHN_GROUP_ORDER: LHNGroupName[] = ['pinnedAndGBRReports', 'errorReports', 'draftReports', 'nonArchivedReports', 'archivedReports'];
+
+function categorizeReportForLHN(
+    report: ReportsToDisplayInLHN[string],
+    reportsDrafts: Record<string, boolean> | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+): {group: LHNGroupName; miniReport: MiniReport} {
+    const reportID = report.reportID;
+    const displayName = getReportName(report, reportAttributes?.[report.reportID]?.reportName);
+    const miniReport: MiniReport = {
+        reportID,
+        displayName,
+        sortKey: buildSortKey(displayName),
+        lastVisibleActionCreated: report.lastVisibleActionCreated,
+    };
+
+    if (report.isPinned || report?.requiresAttention) {
+        return {group: 'pinnedAndGBRReports', miniReport};
+    }
+
+    const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+    const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+    const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
+
+    if (hasErrors) {
+        return {group: 'errorReports', miniReport};
+    }
+    if (reportsDrafts?.[reportID]) {
+        return {group: 'draftReports', miniReport};
+    }
+    if (isArchived) {
+        return {group: 'archivedReports', miniReport};
+    }
+    return {group: 'nonArchivedReports', miniReport};
+}
+
+/**
+ * Categorizes reports into their respective LHN groups
+ */
 function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportsDrafts: Record<string, boolean> | undefined,
@@ -476,56 +518,54 @@ function categorizeReportsForLHN(
 ) {
     sortKeyCache.clear();
 
-    const pinnedAndGBRReports: MiniReport[] = [];
-    const errorReports: MiniReport[] = [];
-    const draftReports: MiniReport[] = [];
-    const nonArchivedReports: MiniReport[] = [];
-    const archivedReports: MiniReport[] = [];
+    const categories: Record<LHNGroupName, MiniReport[]> = {
+        pinnedAndGBRReports: [],
+        errorReports: [],
+        draftReports: [],
+        nonArchivedReports: [],
+        archivedReports: [],
+    };
 
     for (const report of Object.values(reportsToDisplay)) {
         if (!report) {
             continue;
         }
-
-        const reportID = report.reportID;
-        const displayName = getReportName(report, reportAttributes?.[report.reportID]?.reportName);
-        const miniReport: MiniReport = {
-            reportID,
-            displayName,
-            sortKey: buildSortKey(displayName),
-            lastVisibleActionCreated: report.lastVisibleActionCreated,
-        };
-
-        const isPinned = !!report.isPinned;
-        const requiresAttention = !!report?.requiresAttention;
-
-        if (isPinned || requiresAttention) {
-            pinnedAndGBRReports.push(miniReport);
-            continue;
-        }
-
-        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
-        const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
-        const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
-
-        if (hasErrors) {
-            errorReports.push(miniReport);
-        } else if (reportsDrafts?.[reportID]) {
-            draftReports.push(miniReport);
-        } else if (isArchived) {
-            archivedReports.push(miniReport);
-        } else {
-            nonArchivedReports.push(miniReport);
-        }
+        const {group, miniReport} = categorizeReportForLHN(report, reportsDrafts, reportAttributes, reportNameValuePairs);
+        categories[group].push(miniReport);
     }
 
+    return categories;
+}
+
+function getLHNGroupComparators(isInDefaultMode: boolean, localeCompare: LocaleContextProps['localeCompare']): Record<LHNGroupName, (a: MiniReport, b: MiniReport) => number> {
+    const compareDisplayNames = (a: MiniReport, b: MiniReport) => {
+        if (a.sortKey < b.sortKey) {
+            return -1;
+        }
+        if (a.sortKey > b.sortKey) {
+            return 1;
+        }
+        if (!a.displayName || !b.displayName) {
+            return 0;
+        }
+        // Sort keys tied — fall back to Collator for locale-correct ordering
+        return localeCompare(a.displayName, b.displayName);
+    };
+
+    const compareDatesDesc = (a: MiniReport, b: MiniReport) =>
+        a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
+
+    const compareNonArchivedDefault = (a: MiniReport, b: MiniReport) => {
+        const compareDates = compareDatesDesc(a, b);
+        return compareDates !== 0 ? compareDates : compareDisplayNames(a, b);
+    };
+
     return {
-        pinnedAndGBRReports,
-        errorReports,
-        draftReports,
-        nonArchivedReports,
-        archivedReports,
+        pinnedAndGBRReports: compareDisplayNames,
+        errorReports: compareDisplayNames,
+        draftReports: compareDisplayNames,
+        nonArchivedReports: isInDefaultMode ? compareNonArchivedDefault : compareDisplayNames,
+        archivedReports: isInDefaultMode ? compareDatesDesc : compareDisplayNames,
     };
 }
 
@@ -550,47 +590,14 @@ function sortCategorizedReports(
     nonArchivedReports: MiniReport[];
     archivedReports: MiniReport[];
 } {
-    const {pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports} = categories;
-
-    const compareDisplayNames = (a: MiniReport, b: MiniReport) => {
-        if (a.sortKey < b.sortKey) {
-            return -1;
-        }
-        if (a.sortKey > b.sortKey) {
-            return 1;
-        }
-        if (!a.displayName || !b.displayName) {
-            return 0;
-        }
-        // Sort keys tied — fall back to Collator for locale-correct ordering
-        return localeCompare(a.displayName, b.displayName);
-    };
-
-    const compareDatesDesc = (a: MiniReport, b: MiniReport) =>
-        a?.lastVisibleActionCreated && b?.lastVisibleActionCreated ? compareStringDates(b.lastVisibleActionCreated, a.lastVisibleActionCreated) : 0;
-
-    const compareNonArchivedDefault = (a: MiniReport, b: MiniReport) => {
-        const compareDates = compareDatesDesc(a, b);
-        return compareDates !== 0 ? compareDates : compareDisplayNames(a, b);
-    };
-
+    const comparators = getLHNGroupComparators(isInDefaultMode, localeCompare);
     const sortIfNeeded = <T>(arr: T[], compareFn: (a: T, b: T) => number): T[] => (arr.length < 2 ? arr : arr.sort(compareFn));
 
-    // Sort each group of reports accordingly
-    const sortedPinnedAndGBRReports = sortIfNeeded(pinnedAndGBRReports, compareDisplayNames);
-    const sortedErrorReports = sortIfNeeded(errorReports, compareDisplayNames);
-    const sortedDraftReports = sortIfNeeded(draftReports, compareDisplayNames);
-
-    let sortedNonArchivedReports: MiniReport[];
-    let sortedArchivedReports: MiniReport[];
-
-    if (isInDefaultMode) {
-        sortedNonArchivedReports = sortIfNeeded(nonArchivedReports, compareNonArchivedDefault);
-        sortedArchivedReports = sortIfNeeded(archivedReports, compareDatesDesc);
-    } else {
-        sortedNonArchivedReports = sortIfNeeded(nonArchivedReports, compareDisplayNames);
-        sortedArchivedReports = sortIfNeeded(archivedReports, compareDisplayNames);
-    }
+    const sortedPinnedAndGBRReports = sortIfNeeded(categories.pinnedAndGBRReports, comparators.pinnedAndGBRReports);
+    const sortedErrorReports = sortIfNeeded(categories.errorReports, comparators.errorReports);
+    const sortedDraftReports = sortIfNeeded(categories.draftReports, comparators.draftReports);
+    const sortedNonArchivedReports = sortIfNeeded(categories.nonArchivedReports, comparators.nonArchivedReports);
+    const sortedArchivedReports = sortIfNeeded(categories.archivedReports, comparators.archivedReports);
 
     return {
         pinnedAndGBRReports: sortedPinnedAndGBRReports,
@@ -663,6 +670,155 @@ function sortReportsToDisplayInLHN(
     );
 
     return result;
+}
+
+type LHNOrderState = {
+    groups: Record<LHNGroupName, MiniReport[]>;
+    groupByReportID: Map<string, LHNGroupName>;
+    orderedReportIDs: string[];
+};
+
+function combineLHNGroups(groups: Record<LHNGroupName, MiniReport[]>): string[] {
+    return combineReportCategories(groups.pinnedAndGBRReports, groups.errorReports, groups.draftReports, groups.nonArchivedReports, groups.archivedReports);
+}
+
+function areReportIDListsEqual(a: string[], b: string[]): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+        if (a.at(i) !== b.at(i)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function buildLHNOrder(
+    reportsToDisplay: ReportsToDisplayInLHN,
+    priorityMode: OnyxEntry<PriorityMode>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    reportsDrafts: Record<string, boolean> | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+): LHNOrderState {
+    const isInDefaultMode = priorityMode !== CONST.PRIORITY_MODE.GSD;
+    const groups = sortCategorizedReports(categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, reportNameValuePairs), isInDefaultMode, localeCompare);
+    const groupByReportID = new Map<string, LHNGroupName>();
+    for (const groupName of LHN_GROUP_ORDER) {
+        for (const miniReport of groups[groupName]) {
+            if (miniReport.reportID) {
+                groupByReportID.set(miniReport.reportID, groupName);
+            }
+        }
+    }
+    return {groups, groupByReportID, orderedReportIDs: combineLHNGroups(groups)};
+}
+
+function getRankByReportID(reportsToDisplay: ReportsToDisplayInLHN): Map<string, number> {
+    const ranks = new Map<string, number>();
+    let rank = 0;
+    for (const report of Object.values(reportsToDisplay)) {
+        if (report?.reportID) {
+            ranks.set(report.reportID, rank);
+        }
+        rank++;
+    }
+    return ranks;
+}
+
+/**
+ * Re-places only the given reports in an existing LHN order, using the same categorization and comparators as the full sort.
+ */
+function updateLHNOrder(
+    order: LHNOrderState,
+    changedReportIDs: Iterable<string>,
+    reportsToDisplay: ReportsToDisplayInLHN,
+    priorityMode: OnyxEntry<PriorityMode>,
+    localeCompare: LocaleContextProps['localeCompare'],
+    reportsDrafts: Record<string, boolean> | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+): LHNOrderState {
+    const comparators = getLHNGroupComparators(priorityMode !== CONST.PRIORITY_MODE.GSD, localeCompare);
+    const groups = {...order.groups};
+    const copiedGroups = new Set<LHNGroupName>();
+    const getMutableGroup = (groupName: LHNGroupName) => {
+        if (!copiedGroups.has(groupName)) {
+            groups[groupName] = [...groups[groupName]];
+            copiedGroups.add(groupName);
+        }
+        return groups[groupName];
+    };
+    let groupByReportID: Map<string, LHNGroupName> | undefined;
+    const getMutableGroupByReportID = () => {
+        groupByReportID ??= new Map(order.groupByReportID);
+        return groupByReportID;
+    };
+
+    // The full sort is stable over the display map's key order, so ties are broken by that order here too
+    let rankByReportID: Map<string, number> | undefined;
+
+    for (const reportID of changedReportIDs) {
+        const report = reportsToDisplay[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const categorized = report ? categorizeReportForLHN(report, reportsDrafts, reportAttributes, reportNameValuePairs) : undefined;
+        const previousGroup = (groupByReportID ?? order.groupByReportID).get(reportID);
+
+        if (previousGroup) {
+            const previousIndex = groups[previousGroup].findIndex((miniReport) => miniReport.reportID === reportID);
+            const previousMiniReport = groups[previousGroup].at(previousIndex);
+            if (
+                categorized &&
+                previousIndex !== -1 &&
+                categorized.group === previousGroup &&
+                previousMiniReport?.sortKey === categorized.miniReport.sortKey &&
+                previousMiniReport?.displayName === categorized.miniReport.displayName &&
+                previousMiniReport?.lastVisibleActionCreated === categorized.miniReport.lastVisibleActionCreated
+            ) {
+                continue;
+            }
+            if (previousIndex !== -1) {
+                getMutableGroup(previousGroup).splice(previousIndex, 1);
+            }
+            getMutableGroupByReportID().delete(reportID);
+        }
+
+        if (!categorized) {
+            continue;
+        }
+
+        const {group: groupName, miniReport} = categorized;
+        const group = getMutableGroup(groupName);
+        const compare = comparators[groupName];
+        rankByReportID ??= getRankByReportID(reportsToDisplay);
+        const ranks = rankByReportID;
+        const getRank = (miniReportToRank: MiniReport) => (miniReportToRank.reportID ? (ranks.get(miniReportToRank.reportID) ?? 0) : 0);
+        const compareWithRank = (a: MiniReport, b: MiniReport) => compare(a, b) || getRank(a) - getRank(b);
+        let low = 0;
+        let high = group.length;
+        while (low < high) {
+            const middle = Math.floor((low + high) / 2);
+            const middleReport = group.at(middle);
+            if (middleReport && compareWithRank(middleReport, miniReport) <= 0) {
+                low = middle + 1;
+            } else {
+                high = middle;
+            }
+        }
+        group.splice(low, 0, miniReport);
+        getMutableGroupByReportID().set(reportID, groupName);
+    }
+
+    if (copiedGroups.size === 0) {
+        return order;
+    }
+
+    const orderedReportIDs = combineLHNGroups(groups);
+    return {
+        groups,
+        groupByReportID: groupByReportID ?? order.groupByReportID,
+        orderedReportIDs: areReportIDListsEqual(orderedReportIDs, order.orderedReportIDs) ? order.orderedReportIDs : orderedReportIDs,
+    };
 }
 
 type ReasonAndReportActionThatHasRedBrickRoad = {
@@ -1106,9 +1262,13 @@ export {
     buildSortKey as _buildSortKey,
 };
 
+export type {LHNOrderState};
+
 export default {
     getOptionData,
     sortReportsToDisplayInLHN,
+    buildLHNOrder,
+    updateLHNOrder,
     getWelcomeMessage,
     getReasonAndReportActionThatHasRedBrickRoad,
     getReportsToDisplayInLHN,
