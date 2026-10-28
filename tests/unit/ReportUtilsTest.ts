@@ -88,6 +88,7 @@ import {
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     doesReportBelongToWorkspace,
+    doReportsHaveMatchingReportFieldValues,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
     getActionErrorsByTransaction,
@@ -28823,7 +28824,7 @@ describe('ReportUtils', () => {
             const approved2 = makeApprovedReport({fieldList: {expensify_client: secondField}});
 
             // When merge eligibility is checked.
-            const result = canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
 
             // Then matching field values keep the reports mergeable.
             expect(result).toBe(true);
@@ -28837,12 +28838,12 @@ describe('ReportUtils', () => {
             const approved2 = makeApprovedReport({fieldList: {expensify_client: secondField}});
 
             // When merge eligibility is checked.
-            const result = canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
 
             // Then the merge is blocked so the source report field value cannot be lost.
             expect(result).toBe(false);
-            // The bulk action menu skips only this validation so the user can open the RHP and see the mismatch error.
-            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy, false)).toBe(true);
+            // Eligibility stays independent so the bulk menu can open the RHP and show the mismatch.
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(true);
         });
 
         it.each([
@@ -28856,8 +28857,8 @@ describe('ReportUtils', () => {
             const policyWithFieldsDisabled = {...adminPolicy, areReportFieldsEnabled: false};
 
             // When checking merge eligibility before and after turning off report fields.
-            const withFieldsEnabled = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
-            const withFieldsDisabled = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, policyWithFieldsDisabled);
+            const withFieldsEnabled = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+            const withFieldsDisabled = doReportsHaveMatchingReportFieldValues([first, second], policyWithFieldsDisabled);
 
             // Then the mismatch blocks merging only while the workspace's report fields are editable.
             expect(withFieldsEnabled).toBe(false);
@@ -28875,8 +28876,8 @@ describe('ReportUtils', () => {
             };
 
             // When checking merge eligibility using the current policy options rather than stale report options.
-            const withEnabledOptions = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
-            const withoutEnabledOptions = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, policyWithHiddenList);
+            const withEnabledOptions = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+            const withoutEnabledOptions = doReportsHaveMatchingReportFieldValues([first, second], policyWithHiddenList);
 
             // Then hidden values do not block the merge, but visible mismatched selections still do.
             expect(withEnabledOptions).toBe(false);
@@ -28890,7 +28891,7 @@ describe('ReportUtils', () => {
             const second = makeApprovedReport({fieldList: {expensify_hidden: {...hiddenField, value: 'B'}, expensify_client: makeReportField('client', 'Globex')}});
 
             // When the hidden field is excluded from validation.
-            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
 
             // Then the visible client field mismatch still prevents merging.
             expect(result).toBe(false);
@@ -28906,7 +28907,7 @@ describe('ReportUtils', () => {
             const second = makeApprovedReport({fieldList: {expensify_client: {...field, [idKey]: 'client-2'}}});
 
             // When merge eligibility is checked.
-            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
 
             // Then differing option identities block merging even though their labels match.
             expect(result).toBe(false);
@@ -28919,7 +28920,7 @@ describe('ReportUtils', () => {
             const second = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Other', defaultExternalID: 'other-id'}}});
 
             // When merge eligibility is checked without an explicit option ID.
-            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
 
             // Then inactive default IDs do not block matching explicit values.
             expect(result).toBe(true);
@@ -28934,7 +28935,7 @@ describe('ReportUtils', () => {
                 const second = makeApprovedReport({fieldList: {expensify_client: field}});
 
                 // When merge eligibility compares empty IDs with absent IDs.
-                const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+                const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
 
                 // Then equivalent missing identities do not block merging.
                 expect(result).toBe(true);
@@ -28948,13 +28949,13 @@ describe('ReportUtils', () => {
             const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: undefined, defaultValue: 'Acme', defaultExternalID: 'client-1'}}});
 
             // When merge eligibility is checked.
-            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
 
             // Then the explicit option takes precedence and matches the default option.
             expect(result).toBe(true);
         });
 
-        it.each([false, true])('resolves a unique dropdown option ID with policy options available: %s', async (hasPolicyOptions) => {
+        it.each([false, true])('resolves a unique dropdown option ID with policy options available: %s', (hasPolicyOptions) => {
             // Given an offline selection without an ID and another report using the same default option.
             const field = {
                 ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
@@ -28963,16 +28964,12 @@ describe('ReportUtils', () => {
             };
             const first = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Globex', defaultExternalID: 'globex-id'}}});
             const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: undefined, defaultValue: 'Acme', defaultExternalID: 'acme-id'}}});
-            if (hasPolicyOptions) {
-                // Current policy options can be reordered relative to the report's saved option IDs.
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
-                    fieldList: {expensify_client: {...field, values: ['Globex', 'Acme'], externalIDs: ['globex-id', 'acme-id']}},
-                });
-                await waitForBatchedUpdates();
-            }
+            const comparisonPolicy = hasPolicyOptions
+                ? {...adminPolicy, fieldList: {expensify_client: {...field, values: ['Globex', 'Acme'], externalIDs: ['globex-id', 'acme-id']}}}
+                : adminPolicy;
 
-            // When merge eligibility resolves the explicit selection from the matching option list.
-            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            // When field validation resolves the explicit selection from the matching option list.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], comparisonPolicy);
 
             // Then matching option identities allow merging despite the absent explicit ID.
             expect(result).toBe(true);
@@ -28989,7 +28986,7 @@ describe('ReportUtils', () => {
             const second = makeApprovedReport({fieldList: {expensify_client: {...field, externalID: 'client-1'}}});
 
             // When merging would require guessing which duplicate option was selected.
-            const result = canMergeReports([first, second], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
 
             // Then the unknown identity remains distinct from the explicit option ID.
             expect(result).toBe(false);
@@ -29003,7 +29000,7 @@ describe('ReportUtils', () => {
             const approved2 = makeApprovedReport({fieldList: {expensify_calculatedTotal: secondField}});
 
             // When merge eligibility is checked.
-            const result = canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
 
             // Then the formula mismatch is ignored because users cannot edit it.
             expect(result).toBe(true);
@@ -29021,16 +29018,33 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true when an approved report is waiting on a bank account', () => {
-            // Given two approved reports where one reimbursement is waiting on the submitter to add a bank account.
+        it.each(['isWaitingOnBankAccount', 'isWaitingForCancelledReimbursement'] as const)('rejects approved reports with %s', (flag) => {
+            // Given approved reports with a reimbursement still processing on one report.
             const approved = makeApprovedReport();
-            const waitingOnBankAccount = makeApprovedReport({isWaitingOnBankAccount: true});
+            const waitingReport = makeApprovedReport({[flag]: true});
 
-            // When an admin checks whether they can merge the reports.
-            const result = canMergeReports([approved, waitingOnBankAccount], USER_ID, undefined, undefined, undefined, adminPolicy);
+            // When an admin checks both a mixed selection and two reports waiting for payment.
+            const mixedResult = canMergeReports([approved, waitingReport], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const allWaitingResult = canMergeReports([waitingReport, makeApprovedReport({[flag]: true})], USER_ID, undefined, undefined, undefined, adminPolicy);
 
-            // Then the reports remain mergeable because the waiting report is still Approved, not Paid/reimbursed.
-            expect(result).toBe(true);
+            // Then neither selection can delete reports tied to an active reimbursement.
+            expect(mixedResult).toBe(false);
+            expect(allWaitingResult).toBe(false);
+        });
+
+        it('rejects two reimbursed reports for an admin', () => {
+            // Given reports that match each other but have already been paid.
+            const paid = {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const reports = [makeApprovedReport(paid), makeApprovedReport(paid)];
+
+            // When eligibility reaches the paid-state check rather than failing the same-state rule.
+            const result = canMergeReports(reports, USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then paid reports stay outside the merge scope.
+            expect(result).toBe(false);
         });
 
         it('returns false when all reports are approved and the current user is not an admin', async () => {

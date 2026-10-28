@@ -15333,17 +15333,16 @@ function doReportsHaveMatchingReportFieldValues(selectedReports: Array<OnyxEntry
                 const fieldType = policyField?.type ?? field.type;
                 const value = field.value ?? field.defaultValue ?? '';
                 if (fieldType === CONST.REPORT_FIELD_TYPES.LIST) {
-                    // Only use `defaultExternalID` as a fallback when the field hasn't actually been selected yet.
-                    externalID = field.externalID ?? (field.value == null ? field.defaultExternalID : undefined) ?? undefined;
+                    // Resolve unique labels from current options: field edits can retain the previous selection's ID.
                     // Keep option labels and IDs from the same source because policy options may have been reordered.
                     const optionField = policyField ?? field;
-                    if (!externalID && !!optionField.externalIDs.length) {
-                        const optionValues = optionField.values ?? [];
-                        const optionIndex = optionValues.indexOf(value);
-                        if (optionIndex !== -1 && optionIndex === optionValues.lastIndexOf(value)) {
-                            externalID = optionField.externalIDs.at(optionIndex);
-                        }
+                    const optionValues = optionField.values ?? [];
+                    const optionIndex = optionValues.indexOf(value);
+                    if (optionIndex !== -1 && optionIndex === optionValues.lastIndexOf(value)) {
+                        externalID = optionField.externalIDs?.at(optionIndex);
                     }
+                    // Duplicate labels still need the saved identity; defaults apply only to unselected fields.
+                    externalID ??= field.externalID ?? (field.value == null ? field.defaultExternalID : undefined) ?? undefined;
                 }
 
                 return [
@@ -15393,7 +15392,6 @@ function canMergeReports(
     reportOwnerLogin: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     policy: OnyxEntry<Policy>,
-    shouldValidateReportFields = true,
 ): boolean {
     // Need at least 2 reports and a valid caller identity.
     if (selectedReports.length < 2 || !currentUserAccountID) {
@@ -15447,15 +15445,7 @@ function canMergeReports(
         return true;
     };
 
-    if (!selectedReports.every(validator)) {
-        return false;
-    }
-
-    if (!shouldValidateReportFields) {
-        return true;
-    }
-
-    return doReportsHaveMatchingReportFieldValues(selectedReports, policy);
+    return selectedReports.every(validator);
 }
 
 export {

@@ -124,6 +124,7 @@ function SearchMergeReports() {
                   const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
                   return {
                       ...report,
+                      fieldList: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.fieldList ?? report.fieldList,
                       groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                       keyForList: reportID,
                       text: report.reportName ?? '',
@@ -151,27 +152,8 @@ function SearchMergeReports() {
           }, [] as string[])
         : [];
 
-    const reportsForValidation = (selectedReportIDs ?? [])
-        .map((reportID) => {
-            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-            const liveReport = allReports?.[reportKey];
-            const snapshotReport = currentSearchResults?.data?.[reportKey];
-            const report = liveReport ?? snapshotReport;
-            if (!report?.reportID) {
-                return undefined;
-            }
-
-            return {
-                ...report,
-                // An empty live field list can reflect deletions; do not restore those fields from an older snapshot.
-                fieldList: liveReport?.fieldList ?? snapshotReport?.fieldList,
-            };
-        })
-        .filter((report) => !!report);
-    const selectedPolicyID = reportsForValidation.at(0)?.policyID;
-    const selectedPolicy = selectedPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`] : undefined;
-    const hasReportFieldMismatch =
-        reportsForValidation.length > 1 && reportsForValidation.length === selectedReportIDs?.length && !doReportsHaveMatchingReportFieldValues(reportsForValidation, selectedPolicy);
+    const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`];
+    const hasReportFieldMismatch = reportItems.length > 1 && !doReportsHaveMatchingReportFieldValues(reportItems, selectedPolicy);
 
     // Ensure `allReports` and `allReportActions` are fully hydrated before merging reports.
     const isValidForMerge =
@@ -181,37 +163,31 @@ function SearchMergeReports() {
         !!destinationReport &&
         sourceReportIDs.length > 0 &&
         reportItems.length === selectedReportIDs?.length &&
-        reportsForValidation.length === selectedReportIDs?.length &&
         !hasReportFieldMismatch &&
         canMergeReports(
-            reportsForValidation,
+            reportItems,
             currentUserPersonalDetails.accountID,
             rules,
             getLoginByAccountID(reportItems.at(0)?.ownerAccountID, personalDetails),
             reportNameValuePairs,
-            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItems.at(0)?.policyID}`],
-            false,
+            selectedPolicy,
         );
 
-    // Search snapshots can contain export actions/report fields that are not hydrated into live Onyx yet, such as immediately after login.
+    // Include snapshot export history before hydration and live optimistic exports queued offline.
     const shouldShowExportWarning = reportItems.some((report) => {
         const liveReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? [];
         const snapshotReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
         const snapshotReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? [];
-        return isReportExportedOrPending(liveReportActions, report) || isReportExportedOrPending(snapshotReportActions, snapshotReport);
+        const liveReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
+        return isReportExportedOrPending(liveReportActions, liveReport ?? report) || isReportExportedOrPending(snapshotReportActions, snapshotReport);
     });
 
     const mergeSelectedReports = () => {
-        if (!allReports || !destinationReportID || !destinationReport || !isValidForMerge) {
+        if (!destinationReportID || !destinationReport || !isValidForMerge) {
             return;
         }
 
         const policyID = destinationReport.policyID;
-        const allReportsForMerge = {...allReports};
-        for (const report of reportsForValidation) {
-            allReportsForMerge[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
-        }
-
         mergeReports({
             isVendorMatchingBetaEnabled,
             destinationReportID,
@@ -223,7 +199,7 @@ function SearchMergeReports() {
             policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
             policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},
             allTransactionViolation: transactionViolations,
-            allReports: allReportsForMerge,
+            allReports,
             allReportActions,
             allReportsTransactions,
             bankAccountList,
@@ -292,6 +268,7 @@ function SearchMergeReports() {
                                 buttonText={translate('common.confirm')}
                                 onSubmit={mergeSelectedReports}
                                 message={hasReportFieldMismatch ? translate('search.mergeReports.reportFieldsMismatch') : ''}
+                                isMessageHtml
                                 isAlertVisible={hasReportFieldMismatch}
                                 isDisabled={!isValidForMerge}
                                 enabledWhenOffline
