@@ -3,7 +3,10 @@ import {fireEvent, screen} from '@testing-library/dom';
 
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 
+import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
+import type {ReportMetadata} from '@src/types/onyx';
 
 import type {View} from 'react-native';
 import type * as Reanimated from 'react-native-reanimated';
@@ -11,6 +14,8 @@ import type * as Reanimated from 'react-native-reanimated';
 import React, {act, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import Animated, {useReducedMotion} from 'react-native-reanimated';
+
+let mockPendingExpenseAction: ReportMetadata['pendingExpenseAction'];
 
 // The shared Reanimated mock removes exiting views immediately, hiding this regression.
 // Render the real web implementation so it retains exiting views just as the browser does.
@@ -39,7 +44,7 @@ jest.mock('react-native-reanimated/src/css/platform', () => jest.requireActual<R
 jest.mock('react-native-reanimated/src/createAnimatedComponent/AnimatedComponent', () =>
     jest.requireActual<Record<string, unknown>>('react-native-reanimated/src/createAnimatedComponent/AnimatedComponent.tsx'),
 );
-jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined]));
+jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockPendingExpenseAction]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({justifyContentCenter: {justifyContent: 'center'}})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -102,6 +107,7 @@ describe('AnimatedSubmitButton web animations', () => {
         // The shared setup switches back to real timers; phase transitions in this suite must be deterministic.
         jest.useFakeTimers();
         jest.clearAllMocks();
+        mockPendingExpenseAction = undefined;
         jest.mocked(useReducedMotion).mockReturnValue(false);
         // jsdom has no layout; the exit implementation needs an offset parent to retain its DOM clone.
         jest.spyOn(HTMLElement.prototype, 'offsetParent', 'get').mockImplementation(() => container);
@@ -198,6 +204,7 @@ describe('AnimatedSubmitButton web animations', () => {
         }
         const animationName = animation.name;
         expect(animationStyle).toHaveProperty('animationDuration', isReducedMotionEnabled ? 0 : CONST.ANIMATION_SUBMIT_DURATION);
+        expect(animationStyle).toHaveProperty('animationDelay', CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION);
         expect(animationStyle).toHaveProperty('animationFillMode', 'forwards');
         expect(animationProps?.onCSSAnimationCancel).toBeUndefined();
         expect(onAnimationFinish).not.toHaveBeenCalled();
@@ -231,5 +238,92 @@ describe('AnimatedSubmitButton web animations', () => {
         expect(onAnimationFinish).not.toHaveBeenCalled();
         expect(screen.getByRole('button', {name: 'Submit via PDF'})).toBeTruthy();
         expect(screen.queryByRole('button', {name: /^(Submitting|common\.submitted)$/})).toBeNull();
+    });
+
+    it.each(['restart', 'report change'])('starts a fresh loading phase after %s', async (transition) => {
+        // Given an animation that has reached its Submitted phase
+        const props = {text: 'Submit', onPress: jest.fn(), onAnimationFinish: jest.fn(), reportID: '1'};
+        const renderButton = (isSubmittingAnimationRunning: boolean, reportID = '1') =>
+            root.render(
+                <AnimatedSubmitButton
+                    {...props}
+                    reportID={reportID}
+                    isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                />,
+            );
+        act(() => renderButton(true));
+        act(() => jest.advanceTimersByTime(CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION));
+        expect(screen.getByRole('button', {name: 'common.submitted'})).toBeTruthy();
+
+        // When the animation stops and restarts, or the active report changes without leaving the header
+        if (transition === 'restart') {
+            act(() => renderButton(false));
+        }
+        act(() => renderButton(true, transition === 'report change' ? '2' : '1'));
+
+        // Then mounting a new animation resets its phase immediately, without a reset Effect or stale Submitted frame
+        expect(screen.getByRole('button', {name: 'Submitting'})).toBeTruthy();
+        expect(screen.queryByRole('button', {name: 'common.submitted'})).toBeNull();
+        expect(jest.mocked(Animated.View).mock.calls.findLast(([animationProps]) => animationProps.onCSSAnimationEnd)?.[0].style).toHaveProperty('animationName', 'none');
+        expect(props.onAnimationFinish).not.toHaveBeenCalled();
+    });
+
+    it('derives the DEW loading phase from backend metadata instead of the loading timer', () => {
+        // Given a DEW submission whose backend command is still pending
+        mockPendingExpenseAction = CONST.EXPENSE_PENDING_ACTION.SUBMIT;
+        const button = (
+            <AnimatedSubmitButton
+                text="Submit"
+                onPress={jest.fn()}
+                onAnimationFinish={jest.fn()}
+                isSubmittingAnimationRunning
+                isDEWSubmission
+                reportID="1"
+            />
+        );
+        act(() => root.render(button));
+
+        // When more than the ordinary loading duration passes, and then the backend completes the submission
+        act(() => jest.advanceTimersByTime(CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION * 3));
+        expect(screen.getByRole('button', {name: 'Submitting'})).toBeTruthy();
+        mockPendingExpenseAction = undefined;
+        act(() => root.render(React.cloneElement(button)));
+
+        // Then backend state directly selects Submitted and the CSS delay, with no Effect copying it into local state
+        expect(screen.getByRole('button', {name: 'common.submitted'})).toBeTruthy();
+        expect(jest.mocked(Animated.View).mock.calls.findLast(([animationProps]) => animationProps.onCSSAnimationEnd)?.[0].style).toHaveProperty(
+            'animationDelay',
+            CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION,
+        );
+        expect(clearPendingExpenseAction).not.toHaveBeenCalled();
+    });
+
+    it('keeps a failed DEW submission out of the Submitted phase after clearing its external metadata', () => {
+        // Given a failed backend submission, which must fade immediately rather than briefly display Submitted
+        mockPendingExpenseAction = CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED;
+        const onAnimationFinish = jest.fn();
+        const button = (
+            <AnimatedSubmitButton
+                text="Submit"
+                onPress={jest.fn()}
+                onAnimationFinish={onAnimationFinish}
+                isSubmittingAnimationRunning
+                isDEWSubmission
+                reportID="1"
+            />
+        );
+        act(() => root.render(button));
+        expect(clearPendingExpenseAction).toHaveBeenCalledTimes(1);
+        expect(clearPendingExpenseAction).toHaveBeenCalledWith('1');
+
+        // When the action clears the failure in Onyx and the subscription re-renders the same animation
+        mockPendingExpenseAction = undefined;
+        act(() => root.render(React.cloneElement(button)));
+
+        // Then the remembered failure still has no Submitted label or success-display delay
+        expect(screen.getByRole('button', {name: 'Submit'})).toBeTruthy();
+        expect(screen.queryByRole('button', {name: 'common.submitted'})).toBeNull();
+        expect(jest.mocked(Animated.View).mock.calls.findLast(([animationProps]) => animationProps.onCSSAnimationEnd)?.[0].style).toHaveProperty('animationDelay', 0);
+        expect(onAnimationFinish).not.toHaveBeenCalled();
     });
 });
