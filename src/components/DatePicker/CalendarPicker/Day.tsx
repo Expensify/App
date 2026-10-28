@@ -16,8 +16,6 @@ type DayProps = {
     selected?: boolean;
     pressed?: boolean;
     hovered?: boolean;
-
-    /** Whether the day is today */
     today?: boolean;
 
     /** date to show */
