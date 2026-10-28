@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
@@ -9,6 +10,7 @@ import {
     createCopySettingsEligibleTargetsSelector,
     createFilteredPoliciesInfoSelector,
     createIOURequestStartPoliciesSelector,
+    createMemberCustomFieldsSelector,
     createPoliciesByIDsSelector,
     createWorkspaceListPoliciesSelector,
     isAdminForPolicyByIDSelector,
@@ -194,6 +196,55 @@ describe('createPoliciesByIDsSelector', () => {
         const result = createPoliciesByIDsSelector(['1', '2'])(allPolicies);
         expect(result[`${P}1`]).toBe(policy1);
         expect(result[`${P}2`]).toBe(policy2);
+    });
+});
+
+describe('createMemberCustomFieldsSelector', () => {
+    const P = ONYXKEYS.COLLECTION.POLICY;
+
+    const allPolicies = {
+        [`${P}1`]: buildPolicy({
+            id: '1',
+            name: 'Workspace 1',
+            employeeList: {
+                'a@b.com': {
+                    email: 'a@b.com',
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeUserID: 'U1',
+                    employeePayrollID: 'P1',
+                    pendingFields: {employeeUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
+                'c@d.com': {email: 'c@d.com', role: CONST.POLICY.ROLE.ADMIN},
+            },
+        }),
+        [`${P}2`]: buildPolicy({id: '2', name: 'Workspace 2', employeeList: {'e@f.com': {email: 'e@f.com', employeeUserID: 'U2'}}}),
+        [`${P}3`]: buildPolicy({id: '3', name: 'Workspace 3'}),
+    };
+
+    it('returns only the custom fields of each member of the requested policies', () => {
+        // Given a collection with more policies than requested and members carrying fields beyond the custom ones
+        // When the selector runs for a subset of the policy IDs
+        // Then only those policies come back, with only the two custom field values per member
+        expect(createMemberCustomFieldsSelector(['1'])(allPolicies)).toEqual({
+            '1': {
+                'a@b.com': {employeeUserID: 'U1', employeePayrollID: 'P1'},
+                'c@d.com': {employeeUserID: undefined, employeePayrollID: undefined},
+            },
+        });
+    });
+
+    it('omits a requested policy that is missing or has no employee list', () => {
+        // Given a requested ID with no policy in the collection and one whose policy has no employee list
+        // When the selector runs
+        // Then neither appears in the output
+        expect(createMemberCustomFieldsSelector(['3', 'missing', '2'])(allPolicies)).toEqual({'2': {'e@f.com': {employeeUserID: 'U2', employeePayrollID: undefined}}});
+    });
+
+    it('returns an empty object when the collection is undefined', () => {
+        // Given a collection that has not loaded yet
+        // When the selector runs
+        // Then it returns an empty object rather than throwing
+        expect(createMemberCustomFieldsSelector(['1'])(undefined)).toEqual({});
     });
 });
 
