@@ -360,7 +360,6 @@ type ReportFieldTransactionState = {
     reportID: Transaction['reportID'];
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
-    isScanRequest: boolean;
 };
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
@@ -371,7 +370,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
         participantReportID: t.participants?.at(0)?.reportID,
-        isScanRequest: isScanRequest(t),
     };
 };
 

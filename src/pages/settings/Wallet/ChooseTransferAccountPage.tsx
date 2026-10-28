@@ -26,7 +26,7 @@ import type {AccountData, BankAccount} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type BankAccountListItem = ListItem & {
@@ -68,41 +68,42 @@ function ChooseTransferAccountPage() {
     const [draftAccountID, setDraftAccountID] = useState<string>();
     const currentSelectedAccountID = draftAccountID ?? selectedAccountID;
 
-    const bankAccountOptions = useMemo(() => {
-        const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
-            const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
-            const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
-            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
-            return {
-                value: bankAccountID,
-                text: bankAccount.title,
-                leftElement: icon ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
-                        <Icon
-                            src={icon}
-                            width={iconSize}
-                            height={iconSize}
-                            additionalStyles={iconStyles}
-                        />
-                    </View>
-                ) : null,
-                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: `${bankAccountID}-${index}`,
-                isSelected: bankAccountID?.toString() === currentSelectedAccountID,
-                bankAccount,
-            };
+    const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
+        const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
+        const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+        const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
+        const {icon, iconSize, iconStyles} = getBankIcon({
+            bankName,
+            styles,
         });
-        return options;
-    }, [bankAccountsList, currentSelectedAccountID, styles, translate]);
+        return {
+            value: bankAccountID,
+            text: bankAccount.title,
+            leftElement: icon ? (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+                    <Icon
+                        src={icon}
+                        width={iconSize}
+                        height={iconSize}
+                        additionalStyles={iconStyles}
+                    />
+                </View>
+            ) : null,
+            alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+            keyForList: `${bankAccountID}-${index}`,
+            isSelected: bankAccountID?.toString() === currentSelectedAccountID,
+            bankAccount,
+        };
+    });
+    const bankAccountOptions = options;
 
-    const initiallyFocusedItemKey = useMemo(() => {
-        if (!selectedAccountID) {
-            return undefined;
-        }
+    let initiallyFocusedItemKey;
+    if (!selectedAccountID) {
+        initiallyFocusedItemKey = undefined;
+    } else {
         const selectedOption = bankAccountOptions.find((option) => option.value?.toString() === selectedAccountID.toString());
-        return selectedOption?.keyForList;
-    }, [bankAccountOptions, selectedAccountID]);
+        initiallyFocusedItemKey = selectedOption?.keyForList;
+    }
 
     const saveTransferAccount = () => {
         const selectedOption = bankAccountOptions.find((option) => option.value?.toString() === currentSelectedAccountID);

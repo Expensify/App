@@ -12,7 +12,7 @@
  *
  * A file where one function violates the Rules of React reports `memoized: false`,
  * rather than the partial memoization the compiler would otherwise emit for its remaining functions.
- * `didBothCompilersMemoizeFile` relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
+ * The ESLint processor relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
  *
  * `status` and `memoized` answer different questions and are derived separately. `memoized` comes
  * only from the emitted memo cache: targeting React 19 the compiler can memoize solely by importing
@@ -20,7 +20,7 @@
  * additionally counts a file the compiler rewrote without memoizing it as `compiled`. Deriving
  * `memoized` from that same rewrite would overstate it -- the compiler perturbs output for reasons
  * that have nothing to do with memoization, such as expanding a concise arrow body or dropping a
- * comment, and Babel reports no memo blocks for every file in `src/` where it does.
+ * comment.
  */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
@@ -137,4 +137,27 @@ function checkReactCompilerWithOxc(source, filename) {
     }
 }
 
+/**
+ * Paths lint never compiles: tests and node_modules. Shared by the lint pipeline, its worker and the
+ * oxlint gate so every caller skips the same files.
+ * @param {string} filename
+ * @returns {boolean}
+ */
+function shouldSkipReactCompiler(filename) {
+    const normalized = filename.split(path.sep).join('/');
+    return normalized.includes('/tests/') || normalized.startsWith('tests/') || normalized.includes('node_modules/');
+}
+
+/**
+ * The one memoization verdict lint uses: false for skipped paths, otherwise whether the compiler
+ * emitted a memo cache for the whole file.
+ * @param {string} source
+ * @param {string} filename
+ * @returns {boolean}
+ */
+function isFileMemoized(source, filename) {
+    return !shouldSkipReactCompiler(filename) && checkReactCompilerWithOxc(source, filename).memoized;
+}
+
+export {isFileMemoized, shouldSkipReactCompiler};
 export default checkReactCompilerWithOxc;

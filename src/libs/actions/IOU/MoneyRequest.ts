@@ -9,6 +9,7 @@ import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
@@ -24,8 +25,10 @@ import {
     getIsFromGlobalCreate,
     isDistanceRequest,
     isExpenseUnreported,
+    isMapDistanceRequest,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import {getRouteDistanceMetersMatchingQuantity} from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -785,7 +788,12 @@ function setCustomUnitRateID(
 
             // getDistanceInMeters returns 0 only if there was not enough input to get the correct
             // distance in meters or if the current transaction distance is 0
-            if (newQuantityInMeters !== 0) {
+            // Converting the already rounded map quantity drifts by a hundredth from the route converted directly, which
+            // then reads as a typed distance and gets sent, so a quantity that is the route distance is redone from the route.
+            const routeDistanceMeters = isMapDistanceRequest(transaction) ? getRouteDistanceMetersMatchingQuantity(transaction) : undefined;
+            if (routeDistanceMeters) {
+                newQuantity = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, distanceRate.unit));
+            } else if (newQuantityInMeters !== 0) {
                 newQuantity = DistanceRequestUtils.convertDistanceUnit(newQuantityInMeters, distanceRate.unit);
             }
         }
@@ -841,6 +849,14 @@ function setCustomUnitID(transactionID: string, customUnitID: string) {
 
 function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean, distanceUnit: Unit) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
+}
+
+function clearMoneyRequestDistance(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: null}}});
+}
+
+function clearReusedRoute(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {isReusedRoute: null});
 }
 
 function setMoneyRequestCommuterExclusionFields({
@@ -1181,6 +1197,8 @@ export {
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,
     setMoneyRequestDistance,
+    clearMoneyRequestDistance,
+    clearReusedRoute,
     setMoneyRequestCommuterExclusionFields,
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,

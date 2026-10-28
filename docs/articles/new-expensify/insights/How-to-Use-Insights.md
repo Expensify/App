@@ -27,9 +27,10 @@ In the navigation tabs on the bottom, select **Spend**. Then, in the navigation 
 
 ## How to filter insights
 
-You can adjust the data shown across **Insights** using three shared filters:
+You can adjust the data shown across **Insights** using these shared filters:
 
 - **Date:** Choose the period you want to analyze.
+- **Compare:** Compare spending with the **Previous period** or the **Average**. This filter is only available on web.
 - **Workspace:** Choose which workspace expenses to include.
 - **Group currency:** Choose the currency used to group spending amounts.
 
