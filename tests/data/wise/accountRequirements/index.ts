@@ -7,6 +7,8 @@ import CAD from './CAD.json';
 import EUR from './EUR.json';
 import GBP from './GBP.json';
 import INR from './INR.json';
+import JPY_BANK_1000 from './JPY-bank-1000.json';
+import JPY_BANK_6677 from './JPY-bank-6677.json';
 import JPY from './JPY.json';
 import KRW from './KRW.json';
 import MXN from './MXN.json';
@@ -30,3 +32,16 @@ const WISE_ACCOUNT_REQUIREMENTS = {
 };
 
 export default WISE_ACCOUNT_REQUIREMENTS;
+
+/** Names the refresh Wise answers for one answered field, such as the branch list for a chosen bank */
+function getRefreshKey(currency: string, fieldKey: string, value: string): string {
+    return `${currency}:${fieldKey}=${value}`;
+}
+
+/** Wise's reply to a refresh, by getRefreshKey */
+const WISE_ACCOUNT_REQUIREMENT_REFRESHES = new Map<string, WiseAccountRequirement[]>([
+    [getRefreshKey('JPY', 'bankCode', '1000'), JPY_BANK_1000 as WiseAccountRequirement[]],
+    [getRefreshKey('JPY', 'bankCode', '6677'), JPY_BANK_6677 as WiseAccountRequirement[]],
+]);
+
+export {WISE_ACCOUNT_REQUIREMENT_REFRESHES, getRefreshKey};

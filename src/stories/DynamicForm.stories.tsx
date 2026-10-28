@@ -1,6 +1,6 @@
 import DynamicFormFlow from '@components/DynamicForm';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
-import type {DynamicFormLayout} from '@components/DynamicForm/types';
+import type {DynamicFormFlowProps, DynamicFormLayout} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
@@ -25,7 +25,7 @@ import {View} from 'react-native';
 import {useArgs} from 'storybook/preview-api';
 
 import {StoryRouterProvider} from '../../.storybook/mocks/storyRouter';
-import WISE_ACCOUNT_REQUIREMENTS from '../../tests/data/wise/accountRequirements';
+import WISE_ACCOUNT_REQUIREMENTS, {getRefreshKey, WISE_ACCOUNT_REQUIREMENT_REFRESHES} from '../../tests/data/wise/accountRequirements';
 import toWiseBankAccountFields from '../../tests/data/wise/toWiseBankAccountFields';
 import wiseBankAccountFieldsGB from '../../tests/data/wise/wiseBankAccountFieldsGB';
 
@@ -429,6 +429,9 @@ function SinglePage({fields, draftValues, isFlat}: Preset) {
 type FlowProps = Pick<Preset, 'draftValues'> & {
     schema: DynamicFormSchema;
 
+    /** Receives a changed field marked refreshOnChange, for stories that swap the schema like a server would */
+    onRefreshRequirements?: DynamicFormFlowProps['onRefreshRequirements'];
+
     /** Title of the confirmation page */
     confirmationTitle?: string;
 
@@ -446,7 +449,17 @@ type FlowProps = Pick<Preset, 'draftValues'> & {
 };
 
 /** The whole flow on a story-owned route stack: pages, resume, the entry editor pages and the confirmation are all clickable */
-function Flow({schema, draftValues, confirmationTitle = 'Let’s double check that everything looks right', layout, confirmation, isSubmitting, submitError, resetKey}: FlowProps) {
+function Flow({
+    schema,
+    draftValues,
+    confirmationTitle = 'Let’s double check that everything looks right',
+    layout,
+    confirmation,
+    isSubmitting,
+    submitError,
+    resetKey,
+    onRefreshRequirements,
+}: FlowProps) {
     const isDraftReady = useSeededDraft(draftValues);
     if (!isDraftReady) {
         return <View />;
@@ -469,7 +482,7 @@ function Flow({schema, draftValues, confirmationTitle = 'Let’s double check th
                 buildRoute={(pageName, action) => ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(undefined, pageName, action)}
                 onSubmit={(values) => alert(JSON.stringify(values, null, 4))}
                 onBack={() => alert('Left the flow')}
-                onRefreshRequirements={(inputID, value) => console.debug('Refresh requirements', inputID, value)}
+                onRefreshRequirements={onRefreshRequirements ?? ((inputID, value) => console.debug('Refresh requirements', inputID, value))}
                 layout={layout}
                 hasConfirmation={hasConfirmation}
                 isSubmitting={isSubmitting}
@@ -614,7 +627,10 @@ type WiseFromRequirementsProps = Pick<FlowProps, 'layout' | 'confirmation'> & {
 /** The form the adapter builds from a real Wise account-requirements response, so each fetched currency can be looked at */
 function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: WiseFromRequirementsProps) {
     const {translate} = useLocalize();
-    const bankAccountFields = toWiseBankAccountFields(currency.slice(0, 2), currency, WISE_ACCOUNT_REQUIREMENTS[currency], isDomestic);
+    // A refresh answers like the server would: the reply Wise gave for that answer, when one was captured
+    const [refreshKey, setRefreshKey] = useState<string>();
+    const requirements = (refreshKey && WISE_ACCOUNT_REQUIREMENT_REFRESHES.get(refreshKey)) || WISE_ACCOUNT_REQUIREMENTS[currency];
+    const bankAccountFields = toWiseBankAccountFields(currency.slice(0, 2), currency, requirements, isDomestic);
     if (!bankAccountFields) {
         return <Text style={defaultStyles.textHeadlineLineHeightXXL}>Wise returned no payout type for {currency}</Text>;
     }
@@ -622,6 +638,7 @@ function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: 
         <>
             <Text style={[defaultStyles.textSupporting, defaultStyles.ph5]}>
                 payoutType {bankAccountFields.payoutType}, answered by server: {JSON.stringify(bankAccountFields.answeredByServer)}
+                {refreshKey ? `, refreshed for ${refreshKey}` : ''}
             </Text>
             <Flow
                 resetKey={`${currency}-${String(isDomestic)}`}
@@ -630,6 +647,7 @@ function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: 
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
                 layout={layout}
                 confirmation={confirmation}
+                onRefreshRequirements={(inputID, value) => setRefreshKey(getRefreshKey(currency, inputID, typeof value === 'string' ? value : ''))}
             />
         </>
     );
