@@ -261,12 +261,28 @@ describe('MoneyRequestReportNavigation', () => {
     });
 
     describe('first page refetch', () => {
-        it('moves the params back to the first page when a refetch drops the pages Next loaded', () => {
-            // Given Next loaded page 2 (the last one), then Submit refetched the first page, which replaced the snapshot
+        it('loads the dropped page again when a refetch replaces the snapshot with the first page', () => {
+            // Given Next loaded page 2 (the last one), then Pay refetched the first page, which replaced the snapshot
+            jest.mocked(search).mockClear();
             jest.mocked(saveLastSearchParams).mockClear();
+            renderNavigationOnFirstPage('40', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, {offset: 0, hasMoreResults: true});
+
+            // Then page 2 is requested again without a loading state, because each Next press remounts the navigation and it only shows for a report the snapshot holds
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, skipWaitForWrites: true, shouldShowLoading: false}));
+            expect(search).not.toHaveBeenCalledWith(expect.objectContaining({shouldUpdateLastSearchParams: true}));
+            expect(saveLastSearchParams).not.toHaveBeenCalled();
+        });
+
+        it('moves the params back to the first page when loading the dropped page fails', async () => {
+            // Given Next loaded page 2 (the last one), Pay refetched the first page, and loading page 2 again fails
+            jest.mocked(saveLastSearchParams).mockClear();
+            jest.mocked(search).mockReturnValueOnce(Promise.resolve(undefined));
             const lastSearchQuery = renderNavigationOnFirstPage('40', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, {offset: 0, hasMoreResults: true});
 
-            // Then the params follow the snapshot back to the first page, so Next requests page 2 again instead of stopping at report 50
+            // When the request settles
+            await Promise.resolve();
+
+            // Then the params follow the snapshot back to the first page, so Next requests page 2 itself instead of stopping at report 50
             expect(saveLastSearchParams).toHaveBeenCalledWith({
                 ...lastSearchQuery,
                 offset: 0,

@@ -57,8 +57,6 @@ const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !
 
 const searchOffsetSelector = (snapshot: OnyxEntry<SearchResults>): number | undefined => snapshot?.search?.offset;
 
-const searchHasMoreResultsSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.hasMoreResults;
-
 /**
  * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
  * the "0" placeholder rather than a real report, so paging onto it lands the user on an empty report. It also
@@ -135,7 +133,6 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
     const [snapshotOffset] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchOffsetSelector});
-    const [snapshotHasMoreResults = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchHasMoreResultsSelector});
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
     // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts
@@ -173,15 +170,27 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             return;
         }
 
-        // Refetching the first page (e.g. after Submit or Pay) replaces the snapshot and drops the pages Next loaded.
-        // Follow the snapshot back to that page, so Next loads the dropped pages again instead of stopping at its end.
         if (!isSearchLoading && snapshotOffset !== undefined && (lastSearchQuery.offset ?? 0) > snapshotOffset) {
-            saveLastSearchParams({
-                ...lastSearchQuery,
-                offset: snapshotOffset,
-                hasMoreResults: snapshotHasMoreResults,
-                previousLengthOfResults: effectiveAllReports.length,
-                allowPostSearchRecount: false,
+            const searchParamsBeforeRefetch = lastSearchQuery;
+            search({
+                queryJSON: lastSearchQuery.queryJSON,
+                offset: snapshotOffset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                shouldCalculateTotals: false,
+                searchKey: lastSearchQuery.searchKey,
+                isLoading: isSearchLoading,
+                skipWaitForWrites: true,
+                shouldShowLoading: false,
+            })?.then((jsonCode) => {
+                if (jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    return;
+                }
+                saveLastSearchParams({
+                    ...searchParamsBeforeRefetch,
+                    offset: snapshotOffset,
+                    hasMoreResults: true,
+                    previousLengthOfResults: effectiveAllReports.length,
+                    allowPostSearchRecount: false,
+                });
             });
             return;
         }
@@ -212,7 +221,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery, isSearchLoading, snapshotOffset, snapshotHasMoreResults]);
+    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery, isSearchLoading, snapshotOffset]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
