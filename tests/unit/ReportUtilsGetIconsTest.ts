@@ -124,9 +124,6 @@ beforeAll(() => {
             ...FAKE_POLICIES,
         },
     });
-    // @ts-expect-error Until we add NVP_PRIVATE_DOMAINS to ONYXKEYS, we need to mock it here
-
-    Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
 });
 
 describe('getIcons', () => {

@@ -39,10 +39,7 @@ jest.mock('@components/ButtonWithDropdownMenu', () => ({
     __esModule: true,
     default: (props: MockButtonProps) => mockButtonWithDropdownMenu(props),
 }));
-jest.mock('@components/DecisionModal', () => () => null);
-jest.mock('@components/HoldOrRejectEducationalModal', () => () => null);
-jest.mock('@components/HoldSubmitterEducationalModal', () => () => null);
-jest.mock('@components/ReportPDFDownloadModal', () => () => null);
+jest.mock('@components/Modal/FileDownloadModal', () => () => null);
 jest.mock('@components/KYCWall', () => ({
     __esModule: true,
     default: ({children}: {children: (triggerKYCFlow: jest.Mock, buttonRef: React.RefObject<null>) => React.ReactNode}) => children(jest.fn(), {current: null}),
@@ -78,7 +75,6 @@ jest.mock('@hooks/useSearchBulkActions', () => ({
         selectedTransactionReportIDs: [],
         selectedReportIDs: [],
         businessBankAccountOptions: [],
-        emptyReportsCount: 0,
         isDuplicateOptionVisible: false,
         isDuplicateReportOptionVisible: false,
         allTransactions: {},

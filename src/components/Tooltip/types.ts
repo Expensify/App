@@ -95,6 +95,9 @@ type EducationalTooltipProps = ChildrenProps &
         /** Whether the tooltip should hide during scrolling */
         shouldHideOnScroll?: boolean;
 
+        /** Whether the first display should stay hidden when the anchor starts off screen. Only applies with `shouldHideOnScroll`. */
+        shouldCheckVisibilityOnFirstDisplay?: boolean;
+
         uniqueID?: string;
     };
 

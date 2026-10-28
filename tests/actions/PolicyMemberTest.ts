@@ -14,7 +14,7 @@ import type {InvitedEmailsToAccountIDs, PolicyEmployeeList, Policy as PolicyType
 import type {NetSuiteConnection, NetSuiteConnectionConfig, NetSuiteConnectionData} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -223,6 +223,64 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
+        });
+
+        it('does not set errors in failureData when changing role to approve-only', () => {
+            const member1 = 'member1@test.com';
+            const member2 = 'member2@test.com';
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+                employeeList: {
+                    [member1]: {
+                        email: member1,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                    [member2]: {
+                        email: member2,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            const approveOnlyData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1, member2], [1, 2], CONST.POLICY.ROLE.APPROVE_ONLY);
+            expect(approveOnlyData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: {
+                                [member1]: {
+                                    email: member1,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                                [member2]: {
+                                    email: member2,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                            },
+                        }),
+                    }),
+                ]),
+            );
+
+            const adminData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1], [1], CONST.POLICY.ROLE.ADMIN);
+            expect(adminData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: expect.objectContaining({
+                                [member1]: expect.objectContaining({
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    errors: TestHelper.anyObject,
+                                }),
+                            }),
+                        }),
+                    }),
+                ]),
+            );
         });
     });
     describe('requestWorkspaceOwnerChange', () => {
@@ -1531,6 +1589,23 @@ describe('actions/PolicyMember', () => {
             expect(draft).toBeDefined();
             expect(draft?.[user1Email]).toBe(user1AccountID);
             expect(draft?.[user2Email]).toBe(user2AccountID);
+        });
+
+        it('should clear the previous arrangement choice when starting a new invite selection', async () => {
+            // Given a work-arrangement selection left by a previous invite for this workspace
+            const policyID = '1';
+            // The type for this collection key is represented by the collection prefix, not its generated member keys.
+            const arrangementDraftKey = `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}` as OnyxKey;
+            const inviteeEmail = 'new-user@example.com';
+            await Onyx.set(arrangementDraftKey, true);
+            await waitForBatchedUpdates();
+
+            // When a new set of invitees is selected
+            Member.setWorkspaceInviteMembersDraft(policyID, {[inviteeEmail]: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the new invite falls back to the workspace arrangement default
+            expect(await getOnyxValue(arrangementDraftKey)).toBeFalsy();
         });
 
         it('should update existing draft with new selections', async () => {

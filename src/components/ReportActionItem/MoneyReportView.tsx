@@ -43,8 +43,14 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+
+type BreakdownRow = {
+    label: TranslationPaths;
+    value: string;
+    show: boolean;
+};
 
 type MoneyReportViewProps = {
     report: OnyxEntry<Report>;
@@ -113,6 +119,12 @@ function MoneyReportView({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const breakdownRows: BreakdownRow[] = [
+        {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
+        {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
+        {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
+        {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
+    ];
     const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -122,34 +134,26 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    // Only used to decide whether the report field block is worth rendering.
-    // `MoneyRequestViewReportFields` builds and resolves the fields it displays itself.
     const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
-    const sortedPolicyReportFields = Object.values(fieldsByName)
-        .filter((field) => isReportFieldTargetMatchingReport(report, field))
-        .sort(({orderWeight: a}, {orderWeight: b}) => a - b);
+    const policyReportFields = Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
 
-    const isOnlyTitleFieldEnabled = sortedPolicyReportFields.every(shouldHideSingleReportField);
-    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
+    const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
+    const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions.length > 0);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
 
     const hasPendingAction = transactions.some(getTransactionPendingAction);
 
-    const renderThreadDivider = useMemo(
-        () =>
-            shouldHideThreadDividerLine ? (
-                <UnreadActionIndicator
-                    reportActionID={report?.reportID}
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                />
-            ) : (
-                <SpacerView
-                    shouldShow
-                    style={styles.reportHorizontalRule}
-                />
-            ),
-        [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
+    const renderThreadDivider = shouldHideThreadDividerLine ? (
+        <UnreadActionIndicator
+            reportActionID={report?.reportID}
+            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+        />
+    ) : (
+        <SpacerView
+            shouldShow
+            style={styles.reportHorizontalRule}
+        />
     );
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
@@ -159,19 +163,17 @@ function MoneyReportView({
                 {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
-                        {shouldDisplayReportFields &&
-                            (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
-                                // One-expense reports edit their fields in place like the report view does, instead of
-                                // opening the report field editor page. They stay one field per row though: this screen
-                                // reads as a single expense rather than a table, so the fields stack vertically here.
-                                <MoneyRequestViewReportFields
-                                    report={report}
-                                    policy={policy}
-                                    pendingAction={pendingAction}
-                                    style={styles.mt5}
-                                    shouldUseSingleColumn
-                                />
-                            )}
+                        {/* One-expense reports edit their fields in place like the multi-expense report view does, one field
+                            per row since this screen reads as a single expense rather than a table. */}
+                        {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
+                            <MoneyRequestViewReportFields
+                                report={report}
+                                policy={policy}
+                                pendingAction={pendingAction}
+                                style={styles.mt5}
+                                shouldUseSingleColumn
+                            />
+                        )}
                         {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>
@@ -210,12 +212,7 @@ function MoneyReportView({
 
                         {!!shouldShowBreakdown && (
                             <>
-                                {[
-                                    {label: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, show: shouldShowReimbursabilityRow},
-                                    {label: 'common.billable', value: formattedBillableAmount, show: shouldShowBillableRow},
-                                    {label: 'common.tax', value: formattedTaxAmount, show: shouldShowTaxRow},
-                                ]
+                                {breakdownRows
                                     .filter(({show}) => show)
                                     .map(({label, value}) => (
                                         <View
@@ -227,7 +224,7 @@ function MoneyReportView({
                                                     style={[styles.textLabelSupporting, hasPendingAction && styles.opacitySemiTransparent]}
                                                     numberOfLines={1}
                                                 >
-                                                    {translate(label as TranslationPaths)}
+                                                    {translate(label)}
                                                 </Text>
                                             </View>
                                             <View style={[styles.flexRow, styles.justifyContentCenter]}>

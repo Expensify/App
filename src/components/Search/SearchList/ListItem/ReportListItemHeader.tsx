@@ -14,6 +14,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -44,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
@@ -174,6 +175,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         style={[{maxWidth: 700}]}
                         transactions={reportItem.transactions}
                         avatarBorderColor={avatarBorderColor}
+                        // Grouped report headers sit inside pressable rows, so their title needs the selection marker too.
+                        isTitleSelectable
                     />
                 </View>
             </View>
@@ -204,7 +207,10 @@ function HeaderFirstRow<TItem extends ListItem>({
                 )}
             </View>
             {isLargeScreenWidth && (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
                     <ActionCell
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
@@ -260,16 +266,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
-    const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
-    }, [snapshot, reportItem.reportID]);
-    const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
-    }, [snapshot, reportItem.policyID]);
-    const snapshotChatReport = useMemo(() => {
-        const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
-        return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
-    }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
+    const snapshotReport = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
+    const snapshotPolicy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
+    const chatReportID = snapshotReport?.chatReportID ?? reportItem.parentReportID;
+    const snapshotChatReport = chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
     const [submitterLogin] = useAllPersonalDetailsWithoutSnapshots(personalDetailsLoginSelector(reportItem.ownerAccountID));
@@ -287,6 +287,12 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         isTrackIntentUser,
         rules,
     });
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: snapshotReport?.reportID ?? reportItem.reportID,
+        report: parentReport ?? snapshotReport,
+        policy: parentPolicy,
+        shouldShowMarkAsDoneCopy,
+    });
 
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
@@ -296,6 +302,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         currentUserLogin,
         introSelected,
         isASAPSubmitBetaEnabled,
+        isWiseReimbursementsBetaEnabled,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -303,6 +310,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         conciergeChat,
+        bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
@@ -321,6 +329,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
+            isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
@@ -337,6 +346,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            confirmSubmitReportViolations,
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
@@ -358,6 +368,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
             conciergeChat,
+            bankAccountList,
         });
     };
     return !isLargeScreenWidth ? (

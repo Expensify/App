@@ -86,7 +86,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
+    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {
         selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors) || !isEmptyObject(agent?.avatarErrors)),
     });
     const privateSubscription = usePrivateSubscription();

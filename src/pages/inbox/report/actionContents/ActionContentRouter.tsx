@@ -40,7 +40,6 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionOfType,
-    isApprovalFlowAction,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
@@ -51,7 +50,6 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
-    isSimpleMessageAction,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -70,7 +68,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import React from 'react';
 
-import ApprovalFlowContent from './ApprovalFlowContent';
+import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -93,7 +91,7 @@ import ReimbursementQueuedContent from './ReimbursementQueuedContent';
 import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
 import ReportActionMessageContent from './ReportActionMessageContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
-import SimpleMessageContent from './SimpleMessageContent';
+import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
     action: OnyxTypes.ReportAction;
@@ -138,7 +136,7 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction: boolean;
 
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
@@ -328,6 +326,7 @@ function ActionContentRouter({
             <ReimbursedContent
                 action={action}
                 reportOwnerAccountID={reportOwnerAccountID}
+                originalReport={originalReport}
             />
         );
     }

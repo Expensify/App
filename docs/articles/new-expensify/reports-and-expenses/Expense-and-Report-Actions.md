@@ -92,6 +92,7 @@ Use this guide to understand:
 
 **Workspace Admin**
 - Export reports
+- Reject reports
 - Delete Draft reports on their workspace, including Draft reports submitted by other members
 - Mark reports as exported
 - Change approver
@@ -148,6 +149,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Duplicate expense** | Non-card expenses | Submitter | Creates a copy of an expense |
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
 | **Download report** | Any report | All roles (Submitter only on Draft reports) | Downloads a PDF copy |
+| **Share** | Any report | All roles | Opens **Share code**, **Refer a friend**, and **Copy URL**. On expense reports that aren't Draft, the submitter, approver, and workspace admin also see **Share report**, which emails the report to one person you choose |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver, Admin | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
@@ -161,7 +163,7 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
-| **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
+| **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense with the same details. The copy is added to the same report if it can still accept expenses, or to your primary workspace if not. Date is set to today and receipts are not copied |
 | **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
 | **Download report** | Any report state | All roles on reports that aren't Draft. Submitter only on Draft reports, including reports rejected back to the submitter | Downloads a copy of the report as a PDF |
 | **Print** | Any report status except Draft | All roles | Opens the report in a printable format and triggers the browser's print dialog |

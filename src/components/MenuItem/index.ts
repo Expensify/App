@@ -52,6 +52,7 @@ import MenuItemExternalLink from './leaves/trailing/MenuItemExternalLink';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- The barrel attaches the compound API to the legacy component. This is not a usage.
 const MenuItem = Object.assign(LegacyMenuItem, {
     Root: MenuItemRoot,
     Row: MenuItemRow,

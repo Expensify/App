@@ -38,12 +38,56 @@ let mockCapturedPolicyExpenseChatAvatarProps: Record<string, unknown> = {};
 
 let mockCapturedTaskReportAvatarProps: Record<string, unknown> = {};
 
+let mockCapturedRoomAvatarProps: Record<string, unknown> = {};
+
+let mockCapturedInvoiceReportAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/InvoiceReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedInvoiceReportAvatarProps = props;
+        return <View testID="MockedInvoiceReportAvatar" />;
+    };
+});
+
 jest.mock('@components/Avatar/connected/TaskReportAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         mockCapturedTaskReportAvatarProps = props;
         return <View testID="MockedTaskReportAvatar" />;
+    };
+});
+
+jest.mock('@components/Avatar/connected/RoomAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedRoomAvatarProps = props;
+        return <View testID="MockedRoomAvatar" />;
+    };
+});
+
+let mockCapturedDefaultReportAvatarProps: Record<string, unknown> = {};
+
+let mockCapturedTripRoomAvatarProps: Record<string, unknown> = {};
+
+jest.mock('@components/Avatar/connected/TripRoomAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedTripRoomAvatarProps = props;
+        return <View testID="MockedTripRoomAvatar" />;
+    };
+});
+
+jest.mock('@components/Avatar/connected/DefaultReportAvatar', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return (props: Record<string, unknown>) => {
+        mockCapturedDefaultReportAvatarProps = props;
+        return <View testID="MockedDefaultReportAvatar" />;
     };
 });
 
@@ -106,6 +150,10 @@ describe('ReportAvatar (connected)', () => {
         mockCapturedAccountAvatarProps = {};
         mockCapturedPolicyExpenseChatAvatarProps = {};
         mockCapturedTaskReportAvatarProps = {};
+        mockCapturedRoomAvatarProps = {};
+        mockCapturedDefaultReportAvatarProps = {};
+        mockCapturedTripRoomAvatarProps = {};
+        mockCapturedInvoiceReportAvatarProps = {};
     });
 
     afterEach(async () => {
@@ -115,13 +163,7 @@ describe('ReportAvatar (connected)', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it.each([
-        ['an IOU report', {type: CONST.REPORT.TYPE.IOU}],
-        ['an invoice report', {type: CONST.REPORT.TYPE.INVOICE}],
-        ['a room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
-        ['a trip room without its parent fields', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
-        ['a DM', {type: CONST.REPORT.TYPE.CHAT}],
-    ] as const)('should render the legacy component for %s until its wrapper exists', async (_case, reportOverrides) => {
+    it.each([['an IOU report', {type: CONST.REPORT.TYPE.IOU}]] as const)('should render the legacy component for %s until its wrapper exists', async (_case, reportOverrides) => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, ...reportOverrides});
         await waitForBatchedUpdatesWithAct();
 
@@ -317,6 +359,113 @@ describe('ReportAvatar (connected)', () => {
         });
     });
 
+    it.each([
+        ['an admins room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}],
+        ['an announce room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE}],
+        ['a user-created room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}],
+        ['a domain room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL}],
+        ['an invoice room', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.INVOICE}],
+        ['a room whose type has not populated yet', {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}],
+    ] as const)('should render RoomAvatar for %s', async (_case, reportOverrides) => {
+        // Given a room in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, ...reportOverrides});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it
+        render(<ReportAvatar reportID={REPORT_ID} />);
+
+        // Then the room routes to its wrapper instead of ReportActionAvatars
+        expect(screen.getByTestId('MockedRoomAvatar')).toBeOnTheScreen();
+        expect(screen.queryByTestId('MockedReportActionAvatars')).not.toBeOnTheScreen();
+        expect(mockCapturedRoomAvatarProps.reportID).toBe(REPORT_ID);
+    });
+
+    it.each([
+        ['the single container style outside a horizontal stack', undefined, [{marginRight: 12}]],
+        ['no single container style inside a horizontal stack', {maxRows: 2}, []],
+    ])('should render InvoiceReportAvatar for an invoice report with %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given an invoice report in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.INVOICE});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the wrapper gets both container styles but no stacking options, because no caller stacks an invoice report
+        expect(screen.getByTestId('MockedInvoiceReportAvatar')).toBeOnTheScreen();
+        expect(mockCapturedInvoiceReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            containerStyle: expectedContainerStyle,
+            subscriptContainerStyle: [{marginRight: 0}],
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it('should render RoomAvatar for a room with the layout container styles resolved', async () => {
+        // Given a room in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM});
+        await waitForBatchedUpdatesWithAct();
+
+        const singleAvatarContainerStyle = [{marginRight: 12}];
+        const subscriptAvatarContainerStyle = [{marginRight: 0}];
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={singleAvatarContainerStyle}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={subscriptAvatarContainerStyle}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the wrapper gets each container style under its layout-specific name
+        expect(mockCapturedRoomAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            backdropColor: '#ff0000',
+            containerStyle: singleAvatarContainerStyle,
+            subscriptContainerStyle: subscriptAvatarContainerStyle,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it('should hand a room the stacking props and drop its single container styles inside a horizontal stack', async () => {
+        // Given a room in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.INVOICE});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it inside a horizontal stack
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                horizontalStacking={{maxRows: 2}}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+            />,
+        );
+
+        // Then the single layout loses its container styles, and the wrapper gets the stacking options and the sort
+        expect(mockCapturedRoomAvatarProps.containerStyle).toEqual([]);
+        expect(mockCapturedRoomAvatarProps.horizontalStacking).toEqual({maxRows: 2});
+        expect(mockCapturedRoomAvatarProps.sort).toBe(CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE);
+    });
+
     it('should render ChatThreadAvatar for a trip room, which is a thread of its trip preview', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
             reportID: REPORT_ID,
@@ -374,8 +523,100 @@ describe('ReportAvatar (connected)', () => {
         expect(mockCapturedGroupChatAvatarProps.containerStyle).toEqual([]);
     });
 
-    it('should forward every prop to the legacy component verbatim', async () => {
+    it.each([
+        ['a DM', {type: CONST.REPORT.TYPE.CHAT}],
+        ['a self DM', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}],
+        ['the system chat', {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}],
+        ['a trip room whose type has not populated yet', {chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM}],
+        ['a report with neither a type nor a chat type', {}],
+        ['a support ticket', {type: CONST.REPORT.TYPE.SUPPORT_TICKET}],
+        ['an unsupported report type', {type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK}],
+        ['a report that has not loaded', null],
+    ] as const)('should render DefaultReportAvatar for %s', async (_case, reportOverrides) => {
+        // Given a report without a dedicated avatar, or no report row at all
+        if (reportOverrides) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, ...reportOverrides});
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        // When the dispatcher renders it
+        render(<ReportAvatar reportID={REPORT_ID} />);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it routes to the default wrapper instead of ReportActionAvatars
+        expect(screen.getByTestId('MockedDefaultReportAvatar')).toBeOnTheScreen();
+        expect(screen.queryByTestId('MockedReportActionAvatars')).not.toBeOnTheScreen();
+        expect(mockCapturedDefaultReportAvatarProps.reportID).toBe(REPORT_ID);
+    });
+
+    it.each([
+        ['outside a horizontal stack, with the single container style', undefined, [{marginRight: 12}]],
+        ['inside a horizontal stack, without container styles', {maxRows: 2}, []],
+    ])('should hand a DM its props %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given a DM in Onyx
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then the wrapper gets only the single container style, emptied inside a stack
+        expect(mockCapturedDefaultReportAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            containerStyle: expectedContainerStyle,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it.each([
+        ['outside a horizontal stack, with the single container style', undefined, [{marginRight: 12}]],
+        ['inside a horizontal stack, without container styles', {maxRows: 2}, []],
+    ])('should hand a trip room without its parent fields to TripRoomAvatar %s', async (_case, horizontalStacking, expectedContainerStyle) => {
+        // Given a trip room missing its parent fields
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the dispatcher renders it with every prop
+        render(
+            <ReportAvatar
+                reportID={REPORT_ID}
+                size={CONST.AVATAR_SIZE.SMALL}
+                singleAvatarContainerStyle={[{marginRight: 12}]}
+                backdropColor="#ff0000"
+                subscriptAvatarContainerStyle={[{marginRight: 0}]}
+                horizontalStacking={horizontalStacking}
+                sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE}
+                fallbackDisplayName={FALLBACK_NAME}
+            />,
+        );
+
+        // Then TripRoomAvatar gets the stacking props and the single container style, emptied inside a stack
+        expect(screen.getByTestId('MockedTripRoomAvatar')).toBeOnTheScreen();
+        expect(screen.queryByTestId('MockedDefaultReportAvatar')).not.toBeOnTheScreen();
+        expect(mockCapturedTripRoomAvatarProps).toEqual({
+            reportID: REPORT_ID,
+            size: CONST.AVATAR_SIZE.SMALL,
+            containerStyle: expectedContainerStyle,
+            horizontalStacking,
+            sort: CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE,
+            fallbackDisplayName: FALLBACK_NAME,
+        });
+    });
+
+    it('should forward every prop to the legacy component verbatim', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID, type: CONST.REPORT.TYPE.IOU});
         await waitForBatchedUpdatesWithAct();
 
         const singleAvatarContainerStyle = [{marginRight: 12}];
