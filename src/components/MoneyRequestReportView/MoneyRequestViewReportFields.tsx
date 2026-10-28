@@ -36,7 +36,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ReportFieldInlineInput from './ReportFieldInlineInput';
@@ -143,46 +143,39 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         deleteReportField(report.reportID, report.fieldList?.[reportField.fieldKey] ?? reportField);
     };
 
-    const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
-        const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
-        const fields = Object.values(fieldsByName);
+    const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+    const fields = Object.values(fieldsByName);
+    const sortedPolicyReportFields: EnrichedPolicyReportField[] = fields
+        .filter((field) => isReportFieldTargetMatchingReport(report, field))
+        .filter((reportField) => !shouldHideSingleReportField(reportField))
+        .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
+        .map((field): EnrichedPolicyReportField => {
+            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin);
+            const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
+            const fieldKey = getReportFieldKey(field.fieldID);
+            const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
+            const isEditable = !isFieldDisabled || isDeletedFormulaField;
 
-        return fields
-            .filter((field) => isReportFieldTargetMatchingReport(report, field))
-            .filter((reportField) => !shouldHideSingleReportField(reportField))
-            .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
-            .map((field): EnrichedPolicyReportField => {
-                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin);
-                const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
-                const fieldKey = getReportFieldKey(field.fieldID);
-                const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
-                const isEditable = !isFieldDisabled || isDeletedFormulaField;
-
-                // An input the user can type into is seeded with the raw value, the same as the report field editor page.
-                // Seeding it with the computed value would save the resolved text over a `{field:X}` default the first
-                // time it was edited, so the field would stop following the field it refers to.
-                const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
-                const fieldValue = shouldUseRawValue
-                    ? (field.value ?? field.defaultValue ?? '')
-                    : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
-
-                const violation = isFieldDisabled ? undefined : getFieldViolation(field);
-                const violationTranslation = getFieldViolationTranslation(field, violation);
-
-                return {
-                    ...field,
-                    fieldValue,
-                    isFieldDisabled: !isEditable,
-                    // Only fields that are no longer on the workspace can be deleted. Their `deletable` flag is not
-                    // checked: once the workspace drops a field, whether it was required no longer applies, and the
-                    // report's copy of a date field can still be flagged as not deletable.
-                    isFieldDeletable: field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
-                    fieldKey,
-                    violation,
-                    violationTranslation,
-                };
-            });
-    }, [policy, report, currentUserAccountID, reportNameValuePairs, getCurrencyDecimals, rules, reportOwnerLogin]);
+            // An input the user can type into is seeded with the raw value, the same as the report field editor page.
+            // Seeding it with the computed value would save the resolved text over a `{field:X}` default the first
+            // time it was edited, so the field would stop following the field it refers to.
+            const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+            const fieldValue = shouldUseRawValue ? (field.value ?? field.defaultValue ?? '') : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
+            const violation = isFieldDisabled ? undefined : getFieldViolation(field);
+            const violationTranslation = getFieldViolationTranslation(field, violation);
+            return {
+                ...field,
+                fieldValue,
+                isFieldDisabled: !isEditable,
+                // Only fields that are no longer on the workspace can be deleted. Their `deletable` flag is not
+                // checked: once the workspace drops a field, whether it was required no longer applies, and the
+                // report's copy of a date field can still be flagged as not deletable.
+                isFieldDeletable: field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
+                fieldKey,
+                violation,
+                violationTranslation,
+            };
+        });
 
     // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
     // If no displayable custom fields remain, the early return below hides the section.

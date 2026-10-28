@@ -3,15 +3,17 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
-import {addPersonalBankAccount, connectBankAccountManually, connectBankAccountWithPlaid, getCorpayOnboardingFields} from '@userActions/BankAccounts';
+import {addPersonalBankAccount, connectBankAccountManually, connectBankAccountWithPlaid, deletePaymentBankAccount, getCorpayOnboardingFields} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {LastPaymentMethod, PersonalBankAccount} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -97,6 +99,230 @@ describe('BankAccounts', () => {
             // Then the server's specific message still wins over the generic fallback
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
             expect(getLatestErrorMessage(personalBankAccount)).toBe(serverMessage);
+        });
+
+        test('sends both address lines as separate params', () => {
+            // Given an account with a second address line, which the API rejects when joined into addressStreet with a newline
+            const account = {addressStreet: '123 Main St', addressStreet2: 'Apt 4B'};
+
+            // When adding the personal bank account
+            addPersonalBankAccount(account, undefined);
+
+            // Then each line is sent in its own param so the backend can store both
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT,
+                expect.objectContaining({addressStreet: '123 Main St', addressStreet2: 'Apt 4B'}),
+                expect.anything(),
+            );
+        });
+
+        test('sends an empty second address line when addressStreet2 is missing', () => {
+            // Given an account without a second address line
+            const account = {addressStreet: '123 Main St'};
+
+            // When adding the personal bank account
+            addPersonalBankAccount(account, undefined);
+
+            // Then the second line is sent as an empty string, matching updatePersonalBankAccountInfo
+            expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, expect.objectContaining({addressStreet: '123 Main St', addressStreet2: ''}), expect.anything());
+        });
+    });
+
+    describe('deletePaymentBankAccount', () => {
+        const deletedBankAccountID = 123;
+        const replacementBankAccountID = 456;
+        const deletionErrorTimestamp = 1705320000000000;
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(deletionErrorTimestamp);
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            jest.restoreAllMocks();
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it.each(['success', 'failure'])('preserves replacement defaults, batch order and last-payment fields on %s', async (outcome) => {
+            // Given a default bank, a replacement and distinct personal/workspace payment choices.
+            const bankAccount: PersonalBankAccount = {bankAccountID: deletedBankAccountID};
+            const lastUsedPaymentMethods: LastPaymentMethod = {
+                [policyID]: {
+                    iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bankAccountID: deletedBankAccountID},
+                    expense: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+                workspace: {
+                    iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA, bankAccountID: deletedBankAccountID},
+                    lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA, bankAccountID: deletedBankAccountID},
+                    invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+                legacy: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+            };
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[deletedBankAccountID]: {isDefault: true}, [replacementBankAccountID]: {isDefault: false}});
+            await Onyx.set(ONYXKEYS.USER_WALLET, {
+                walletLinkedAccountID: deletedBankAccountID,
+                walletLinkedAccountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                errors: {server: 'keep this error'},
+            });
+            await Onyx.set(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, lastUsedPaymentMethods);
+            await waitForBatchedUpdates();
+
+            // When the real deletion action constructs its API batches.
+            deletePaymentBankAccount(deletedBankAccountID, policyID, lastUsedPaymentMethods, bankAccount, replacementBankAccountID);
+
+            // Then every batch retains its order, legacy skip, null removals and original field choices.
+            expect(mockWrite).toHaveBeenCalledTimes(1);
+            const call = mockWrite.mock.calls.at(0);
+            if (!call) {
+                throw new Error('Expected the bank deletion request');
+            }
+            const [command, parameters, onyxData] = call;
+            expect(command).toBe(WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT);
+            expect(parameters).toStrictEqual({bankAccountID: deletedBankAccountID});
+            expect(onyxData?.optimisticData).toStrictEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[deletedBankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.USER_WALLET,
+                    value: {walletLinkedAccountID: replacementBankAccountID, walletLinkedAccountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, errors: null},
+                },
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[replacementBankAccountID]: {isDefault: true}}},
+            ]);
+            expect(onyxData?.successData).toStrictEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[deletedBankAccountID]: null}},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                    value: {[policyID]: {iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, bankAccountID: null}}},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                    value: {workspace: {expense: {name: null, bankAccountID: null}, lastUsed: {name: null, bankAccountID: null}}},
+                },
+            ]);
+            expect(onyxData?.failureData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {[deletedBankAccountID]: {...bankAccount, errors: {[deletionErrorTimestamp]: translateLocal('bankAccount.error.deletePaymentBankAccount')}, pendingAction: null}},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.USER_WALLET,
+                    value: {walletLinkedAccountID: deletedBankAccountID, walletLinkedAccountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT},
+                },
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[replacementBankAccountID]: {isDefault: false}}},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                    value: {
+                        [policyID]: {
+                            expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bankAccountID: deletedBankAccountID},
+                            lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, bankAccountID: undefined},
+                        },
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                    value: {
+                        workspace: {
+                            expense: {name: CONST.IOU.PAYMENT_TYPE.VBBA, bankAccountID: deletedBankAccountID},
+                            lastUsed: {name: CONST.IOU.PAYMENT_TYPE.VBBA, bankAccountID: deletedBankAccountID},
+                        },
+                    },
+                },
+            ]);
+            if (!onyxData?.optimisticData || !onyxData.successData || !onyxData.failureData) {
+                throw new Error('Expected all bank deletion batches');
+            }
+            await Onyx.update(onyxData.optimisticData);
+            await waitForBatchedUpdates();
+            const optimisticAccounts = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            expect(optimisticAccounts?.[deletedBankAccountID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(optimisticAccounts?.[replacementBankAccountID]?.isDefault).toBe(true);
+            expect(await getOnyxValue(ONYXKEYS.USER_WALLET)).toMatchObject({walletLinkedAccountID: replacementBankAccountID});
+
+            await Onyx.merge(ONYXKEYS.USER_WALLET, {errors: {server: 'keep this error'}});
+            await Onyx.update(outcome === 'success' ? onyxData.successData : onyxData.failureData);
+            await waitForBatchedUpdates();
+            const accounts = await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST);
+            const wallet = await getOnyxValue(ONYXKEYS.USER_WALLET);
+            const lastPayment = await getOnyxValue(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+            expect(lastPayment?.legacy).toBe(CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
+            expect(wallet?.errors).toStrictEqual({server: 'keep this error'});
+            if (outcome === 'success') {
+                expect(accounts).not.toHaveProperty(String(deletedBankAccountID));
+                expect(accounts?.[replacementBankAccountID]?.isDefault).toBe(true);
+                expect(wallet?.walletLinkedAccountID).toBe(replacementBankAccountID);
+                expect(lastPayment?.[policyID]).toStrictEqual({
+                    iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    expense: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                });
+                expect(lastPayment?.workspace).toStrictEqual({
+                    iou: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    expense: {},
+                    lastUsed: {},
+                    invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                });
+            } else {
+                expect(accounts?.[deletedBankAccountID]).toMatchObject({bankAccountID: deletedBankAccountID, isDefault: true});
+                expect(accounts?.[deletedBankAccountID]?.errors).toBeTruthy();
+                expect(accounts?.[deletedBankAccountID]).not.toHaveProperty('pendingAction');
+                expect(accounts?.[replacementBankAccountID]?.isDefault).toBe(false);
+                expect(wallet?.walletLinkedAccountID).toBe(deletedBankAccountID);
+                expect(lastPayment?.[policyID]).toStrictEqual({
+                    iou: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bankAccountID: deletedBankAccountID},
+                    expense: {name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bankAccountID: deletedBankAccountID},
+                    lastUsed: {name: CONST.IOU.PAYMENT_TYPE.ELSEWHERE},
+                    invoice: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                });
+                expect(lastPayment?.workspace).toStrictEqual(lastUsedPaymentMethods.workspace);
+            }
+        });
+
+        it.each([undefined, 0])('omits replacement and last-payment updates for missing input with replacement %s', async (newBankAccountID) => {
+            // Given no last-payment data and no truthy replacement bank ID.
+            // When the bank deletion action creates its batches.
+            deletePaymentBankAccount(deletedBankAccountID, undefined, undefined, undefined, newBankAccountID);
+
+            // Then no wallet or last-payment update is added and success still removes the bank.
+            const call = mockWrite.mock.calls.at(0);
+            if (!call) {
+                throw new Error('Expected the bank deletion request without replacement');
+            }
+            const onyxData = call[2];
+            expect(onyxData?.optimisticData).toStrictEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[deletedBankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
+            ]);
+            expect(onyxData?.successData).toStrictEqual([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[deletedBankAccountID]: null}}]);
+            expect(onyxData?.failureData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {[deletedBankAccountID]: {errors: {[deletionErrorTimestamp]: translateLocal('bankAccount.error.deletePaymentBankAccount')}, pendingAction: null}},
+                },
+            ]);
+            if (!onyxData?.optimisticData || !onyxData.successData) {
+                throw new Error('Expected the bank-only deletion batches');
+            }
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[deletedBankAccountID]: {isDefault: true}});
+            await Onyx.update(onyxData.optimisticData);
+            await Onyx.update(onyxData.successData);
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.BANK_ACCOUNT_LIST)).not.toHaveProperty(String(deletedBankAccountID));
         });
     });
 

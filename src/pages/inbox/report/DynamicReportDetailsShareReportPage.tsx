@@ -76,7 +76,7 @@ function DynamicReportDetailsShareReportPage({report, policy}: DynamicReportDeta
         startWithLoading(() => {
             shareReport(report.reportID, selectedLogin);
             Navigation.goBack(backPath);
-            Growl.success(translate('common.reportShared'));
+            Growl.success({bodyText: translate('common.reportShared')});
         });
     };
 
