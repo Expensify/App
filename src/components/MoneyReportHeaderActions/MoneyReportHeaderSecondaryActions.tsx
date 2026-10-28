@@ -205,6 +205,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -229,8 +230,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 rules,
             });
         } else {
-            startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
                 paymentType: type,
@@ -248,6 +249,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: () => {
                     startAnimation();
                 },
@@ -389,7 +391,9 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {exportActionEntries} = useExportActions({
         reportID,
         policy,
-        onPDFModalOpen: openPDFDownload,
+        onPDFModalOpen: () => {
+            openPDFDownload();
+        },
     });
 
     const shareActions = useShareActions({reportID, policy});

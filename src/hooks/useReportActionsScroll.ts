@@ -28,6 +28,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -160,7 +161,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -171,6 +172,10 @@ function useReportActionsScroll({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
+    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
@@ -238,6 +243,16 @@ function useReportActionsScroll({
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
         },
         actionBadgeTargetIndex,
+        getVisibleIndexRange: () => {
+            const list = getListRef()?.current;
+            // getLayout is the one accessor that does not throw before FlashList has laid out
+            if (!list?.getLayout(0)) {
+                return undefined;
+            }
+            const range = list.computeVisibleIndices();
+            // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
+            return range.startIndex < 0 ? undefined : range;
+        },
         shouldBeAlignedToTop,
     });
 
@@ -274,6 +289,7 @@ function useReportActionsScroll({
         treatAsNoPaginationAnchor,
         prevIsLoadingInitialReportActions,
         reportLoadingState,
+        fullPolicySnapshot,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -408,6 +424,7 @@ function useReportActionsScroll({
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                fullPolicySnapshot,
             });
             reportScrollManager.scrollToBottom();
             return;

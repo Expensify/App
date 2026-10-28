@@ -1711,6 +1711,16 @@ function respondToProactiveAppReview(
         },
     });
 
+    // Record locally that this client prompted and got an answer. This is not optimistic data: the prompt
+    // happened regardless of what the request returns, and nvp_appReview is server-owned, so the timestamp
+    // we merge into it can be dropped by any authoritative push of that key.
+    // The record is scoped by the session's accountID, not userAccountID: the modal can be on screen before
+    // the personal details list hydrates, and until it does the caller's accountID is CONST.DEFAULT_NUMBER_ID,
+    // which would stamp a record that never matches the signed-in account again.
+    if (sessionAccountID) {
+        Onyx.set(ONYXKEYS.APP_REVIEW_LAST_PROMPT, {accountID: sessionAccountID, lastPrompt: DateUtils.getDBTime()});
+    }
+
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
 

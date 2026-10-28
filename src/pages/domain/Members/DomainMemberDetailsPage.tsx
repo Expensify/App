@@ -45,7 +45,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
 import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
@@ -58,7 +58,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const {showDecisionModal} = useDecisionModal();
 
-    const securityGroupSelector = useCallback((domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain), [accountID]);
+    const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: securityGroupSelector,
     });

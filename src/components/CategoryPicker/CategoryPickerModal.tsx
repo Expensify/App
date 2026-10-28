@@ -3,25 +3,17 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
+import SelectionListPopoverHeader, {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import Tooltip from '@components/Tooltip';
 
-import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
-import getBottomSheetHeight from '@libs/getBottomSheetHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import variables from '@styles/variables';
 
@@ -29,14 +21,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
 
 import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 import CategoryPicker from '.';
-
-/** Height of the add-category header the list shows above its options. Shared with the row sizing the container, so the two never disagree. */
-const CATEGORY_PICKER_HEADER_HEIGHT = variables.componentSizeNormal;
 
 const DEFAULT_ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -97,45 +87,23 @@ function CategoryPickerModal({
     onAddCategory,
     addCategorySentryLabel,
 }: CategoryPickerModalProps) {
-    const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Plus']);
-    const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
-    const {windowHeight} = useWindowDimensions();
-    const viewportOffsetTop = useViewportOffsetTop();
-    const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
     const categoriesCount = policyCategories ?? 0;
-    const isSearchable = categoriesCount >= searchInputThreshold;
-    const headerHeight = onAddCategory ? CATEGORY_PICKER_HEADER_HEIGHT : 0;
-    const estimatedContentHeight = getSelectionListPopoverContentHeight({optionCount: Math.max(renderedRowCount ?? categoriesCount, 1), isSearchable}) + headerHeight;
-
-    // The sheet pads itself above the home indicator, except while the keyboard already covers it. The offline indicator
-    // is drawn on the page behind the sheet, so no room is kept for it.
-    const bottomSafeAreaPadding = isSmallScreenWidth && !isKeyboardActive ? safeAreaPaddingBottom : 0;
-    const bottomSheetHeight = getBottomSheetHeight({
-        preferredHeight: popoverHeight,
-        windowHeight,
-        keyboardHeight: isKeyboardActive ? keyboardActiveHeight : 0,
-        topSafeAreaInset: safeAreaTop,
-        minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable}),
+    const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({
+        optionCount: renderedRowCount ?? categoriesCount,
+        isSearchable: categoriesCount >= searchInputThreshold,
+        popoverWidth,
+        popoverHeight,
+        shouldFitContentHeight,
+        headerHeight: onAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
     });
-    // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
-    const fittedSheetHeight = shouldFitContentHeight ? Math.min(bottomSheetHeight, estimatedContentHeight + bottomSafeAreaPadding) : bottomSheetHeight;
-    const popoverContentHeight = shouldFitContentHeight ? Math.min(popoverHeight, estimatedContentHeight) : popoverHeight;
-    const resolvedHeight = isSmallScreenWidth ? fittedSheetHeight : popoverContentHeight;
-    const popoverDimensions = {width: popoverWidth, height: resolvedHeight};
-    // Mobile Safari ignores `interactive-widget=resizes-content` and leaves the sheet docked behind the keyboard, so on mobile browsers
-    // the sheet is sized and offset to the visual viewport, which the keyboard does shrink.
-    const outerStyle = isSmallScreenWidth ? {...styles.w100, ...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)} : undefined;
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -155,7 +123,7 @@ function CategoryPickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}
-            innerContainerStyle={isSmallScreenWidth ? undefined : StyleUtils.getWidthStyle(popoverDimensions.width)}
+            innerContainerStyle={innerContainerStyle}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
@@ -163,31 +131,19 @@ function CategoryPickerModal({
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
-            avoidKeyboard={isSmallScreenWidth}
+            avoidKeyboard={avoidKeyboard}
             outerStyle={outerStyle}
+            // The sheet sizes itself to the window and its list scrolls on its own, so the modal must not cap or wrap it in landscape.
+            shouldLimitHeightIfBottomDockedInLandscapeMode={false}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4, StyleUtils.getPaddingBottom(bottomSafeAreaPadding)]}>
+            <Animated.View style={contentStyle}>
                 {!!onAddCategory && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pt1, styles.pb4, StyleUtils.getHeight(headerHeight)]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            <Tooltip text={translate('common.back')}>
-                                <PressableWithFeedback
-                                    accessibilityLabel={translate('common.back')}
-                                    role={CONST.ROLE.BUTTON}
-                                    onPress={onClose}
-                                    shouldUseAutoHitSlop
-                                    sentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-                                >
-                                    <Icon
-                                        src={icons.BackArrow}
-                                        fill={theme.icon}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                    />
-                                </PressableWithFeedback>
-                            </Tooltip>
-                            <Text style={styles.textLabelSupporting}>{translate('common.category')}</Text>
-                        </View>
+                    <SelectionListPopoverHeader
+                        title={translate('common.category')}
+                        onBackButtonPress={onClose}
+                        backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
+                    >
                         <Tooltip text={translate('workspace.categories.addCategory')}>
                             <PressableWithFeedback
                                 accessibilityLabel={translate('workspace.categories.addCategory')}
@@ -204,7 +160,7 @@ function CategoryPickerModal({
                                 />
                             </PressableWithFeedback>
                         </Tooltip>
-                    </View>
+                    </SelectionListPopoverHeader>
                 )}
                 <CategoryPicker
                     onRenderedRowCountChange={setRenderedRowCount}
@@ -215,10 +171,9 @@ function CategoryPickerModal({
                     shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
                     searchInputThreshold={searchInputThreshold}
                 />
-            </View>
+            </Animated.View>
         </PopoverWithMeasuredContent>
     );
 }
 
 export default CategoryPickerModal;
-export {CATEGORY_PICKER_HEADER_HEIGHT};

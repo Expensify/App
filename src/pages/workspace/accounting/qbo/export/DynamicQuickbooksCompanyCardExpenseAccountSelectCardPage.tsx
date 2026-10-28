@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type MenuItem = ListItem & {
     value: QBONonReimbursableExportAccountType;
@@ -42,64 +42,59 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: With
     const canUseVendorBill = canUseVendorBillForCompanyCardExport(qboConfig);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT.path);
 
-    const data: MenuItem[] = useMemo(() => {
-        const options: MenuItem[] = [
-            {
-                text: translate(`workspace.qbo.accounts.credit_card`),
-                value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
-                isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === qboConfig?.nonReimbursableExpensesExportDestination,
-                accounts: creditCards ?? [],
-                defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-            },
-            {
-                text: translate(`workspace.qbo.accounts.debit_card`),
-                value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
-                keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
-                isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD === qboConfig?.nonReimbursableExpensesExportDestination,
-                accounts: bankAccounts ?? [],
-                defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-            },
-        ];
-        if (canUseVendorBill) {
-            options.push({
-                text: translate(`workspace.qbo.accounts.bill`),
-                value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
-                keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
-                isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === qboConfig?.nonReimbursableExpensesExportDestination,
-                accounts: accountPayable ?? [],
-                defaultVendor: vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
-            });
-        }
-        return options;
-    }, [translate, qboConfig?.nonReimbursableExpensesExportDestination, canUseVendorBill, accountPayable, bankAccounts, creditCards, vendors]);
-
-    const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
-
-    const selectExportCompanyCard = useCallback(
-        (row: MenuItem) => {
-            if (row.value !== qboConfig?.nonReimbursableExpensesExportDestination) {
-                updateManyPolicyConnectionConfigs(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    {
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: row.defaultVendor,
-                    },
-                    {
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: qboConfig?.nonReimbursableExpensesExportDestination,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: qboConfig?.nonReimbursableExpensesAccount,
-                        [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: qboConfig?.nonReimbursableBillDefaultVendor,
-                    },
-                );
-            }
-            goBack();
+    const options: MenuItem[] = [
+        {
+            text: translate(`workspace.qbo.accounts.credit_card`),
+            value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+            keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+            isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === qboConfig?.nonReimbursableExpensesExportDestination,
+            accounts: creditCards ?? [],
+            defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
         },
-        [qboConfig?.nonReimbursableExpensesExportDestination, policyID, qboConfig?.nonReimbursableExpensesAccount, qboConfig?.nonReimbursableBillDefaultVendor, goBack],
-    );
+        {
+            text: translate(`workspace.qbo.accounts.debit_card`),
+            value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+            keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+            isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD === qboConfig?.nonReimbursableExpensesExportDestination,
+            accounts: bankAccounts ?? [],
+            defaultVendor: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        },
+    ];
+    if (canUseVendorBill) {
+        options.push({
+            text: translate(`workspace.qbo.accounts.bill`),
+            value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+            keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+            isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === qboConfig?.nonReimbursableExpensesExportDestination,
+            accounts: accountPayable ?? [],
+            defaultVendor: vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        });
+    }
+    const data: MenuItem[] = options;
+
+    const goBack = () => {
+        Navigation.goBack(backPath);
+    };
+
+    const selectExportCompanyCard = (row: MenuItem) => {
+        if (row.value !== qboConfig?.nonReimbursableExpensesExportDestination) {
+            updateManyPolicyConnectionConfigs(
+                policyID,
+                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                {
+                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
+                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
+                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: row.defaultVendor,
+                },
+                {
+                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: qboConfig?.nonReimbursableExpensesExportDestination,
+                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT]: qboConfig?.nonReimbursableExpensesAccount,
+                    [CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: qboConfig?.nonReimbursableBillDefaultVendor,
+                },
+            );
+        }
+        goBack();
+    };
     return (
         <SelectionScreen
             policyID={policyID}
