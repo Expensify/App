@@ -635,7 +635,7 @@ function IOURequestStepConfirmationContent({
             isLoadingReceipt: isStitchingReceipt || (isOdometerDistanceRequest && !hasVerifiedBlobs),
             isReceiptEditable: true,
         },
-        iouType: iouType as Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>,
+        iouType,
         reportID,
         isPolicyExpenseChat,
         policyID,
