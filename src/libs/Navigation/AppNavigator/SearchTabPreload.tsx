@@ -14,7 +14,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -34,10 +33,8 @@ type SearchTabPreloadProps = {
  * Its own component, so the saved Spend query it reads re-renders only this and not AuthScreensInitHandler.
  */
 function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreloadProps) {
-    const [lastSearchParams, lastSearchParamsMetadata] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-    const [lastExpensesSearchQuery, searchFiltersMetadata] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
-    // The preloaded route is what a tap opens, so preloading before the saved query loads would pin the default query instead.
-    const isLoadingSearchTabQuery = isLoadingOnyxValue(lastSearchParamsMetadata, searchFiltersMetadata);
+    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
 
     // Reads the saved query when the idle task runs, so a Spend search does not reschedule the preload.
     const preloadSearchTab = useEffectEvent(() => {
@@ -58,13 +55,13 @@ function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreload
 
     // Desktop browsers only: the native tab bar already mounts every tab at startup, and the cost on a phone CPU is unmeasured.
     useEffect(() => {
-        if (getPlatform(true) !== CONST.PLATFORM.WEB || isLoadingApp !== false || !tabNavigatorStateKey || isLoadingSearchTabQuery) {
+        if (getPlatform(true) !== CONST.PLATFORM.WEB || isLoadingApp !== false || !tabNavigatorStateKey) {
             return;
         }
 
         const task = Scheduler.scheduleWhenIdle(() => preloadSearchTab(), {shouldUseFallbackTimer: false});
         return () => task.cancel();
-    }, [isLoadingApp, tabNavigatorStateKey, isLoadingSearchTabQuery]);
+    }, [isLoadingApp, tabNavigatorStateKey]);
 
     return null;
 }

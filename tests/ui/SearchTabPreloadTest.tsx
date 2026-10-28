@@ -11,7 +11,6 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationState} from '@react-navigation/native';
 
@@ -46,12 +45,6 @@ jest.mock('@libs/getPlatform', () => ({
 
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
-}));
-
-// Real by default. A test can hold the saved Spend query as still loading from storage.
-jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
-    __esModule: true,
-    default: jest.fn(jest.requireActual<{default: (...args: unknown[]) => boolean}>('@src/types/utils/isLoadingOnyxValue').default),
 }));
 
 function buildRootState(focusedTabIndex = 0, preloadedRouteKeys: string[] = []): NavigationState {
@@ -111,7 +104,6 @@ describe('SearchTabPreload', () => {
         jest.restoreAllMocks();
         jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
         jest.mocked(getIsNarrowLayout).mockReturnValue(false);
-        jest.mocked(isLoadingOnyxValue).mockImplementation(jest.requireActual<{default: typeof isLoadingOnyxValue}>('@src/types/utils/isLoadingOnyxValue').default);
     });
 
     const savedQueryJSON = buildSearchQueryJSON('type:expense status:drafts');
@@ -165,17 +157,6 @@ describe('SearchTabPreload', () => {
         // Then no second preload or second span goes out
         expectNoSpendPreload();
         expect(jest.mocked(startSpan)).not.toHaveBeenCalled();
-    });
-
-    it('does not preload the Spend tab before the saved Spend query has loaded', async () => {
-        // Given the saved Spend query is still loading from storage, so the tab would build the default query instead
-        jest.mocked(isLoadingOnyxValue).mockReturnValue(true);
-
-        // When the app goes idle on Home
-        await renderAtIdle();
-
-        // Then the Spend tab is not preloaded yet, so a tap still opens the user's last query
-        expectNoSpendPreload();
     });
 
     it('does not preload the Spend tab in a narrow window', async () => {
