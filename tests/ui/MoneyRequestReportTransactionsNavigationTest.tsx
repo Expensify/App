@@ -281,7 +281,11 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
         const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: IOU_REPORT_ID}));
-        jest.spyOn(navigationRef, 'getCurrentRoute').mockReturnValue({key: 'expenseReport', name: SCREENS.RIGHT_MODAL.EXPENSE_REPORT, params: {reportID: IOU_REPORT_ID, backTo: ROUTES.HOME}});
+        jest.spyOn(navigationRef, 'getCurrentRoute').mockReturnValue({
+            key: 'expenseReport',
+            name: SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            params: {reportID: IOU_REPORT_ID, backTo: ROUTES.HOME},
+        });
 
         render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
         await waitForBatchedUpdates();
