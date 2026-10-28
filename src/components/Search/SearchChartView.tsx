@@ -236,4 +236,3 @@ function SearchChartView({
 }
 
 export default SearchChartView;
-export type {SearchChartDetails};
