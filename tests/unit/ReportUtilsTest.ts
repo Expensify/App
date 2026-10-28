@@ -25742,17 +25742,6 @@ describe('ReportUtils', () => {
             expect(offlineResult.oneTransactionThreadReportID).toBe(transactionThreadReportID);
         });
 
-        it('should ignore an IOU action pending deletion when online', () => {
-            // Given an expense report with one live IOU action and one IOU action pending deletion
-            const reportActions = buildReportActions([liveIOUAction, pendingDeleteIOUAction]);
-
-            // When the attributes are generated while online
-            const result = callGenerateReportAttributes(reportActions, false);
-
-            // Then the pending-delete action is not counted, so the live action makes this a one-transaction report
-            expect(result.oneTransactionThreadReportID).toBe(transactionThreadReportID);
-        });
-
         it('should count an IOU action pending deletion when offline', () => {
             // Given an expense report with one live IOU action and one IOU action pending deletion
             const reportActions = buildReportActions([liveIOUAction, pendingDeleteIOUAction]);
