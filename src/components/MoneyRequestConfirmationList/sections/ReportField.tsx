@@ -4,6 +4,7 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
+import usePermissions from '@hooks/usePermissions';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -47,6 +48,7 @@ type ReportFieldProps = {
 function ReportField({selectedParticipants, iouType, reportID, reportActionID, action, transactionID, isPerDiemRequest, isPolicyExpenseChat}: ReportFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
 
     const policyID = selectedParticipants?.at(0)?.policyID;
     const [outstandingReportsForPolicy] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {selector: createOutstandingReportsForPolicySelector(policyID)});

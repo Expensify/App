@@ -14,7 +14,6 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import {createNewReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
 import {
@@ -27,6 +26,7 @@ import {
 } from '@libs/TransactionUtils';
 
 import type {IOURequestEditReportCommonProps} from '@pages/iou/request/step/IOURequestEditReportCommon';
+import navigateAwayFromReportPicker from '@pages/iou/request/step/IOURequestStepReport/navigateAwayFromReportPicker';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -65,7 +65,7 @@ type UseReportPickerActionsParams = {
     /** Called once a pick is made or the list is dismissed: the page goes back, the anchored dropdown closes */
     goBack: () => void;
 
-    /** Called before the picker navigates somewhere else, e.g. to pick a workspace for a new report. The anchored dropdown closes itself here. */
+    /** Called before the picker navigates somewhere else, e.g. to pick a workspace for a new report. The anchored dropdown closes itself here, and the navigation waits for that close. */
     onNavigateAway?: () => void;
 
     /** Whether a regular pick writes only after the back transition, see `useReportSelectionActions`. The anchored dropdown writes straight away. */
@@ -248,8 +248,7 @@ function useReportPickerActions({
     const createReport = () => {
         const restrictionPolicy = isPerDiemTransaction ? perDiemOriginalPolicy : policyForMovingExpenses;
         if (restrictionPolicy && isCreateReportRestricted(restrictionPolicy)) {
-            onNavigateAway?.();
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id));
+            navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicy.id), onNavigateAway);
             return;
         }
         if (isPerDiemTransaction) {
@@ -261,8 +260,7 @@ function useReportPickerActions({
         }
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
-            onNavigateAway?.();
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)));
+            navigateAwayFromReportPicker(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true)), onNavigateAway);
             return;
         }
         handleCreateReport();

@@ -39,6 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef} from 'react';
 
+import navigateAwayFromReportPicker from './IOURequestStepReport/navigateAwayFromReportPicker';
 import StepScreenWrapper from './StepScreenWrapper';
 
 type TransactionGroupListItem = ListItem & {
@@ -84,7 +85,7 @@ type IOURequestEditReportCommonProps = {
     /** Closes the list when the report it already shows is picked again. Defaults to going back to `backTo` */
     onDismiss?: () => void;
 
-    /** Called before the list navigates somewhere else, e.g. to the restricted-action page. A container closes itself here */
+    /** Called before the list navigates somewhere else, e.g. to the restricted-action page. A container closes itself here, and the navigation waits for that close */
     onNavigateAway?: () => void;
 
     /** Whether the search input should auto-focus when the list mounts. Only opted into by the anchored pop-over. */
@@ -316,8 +317,7 @@ function IOURequestEditReportCommon({
             itemPolicy &&
             shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
-            onNavigateAway?.();
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID), onNavigateAway);
             return;
         }
 

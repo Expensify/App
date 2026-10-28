@@ -157,6 +157,17 @@ describe('ReportPickerModal', () => {
         );
     });
 
+    it('hands the container the callback for when it has finished hiding', () => {
+        // Given a caller that wants to know when the container has finished closing, e.g. to unmount the list
+        const onModalHide = jest.fn();
+
+        // When the report list opens
+        renderModal({onModalHide});
+
+        // Then the pop-over reports its hiding to that caller
+        expect(mockPopoverProps?.onModalHide).toBe(onModalHide);
+    });
+
     it('leaves out the header by default', () => {
         // Given a caller that does not ask for a header
         // When the report list opens

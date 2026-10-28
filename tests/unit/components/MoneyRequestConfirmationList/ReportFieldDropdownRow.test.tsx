@@ -1,7 +1,7 @@
 import {render, waitFor} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
 
@@ -12,7 +12,7 @@ import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import type {ReactNode} from 'react';
+import type {ComponentProps} from 'react';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -34,14 +34,16 @@ jest.mock('@hooks/useOutstandingReports', () => () => mockOutstandingReports);
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
+type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'shouldOpenInDropdown' | 'renderDropdown'>;
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode}) => {
+    return ({shouldOpenInDropdown, renderDropdown}: ExpenseFieldDropdownMockProps) => {
+        const {MODAL} = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         return renderDropdown({
             isVisible: true,
             onClose: () => {},
             anchorPosition: {horizontal: 0, vertical: 0},
-            anchorAlignment: {horizontal: 'left', vertical: 'top'},
+            anchorAlignment: {horizontal: MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: MODAL.ANCHOR_ORIGIN_VERTICAL.TOP},
             shouldMeasureAnchorPositionFromTop: true,
             shouldSwitchPositionIfOverflow: false,
             popoverWidth: 300,
@@ -61,6 +63,7 @@ const CHAT_REPORT_ID = 'chat1';
 const POLICY_ID = 'policy1';
 
 const outstandingReport: Report = {reportID: 'report1', reportName: 'Expense Report', policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: CHAT_REPORT_ID};
+const otherOutstandingReport: Report = {reportID: 'report2', reportName: 'Other Expense Report', policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: CHAT_REPORT_ID};
 
 type RenderParams = {
     action?: IOUAction;
@@ -98,7 +101,8 @@ describe('ReportField', () => {
 
     beforeEach(async () => {
         mockIsAnchoredDropdownsBetaEnabled = true;
-        mockOutstandingReports = [outstandingReport];
+        // A new expense's row only offers a choice once there is more than one report it could go on.
+        mockOutstandingReports = [outstandingReport, otherOutstandingReport];
         mockShouldOpenInDropdown = undefined;
         mockDropdownTransactionID = undefined;
         jest.mocked(Navigation.navigate).mockClear();
@@ -112,7 +116,7 @@ describe('ReportField', () => {
     });
 
     it('opens the report list in place while creating an expense', async () => {
-        // Given a workspace with an outstanding report the expense could go on, and the anchored dropdowns beta on
+        // Given a workspace with two outstanding reports the expense could go on, and the anchored dropdowns beta on
         // When the expense form renders the report row
         renderReportRow();
 

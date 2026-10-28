@@ -9,7 +9,7 @@ import useReportPickerActions from '@pages/iou/request/step/IOURequestStepReport
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
 
@@ -18,11 +18,13 @@ type ReportFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
     transactionID: string;
 };
 
-/**
- * The report list, in the container anchored to the expense form's report row. Mounted only once the row is opened,
- * and picks through the same hook the full-page selector uses so both leave the expense in the same state.
- */
-function ReportFieldDropdown({transactionID, onClose, ...popoverProps}: ReportFieldDropdownProps) {
+type ReportFieldDropdownListProps = ReportFieldDropdownProps & {
+    /** Called once the container has finished closing, when the list can go */
+    onModalHide: () => void;
+};
+
+/** The report list and the hooks that drive it, which pick through the same hook the full-page selector uses so both leave the expense in the same state */
+function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popoverProps}: ReportFieldDropdownListProps) {
     const {reportID, action, iouType} = useConfirmationFields();
 
     // An expense being created, or moved from a tracked expense, lives in its draft until it is saved.
@@ -46,8 +48,38 @@ function ReportFieldDropdown({transactionID, onClose, ...popoverProps}: ReportFi
             {...popoverProps}
             {...listProps}
             onClose={onClose}
+            onModalHide={onModalHide}
             shouldFitContentHeight
             shouldShowHeader
+        />
+    );
+}
+
+/**
+ * The report list, in the container anchored to the expense form's report row. `ExpenseFieldDropdown` keeps a dropdown
+ * mounted once it has been opened, so the list is mounted here only while its container is open or still closing: its
+ * hooks subscribe to whole report, policy and transaction collections and fetch outstanding reports again on every
+ * reconnect, which the form should not pay for while the list is hidden.
+ */
+function ReportFieldDropdown(props: ReportFieldDropdownProps) {
+    const [isListMounted, setIsListMounted] = useState(props.isVisible);
+    if (props.isVisible && !isListMounted) {
+        setIsListMounted(true);
+    }
+    if (!isListMounted) {
+        return null;
+    }
+
+    return (
+        <ReportFieldDropdownList
+            {...props}
+            onModalHide={() => {
+                // The row may have opened the container again before the previous close finished.
+                if (props.isVisible) {
+                    return;
+                }
+                setIsListMounted(false);
+            }}
         />
     );
 }
