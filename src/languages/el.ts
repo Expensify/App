@@ -553,7 +553,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Θέλετε να ειδοποιείστε όταν απαντά ο Concierge;',
             cta: 'Ειδοποίηση',
         },
-        feedback: {prompt: 'Ήταν χρήσιμη αυτή η απάντηση;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
+        feedback: {prompt: 'Ήταν χρήσιμο αυτό;', useful: 'Χρήσιμη απάντηση', notUseful: 'Μη χρήσιμη απάντηση', thanks: 'Ευχαριστούμε για τα σχόλιά σας!'},
     },
     supportalNoAccess: {
         title: 'Όχι τόσο γρήγορα',
@@ -12229,6 +12229,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Ένας τραπεζικός λογαριασμός είναι κλειδωμένος',
             completeHrSetup: 'Ολοκληρώστε τη ρύθμιση HR',
             theresAProblemWithAnHRConnection: 'Υπάρχει πρόβλημα με μια σύνδεση HR',
+            theresAProblemWithYourAgent: 'Υπάρχει πρόβλημα με τον/τους εκπρόσωπό σας',
         },
     },
     emptySearchView: {

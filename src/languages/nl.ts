@@ -549,7 +549,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Redenering inklappen',
         expandReasoning: 'Redenering uitklappen',
         enableNotifications: {prompt: 'Wil je een melding krijgen wanneer Concierge reageert?', cta: 'Melden'},
-        feedback: {prompt: 'Was dit antwoord nuttig?', useful: 'Nuttig antwoord', notUseful: 'Niet nuttig antwoord', thanks: 'Bedankt voor je feedback!'},
+        feedback: {prompt: 'Was dit nuttig?', useful: 'Nuttig antwoord', notUseful: 'Niet nuttig antwoord', thanks: 'Bedankt voor je feedback!'},
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -11929,6 +11929,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             aBankAccountIsLocked: 'Een bankrekening is geblokkeerd',
             completeHrSetup: 'HR-configuratie voltooien',
             theresAProblemWithAnHRConnection: 'Er is een probleem met een HR-verbinding',
+            theresAProblemWithYourAgent: 'Er is een probleem met je agent(en)',
         },
     },
     emptySearchView: {

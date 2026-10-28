@@ -540,7 +540,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: '¿Quieres que te avisemos cuando Concierge responda?',
             cta: 'Notificar',
         },
-        feedback: {prompt: '¿Te ha sido útil esta respuesta?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
+        feedback: {prompt: '¿Te ha sido útil?', useful: 'Respuesta útil', notUseful: 'Respuesta poco útil', thanks: '¡Gracias por tus comentarios!'},
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -12196,6 +12196,7 @@ ${reportName}`,
             aBankAccountIsLocked: 'Una cuenta bancaria está bloqueada',
             completeHrSetup: 'Completa la configuración de RR. HH.',
             theresAProblemWithAnHRConnection: 'Hay un problema con una conexión de RR. HH.',
+            theresAProblemWithYourAgent: 'Hay un problema con tu(s) agente(s)',
         },
     },
     emptySearchView: {
