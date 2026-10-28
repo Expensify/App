@@ -55,6 +55,8 @@ const selectQueryHash = (lastSearchQuery: OnyxEntry<LastSearchParams>): number |
 
 const searchLoadingSelector = (snapshot: OnyxEntry<SearchResults>): boolean => !!snapshot?.search?.isLoading;
 
+const searchOffsetSelector = (snapshot: OnyxEntry<SearchResults>): number | undefined => snapshot?.search?.offset;
+
 /**
  * Search sections can yield entries that aren't openable reports. An unreported (self-DM) expense is grouped under
  * the "0" placeholder rather than a real report, so paging onto it lands the user on an empty report. It also
@@ -130,6 +132,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     // the heavy useSearchSections subscription set, so the fast context path stays cheap.
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const [isSearchLoading = false] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchLoadingSelector});
+    const [snapshotOffset] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: searchOffsetSelector});
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
     // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts
@@ -167,6 +170,31 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             return;
         }
 
+        if (!isSearchLoading && snapshotOffset !== undefined && (lastSearchQuery.offset ?? 0) > snapshotOffset) {
+            const searchParamsBeforeRefetch = lastSearchQuery;
+            search({
+                queryJSON: lastSearchQuery.queryJSON,
+                offset: snapshotOffset + CONST.SEARCH.RESULTS_PAGE_SIZE,
+                shouldCalculateTotals: false,
+                searchKey: lastSearchQuery.searchKey,
+                isLoading: isSearchLoading,
+                skipWaitForWrites: true,
+                shouldShowLoading: false,
+            })?.then((jsonCode) => {
+                if (jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    return;
+                }
+                saveLastSearchParams({
+                    ...searchParamsBeforeRefetch,
+                    offset: snapshotOffset,
+                    hasMoreResults: true,
+                    previousLengthOfResults: effectiveAllReports.length,
+                    allowPostSearchRecount: false,
+                });
+            });
+            return;
+        }
+
         if (lastSearchQuery.allowPostSearchRecount) {
             saveLastSearchParams({
                 ...lastSearchQuery,
@@ -193,7 +221,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             ...lastSearchQuery,
             previousLengthOfResults: effectiveAllReports.length,
         });
-    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery]);
+    }, [isFocused, currentIndex, allReportsCount, effectiveAllReports.length, lastSearchQuery?.queryJSON, lastSearchQuery, isSearchLoading, snapshotOffset]);
 
     const goToReportId = (reportId?: string) => {
         if (!reportId) {
@@ -221,6 +249,7 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
             const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
             const queryJSON = lastSearchQuery.queryJSON;
+            const searchParamsBeforeRequest = lastSearchQuery;
             requestAnimationFrame(() => {
                 search({
                     queryJSON,
@@ -230,12 +259,20 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                     searchKey: lastSearchQuery.searchKey,
                     isLoading: isSearchLoading,
                     shouldUpdateLastSearchParams: true,
+                    // Every arrow press queues an OpenReport write, so waiting for writes would keep Next disabled at the end of the loaded page.
+                    skipWaitForWrites: true,
+                })?.then((jsonCode) => {
+                    if (jsonCode === CONST.JSON_CODE.SUCCESS) {
+                        return;
+                    }
+                    // The request already moved the saved offset to the page that failed, so put it back for Next to request that page again.
+                    saveLastSearchParams(searchParamsBeforeRequest);
                 });
             });
         }
 
-        const nextIndex = (currentIndex + 1) % effectiveAllReports.length;
-        goToReportId(effectiveAllReports.at(nextIndex));
+        // On the last loaded report, Next only requests the next page. Wrapping around would jump back to the first report.
+        goToReportId(effectiveAllReports.at(currentIndex + 1));
     };
 
     const goToPrevReport = () => {
