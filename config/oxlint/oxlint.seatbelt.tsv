@@ -372,7 +372,6 @@
 "../../src/components/Search/FilterDropdowns/DateSelectPopup/SelectedDateModifierHeader.tsx"	"no-restricted-imports"	1
 "../../src/components/Search/FilterDropdowns/SearchFooterPopup.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
 "../../src/components/Search/FilterDropdowns/SortByPopup.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/Search/hooks/useOptimisticSearchTracking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/components/Search/hooks/useSearchSnapshot.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/Search/hooks/useStableOptimisticSortedData.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Search/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -459,7 +458,6 @@
 "../../src/components/TabSelector/getBackground.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/TagPicker/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/TaxPicker.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/Text.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/TextInput/BaseTextInput/implementation/index.native.tsx"	"react-hooks/refs"	1
@@ -824,8 +822,6 @@
 "../../src/libs/ErrorUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/ExpenseRuleUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/ExpensifyCardFeedSelectorUtils.ts"	"import/no-cycle"	1
-"../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/libs/ExportOnyxState/masking.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../src/libs/fileDownload/DownloadUtils.ts"	"no-restricted-syntax"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-misused-promises"	1
 "../../src/libs/fileDownload/FileUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
@@ -871,7 +867,6 @@
 "../../src/libs/Middleware/RecordFullReconnectTime.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Middleware/SaveResponseInOnyx.ts"	"no-restricted-syntax"	1
 "../../src/libs/models/BankAccount.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/ModifiedExpenseMessage.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/ModifiedExpenseMessage.ts"	"import/no-cycle"	3
 "../../src/libs/MoneyRequestReportUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/MoneyRequestUtils.ts"	"import/no-cycle"	2
@@ -891,7 +886,6 @@
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/NewChatHandler.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/SearchHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/KeyboardShortcutsHandler/ShortcutsOverviewHandler.tsx"	"no-restricted-syntax"	1
-"../../src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Navigation/AppNavigator/Navigators/Overlay/BaseOverlay.tsx"	"no-restricted-syntax"	2
 "../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"no-restricted-syntax"	1
@@ -2040,7 +2034,6 @@
 "../../src/styles/index.ts"	"rulesdir/no-raw-typography"	27
 "../../src/styles/theme/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/utils/autoCompleteSuggestion/index.web.ts"	"no-restricted-syntax"	1
-"../../src/styles/utils/cursor/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/styles/utils/FontUtils/fontFamily/multiFontFamily/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/styles/utils/generators/TooltipStyleUtils/isOverlappingAtTop/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/utils/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
@@ -2340,8 +2333,7 @@
 "../../tests/unit/logSubmittedReceiptMilestoneTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/MerchantRuleSuggestionUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/MergeTransactionUtilsTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
-"../../tests/unit/ModifiedExpenseMessageTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
-"../../tests/unit/ModifiedExpenseMessageTest.ts"	"no-restricted-imports"	1
+"../../tests/unit/ModifiedExpenseMessageTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	3
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/navigateToWorkspacesPageTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/Navigation/createRootStackNavigator/handleToggleModalWithHistoryAction.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
@@ -2399,6 +2391,7 @@
 "../../tests/unit/Search/LazyGroupSelectionTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/Search/SearchQueryUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/Search/SearchUIUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
+"../../tests/unit/Search/useOptimisticSearchTrackingTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/unit/Search/yourSpendApplicabilityTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../tests/unit/SearchActionsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/SearchAutocompleteListTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	3

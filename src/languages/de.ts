@@ -9056,7 +9056,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Um Ihre Agent-Regeln durchzusetzen, haben wir einen Agenten für Sie erstellt und ihn als Administrator zu Ihrem Arbeitsbereich hinzugefügt.<br><br>Bearbeiten Sie die Details Ihres Agenten unter <a href="${agentsRoute}">Konto &gt; Agenten</a>.</muted-text>`,
                 suggestionsTab: 'Vorschläge',
-                writeTab: 'Bearbeiten',
+                writeTab: 'Benutzerdefiniert',
                 findSuggestion: 'Regel finden',
                 emptySuggestionsTitle: 'Keine Vorschläge verfügbar',
                 emptySuggestionsSubtitle: 'Versuchen Sie, Ihre eigene Regel zu schreiben.',
@@ -10786,6 +10786,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             pleaseSelectDatesForBothFromAndTo: 'Bitte wähle Daten für Von und Bis',
         },
         spendOverTime: 'Ausgaben im Zeitverlauf',
+        trip: {
+            tripName: 'Reisename',
+            traveler: 'Reisende*r',
+            status: {
+                upcoming: 'Bevorstehend',
+                done: 'Abgeschlossen',
+                canceled: 'Storniert',
+            },
+        },
         tabs: {
             expenseReports: 'Spesenabrechnungen',
             reports: 'Berichte',

@@ -9064,7 +9064,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
                 suggestionsTab: 'Sugerencias',
-                writeTab: 'Editar',
+                writeTab: 'Personalizado',
                 findSuggestion: 'Buscar una regla',
                 emptySuggestionsTitle: 'No hay sugerencias disponibles',
                 emptySuggestionsSubtitle: 'Prueba a escribir tu propia regla.',
@@ -10298,6 +10298,15 @@ ${reportName}`,
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
+        trip: {
+            tripName: 'Nombre del viaje',
+            traveler: 'Viajero',
+            status: {
+                upcoming: 'Próximo',
+                done: 'Finalizado',
+                canceled: 'Cancelado',
+            },
+        },
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',
