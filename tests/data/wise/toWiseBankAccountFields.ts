@@ -121,7 +121,7 @@ function toWiseBankAccountFields(country: string, currency: string, requirements
     const addressParts = descriptors.filter((descriptor) => descriptor.key.startsWith(ADDRESS_KEY_PREFIX));
 
     for (const descriptor of descriptors) {
-        if (descriptor.key.startsWith(ADDRESS_KEY_PREFIX)) {
+        if (descriptor.key.startsWith(ADDRESS_KEY_PREFIX) || !descriptor.required) {
             continue;
         }
         const options = toOptions(descriptor);
