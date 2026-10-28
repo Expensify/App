@@ -4596,9 +4596,9 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-/** Expense reports and tasks show a non-editable created timestamp in their date column, so it's labelled "Created"/"Created date" instead of "Date". */
+/** Expense reports, bills and tasks show a non-editable created timestamp in their date column, so it's labelled "Created"/"Created date" instead of "Date". */
 function isCreatedDateType(type?: SearchDataTypes): boolean {
-    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.TASK;
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL || type === CONST.SEARCH.DATA_TYPES.TASK;
 }
 
 function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
