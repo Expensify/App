@@ -10,15 +10,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
-import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
-import Log from '@libs/Log';
 import Parser from '@libs/Parser';
 
-import getFileSize from '@pages/Share/getFileSize';
-
 import CONST from '@src/CONST';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
@@ -26,10 +21,13 @@ import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 
+// Files copied to temporary paths by the `onPaste` support patched into React Native's TextInput
 type TextInputPasteEvent = NativeSyntheticEvent<{
-    items: Array<{
+    files: Array<{
+        uri: string;
         type: string;
-        data: string;
+        name: string;
+        size: number;
     }>;
 }>;
 
@@ -104,36 +102,11 @@ function Composer({
         onClearProp(nativeEvent.text);
     };
 
-    const pasteFile = (e: TextInputPasteEvent) => {
-        const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
-            const mimeType = clipboardFile?.type ?? '';
-            const fileURI = clipboardFile?.data;
-            const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (getExtensionFromMimeType(mimeType) ?? 'bin');
-            const fileName = `${stem}.${fileExtension}`;
-            const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-
-            try {
-                const size = await getFileSize(file.uri ?? '');
-                return {...file, size};
-            } catch {
-                return file;
-            }
-        });
-
-        // Use Promise.allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
-        Promise.allSettled(filePromises).then((results) => {
-            const files: FileObject[] = [];
-            for (const [index, result] of results.entries()) {
-                if (result.status === 'fulfilled' && result.value !== undefined) {
-                    files.push(result.value);
-                } else if (result.status === 'rejected') {
-                    Log.warn('Pasted file could not be processed', {error: result.reason, index});
-                }
-            }
-            onPasteFile(files);
-        });
+    const pasteFile = ({nativeEvent}: TextInputPasteEvent) => {
+        if (nativeEvent.files.length === 0) {
+            return;
+        }
+        onPasteFile(nativeEvent.files);
     };
 
     const maxHeightStyle = StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize);
