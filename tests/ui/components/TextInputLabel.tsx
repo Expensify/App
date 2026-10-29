@@ -86,4 +86,44 @@ describe('TextInputLabel (web)', () => {
         expect(screen.getByText('Label with callback', {includeHiddenElements: true}).props.onLayout).toEqual(expect.any(Function));
         expect(screen.UNSAFE_queryByType(LabelScaleSettleListener)).not.toBeNull();
     });
+
+    it('should measure truncation again when the label text changes in the same box', () => {
+        const shortLabel = 'Short label';
+        const longLabel = 'A much longer label that no longer fits in the box';
+        const onTruncationChange = jest.fn();
+        const renderWithLabel = (label: string) => (
+            <WebTextInputLabel
+                label={label}
+                labelTranslateY={labelTranslateY}
+                labelScale={labelScale}
+                onTruncationChange={onTruncationChange}
+            />
+        );
+        const {rerender} = render(renderWithLabel(shortLabel));
+
+        // Given the label measures like a web element in a 200px box, where each character takes 10px, so only labels of up to
+        // 20 characters fit. Jest renders a mocked Text class, which is what the label's ref holds.
+        let currentLabel = shortLabel;
+        Object.defineProperties(screen.getByText(shortLabel, {includeHiddenElements: true}).parent?.instance, {
+            scrollWidth: {get: () => currentLabel.length * 10},
+            offsetWidth: {value: 200},
+            scrollHeight: {value: 20},
+            offsetHeight: {value: 20},
+        });
+        onTruncationChange.mockClear();
+
+        // When the text changes to one that no longer fits, like after a language switch or a report field rename, without a new layout
+        currentLabel = longLabel;
+        rerender(renderWithLabel(longLabel));
+
+        // Then the label reports that it is cut off, so the tooltip shows
+        expect(onTruncationChange).toHaveBeenLastCalledWith(true);
+
+        // When the text changes back to one that fits
+        currentLabel = shortLabel;
+        rerender(renderWithLabel(shortLabel));
+
+        // Then the label reports that it is no longer cut off, so the tooltip hides
+        expect(onTruncationChange).toHaveBeenLastCalledWith(false);
+    });
 });

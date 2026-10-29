@@ -35,6 +35,12 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, 
         onTruncationChange(labelElement.scrollWidth > labelElement.offsetWidth || labelElement.scrollHeight > labelElement.offsetHeight);
     };
 
+    // The input sets the label's width, so new text (a language switch, or a renamed report field) keeps the same box and
+    // `onLayout` doesn't fire. Check again whenever the text changes.
+    useEffect(() => {
+        checkTruncation();
+    }, [label, checkTruncation]);
+
     const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));
 
     return (
