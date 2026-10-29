@@ -95,6 +95,7 @@ function setSecurityHeaders(headers: Headers, environment: Env['ENVIRONMENT'] | 
     headers.set('X-Frame-Options', 'SAMEORIGIN');
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     // Used by react-native-release-profiler
     headers.set('Document-Policy', 'js-profiling');
 }

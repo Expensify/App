@@ -49,6 +49,7 @@ import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     tooltipText?: string;
     message?: string;
     actionText?: string;
@@ -220,7 +221,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         descriptionAddon = (
             <ConnectionStatusBadge
                 text={item.connectionStatus.statusText}
-                tone={item.connectionStatus.statusTone}
+                tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
                 tooltipText={item.connectionStatus.tooltipText}
             />
         );
@@ -287,6 +288,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
     const menuItem = <MenuItem {...menuItemProps} />;
 
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
+
     return (
         <OfflineWithFeedback
             onClose={item.canDismissError ? () => dismissError(item) : undefined}
@@ -305,6 +308,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <ConnectionStatusMessage
                                         message={connectionStatus.message}
                                         actionText={connectionStatus.actionText}
+                                        actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
