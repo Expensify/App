@@ -510,6 +510,8 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 continue;
             }
 
+            copiedSourceRateIDs.add(governmentMileageRate.sourceRateID);
+
             const enabled = getPreviousSeriesRateEnabled(governmentMileageRate.sourceRateID, governmentMileageRate.startDate) ?? true;
             addSeriesRate(governmentMileageRate.sourceRateID, governmentMileageRate.startDate, enabled);
 

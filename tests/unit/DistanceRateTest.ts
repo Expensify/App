@@ -603,7 +603,7 @@ describe('DistanceRate', () => {
             it('should keep a disabled fuel band disabled for every later rate of its series in the same request', async () => {
                 // Given an eligible GBP workspace whose earlier petrol band an admin disabled, and whose earlier diesel band an
                 // admin edited to their own amount and disabled
-                const editedDieselRateID = 'EDITEDDIESEL1';
+                const editedDieselRateID = '5A1D3C8E9F0B2';
                 const policy = buildUKPolicy(true, true, {
                     [existingRateID]: {
                         customUnitRateID: existingRateID,
@@ -643,6 +643,59 @@ describe('DistanceRate', () => {
                 // And the September diesel band is enabled, because the earlier diesel rate was edited and is the admin's own,
                 // so its disabled state doesn't opt the workspace out of the government rate
                 expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
+            });
+
+            it('should enable a copied fuel band when its latest previous rate was edited, even if an older one was disabled', async () => {
+                // Given an eligible GBP workspace whose March diesel band is unmodified and disabled, and whose June diesel band an
+                // admin edited to their own amount
+                const marchDieselRateID = '3B7E0A9C4D1F6';
+                const juneDieselRateID = '8C2F5E1A7B3D0';
+                const policy = buildUKPolicy(true, true, {
+                    [marchDieselRateID]: {
+                        customUnitRateID: marchDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 45,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-05-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-05-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                    [juneDieselRateID]: {
+                        customUnitRateID: juneDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 50,
+                        currency: 'GBP',
+                        enabled: true,
+                        startDate: '2026-06-01',
+                        endDate: '2026-08-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-06-01', rate: 45, startDate: '2026-06-01', endDate: '2026-08-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                });
+
+                // When auto-update copies the September diesel band
+                const rates = await enableAutoUpdate(policy, [dieselBand]);
+
+                // Then the September band is enabled, because only the latest previous rate counts and the admin edited it, so the
+                // disabled March rate further back doesn't opt the workspace out
+                expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
+            });
+
+            it('should copy a reference rate listed twice only once', async () => {
+                // Given an eligible GBP workspace and a reference list that contains the same fuel band twice
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy, [dieselBand, dieselBand]);
+
+                // Then the band is copied once, since the server de-dupes by sourceRateID and would leave a second copy orphaned
+                expect(rates.filter((rate) => rate.attributes?.governmentRate?.sourceRateID === dieselBand.sourceRateID)).toHaveLength(1);
             });
         });
     });

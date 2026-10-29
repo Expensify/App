@@ -1157,7 +1157,13 @@ function clearPolicyRequireMapOrGPSErrors(policyID: string) {
  * behavior are documented on buildOnyxDataForGovernmentRateAutoUpdate, which provides the Onyx data used here.
  */
 function setWorkspaceDistanceAutoUpdate(policy: Policy, shouldAutoUpdateGovernmentDistanceRates: boolean, governmentMileageRates: GovernmentMileageRate[], countryCode?: string) {
-    const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(policy, shouldAutoUpdateGovernmentDistanceRates, governmentMileageRates, policy.outputCurrency, countryCode);
+    const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(
+        policy,
+        shouldAutoUpdateGovernmentDistanceRates,
+        governmentMileageRates,
+        policy.outputCurrency,
+        countryCode,
+    );
 
     const parameters: SetWorkspaceDistanceAutoUpdateParams = {
         policyID: policy.id,
