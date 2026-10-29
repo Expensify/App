@@ -2327,6 +2327,20 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
+        test('Should not return `Submit` action when the report workspace is missing because it was deleted', () => {
+            // Given a submittable report whose workspace was deleted. Deleting a workspace removes it from the search results and
+            // leaves no archivedDate, so the only sign left is that the policy is missing.
+            const data = {...searchResults.data};
+            expect(data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).toBeDefined();
+            delete data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+            // When the Search actions are computed for the report
+            const actions = SearchUIUtils.getActions(data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+            // Then Submit is not offered, matching the report view, because the backend rejects submissions to a deleted workspace
+            expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
         test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
             // Given report1 holds a single expense and the report itself can be submitted
             const reportActions = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
