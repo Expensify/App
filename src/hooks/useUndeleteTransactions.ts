@@ -1,4 +1,4 @@
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {undeleteTransactions} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ function useUndeleteTransactions() {
     return (transactions: Transaction[]) => {
         const transactionIDs = transactions.map((transaction) => transaction.transactionID);
 
-        changeTransactionsReport({
+        undeleteTransactions({
             isVendorMatchingBetaEnabled,
             transactionIDs,
             isASAPSubmitBetaEnabled,
