@@ -15,6 +15,20 @@ import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
 
+let tabTag: {clientID: string; isLeader: boolean} | undefined;
+
+function setLogTabTag(clientID: string, isLeader: boolean) {
+    tabTag = {clientID, isLeader};
+}
+
+function tagLogMessage(message: string): string {
+    if (!tabTag) {
+        return message;
+    }
+
+    return `[${tabTag.clientID} leader:${tabTag.isLeader}] ${message}`;
+}
+
 type LogCommandParameters = {
     expensifyCashAppVersion: string;
     logPacket: string;
@@ -36,7 +50,7 @@ type RequestParams = Merge<
     {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters?: string; email?: string | null}
 >;
 
-type LogLine = {email?: string | null; [key: string]: unknown};
+type LogLine = {email?: string | null; clientID?: string; isLeader?: boolean; [key: string]: unknown};
 
 /**
  * Network interface for logger.
@@ -109,15 +123,44 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
-const Log = new Logger({
+class TabTaggedLogger extends Logger {
+    add(...addArgs: Parameters<Logger['add']>) {
+        const [message, parameters, forceFlushToServer, onlyFlushWithOthers, extraData] = addArgs;
+        const tagAtWrite = tabTag;
+        const {maxLogLinesBeforeFlush} = this;
+
+        // Logger.add flushes from inside itself as soon as it pushes the line, which would send this
+        // line before the tag below is attached, so the queue is held open and flushed here instead.
+        this.maxLogLinesBeforeFlush = Number.POSITIVE_INFINITY;
+
+        try {
+            super.add(message, parameters, false, onlyFlushWithOthers, extraData);
+        } finally {
+            this.maxLogLinesBeforeFlush = maxLogLinesBeforeFlush;
+        }
+
+        const line = this.logLines.at(-1);
+
+        if (line && tagAtWrite) {
+            Object.assign(line, tagAtWrite);
+        }
+
+        if (forceFlushToServer || this.logLines.length > maxLogLinesBeforeFlush) {
+            this.logToServer();
+        }
+    }
+}
+
+const Log = new TabTaggedLogger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
-        console.debug(message, extraData);
+        console.debug(tagLogMessage(message), extraData);
     },
     maxLogLinesBeforeFlush: 500,
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
 });
+
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 // eslint-disable-next-line no-restricted-properties
@@ -138,5 +181,7 @@ AppLogs.registerHandler({
         }
     },
 });
+
+export {setLogTabTag};
 
 export default Log;

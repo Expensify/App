@@ -108,14 +108,21 @@ Onyx.connectWithoutView({
                     }
                 }
                 const previousLength = persistedRequests.length;
+                const removedRequests: AnyRequest[] = [];
                 persistedRequests = persistedRequests.filter((r) => {
                     const requestIndex = getClientRequestIndex(r);
-                    return requestIndex == null || diskIDs.has(requestIndex);
+                    const isKept = requestIndex == null || diskIDs.has(requestIndex);
+                    if (!isKept) {
+                        removedRequests.push(r);
+                    }
+                    return isKept;
                 });
                 if (persistedRequests.length !== previousLength) {
                     Log.info('[PersistedRequests] Reconciled deletions from leader tab', false, {
                         removedCount: previousLength - persistedRequests.length,
                         remainingCount: persistedRequests.length,
+                        removedCommands: getCommands(removedRequests),
+                        removedRequestIDs: removedRequests.map((r) => getClientRequestIndex(r) ?? null),
                     });
                 }
             }
