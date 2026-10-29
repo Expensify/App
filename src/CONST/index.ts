@@ -1460,7 +1460,6 @@ const CONST = {
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
-        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
@@ -1750,7 +1749,6 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
-    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -3372,6 +3370,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
+    ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX: /^file_\d+$/,
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],

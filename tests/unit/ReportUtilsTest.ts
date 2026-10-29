@@ -212,7 +212,7 @@ import {
     isSortableColumnName,
     isThreadMemberProtectedByParentReport,
     isUnread,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseMovedTransactionReportIDs,
     parseReportRouteParams,
@@ -7938,7 +7938,7 @@ describe('ReportUtils', () => {
     describe('replaceLocalAttachmentReferences', () => {
         const reportActionID = '6076606438659303644';
         const syncedImageHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" />`;
-        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" />`;
+        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" data-attachment-id="1" />`;
 
         it('drops the local reference while the upload is still pending, since the queued send re-attaches the file', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -7986,6 +7986,82 @@ describe('ReportUtils', () => {
             );
         });
 
+        describe('several synced attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const syncedTwoImagesHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" data-attachment-id="11" /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg" alt="receipt.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/def.jpg" data-attachment-id="12" />`;
+            const attachmentIDByLocalSource = {[firstSource]: '11', [secondSource]: '12'};
+
+            it('keeps every attachment the draft kept', () => {
+                // Given a message with two images that synced after the user started editing
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('matches by position when the synced attachments have no attachment ID', () => {
+                // Given synced images without an attachment ID
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('keeps the image the user kept when they deleted the other one', () => {
+                // Given the user deleted the first image while both were uploading
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then the second image stays, not the first
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('keeps the image the user kept by its file name after the app restarted', () => {
+                // Given the user deleted the first image, and the app restarted so it no longer knows which upload is which
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = 'Hello edited\n\n!(file:///var/mobile/Documents/receipt.jpg)';
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, {});
+
+                // Then the second image stays, matched by its file name
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('matches same-named images to different synced attachments', () => {
+                // Given three synced images with the same file name, and a draft that kept two of them after the app restarted
+                const syncedSameNameHtml = ['a', 'b', 'c']
+                    .map(
+                        (name) =>
+                            `<img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_${name}.png" alt="image.png" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/${name}.png" />`,
+                    )
+                    .join('');
+                const draft = 'Hello edited\n\n![image.png](file:///var/mobile/Documents/image.png)\n\n![image.png](file:///var/mobile/Documents/image.png)';
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, `Hello<br /><br />${syncedSameNameHtml}`, reportActionID, {});
+
+                // Then each kept image gets its own synced attachment instead of both getting the first one
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_a.png)\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_b.png)`,
+                );
+            });
+        });
+
         it('swaps a document reference for the synced attachment link', () => {
             const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
             const draft = 'Hello edited\n\n[file.doc](blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -8020,17 +8096,17 @@ describe('ReportUtils', () => {
         });
 
         it('reports the uploading attachment as removed once the draft drops its local reference', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', uploadingImageHtml)).toBe(true);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', uploadingImageHtml)).toEqual(['1']);
         });
 
         it('does not report a removal while the draft still references the uploading attachment', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(isUploadingAttachmentRemovedFromDraft(draft, uploadingImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImageHtml)).toEqual([]);
         });
 
         it('does not report a removal when the attachment already synced', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', syncedImageHtml)).toEqual([]);
         });
 
         it('returns the uploading attachment tag so the optimistic message can keep showing it', () => {
@@ -8038,6 +8114,45 @@ describe('ReportUtils', () => {
 
             expect(tag).toContain('data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1"');
             expect(tag?.startsWith('<img')).toBe(true);
+        });
+
+        describe('several uploading attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const uploadingImagesHtml = `Hello<br /><br /><img src="${firstSource}" data-optimistic-src="${firstSource}" data-attachment-id="11" /><br /><img src="${secondSource}" data-optimistic-src="${secondSource}" data-attachment-id="12" />`;
+
+            it('reports only the attachments the draft dropped', () => {
+                // Given a draft that keeps the second image but not the first
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the removed uploads are looked up
+                const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImagesHtml);
+
+                // Then only the first image counts as removed
+                expect(removedAttachmentIDs).toEqual(['11']);
+            });
+
+            it('keeps showing every attachment the edit kept', () => {
+                // Given a message with two uploading images
+
+                // When the first image is removed
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml, ['11']);
+
+                // Then only the second image is re-appended to the edited message
+                expect(html).toContain(secondSource);
+                expect(html).not.toContain(firstSource);
+            });
+
+            it('re-appends all the attachments when none were removed', () => {
+                // Given a message with two uploading images
+
+                // When the edit keeps both images
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml);
+
+                // Then both images are re-appended to the edited message
+                expect(html).toContain(firstSource);
+                expect(html).toContain(secondSource);
+            });
         });
 
         it('returns nothing to re-append once the attachment has synced', () => {
@@ -8087,7 +8202,7 @@ describe('ReportUtils', () => {
                 const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
 
                 expect(secondEditDraft).toContain(videoSource);
-                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+                expect(getUploadingAttachmentIDsRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toEqual([]);
             });
         });
 
