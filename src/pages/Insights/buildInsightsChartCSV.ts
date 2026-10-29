@@ -24,6 +24,7 @@ type BuildInsightsChartCSVParams = {
 
 const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'common.from',
+    [CONST.SEARCH.GROUP_BY.APPROVER]: 'common.approver',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
 };

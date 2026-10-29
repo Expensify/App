@@ -6,11 +6,12 @@ import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {canViewAllPolicyData} from './insightsAccess';
+import {canViewAllPolicyData, hasApprovalsEnabled, hasMultipleMembers} from './insightsAccess';
 
 type InsightsChartSpec = {
     /** Slot the request names the chart's snapshot under, and the response's `graphs` confirms it in */
@@ -24,9 +25,15 @@ type InsightsChartSpec = {
     sortOrder?: string;
     limit?: number;
 
+    /** Narrows the chart's query to expenses that have these */
+    has?: HasFilterValues;
+
     /** The chart is shown when any workspace in scope passes this. A chart that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
 };
+
+/** Compliance charts plot only the expenses whose violations were kept at submission or approval */
+const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
 
 type InsightsDashboardSpec = {
     /** Identifies the dashboard to the backend. */
@@ -96,10 +103,43 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         isPolicyEligible: canViewAllPolicyData,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
-            titleKey: 'insightsPage.compliance',
+            titleKey: 'insightsPage.violationsOverTime',
             view: CONST.SEARCH.VIEW.LINE,
+            has: VIOLATION_HAS_VALUES,
         },
-        supportingCharts: [],
+        supportingCharts: [
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS,
+                titleKey: 'insightsPage.topViolations',
+                has: VIOLATION_HAS_VALUES,
+                view: CONST.SEARCH.VIEW.PIE,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER,
+                titleKey: 'insightsPage.violationsBySubmitter',
+                has: VIOLATION_HAS_VALUES,
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: hasMultipleMembers,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_APPROVER,
+                titleKey: 'insightsPage.violationsByApprover',
+                has: VIOLATION_HAS_VALUES,
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                isPolicyEligible: (policy) => hasMultipleMembers(policy) && hasApprovalsEnabled(policy),
+            },
+        ],
     },
 };
 

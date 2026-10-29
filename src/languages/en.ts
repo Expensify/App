@@ -1320,6 +1320,10 @@ const translations = {
     insightsPage: {
         viewOnSpend: 'View on Spend',
         compliance: 'Compliance',
+        violationsOverTime: 'Violations over time',
+        topViolations: 'Top violations',
+        violationsBySubmitter: 'Violations by submitter',
+        violationsByApprover: 'Violations by approver',
         runningTotal: 'Running total',
         compare: {
             label: 'Compare',
@@ -11042,6 +11046,7 @@ const translations = {
             },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Card',
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Withdrawal ID',
                 [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Category',
@@ -11105,6 +11110,7 @@ const translations = {
         },
         chartTitles: {
             [CONST.SEARCH.GROUP_BY.FROM]: 'From',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
             [CONST.SEARCH.GROUP_BY.CARD]: 'Cards',
             [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: 'Exports',
             [CONST.SEARCH.GROUP_BY.CATEGORY]: 'Categories',

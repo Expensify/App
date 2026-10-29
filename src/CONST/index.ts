@@ -8213,6 +8213,8 @@ const CONST = {
         },
         GROUP_BY: {
             FROM: 'from',
+            // Groups like FROM, by each approver. Only Insights queries use it, so Search doesn't offer it
+            APPROVER: 'approver',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
             CATEGORY: 'category',
@@ -11230,6 +11232,9 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_VIOLATIONS: 'topViolations',
+            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
+            VIOLATIONS_BY_APPROVER: 'violationsByApprover',
         },
     },
 
