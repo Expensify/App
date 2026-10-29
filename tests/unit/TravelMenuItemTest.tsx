@@ -157,6 +157,24 @@ describe('TravelMenuItem', () => {
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 
+    it('opens travel when the default workspace is only loaded as a provisioned policy summary', async () => {
+        // Given a default workspace known only from the policy summary sent after a cache clear, so it has no travel settings
+        await seedWorkspaces(TRAVEL_WORKSPACE_ID, {isTravelEnabled: true, isTravelProvisioned: true});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: true});
+        });
+        renderMenuItem();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user taps Book travel
+        await pressMenuItem();
+
+        // Then travel opens directly instead of falling back to the travel setup page
+        expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_WORKSPACE_ID);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+    });
+
     it('offers travel setup when the default workspace has travel switched on but unfinished', async () => {
         await seedWorkspaces(TRAVEL_WORKSPACE_ID, {isTravelEnabled: true});
         renderMenuItem();

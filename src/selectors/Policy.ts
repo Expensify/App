@@ -21,7 +21,7 @@ import {
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
-    isWorkspaceProvisionedForTravel,
+    isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -265,12 +265,7 @@ const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, curren
 const createHasTravelEnabledPolicySelector =
     (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): boolean =>
-        Object.values(policies ?? {}).some(
-            (policy) =>
-                policy?.isTravelEnabled &&
-                (policy.isTravelProvisioned === true || isWorkspaceProvisionedForTravel(policy.travelSettings)) &&
-                isPolicyAccessible(policy, currentUserLogin ?? ''),
-        );
+        Object.values(policies ?? {}).some((policy) => policy?.isTravelEnabled && isPolicyProvisionedForTravel(policy) && isPolicyAccessible(policy, currentUserLogin ?? ''));
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
