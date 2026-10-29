@@ -14,6 +14,7 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
+import {trackFullstoryEvent} from '@libs/Fullstory/utils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -70,6 +72,11 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/ConciergeResponseIndicator', () => ({__esModule: true, default: jest.fn()}));
+
+jest.mock('@libs/Fullstory/utils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/Fullstory/utils'),
+    trackFullstoryEvent: jest.fn(),
+}));
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildOptimisticNextStep: jest.fn(),
@@ -328,6 +335,35 @@ describe('actions/Report', () => {
         } else {
             expect(parameters).not.toHaveProperty('optimisticConciergeReportActionID');
             expect(trackConciergeResponse).not.toHaveBeenCalled();
+        }
+        await waitForBatchedUpdates();
+    });
+
+    it.each<[string, string, boolean]>([
+        ['Concierge chat', '300', true],
+        ['ordinary chat', '600', false],
+    ])('tracks the FullStory Concierge message event only in a %s', async (_name, reportID, shouldTrack) => {
+        // Given a chat that is or isn't the user's Concierge chat
+        apiWriteSpy.mockResolvedValue(undefined);
+
+        // When the user sends a comment to it
+        Report.addComment({
+            report: {...createRandomReport(Number(reportID), undefined), reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: 'Please help me with expenses',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 10,
+            delegateAccountID: undefined,
+            conciergeReportID: '300',
+        });
+
+        // Then the FullStory event fires once for Concierge, without message content, and never for other chats
+        if (shouldTrack) {
+            expect(trackFullstoryEvent).toHaveBeenCalledTimes(1);
+            expect(trackFullstoryEvent).toHaveBeenCalledWith(CONST.FULLSTORY.EVENT.CONCIERGE_MESSAGE_SENT, {has_attachment: false});
+        } else {
+            expect(trackFullstoryEvent).not.toHaveBeenCalled();
         }
         await waitForBatchedUpdates();
     });
@@ -2272,6 +2308,48 @@ describe('actions/Report', () => {
         expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
     });
 
+    it('should post several attachments as one action when Concierge answers in a thread', async () => {
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given two files sent with a caption to Concierge, which answers each question in a thread
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        const fileA: FileObject = {name: 'a.jpg', type: 'image/jpeg', uri: 'file://a.jpg'};
+        const fileB: FileObject = {name: 'b.jpg', type: 'image/jpeg', uri: 'file://b.jpg'};
+        const conciergeThreadReportID = '9001';
+
+        // When they are sent together
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT.reportID,
+            ancestors: [],
+            attachments: [fileA, fileB],
+            currentUserAccountID: 1,
+            text: 'Hello world',
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then one request carries both files with an attachment ID for each, so Concierge reads them together
+        const requests = PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.ADD_ATTACHMENT || request.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        expect(requests).toHaveLength(1);
+        const data = requests.at(0)?.data;
+        expect(data?.file).toEqual(fileA);
+        expect(data?.file_1).toEqual(fileB);
+        expect(String(data?.attachmentIDs).split(',')).toEqual([String(data?.attachmentID), expect.any(String)]);
+
+        // And one report action shows both files and opens the thread
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT.reportID}` as const);
+        const reportAction = reportActions?.[String(data?.reportActionID)];
+        const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : undefined;
+        expect(message?.html).toContain('file://a.jpg');
+        expect(message?.html).toContain('file://b.jpg');
+        expect(reportAction?.childReportID).toBe(conciergeThreadReportID);
+    });
+
     it('should create attachment only actions when adding multiple attachments without a comment', async () => {
         global.fetch = TestHelper.createGlobalFetchMock({
             headers: new Headers({
@@ -3048,6 +3126,55 @@ describe('actions/Report', () => {
             expect(requests).toHaveLength(1);
             expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
             expect(requests.at(0)?.data?.reportComment).toContain(syncedSource);
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+        });
+
+        it('skips replaying an edit that restores a comment mentioning a room', async () => {
+            // Given a comment mentioning a room whose attachment is still uploading, with the mention still in the text form the frontend writes
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            const roomReportID = '456';
+            const reportIDToName = {[roomReportID]: '#admins'};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    reportID,
+                    reportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-10-21 10:37:59.881',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [
+                        {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: uploadingHtml.replace('hello', 'hello <mention-report>#admins</mention-report>'), text: 'hello #admins [Attachment]'},
+                    ],
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            await waitForBatchedUpdates();
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            await waitForBatchedUpdates();
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
+
+            // And the attachment syncs with the room mention stored by reportID, as the backend saves it
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    pendingAction: null,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            html: syncedHtml.replace('hello', `hello <mention-report reportID="${roomReportID}" />`),
+                            text: 'hello #admins [Attachment]',
+                        },
+                    ],
+                },
+            });
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+
+            // Then no edit is sent, because the replay resolves the room name saved with the edit instead of comparing against #Hidden
+            expect(getUpdateCommentRequests()).toHaveLength(0);
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
         });
     });

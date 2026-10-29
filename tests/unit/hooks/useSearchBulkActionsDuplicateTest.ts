@@ -9,6 +9,7 @@ import useBulkDuplicateReportAction from '@hooks/useBulkDuplicateReportAction';
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
 import {bulkDuplicateExpenses, bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+import type * as SearchActions from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -30,6 +31,8 @@ jest.mock('@libs/actions/IOU/Duplicate', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    // The hook and shouldShowDeleteOption resolve report actions through this helper, so the real implementation has to stay available
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
