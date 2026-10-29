@@ -138,6 +138,33 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
     });
 
+    it('keeps loading until GetInsights responds when every chart loaded empty', () => {
+        // Given no GetInsights response yet, and every chart already loaded empty by a Search request
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+
+        // Then the page keeps loading instead of showing the empty state, since the response may say the account has no expenses
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
+    });
+
+    it('keeps loading until GetInsights responds when one chart loaded empty and the other has not loaded', () => {
+        // Given no GetInsights response yet, an empty headline chart, and a supporting chart with no data
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, undefined));
+
+        // Then the page keeps loading instead of drawing an empty chart next to a loading one
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
+    });
+
+    it('shows the empty state offline when every chart is empty', () => {
+        // Given no GetInsights response, no connection, and every chart already loaded empty by a Search request
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, true, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+
+        // Then the page shows the empty state instead of waiting for a response that can't arrive offline
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
+    });
+
     it('says the account has no expenses without waiting on a snapshot', () => {
         // Given a response saying the account has no expenses at all, and no chart snapshots
         // When the page's state is resolved

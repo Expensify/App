@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -32,7 +33,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
@@ -118,6 +120,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 addBottomSafeAreaPadding
                 addOfflineIndicatorBottomSafeAreaPadding
             />
+        );
+    }
+
+    if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
+        return (
+            <View style={styles.flex1}>
+                <FullScreenLoadingIndicator shouldUseGoBackButton={false} />
+            </View>
         );
     }
 
@@ -292,14 +302,23 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                     </View>
                 )
             )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={setFilters}
-            />
+            <View style={styles.flex1}>
+                <Animated.View
+                    key={state}
+                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    style={StyleSheet.absoluteFill}
+                >
+                    <InsightsDashboardContent
+                        state={state}
+                        headlineChart={headlineChart}
+                        supportingCharts={supportingCharts}
+                        filters={filters}
+                        onRetry={requestDashboard}
+                        onGroupByChange={setFilters}
+                    />
+                </Animated.View>
+            </View>
         </ScreenWrapper>
     );
 }

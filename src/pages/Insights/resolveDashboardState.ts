@@ -44,6 +44,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
         return {isLoaded, hasRows: isLoaded && hasGroupWithExpenses(groups)};
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
+    const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
         return INSIGHTS_DASHBOARD_STATE.OFFLINE;
@@ -51,10 +52,11 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    if (!hasDashboardResponse && !hasLoadedChart) {
+    // Without rows to draw, waits for GetInsights, whose response may replace the charts with a full-page state
+    if (!hasDashboardResponse && !hasChartWithRows && !(isOffline && hasLoadedChart)) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
-    if (chartStates.some(({hasRows}) => hasRows)) {
+    if (hasChartWithRows) {
         return INSIGHTS_DASHBOARD_STATE.READY;
     }
     if (dashboard?.hasResults === false) {
