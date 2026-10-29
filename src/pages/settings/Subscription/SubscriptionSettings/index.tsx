@@ -56,6 +56,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {StyleProp, TextStyle} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -66,6 +67,7 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
@@ -227,7 +229,7 @@ function SubscriptionSettings() {
                 openAdminsRoom();
             }
         } else if (href.endsWith(CONST.PRICING)) {
-            openLink(CONST.PRICING, environmentURL);
+            openLink(CONST.PRICING, environmentURL, false, session);
         }
     };
 
