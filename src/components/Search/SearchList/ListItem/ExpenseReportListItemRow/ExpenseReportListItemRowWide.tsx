@@ -67,7 +67,14 @@ function ExpenseReportListItemRowWide({
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {
+                        isDateColumnWide: item.shouldShowYear,
+                        isDateColumnCreated: true,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
@@ -76,7 +83,13 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isSubmittedColumnWide: item.shouldShowYearSubmitted})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {
+                        isSubmittedColumnWide: item.shouldShowYearSubmitted,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.submitted ?? ''}
                     showTooltip
@@ -86,7 +99,13 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide: item.shouldShowYearApproved})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {
+                        isApprovedColumnWide: item.shouldShowYearApproved,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.approved ?? ''}
                     showTooltip
@@ -139,7 +158,13 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {
+                        isExportedColumnWide: item.shouldShowYearExported,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
@@ -208,7 +233,14 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {
+                        isAmountColumnWide: item.isAmountColumnWide,
+                        shouldRemoveTotalColumnFlex: true,
+                    }),
+                ]}
+            >
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
@@ -233,7 +265,14 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {
+                        isAmountColumnWide: item.isAmountColumnWide,
+                        shouldRemoveTotalColumnFlex: true,
+                    }),
+                ]}
+            >
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
@@ -314,6 +353,7 @@ function ExpenseReportListItemRowWide({
                         chatReport={chatReport}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
+                        snapshotTransactions={item.transactions}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>
