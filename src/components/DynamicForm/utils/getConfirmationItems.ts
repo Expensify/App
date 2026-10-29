@@ -82,7 +82,7 @@ function getConfirmationItems(
                     const answer = !typedAnswer && hasProvidedAnswer(field, values) ? translate('dynamicForm.onFile') : typedAnswer;
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
-                    const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
+                    const isMasked = isSensitiveField(field) && !!typedAnswer && !!getVisibleEnding(typedAnswer);
 
                     return [
                         {
@@ -90,7 +90,7 @@ function getConfirmationItems(
                             description: fieldLabel,
                             title: isSensitiveField(field) && typedAnswer ? maskSensitiveValue(answer) : answer,
                             // Screen readers would read out each bullet of the mask
-                            accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(answer)}) : undefined,
+                            accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(typedAnswer)}) : undefined,
                             shouldShowRightIcon: isEditable,
                             onPress: isEditable ? handleEdit : noop,
                             interactive: isEditable,

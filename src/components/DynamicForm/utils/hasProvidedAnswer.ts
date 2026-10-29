@@ -15,4 +15,3 @@ function hasProvidedAnswer(field: DynamicFormField, values: DynamicFormValues): 
 }
 
 export default hasProvidedAnswer;
-export {getProvidedKey};

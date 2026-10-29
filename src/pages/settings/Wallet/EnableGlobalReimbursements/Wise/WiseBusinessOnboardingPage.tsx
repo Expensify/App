@@ -18,7 +18,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
-import {openReimbursementAccountPage} from '@userActions/BankAccounts';
+import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
 import updateWiseOnboardingAdditionalData from '@userActions/WiseOnboarding';
@@ -48,6 +48,8 @@ const businessAccountSelector = (reimbursementAccount: OnyxEntry<ReimbursementAc
 
 const saveErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => getLatestErrorMessage(reimbursementAccount);
 
+const isSavingPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => !!reimbursementAccount?.isSavingWiseOnboardingPage;
+
 /** The business details we collect before Wise's own page: the representative, the business, and a confirmation of both */
 function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
@@ -58,6 +60,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const [saveError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: saveErrorSelector});
+    const [isSavingPage] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: isSavingPageSelector});
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -85,6 +88,14 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [isNewVisit] = useState(!route.params.subPage);
     const shouldReadBusinessAccount = isNewVisit && !isOffline;
     const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
+
+    // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
+    useEffect(() => {
+        if (!isNewVisit) {
+            return;
+        }
+        hideBankAccountErrors();
+    }, [isNewVisit]);
     if (businessAccount?.isLoading && !hasBusinessAccountReadStarted) {
         setHasBusinessAccountReadStarted(true);
     }
@@ -156,7 +167,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             submitError={saveError || undefined}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
-            onSubmit={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path))}
+            onSubmit={() => {
+                // A page save that is still running or has failed would leave Wise without that page, so the user stays on the confirmation page
+                if (isSavingPage || saveError) {
+                    return;
+                }
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path));
+            }}
         />
     );
 }

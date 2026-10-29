@@ -76,14 +76,27 @@ describe('getWiseOnboardingPageParams', () => {
         expect(params.ssn).toBeUndefined();
     });
 
-    it('leaves out a drafted entry that cannot be uploaded', () => {
+    it('leaves out a drafted entry that cannot be uploaded and keeps the files the server holds', () => {
         // Given a file entry with no file data behind it, such as one whose data the device no longer has
         const answers = {firstName: 'Alice', idDocument: [{name: 'lost.jpg', uri: 'blob:lost'}]};
 
         // When the page is turned into a save request
         const params = getWiseOnboardingPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers, {});
 
-        // Then no part is sent for it, so the server never receives "[object Object]" as a file
+        // Then no part is sent for it, so the server never receives "[object Object]" as a file, and no `documents` is sent, so an empty list
+        // does not drop the stored file the user still sees
         expect(Object.keys(params)).not.toContain(FIRST_ID_DOCUMENT_PART);
+        expect(params.documents).toBeUndefined();
+    });
+
+    it('lists a removed saved file as empty', () => {
+        // Given a resumed representative page where the user removed the only saved ID file
+        const answers = {firstName: 'Alice', idDocument: []};
+
+        // When the page is turned into a save request
+        const params = getWiseOnboardingPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers, {});
+
+        // Then the field is listed with no keys, so the server removes the file too
+        expect(params.documents).toBe(JSON.stringify({idDocument: []}));
     });
 });
