@@ -49,6 +49,7 @@ const renderModal = (props: Partial<ComponentProps<typeof AttendeePickerModal>> 
             anchorPosition={{horizontal: 0, vertical: 0}}
             attendees={attendees}
             onAttendeesChanged={jest.fn()}
+            onApply={jest.fn()}
             iouType={CONST.IOU.TYPE.SUBMIT}
             {...props}
         />,
@@ -62,33 +63,36 @@ describe('AttendeePickerModal', () => {
         mockIsSmallScreenWidth = false;
     });
 
-    it('shows the attendee list without its Save button, on a screen it reads as settled', () => {
-        // Given the expense form's attendees row, whose list saves each toggle as it lands
+    it('shows the attendee list with an Apply button and a "Search for someone" input, on a screen it reads as settled', () => {
+        // Given the expense form's attendees row
         const onAttendeesChanged = jest.fn();
 
         // When the list opens in the container
         renderModal({onAttendeesChanged});
 
-        // Then it is the full page's list, started from the expense's attendees, with no Save button since there is nothing
-        // left to save, and it reads the screen as settled, as it would on its page once the transition ended, so it builds
-        // its options rather than waiting for a transition the container never has
+        // Then it is the full page's list, started from the expense's attendees, with its button reading Apply rather than
+        // Save and its search input asking for someone, and it reads the screen as settled, as it would on its page once the
+        // transition ended, so it builds its options rather than waiting for a transition the container never has
         expect(mockSelectorProps?.attendees).toEqual(attendees);
         expect(mockSelectorProps?.onAttendeesAdded).toBe(onAttendeesChanged);
         expect(mockSelectorProps?.iouType).toBe(CONST.IOU.TYPE.SUBMIT);
-        expect(mockSelectorProps?.shouldShowSaveButton).toBe(false);
+        expect(mockSelectorProps?.confirmButtonText).toBe('common.apply');
+        expect(mockSelectorProps?.searchInputLabel).toBe('selectionList.searchForSomeone');
         expect(mockDidScreenTransitionEnd).toBe(true);
     });
 
-    it('closes when the list confirms its selection', () => {
+    it('applies the selection when the list confirms it', () => {
         // Given the list open in the container
+        const onApply = jest.fn();
         const onClose = jest.fn();
-        renderModal({onClose});
+        renderModal({onApply, onClose});
 
-        // When the user confirms, e.g. with the Enter key on a focused attendee
+        // When the user confirms, with the Apply button or the Enter key on a focused attendee
         mockSelectorProps?.onFinish();
 
-        // Then the container closes, each toggle having been saved already
-        expect(onClose).toHaveBeenCalledTimes(1);
+        // Then the selection is applied; the caller decides whether to close, as it may keep the list open on an empty selection
+        expect(onApply).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
     });
 
     it('opens at the standard dropdown size on a wide layout', () => {

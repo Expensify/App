@@ -26,6 +26,9 @@ type AttendeePickerModalProps = {
     /** Called with the whole selection each time an attendee is toggled */
     onAttendeesChanged: (attendees: Attendee[]) => void;
 
+    /** Called when the user applies the selection, with the Apply button or the Enter key */
+    onApply: () => void;
+
     /** Type of the expense, which the list's empty state is worded for */
     iouType: IOUType;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
@@ -33,15 +36,15 @@ type AttendeePickerModalProps = {
 /**
  * The attendee list in a container anchored to a row: a pop-over on a wide layout, a bottom sheet on a narrow one.
  * Unlike the single-select lists, toggling an attendee hands the new selection to `onAttendeesChanged` and keeps the
- * container open, so the user can keep picking; it closes when dismissed, or when the user confirms the selection.
+ * container open, so the user can keep picking. The selection is applied with the Apply button at the bottom, as on
+ * the full page, where the button reads Save.
  */
-function AttendeePickerModal({attendees, onAttendeesChanged, iouType, onClose, ...popoverProps}: AttendeePickerModalProps) {
+function AttendeePickerModal({attendees, onAttendeesChanged, onApply, iouType, ...popoverProps}: AttendeePickerModalProps) {
     const {translate} = useLocalize();
 
     return (
         <AnchoredSelectionListPopover
             {...popoverProps}
-            onClose={onClose}
             // The list always has a search input and, between recents and contacts, more rows than the container shows at
             // once, so the container opens at its full height rather than fitting a count.
             optionCount={CONST.STANDARD_LIST_ITEM_LIMIT}
@@ -53,10 +56,10 @@ function AttendeePickerModal({attendees, onAttendeesChanged, iouType, onClose, .
                 <MoneyRequestAttendeeSelector
                     attendees={attendees}
                     onAttendeesAdded={onAttendeesChanged}
-                    // Each toggle is already saved, so confirming only closes the container.
-                    onFinish={onClose}
+                    onFinish={onApply}
                     iouType={iouType}
-                    shouldShowSaveButton={false}
+                    searchInputLabel={translate('selectionList.searchForSomeone')}
+                    confirmButtonText={translate('common.apply')}
                 />
             </ScreenWrapperStatusContext.Provider>
         </AnchoredSelectionListPopover>

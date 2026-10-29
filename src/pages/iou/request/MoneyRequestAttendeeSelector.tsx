@@ -46,8 +46,11 @@ type MoneyRequestAttendeesSelectorProps = {
     /** Empty selection shows no error until the user tries to save */
     shouldDeferEmptySelectionError?: boolean;
 
-    /** Whether the list ends in a Save button. A list that saves each toggle as it lands, e.g. in a pop-over, has nothing to save */
-    shouldShowSaveButton?: boolean;
+    /** Label of the search input. Defaults to "Name, email, or phone number" */
+    searchInputLabel?: string;
+
+    /** Text of the button that confirms the selection. Defaults to "Save" */
+    confirmButtonText?: string;
 };
 
 function MoneyRequestAttendeeSelector({
@@ -56,7 +59,8 @@ function MoneyRequestAttendeeSelector({
     onAttendeesAdded,
     iouType,
     shouldDeferEmptySelectionError = false,
-    shouldShowSaveButton = true,
+    searchInputLabel,
+    confirmButtonText,
 }: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -161,31 +165,24 @@ function MoneyRequestAttendeeSelector({
             return;
         }
 
-        const errorMessage = shouldShowErrorMessage && (
-            <FormHelpMessage
-                style={[styles.ph1, styles.mb2]}
-                isError
-                message={translate('iou.error.atLeastOneAttendee')}
-            />
-        );
-
-        // Without a Save button the footer holds the error alone, and nothing at all while the selection is fine.
-        if (!shouldShowSaveButton) {
-            return errorMessage || undefined;
-        }
-
         return (
             <>
-                {errorMessage}
+                {shouldShowErrorMessage && (
+                    <FormHelpMessage
+                        style={[styles.ph1, styles.mb2]}
+                        isError
+                        message={translate('iou.error.atLeastOneAttendee')}
+                    />
+                )}
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={confirmSelection}
-                    size={CONST.BUTTON_SIZE.LARGE}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
                 >
                     <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.save')}</Button.Text>
+                    <Button.Text>{confirmButtonText ?? translate('common.save')}</Button.Text>
                 </Button>
             </>
         );
@@ -241,7 +238,7 @@ function MoneyRequestAttendeeSelector({
     const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        label: searchInputLabel ?? translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         value: searchTerm,
         onChangeText: setSearchTerm,
