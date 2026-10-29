@@ -242,6 +242,11 @@ const DYNAMIC_ROUTES = {
         path: 'accept-terms',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING],
     },
+    BANK_ACCOUNT_LINK_PLAID: {
+        path: ':bankAccountID/link-plaid',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+        getRoute: (bankAccountID: string) => `${bankAccountID}/link-plaid` as const,
+    },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
