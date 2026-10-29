@@ -167,6 +167,7 @@ jobs:
           REPO: App
           APP_PR_NUMBER: ${{ inputs.APP_PR_NUMBER }}
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          MOBILE_EXPENSIFY_REF: ${{ inputs.MOBILE_EXPENSIFY_REF }}
           GITHUB_TOKEN: ${{ github.token }}
           COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}
@@ -182,6 +183,7 @@ jobs:
         with:
           REPO: Mobile-Expensify
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ inputs.MOBILE_EXPENSIFY_PR }}
+          MOBILE_EXPENSIFY_REF: ${{ inputs.MOBILE_EXPENSIFY_REF }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           COMMENT_PREFIX: ':test_tube::test_tube: Use the links below to test this adhoc build'
           ANDROID: ${{ needs.buildAndroid.result }}

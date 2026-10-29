@@ -14,6 +14,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TIMEZONE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
@@ -672,6 +675,12 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
         policyID: string;
     };
@@ -1238,6 +1247,20 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST]: {
+        policyID: string;
+        feed: CardFeedWithDomainID;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_ADVANCED]: {
         policyID: string;
     };
@@ -1309,8 +1332,13 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: {
         policyID: string;
-        feed: string;
+        feed: CompanyCardFeedWithDomainID;
         cardID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardIDs?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT]: {
         policyID: string;

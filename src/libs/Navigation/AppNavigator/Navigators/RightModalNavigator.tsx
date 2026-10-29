@@ -2,8 +2,11 @@ import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelCo
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -35,21 +38,23 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {ComponentRef} from 'react';
-import type {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter} from 'react-native';
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import RHPOverlay from './Overlay/RHPOverlay';
+import RHPResizeHandle from './RHPResizeHandle';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
@@ -100,6 +105,9 @@ type RightModalDialogFrameProps = {
     /** Animated style applied to the RHP container. */
     style: React.ComponentProps<typeof Animated.View>['style'];
 
+    /** Style of the box around the stack navigator. */
+    contentStyle: StyleProp<ViewStyle>;
+
     /** Callback ref for the container node so the provider can observe node identity changes. */
     onContainerRef: (node: ComponentRef<typeof View> | null) => void;
 
@@ -115,7 +123,7 @@ type RightModalDialogFrameProps = {
  * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
  * Header also announces "{title}, dialog" via a polite live region when the title is ready.
  */
-function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, children}: RightModalDialogFrameProps) {
+function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onContainerRef, children}: RightModalDialogFrameProps) {
     const {dialogAriaLabel} = useDialogLabelData();
     const hasName = !!dialogAriaLabel;
 
@@ -129,7 +137,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
             tabIndex={hasDialogSemantics ? -1 : undefined}
             style={style}
         >
-            {children}
+            <View style={contentStyle}>{children}</View>
         </Animated.View>
     );
 }
@@ -137,6 +145,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, onContainerRef, child
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
     const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
     const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
         setContainerNode(node);
@@ -197,7 +206,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         superWideRHPSidePanelOffset,
     );
 
-    const overlayPositionLeft = useMemo(() => -1 * calculateSuperWideRHPWidth(windowWidth), [windowWidth]);
+    const overlayPositionLeft = -1 * calculateSuperWideRHPWidth(windowWidth);
 
     // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
     let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
@@ -217,27 +226,28 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         !shouldUseNarrowLayout &&
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
+    const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
 
-    const screenListeners = useMemo(
-        () => ({
-            blur: () => {
-                const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
-                    | NavigatorScreenParams<RightModalNavigatorParamList>
-                    | undefined;
+    const screenListeners = {
+        blur: () => {
+            const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                | NavigatorScreenParams<RightModalNavigatorParamList>
+                | undefined;
 
-                if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
-                    return;
-                }
-                // Delay clearing review duplicate data till the RHP is completely closed
-                // to avoid not found showing briefly in confirmation page when RHP is closing
-                TransitionTracker.runAfterTransitions({callback: () => abandonReviewDuplicateTransactions()});
-            },
-        }),
-        [navigation, route.params?.screen],
-    );
+            if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                return;
+            }
+            // Delay clearing review duplicate data till the RHP is completely closed
+            // to avoid not found showing briefly in confirmation page when RHP is closing
+            TransitionTracker.runAfterTransitions({callback: () => abandonReviewDuplicateTransactions()});
+        },
+    };
 
-    const handleOverlayPress = useCallback(() => {
+    const handleOverlayPress = () => {
         if (isExecutingRef.current) {
             return;
         }
@@ -255,7 +265,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         } else {
             isExecutingRef.current = false;
         }
-    }, [navigation]);
+    };
 
     // Pressing the dimmed gap around the focused card goes back one level when a card is stacked below, and closes the RHP when it is not.
     const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
@@ -263,7 +273,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // The gap on the right stops before the Side Panel, which shares that edge.
     const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
 
-    const clearWideRHPKeysAfterTabChanged = useCallback(() => {
+    const clearWideRHPKeysAfterTabChanged = () => {
         const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
         const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
         const hasTabChanged = isRhpOpened && isFullScreenTopmostRoute;
@@ -271,7 +281,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         clearWideRHPKeys();
-    }, [clearWideRHPKeys, route.key]);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -285,7 +295,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     return (
         <NarrowPaneContextProvider>
-            <NoDropZone>
+            <NoDropZone ref={singleRHPWidthScopeRef}>
                 {!shouldUseNarrowLayout && (
                     <RHPOverlay
                         positionLeftValue={overlayPositionLeft}
@@ -302,6 +312,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         hasDialogSemantics={!isSmallScreenWidth}
                         onContainerRef={setContainerNodeFromRef}
                         style={frameStyle}
+                        contentStyle={stackContentStyle}
                     >
                         <Stack.Navigator
                             parentRoute={route}
@@ -318,7 +329,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                 listeners={{
                                     beforeRemove: () => {
-                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(true), waitForUpcomingTransition: true});
+                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(is2FAEnabled, true), waitForUpcomingTransition: true});
                                     },
                                 }}
                             />
@@ -601,6 +612,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </>
                 )}
+                {isResizableSingleRHP && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

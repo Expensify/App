@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {AddNewCompanyCardFeed, CardFeeds} from '@src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 
 import React from 'react';
@@ -47,7 +48,7 @@ jest.mock('@hooks/useImportSpreadsheetConfirmModal', () => ({
 
 const POLICY_ID = 'policy123';
 const DOMAIN_ACCOUNT_ID = 777;
-const FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}1`;
+const FEED: CompanyCardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}1`;
 
 // "Notes" is not a header any role is detected from, so `merchant` can only come from the saved layout's index
 const SPREADSHEET_DATA = [

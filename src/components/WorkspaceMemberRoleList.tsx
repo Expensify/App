@@ -111,6 +111,13 @@ function getAssignableWorkspaceMemberRoleItems(
             isSelected: currentRole === CONST.POLICY.ROLE.USER,
             keyForList: CONST.POLICY.ROLE.USER,
         },
+        {
+            value: CONST.POLICY.ROLE.APPROVE_ONLY,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.APPROVE_ONLY),
+            alternateText: translate('workspace.common.approveOnlyAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.APPROVE_ONLY,
+            keyForList: CONST.POLICY.ROLE.APPROVE_ONLY,
+        },
     ];
 
     const selectableRoles = getSelectableRoles(policy, currentUserLogin, allowedRoles);
@@ -148,7 +155,7 @@ function WorkspaceMemberRoleList({
                         ListItem={SingleSelectListItem}
                         onSelectRow={onSelectRole}
                         confirmButtonOptions={confirmButtonOptions}
-                        shouldSingleExecuteRowSelect
+                        shouldSingleExecuteRowSelect={!confirmButtonOptions?.showButton}
                         initiallyFocusedItemKey={availableRoleItems.find((item) => item.isSelected)?.keyForList}
                         addBottomSafeAreaPadding
                     >
