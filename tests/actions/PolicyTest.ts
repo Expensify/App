@@ -431,7 +431,7 @@ describe('actions/Policy', () => {
             Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
@@ -593,7 +593,7 @@ describe('actions/Policy', () => {
                 ...createRandomPolicy(12, CONST.POLICY.TYPE.TEAM),
                 customRules: 'Source rules',
                 autoApproval: {limit: 12345},
-                achAccount: {bankAccountID: 123},
+                achAccount: {bankAccountID: 123, accountNumber: '1234', routingNumber: '123456789', addressName: 'Test', bankName: 'Test bank', reimburser: 'test@example.com'},
                 receiptPartners: {enabled: true},
                 units: {time: {enabled: true, rate: 90}},
             };
@@ -993,6 +993,9 @@ describe('actions/Policy', () => {
             expect(rates).toHaveLength(2);
             expect(newDefaultRateID).not.toBe(sourceDefaultRateID);
             expect(newExtraRateID).not.toBe(sourceExtraRateID);
+            if (!params.optimisticRateIDs) {
+                throw new Error('Expected duplicated distance rate IDs');
+            }
             expect(JSON.parse(params.optimisticRateIDs)).toEqual({[sourceDefaultRateID]: newDefaultRateID, [sourceExtraRateID]: newExtraRateID});
 
             await mockFetch.resume?.();

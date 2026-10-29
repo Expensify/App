@@ -206,7 +206,12 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('requires Currency with Workflows when reimbursement currencies differ', async () => {
-        await renderForm(false, {outputCurrency: 'EUR', achAccount: {bankAccountID: 123}, areWorkflowsEnabled: true, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+        await renderForm(false, {
+            outputCurrency: 'EUR',
+            achAccount: {bankAccountID: 123, accountNumber: '1234', routingNumber: '123456789', addressName: 'Test', bankName: 'Test bank', reimburser: 'test@example.com'},
+            areWorkflowsEnabled: true,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        });
         expect(getRow('workflows')?.isSelected).toBe(true);
         expect(getRow('currency')?.isSelected).toBe(true);
         expect(getRow('currency')?.isDisabled).toBe(true);

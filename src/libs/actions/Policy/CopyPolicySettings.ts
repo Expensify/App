@@ -3,8 +3,7 @@ import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
-import {categoryHasAnyRequireFieldsRule} from '@libs/RequireFieldsRulesUtils';
+import {categoryHasAnyRequireFieldsRule, hasExplicitFlagAmount} from '@libs/PolicyRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

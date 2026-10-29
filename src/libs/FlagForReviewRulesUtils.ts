@@ -16,6 +16,7 @@ import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
+import {hasExplicitFlagAmount} from './PolicyRulesUtils';
 
 type FlagForReviewTableItem = TableData & {
     ruleID: string;
@@ -27,10 +28,6 @@ type FlagForReviewTableItem = TableData & {
     pendingAction?: PendingAction;
     action: () => void;
 };
-
-function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): maxExpenseAmount is number {
-    return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
-}
 
 function getFlagForReviewRuleAmountError(maxExpenseAmount: string | undefined, translate: LocaleContextProps['translate']): string | undefined {
     const trimmedAmount = maxExpenseAmount?.trim() ?? '';
