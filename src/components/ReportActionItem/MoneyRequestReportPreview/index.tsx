@@ -37,6 +37,7 @@ import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContex
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {fullPolicySnapshotLastModifiedSelector} from '@src/selectors/Policy';
 import {hasOnceLoadedReportActionsSelector, isLoadingInitialReportActionsSelector, pendingNewTransactionIDsSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
@@ -45,7 +46,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/core';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {MoneyRequestReportPreviewProps} from './types';
 
@@ -95,21 +96,21 @@ function MoneyRequestReportPreview({
     const allReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter((transaction): transaction is Transaction => !!transaction);
     const transactions = allReportTransactions.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const orderedTransactionsRef = useRef<Transaction[]>([]);
-    const handleOrderedTransactionsChange = useCallback((orderedTransactions: Transaction[]) => {
+    const handleOrderedTransactionsChange = (orderedTransactions: Transaction[]) => {
         orderedTransactionsRef.current = orderedTransactions;
-    }, []);
+    };
     const [hasIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: hasReportActionsSelector,
     });
     const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
     // Subscribing to the whole action list re-rendered every card on each write, and a split writes a burst of
     // them. Narrow it to the one action a deferred press is waiting for, so nothing pending means nothing changes.
-    const pendingPressActionCountSelector = useCallback((reportActions: OnyxEntry<ReportActions>) => {
+    const pendingPressActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => {
         if (!pendingExpenseTransactionRef.current) {
             return undefined;
         }
         return Object.keys(reportActions ?? {}).length;
-    }, []);
+    };
     const [pendingPressActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: pendingPressActionCountSelector,
     });
@@ -121,6 +122,9 @@ function MoneyRequestReportPreview({
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
     const areAllRequestsBeingSmartScanned = areAllRequestsBeingSmartScannedReportUtils(iouReportID, action, allReportTransactions);
     const policy = usePolicy(policyID);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
@@ -129,57 +133,40 @@ function MoneyRequestReportPreview({
     const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
     const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
 
-    const updateWidths = useCallback(() => {
+    const updateWidths = () => {
         const {currentWidth, currentWrapperWidth} = widthsRef.current;
 
         if (currentWidth && currentWrapperWidth) {
             setWidths({currentWidth, currentWrapperWidth});
         }
-    }, []);
+    };
 
-    const onCarouselLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            const newWidth = e.nativeEvent.layout.width;
-            if (widthsRef.current.currentWidth !== newWidth) {
-                widthsRef.current.currentWidth = newWidth;
-                updateWidths();
-            }
-        },
-        [updateWidths],
-    );
-    const onWrapperLayout = useCallback(
-        (e: LayoutChangeEvent) => {
-            const newWrapperWidth = e.nativeEvent.layout.width;
-            if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
-                widthsRef.current.currentWrapperWidth = newWrapperWidth;
-                updateWidths();
-            }
-        },
-        [updateWidths],
-    );
-
-    const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth),
-        [StyleUtils, widths, shouldUseNarrowLayout, transactions.length],
-    );
-    const shouldShowPayerAndReceiver = useMemo(() => {
-        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
-            return false;
+    const onCarouselLayout = (e: LayoutChangeEvent) => {
+        const newWidth = e.nativeEvent.layout.width;
+        if (widthsRef.current.currentWidth !== newWidth) {
+            widthsRef.current.currentWidth = newWidth;
+            updateWidths();
         }
+    };
+    const onWrapperLayout = (e: LayoutChangeEvent) => {
+        const newWrapperWidth = e.nativeEvent.layout.width;
+        if (widthsRef.current.currentWrapperWidth !== newWrapperWidth) {
+            widthsRef.current.currentWrapperWidth = newWrapperWidth;
+            updateWidths();
+        }
+    };
 
-        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
-    }, [transactions, action.childType, iouReport]);
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, widths.currentWidth, widths.currentWrapperWidth);
+    const shouldShowPayerAndReceiver =
+        !(!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
 
     // The expenses a press on this preview can page through, in the order the preview shows them.
-    const getOpenableTransactionIDs = useCallback(
-        () =>
-            (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
-                .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
-                .map((pressedTransaction) => pressedTransaction.transactionID),
-        [transactions],
-    );
+    const getOpenableTransactionIDs = () =>
+        (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
+            .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
+            .map((pressedTransaction) => pressedTransaction.transactionID);
 
-    const cancelPendingPress = useCallback(() => {
+    const cancelPendingPress = () => {
         pendingExpenseTransactionRef.current = null;
         if (!cascadeTimerRef.current) {
             return;
@@ -187,9 +174,9 @@ function MoneyRequestReportPreview({
         clearTimeout(cascadeTimerRef.current.timer);
         cascadeTimerRef.current.release();
         cascadeTimerRef.current = null;
-    }, []);
+    };
 
-    const openReportFromPreview = useCallback(() => {
+    const openReportFromPreview = () => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
@@ -221,7 +208,7 @@ function MoneyRequestReportPreview({
         } else {
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [cancelPendingPress, getOpenableTransactionIDs, iouReportID, isSmallScreenWidth]);
+    };
     const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {
         selector: hasOnceLoadedReportActionsSelector,
     });
@@ -248,175 +235,157 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    const resolveChildReportID = useCallback(
-        (transaction: Transaction) => {
-            let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
-                const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
-                if (!liveIOUAction) {
-                    return undefined;
-                }
-                transactionIOUAction = liveIOUAction;
+    const resolveChildReportID = (transaction: Transaction) => {
+        let transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+        if (transactionIOUAction && !isLiveIOUAction(transactionIOUAction)) {
+            const liveIOUAction = getIOUActionForTransactionID(Object.values(getAllReportActions(transaction.reportID) ?? {}).filter(isLiveIOUAction), transaction.transactionID);
+            if (!liveIOUAction) {
+                return undefined;
             }
-            let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
-            if (childReportID) {
-                const existingThread = getReportOrDraftReport(childReportID);
-                if (existingThread && !existingThread.reportID) {
-                    return undefined;
-                }
-                setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
-            } else if (transactionIOUAction?.reportActionID) {
-                const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
-                if (transactionID) {
-                    childReportID = createTransactionThreadReport({
-                        introSelected,
-                        conciergeChat,
-                        currentUserLogin: currentUserEmail ?? '',
-                        currentUserAccountID,
-                        iouReport,
-                        iouReportAction: transactionIOUAction,
-                        personalDetails: personalDetailsList,
-                    })?.reportID;
-                }
+            transactionIOUAction = liveIOUAction;
+        }
+        let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
+        if (childReportID) {
+            const existingThread = getReportOrDraftReport(childReportID);
+            if (existingThread && !existingThread.reportID) {
+                return undefined;
             }
-            return childReportID;
-        },
-        [conciergeChat, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
-    );
+            setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
+        } else if (transactionIOUAction?.reportActionID) {
+            const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
+            if (transactionID) {
+                childReportID = createTransactionThreadReport({
+                    introSelected,
+                    conciergeChat,
+                    currentUserLogin: currentUserEmail ?? '',
+                    currentUserAccountID,
+                    iouReport,
+                    iouReportAction: transactionIOUAction,
+                    personalDetails: personalDetailsList,
+                    fullPolicySnapshotLastModified,
+                })?.reportID;
+            }
+        }
+        return childReportID;
+    };
 
     // `routeAtPress` is captured when the user pressed, not read live: a second press inside the cascade window
     // runs after the first press already navigated, so the live route is the report we opened and `backTo` would
     // point at itself.
-    const navigateToExpense = useCallback(
-        (childReportID: string, routeAtPress: string) => {
-            startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
-                name: 'MoneyRequestReportPreview.Transaction',
-                op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-            });
+    const navigateToExpense = (childReportID: string, routeAtPress: string) => {
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${childReportID}`, {
+            name: 'MoneyRequestReportPreview.Transaction',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
 
-            const openableTransactionIDs = getOpenableTransactionIDs();
+        const openableTransactionIDs = getOpenableTransactionIDs();
 
-            // This press owns the carousel it seeds. Without a source the list was unowned, so no screen could
-            // release it and every other writer was free to overwrite it while the expense was still open.
-            const carouselSource = CAROUSEL_SOURCE.reportPreview(iouReportID);
+        // This press owns the carousel it seeds. Without a source the list was unowned, so no screen could
+        // release it and every other writer was free to overwrite it while the expense was still open.
+        const carouselSource = CAROUSEL_SOURCE.reportPreview(iouReportID);
 
-            if (isSmallScreenWidth && iouReportID) {
-                const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `r/${iouReportID}`);
-                const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
-                if (!wasPressedFromReport) {
-                    Navigation.navigate(reportRoute);
-                }
-                setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                return;
+        if (isSmallScreenWidth && iouReportID) {
+            const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `r/${iouReportID}`);
+            const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo);
+            if (!wasPressedFromReport) {
+                Navigation.navigate(reportRoute);
             }
+            setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+            return;
+        }
 
-            if (isSmallScreenWidth) {
-                setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
-                return;
+        if (isSmallScreenWidth) {
+            setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
+            return;
+        }
+
+        if (iouReportID) {
+            const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `e/${iouReportID}`);
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo});
+            markReportRHPWidth(iouReportID, 'super-wide');
+            if (!wasPressedFromReport) {
+                Navigation.navigate(reportRoute);
             }
-
-            if (iouReportID) {
-                const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, `e/${iouReportID}`);
-                const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo});
-                markReportRHPWidth(iouReportID, 'super-wide');
-                if (!wasPressedFromReport) {
-                    Navigation.navigate(reportRoute);
-                }
-                const seeded = setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
-                markReportRHPWidth(childReportID, 'wide');
-                const release = () => {
-                    unmarkReportRHPWidth(childReportID);
-                    // Only clears if the report still carries our hint, so it can't undo one set by the report itself.
-                    unmarkReportRHPWidth(iouReportID, 'super-wide');
-                    seeded.then(() => {
-                        if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
-                            return;
-                        }
-                        clearActiveTransactionIDsForSource(carouselSource);
-                    });
-                };
-                const timer = setTimeout(() => {
-                    cascadeTimerRef.current = null;
-                    if (!Navigation.isActiveRoute(reportRoute)) {
-                        release();
+            const seeded = setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource});
+            markReportRHPWidth(childReportID, 'wide');
+            const release = () => {
+                unmarkReportRHPWidth(childReportID);
+                // Only clears if the report still carries our hint, so it can't undo one set by the report itself.
+                unmarkReportRHPWidth(iouReportID, 'super-wide');
+                seeded.then(() => {
+                    if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                }, PRESSED_EXPENSE_CASCADE_DELAY);
-                cascadeTimerRef.current = {timer, release};
-                return;
-            }
-
-            setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource}).then(() => {
-                markReportRHPWidth(childReportID, 'wide');
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
-            });
-        },
-        [isSmallScreenWidth, iouReportID, markReportRHPWidth, unmarkReportRHPWidth, getOpenableTransactionIDs],
-    );
-
-    const openTransactionFromPreview = useCallback(
-        (transaction: Transaction) => {
-            if (contextMenuRef.current?.isContextMenuOpening) {
-                return;
-            }
-
-            const routeAtPress = Navigation.getActiveRoute();
-
-            pendingExpenseTransactionRef.current = null;
-            if (cascadeTimerRef.current) {
-                clearTimeout(cascadeTimerRef.current.timer);
-                cascadeTimerRef.current.release();
+                    clearActiveTransactionIDsForSource(carouselSource);
+                });
+            };
+            const timer = setTimeout(() => {
                 cascadeTimerRef.current = null;
-            }
-
-            if (transactions.length <= 1) {
-                openReportFromPreview();
-                return;
-            }
-
-            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                openReportFromPreview();
-                return;
-            }
-
-            const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-            const childReportID = resolveChildReportID(transaction);
-            if (childReportID) {
-                if (!isIOUActionLoaded && iouReportID) {
-                    if (isOffline) {
-                        openReportFromPreview();
-                        return;
-                    }
-                    openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
+                if (!Navigation.isActiveRoute(reportRoute)) {
+                    release();
+                    return;
                 }
-                navigateToExpense(childReportID, routeAtPress);
-                return;
-            }
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+            }, PRESSED_EXPENSE_CASCADE_DELAY);
+            cascadeTimerRef.current = {timer, release};
+            return;
+        }
 
-            if (!isIOUActionLoaded && iouReportID && !isOffline) {
-                pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions});
-                return;
-            }
+        setActiveTransactionIDs(openableTransactionIDs, {source: carouselSource}).then(() => {
+            markReportRHPWidth(childReportID, 'wide');
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: routeAtPress}));
+        });
+    };
 
+    const openTransactionFromPreview = (transaction: Transaction) => {
+        if (contextMenuRef.current?.isContextMenuOpening) {
+            return;
+        }
+
+        const routeAtPress = Navigation.getActiveRoute();
+
+        pendingExpenseTransactionRef.current = null;
+        if (cascadeTimerRef.current) {
+            clearTimeout(cascadeTimerRef.current.timer);
+            cascadeTimerRef.current.release();
+            cascadeTimerRef.current = null;
+        }
+
+        if (transactions.length <= 1) {
             openReportFromPreview();
-        },
-        [
-            conciergeChat,
-            currentUserAccountID,
-            hasIOUReportActions,
-            introSelected,
-            iouReportID,
-            isOffline,
-            navigateToExpense,
-            openReportFromPreview,
-            resolveChildReportID,
-            transactions.length,
-        ],
-    );
+            return;
+        }
+
+        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            openReportFromPreview();
+            return;
+        }
+
+        const isIOUActionLoaded = !!getIOUActionForReportID(transaction.reportID, transaction.transactionID);
+        const childReportID = resolveChildReportID(transaction);
+        const fullPolicySnapshot = policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
+        if (childReportID) {
+            if (!isIOUActionLoaded && iouReportID) {
+                if (isOffline) {
+                    openReportFromPreview();
+                    return;
+                }
+                openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+            }
+            navigateToExpense(childReportID, routeAtPress);
+            return;
+        }
+
+        if (!isIOUActionLoaded && iouReportID && !isOffline) {
+            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
+            openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+            return;
+        }
+
+        openReportFromPreview();
+    };
 
     useEffect(() => {
         const pendingPress = pendingExpenseTransactionRef.current;

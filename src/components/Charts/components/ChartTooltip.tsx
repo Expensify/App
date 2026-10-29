@@ -15,7 +15,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -113,6 +113,18 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         pinChartTooltip(onDismiss);
         return () => unpinChartTooltip(onDismiss);
     }, [isShown, isFocused, onDismiss]);
+
+    const dismissOnWindowResize = useEffectEvent(() => {
+        if (!isShown || !onDismiss) {
+            return;
+        }
+        onDismiss();
+    });
+
+    // A pinned tooltip is hidden when the window is resized (e.g. on rotation)
+    useEffect(() => {
+        dismissOnWindowResize();
+    }, [windowWidth, windowHeight]);
 
     const handleOriginChange = (x: number, y: number) => {
         const previousOrigin = origin.get();

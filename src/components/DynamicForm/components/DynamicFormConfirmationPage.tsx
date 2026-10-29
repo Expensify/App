@@ -23,6 +23,8 @@ function DynamicFormConfirmationPage({isEditing, onNext, onMove, pages, allField
             showOnfidoLinks={false}
             isLoading={isSubmitting}
             error={submitError}
+            shouldMarkTitleAsHeading
+            shouldAnnounceSubmitState
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );

@@ -2,6 +2,7 @@ import {getEmptyDateValues} from '@libs/SearchQueryUtils';
 
 import {fromSearchDateValues, parseInsightsFilters, toSearchDateValues} from '@pages/Insights/insightsFilterParsing';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {buildInsightsQueryString} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
@@ -81,6 +82,17 @@ describe('insightsFilterParsing', () => {
 
             // Then the daily grouping survives the round trip instead of falling back to the default
             expect(parsed.groupBy).toBe(CONST.SEARCH.GROUP_BY.DAY);
+        });
+
+        it('reads back a dashboard showing running total, which rides the saved query like any grouping', () => {
+            // Given a dashboard whose grouping is running total, a value the shared Search parser does not know
+            const filters: InsightsFilters = {...FILTERS, groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY};
+
+            // When its stored query is read back
+            const parsed = parseInsightsFilters(buildInsightsQueryString(filters));
+
+            // Then running total survives the round trip, so the dashboard reopens accumulating spend instead of falling back to the default
+            expect(parsed.groupBy).toBe(INSIGHTS_RUNNING_TOTAL_GROUP_BY);
         });
 
         it('ignores a group-by no Insights chart offers', () => {
