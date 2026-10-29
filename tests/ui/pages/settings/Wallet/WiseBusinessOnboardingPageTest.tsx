@@ -8,6 +8,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
 
 import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
+import {toSavedFile} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingPageParams';
 import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage';
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
@@ -343,5 +344,25 @@ describe('WiseBusinessOnboardingPage', () => {
         // Then the user sees not found instead of the form
         expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('puts the saved file keys in the draft once a page save returns them', async () => {
+        // Given an open flow whose draft holds an ID document picked on this device and sent with a page save
+        await renderPage();
+        act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSavingWiseOnboardingPage: true}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the save returns the key the server stored the file under
+        await act(() =>
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                isSavingWiseOnboardingPage: false,
+                achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}},
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft holds the saved file, so saving the page again lists its key instead of uploading the file again
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
     });
 });

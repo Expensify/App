@@ -23,6 +23,19 @@ function toSavedFile(savedFileKey: string): WiseSavedFile {
     };
 }
 
+/** Every file field the server holds files for on the given pages, as draft entries. A field it emptied comes back as an empty list. */
+function getSavedFileAnswers(documents: Record<string, Record<string, string[] | null> | null> | undefined): DynamicFormValues {
+    const answers: DynamicFormValues = {};
+    for (const pageDocuments of Object.values(documents ?? {})) {
+        for (const [fieldKey, fileKeys] of Object.entries(pageDocuments ?? {})) {
+            if (fileKeys) {
+                answers[fieldKey] = fileKeys.map(toSavedFile);
+            }
+        }
+    }
+    return answers;
+}
+
 function getFiles(answer: DynamicFormValues[string]): FileObject[] {
     return Array.isArray(answer) ? answer.filter((item): item is FileObject => typeof item === 'object' && item !== null) : [];
 }
@@ -80,4 +93,4 @@ function getWiseOnboardingPageParams(
 }
 
 export default getWiseOnboardingPageParams;
-export {toSavedFile};
+export {getSavedFileAnswers, toSavedFile};

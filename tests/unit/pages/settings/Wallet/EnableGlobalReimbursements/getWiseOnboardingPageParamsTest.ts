@@ -1,4 +1,4 @@
-import getWiseOnboardingPageParams, {toSavedFile} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingPageParams';
+import getWiseOnboardingPageParams, {getSavedFileAnswers, toSavedFile} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingPageParams';
 
 import type {DynamicFormPage} from '@src/types/onyx';
 
@@ -98,5 +98,18 @@ describe('getWiseOnboardingPageParams', () => {
 
         // Then the field is listed with no keys, so the server removes the file too
         expect(params.documents).toBe(JSON.stringify({idDocument: []}));
+    });
+});
+
+describe('getSavedFileAnswers', () => {
+    it('turns the file keys the server holds into draft entries, an emptied field included', () => {
+        // Given the server's file keys after a save, with one page holding a file and another field emptied by the user
+        const documents = {representative: {idDocument: ['kyc/1/passport.jpg']}, business: {proofOfAddress: []}};
+
+        // When they are turned into draft answers
+        const answers = getSavedFileAnswers(documents);
+
+        // Then each field lists the saved files, so the next save sends their keys instead of uploading them again, and the emptied field stays empty
+        expect(answers).toEqual({idDocument: [toSavedFile('kyc/1/passport.jpg')], proofOfAddress: []});
     });
 });

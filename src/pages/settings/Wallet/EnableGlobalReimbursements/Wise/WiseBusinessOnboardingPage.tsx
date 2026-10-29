@@ -32,12 +32,13 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {deepEqual} from 'fast-equals';
 import pick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
 
 import US from './forms/US';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
-import getWiseOnboardingPageParams from './getWiseOnboardingPageParams';
+import getWiseOnboardingPageParams, {getSavedFileAnswers} from './getWiseOnboardingPageParams';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
@@ -122,6 +123,22 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
     }, [isDraftForOtherAccount]);
+
+    // After a save, the draft still holds the files picked on this device, so the next save of that page would upload them again. Once the server's file
+    // keys change and no save is running, the draft takes them instead. Only changes count, since the keys a page opens with may predate its newest files.
+    const savedDocuments = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.documents : undefined;
+    const [draftedSavedDocuments, setDraftedSavedDocuments] = useState(savedDocuments);
+    const [haveSavedDocumentsChanged, setHaveSavedDocumentsChanged] = useState(false);
+    if (!isSavingPage && !deepEqual(savedDocuments, draftedSavedDocuments)) {
+        setDraftedSavedDocuments(savedDocuments);
+        setHaveSavedDocumentsChanged(true);
+    }
+    useEffect(() => {
+        if (!haveSavedDocumentsChanged) {
+            return;
+        }
+        saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, getSavedFileAnswers(draftedSavedDocuments));
+    }, [haveSavedDocumentsChanged, draftedSavedDocuments]);
 
     const missingPrefill =
         isLoading || isPrefillDone || isDraftForOtherAccount
