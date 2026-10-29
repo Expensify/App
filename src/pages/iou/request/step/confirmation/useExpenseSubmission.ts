@@ -1,12 +1,10 @@
 import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import useReportTransactions from '@hooks/useReportTransactions';
 
-import {isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isSelfDMSoleDestination} from '@libs/IOUUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 import {isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 
@@ -23,9 +21,9 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useRef, useState} from 'react';
 
 import type {CreateTransactionParams} from './submission/types';
+import type {SubmitLock} from './submission/useSubmitLock';
 import type {SubmissionPath} from './submission/utils/resolveSubmissionPath';
 
 import useDistanceDraftData from './submission/useDistanceDraftData';
@@ -36,10 +34,12 @@ import usePerDiemSubmission from './submission/usePerDiemSubmission';
 import useRequestMoneySubmission from './submission/useRequestMoneySubmission';
 import useSendMoneySubmission from './submission/useSendMoneySubmission';
 import useSplitSubmission from './submission/useSplitSubmission';
+import useSubmissionOnboardingIntent from './submission/useSubmissionOnboardingIntent';
 import useSubmissionRecentlyUsedData from './submission/useSubmissionRecentlyUsedData';
 import useSubmissionViolations from './submission/useSubmissionViolations';
 import useTrackExpenseSubmission from './submission/useTrackExpenseSubmission';
 import getTransactionTaxValues from './submission/utils/getTransactionTaxValues';
+import guardSubmission from './submission/utils/guardSubmission';
 import {resolveSubmissionPath, SUBMISSION_PATH} from './submission/utils/resolveSubmissionPath';
 
 type UseExpenseSubmissionParams = {
@@ -95,6 +95,9 @@ type UseExpenseSubmissionParams = {
      * the pre-mounted report if validation then bails with no write.
      */
     onExpenseWriteWillStart?: () => void;
+
+    /** The page-owned submit lock, shared with the page's destination pre-mount. */
+    submitLock: SubmitLock;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
@@ -128,24 +131,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         privateIsArchivedMap,
         backToReport,
         onExpenseWriteWillStart,
+        submitLock,
     } = params;
-
-    const [isConfirmed, setIsConfirmed] = useState(false);
-    const formHasBeenSubmitted = useRef(false);
-
-    // formHasBeenSubmitted is never reset on its own, so a submit that returns without writing has to hand the page back or every later tap is swallowed.
-    const releaseSubmitLock = () => {
-        formHasBeenSubmitted.current = false;
-        setIsConfirmed(false);
-    };
+    const {setIsConfirmed, unlockSubmission} = submitLock;
 
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
     const selectedParticipants = participants.filter((participant) => participant.selected);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {isOffline} = useNetwork();
-    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
+    const {introSelected, isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
 
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
@@ -217,6 +210,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactions,
         receiptFiles,
         canEnterScanFieldsManually,
+        isPolicyExpenseChat,
         report,
         reportDrafts,
         policy,
@@ -256,6 +250,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transactions,
         receiptFiles,
         canEnterScanFieldsManually,
+        isPolicyExpenseChat,
         report,
         reportDrafts,
         policy,
@@ -302,7 +297,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         selectedParticipants,
         iouType,
         isTrackIntentUser,
-        releaseSubmitLock,
+        releaseSubmitLock: unlockSubmission,
         transactionTaxCode,
         transactionTaxAmount,
         transactionTaxValue,
@@ -347,6 +342,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         distanceDraftData,
         delegateAccountID,
         participantsPolicyTags,
+        reportTransactions,
     });
 
     const perDiemSubmission = usePerDiemSubmission({
@@ -413,26 +409,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         [SUBMISSION_PATH.REQUEST_MONEY]: requestMoneySubmission.createTransaction,
     };
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams): boolean {
-        if (blockDistanceRequestIfNeeded()) {
-            return false;
-        }
+    const createTransaction = guardSubmission(
+        submitLock,
+        ({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) =>
+            submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier}),
+        blockDistanceRequestIfNeeded,
+    );
 
-        setIsConfirmed(true);
-
-        // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
-        if (formHasBeenSubmitted.current) {
-            return false;
-        }
-
-        formHasBeenSubmitted.current = true;
-
-        // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
-        // are started by SubmitExpenseOrchestrator before calling createTransaction.
-        return submitByPath[submissionPath]({locationPermissionGranted, shouldHandleNavigation, writeBarrier});
-    }
-
-    return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};
+    return {createTransaction, sendMoney};
 }
 
 export default useExpenseSubmission;

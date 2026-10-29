@@ -163,10 +163,11 @@ function WorkspaceConfirmationOwnerSelectorPageContent({currentOwner}: Workspace
 function WorkspaceConfirmationOwnerSelectorPage() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM_DRAFT);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.OWNER_SELECTOR.path);
 
     // Wait for the draft to load so the initial owner selection is seeded correctly on mount
     if (isLoadingOnyxValue(draftValuesMetadata)) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(backPath)} />;
     }
 
     return <WorkspaceConfirmationOwnerSelectorPageContent currentOwner={draftValues?.owner ?? currentUserLogin ?? ''} />;

@@ -9,6 +9,7 @@ import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import type * as CardArtworkColorsModule from '@src/libs/CardArtworkColors';
 import {
+    canResolveTransactionCard,
     checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
@@ -105,6 +106,7 @@ import {
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {
     BankAccountList,
     Card,
@@ -116,6 +118,7 @@ import type {
     ExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
@@ -608,6 +611,17 @@ describe('CardUtils', () => {
         it('Should return true for the custom amex feed with a number', () => {
             const customFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}2` as const;
             const isCustomFeed = isCustomFeedCardUtils(customFeed);
+            expect(isCustomFeed).toBe(true);
+        });
+
+        it('Should return true for the mock commercial feed', () => {
+            // Given a mock commercial feed.
+            const customFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK;
+
+            // When checking whether it is a custom feed.
+            const isCustomFeed = isCustomFeedCardUtils(customFeed);
+
+            // Then it is treated as a custom feed.
             expect(isCustomFeed).toBe(true);
         });
 
@@ -1818,16 +1832,37 @@ describe('CardUtils', () => {
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
             const feed = 'cards_2267989_ccupload666';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Imported CSV feed keys include runtime prefixes that the production parameter type does not model.
-            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCSVCompanyCardLarge);
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
             const feed = '666';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This malformed value intentionally exercises the function's generic-icon fallback.
-            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCompanyCardLarge);
+        });
+
+        it.each([
+            {name: 'returns the generic asset for undefined bank text', feed: undefined, expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {name: 'returns the generic asset for empty bank text', feed: '', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {
+                name: 'keeps Expensify prefix precedence over CSV infixes',
+                feed: `${CONST.EXPENSIFY_CARD.BANK} TRAVEL_US ${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}`,
+                expectedIcon: mockCompanyCardFeedIcons.ExpensifyCardImage,
+            },
+            {
+                name: 'retains numbered Visa prefix variants',
+                feed: `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}3`,
+                expectedIcon: mockCompanyCardFeedIcons.VisaCompanyCardDetailLarge,
+            },
+            {name: 'returns the generic asset for __proto__ bank text', feed: '__proto__', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {name: 'returns the generic asset for constructor bank text', feed: 'constructor', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+        ] satisfies Array<{name: string; feed: Parameters<typeof getCardFeedIcon>[0]; expectedIcon: ReturnType<typeof getCardFeedIcon>}>)('$name', ({feed, expectedIcon}) => {
+            // Given raw bank text can be absent, empty, a legacy variant, an inherited property name, or an Expensify feed containing the CSV marker.
+            // When the real resolver handles the unchanged input, it must preserve known-feed precedence and owned-entry fallback behavior.
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
+            // Then exact asset identity distinguishes the intended feed icon from a different valid illustration.
+            expect(illustration).toBe(expectedIcon);
         });
     });
 
@@ -2060,6 +2095,19 @@ describe('CardUtils', () => {
         it('should return the feed name with with the first smallest available number', () => {
             const feedType = getFeedType('vcf', companyCardsCustomVisaFeedSettingsWithNumbers);
             expect(feedType).toBe('vcf2');
+        });
+
+        it('should number mock commercial feeds', () => {
+            // Given an existing numbered mock commercial feed.
+            const cardFeeds = createMock<CombinedCardFeeds>({
+                [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK}1`]: {},
+            });
+
+            // When finding the next feed type.
+            const feedType = getFeedType(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, cardFeeds);
+
+            // Then the next number is returned.
+            expect(feedType).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK}2`);
         });
     });
 
@@ -2478,6 +2526,20 @@ describe('CardUtils', () => {
             expect(getCardNameError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
             expect(getCardNameError('   ')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
             expect(getCardNameError('\u200B')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);
+        });
+
+        it('flags an HTML-like name the Name page already rejects', () => {
+            // Given a card the admin is renaming from the table
+            // When the new name is an HTML-like token such as </>
+            // Then the name is invalid, because the Name page blocks it and the table must not save it
+            expect(getCardNameError('</>')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+        });
+
+        it('allows a whitelisted angle-bracket token', () => {
+            // Given a card the admin is renaming
+            // When the new name is a harmless token the Name page already allows, such as <>
+            // Then the name is valid, so the table and the Name page stay in agreement
+            expect(getCardNameError('<>')).toBeUndefined();
         });
 
         it('measures length after sanitizing so padding does not count', () => {
@@ -3683,7 +3745,7 @@ describe('CardUtils', () => {
 
     describe('getCompanyCardDescription', () => {
         const mockTranslate: LocalizedTranslate = (key, ...parameters) => {
-            if (key === 'cardTransactions.travelInvoicing' && parameters.length === 0) {
+            if (key === 'cardTransactions.travelBilling' && parameters.length === 0) {
                 return 'Travel invoicing';
             }
             return key;
@@ -4351,32 +4413,38 @@ describe('CardUtils', () => {
 
     describe('getBrokenConnectionUrlToFixPersonalCard', () => {
         const environmentURL = 'https://dev.new.expensify.com';
+        const buildDynamicRoute = (suffix: string) => `r/123/${suffix}` as Route;
 
         it('Should return undefined when cards is undefined', () => {
             const cards = undefined;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a missing required cards argument.
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL, buildDynamicRoute);
             expect(result).toBeUndefined();
         });
 
         it('Should return undefined when cards is null', () => {
             const cards = null;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This test deliberately exercises the runtime guard for a null required cards argument.
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards as unknown as Parameters<typeof getBrokenConnectionUrlToFixPersonalCard>[0], environmentURL, buildDynamicRoute);
             expect(result).toBeUndefined();
         });
 
         it('Should return wallet URL when cards is empty object', () => {
-            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard({}, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
-        it('Should return personal card details URL when there is exactly one card', () => {
+        it('Should return personal card details URL over the current page when there is exactly one card', () => {
+            // Given one broken card shown on report 123
             const cards: Record<string, Card> = {
                 '1': createMock<Card>({cardID: 12345}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/12345`);
+
+            // When the fix link is built
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
+
+            // Then it opens the card details over the report, so the report stays behind it after a reload
+            expect(result).toBe(`${environmentURL}/r/123/personal-card/12345`);
         });
 
         it('Should return wallet URL when there are multiple cards', () => {
@@ -4384,7 +4452,7 @@ describe('CardUtils', () => {
                 '1': createMock<Card>({cardID: 111}),
                 '2': createMock<Card>({cardID: 222}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
             expect(result).toBe(`${environmentURL}/settings/wallet`);
         });
 
@@ -4392,8 +4460,8 @@ describe('CardUtils', () => {
             const cards: Record<string, Card> = {
                 cardKey: createMock<Card>({cardID: 99999}),
             };
-            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL);
-            expect(result).toBe(`${environmentURL}/settings/wallet/personal-card/99999`);
+            const result = getBrokenConnectionUrlToFixPersonalCard(cards, environmentURL, buildDynamicRoute);
+            expect(result).toBe(`${environmentURL}/r/123/personal-card/99999`);
         });
     });
 
@@ -5631,5 +5699,81 @@ describe('getWalletProviderNameKey', () => {
     it('capitalizes only the generic key, since the brand names already read correctly at the start of a sentence', () => {
         expect(getWalletProviderNameKey(undefined, true)).toBe('digitalWalletCapitalized');
         expect(getWalletProviderNameKey(CONST.EXPENSIFY_CARD.WALLET_PROVIDER.APPLE_PAY, true)).toBe('appleWallet');
+    });
+});
+
+describe('canResolveTransactionCard', () => {
+    const cardID = 4242;
+    const visibleCards: CardList = {[cardID]: createMock<Card>({cardID})};
+
+    function buildCardTransaction(values: Partial<Transaction>): Transaction {
+        return createMock<Transaction>({managedCard: true, cardID, ...values});
+    }
+
+    it('accepts a managed card expense whose card the mover can see', () => {
+        // Given a card the mover can see, so it is their own or on a feed they administer
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it can
+        expect(canResolve).toBe(true);
+    });
+
+    it('rejects a managed card expense on a feed the mover does not administer', () => {
+        // Given a card absent from the mover's list. This is the regression in #101767, where the card sat on the
+        // submitter's own workspace feed and only the draft report was shared
+        const transaction = buildCardTransaction({cardID: 9999});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot, so "Auto report" stays hidden rather than failing the whole batch
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects an expense that is not on a managed card', () => {
+        // Given an expense with no managed card, such as a manually created one
+        const transaction = buildCardTransaction({managedCard: false});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot, having no card to resolve through
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects a managed card expense that carries no card ID', () => {
+        // Given a cardID that never reached the search snapshot, leaving nothing to look up
+        const transaction = buildCardTransaction({cardID: undefined});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, true);
+
+        // Then it cannot: an unverifiable card fails closed
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects every expense once a complete list turns out to hold no cards', () => {
+        // Given a complete list that is empty, so the mover owns no card and administers no feed
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, undefined, true);
+
+        // Then it cannot, keeping the option hidden rather than offering a move that would fail
+        expect(canResolve).toBe(false);
+    });
+
+    it('rejects a card the list has not finished loading, even one it already holds', () => {
+        // Given a list Search has not finished fetching, so it cannot vouch for any card yet
+        const transaction = buildCardTransaction({});
+
+        // When checking whether the backend could resolve a destination
+        const canResolve = canResolveTransactionCard(transaction, visibleCards, false);
+
+        // Then it cannot, since a move the backend refuses costs the whole batch
+        expect(canResolve).toBe(false);
     });
 });

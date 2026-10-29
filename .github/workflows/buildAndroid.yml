@@ -122,6 +122,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@b70c378d6cfae84f6844379eef3568cb33ea9680
+        with:
+          restrict-gradle: 'true'
+
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
@@ -156,8 +161,10 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # Match the 6h job timeout because Rock does not refresh credentials before uploading
+          role-duration-seconds: 21600
           aws-region: us-east-1
 
       - name: Rock Remote Build - Android
@@ -206,7 +213,8 @@ jobs:
           mkdir -p /tmp/android-artifacts
 
           AAB_FILE=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' -print -quit 2>/dev/null || true)
-          if [ -z "$AAB_FILE" ] && [ -f "${ARTIFACT_PATH:-}" ]; then
+          # Adhoc builds produce an APK, so only use the Rock artifact when it is an AAB
+          if [ -z "$AAB_FILE" ] && [[ "${ARTIFACT_PATH:-}" == *.aab ]] && [ -f "$ARTIFACT_PATH" ]; then
             AAB_FILE="$ARTIFACT_PATH"
           fi
           if [ -n "$AAB_FILE" ]; then

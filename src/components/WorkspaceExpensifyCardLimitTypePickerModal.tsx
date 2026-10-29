@@ -58,6 +58,9 @@ type WorkspaceExpensifyCardLimitTypePickerModalProps = {
     selectedLimitType?: CardLimitType;
 
     onSelected?: (limitType: CardLimitType) => void;
+
+    /** Height of the picker. Defaults to the height its limit types need. */
+    popoverHeight?: number;
 } & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
 
 /**
@@ -67,6 +70,7 @@ function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<Wo
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
+    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     // Padding sits outside the list, matching workspace member roles, so it is not clipped into a scrollbar.
     const listHeight = styles.getSelectionListPopoverHeight({
@@ -75,8 +79,9 @@ function useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy}: Pick<Wo
         windowHeight,
         isInLandscapeMode,
         hasButton: false,
-        // One extra line so a wrapping Smart Limit description is not clipped.
-        extraHeight: variables.lineHeightNormal,
+        // One extra line keeps the wrapping Smart Limit subtitle from being clipped.
+        // With approvals off that description is HTML and wraps once more, and a short menu opens scrolled to the selected type.
+        extraHeight: variables.lineHeightNormal * (areApprovalsConfigured ? 1 : 2),
     }).height;
     const popoverHeight = listHeight + styles.pt4.paddingTop + styles.pb4.paddingBottom;
 
@@ -93,6 +98,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     onSelected,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSwitchPositionIfOverflow = true,
+    popoverHeight,
 }: WorkspaceExpensifyCardLimitTypePickerModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -102,7 +109,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const anchorRef = useRef<View>(null);
-    const {popoverHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const {popoverHeight: contentHeight} = useWorkspaceExpensifyCardLimitTypePickerPopover({card, policy});
+    const resolvedHeight = popoverHeight ?? contentHeight;
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -172,19 +180,19 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
             anchorPosition={anchorPosition}
             popoverDimensions={{
                 width: CONST.POPOVER_DROPDOWN_WIDTH,
-                height: popoverHeight,
+                height: resolvedHeight,
             }}
             anchorAlignment={anchorAlignment}
             innerContainerStyle={StyleUtils.getWidthStyle(CONST.POPOVER_DROPDOWN_WIDTH)}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldEnableNewFocusManagement
             shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
             shouldSkipRemeasurement
             shouldDisplayBelowModals
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[StyleUtils.getHeight(popoverHeight), styles.flexColumn, styles.pv4]}>
+            <View style={[StyleUtils.getHeight(resolvedHeight), styles.flexColumn, styles.pv4]}>
                 <SelectionList
                     data={availableLimitTypeItems}
                     ListItem={SingleSelectListItem}
@@ -192,6 +200,8 @@ function WorkspaceExpensifyCardLimitTypePickerModal({
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     initiallyFocusedItemKey={availableLimitTypeItems.find((item) => item.isSelected)?.keyForList}
+                    // At most four rows, so stay at the top. Scrolling to the selected row is the jump when the height estimate is still short.
+                    shouldScrollToFocusedIndexOnMount={false}
                     alternateNumberOfSupportedLines={2}
                     style={{contentContainerStyle: [styles.pb0]}}
                 />

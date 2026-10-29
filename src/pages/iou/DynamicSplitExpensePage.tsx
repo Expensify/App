@@ -17,6 +17,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useFrozenSplitTransactionIDs from '@hooks/useFrozenSplitTransactionIDs';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -69,7 +70,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {SplitExpense} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -78,7 +78,7 @@ import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import SplitList from './SplitList';
@@ -118,6 +118,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
@@ -158,27 +159,6 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const isSearchBackPath = backPath.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
     const activeGroupSearchHashes = isSearchBackPath ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
-    const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
-        const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
-        const currentItemReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`] ?? report;
-        const currentItemPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentItemReport?.policyID}`];
-
-        return (
-            !currentTransaction ||
-            isSplitAction(
-                currentItemReport,
-                [currentTransaction],
-                originalTransaction,
-                currentUserPersonalDetails.login ?? '',
-                currentUserPersonalDetails.accountID,
-                rules,
-                getLoginByAccountID(currentItemReport?.ownerAccountID, personalDetails),
-                currentItemPolicy,
-                parentReport,
-            )
-        );
-    };
-
     const isSplitAvailable =
         report &&
         transaction &&
@@ -195,23 +175,38 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
-    const transactionDetailsAmount = useMemo(() => {
-        // `initSplitExpense` computes the total against the fallback rate for self-DM splits
-        // where the original rate was deleted from the workspace, and stores it on the draft.
-        const draftAmount = draftTransaction?.amount;
-        const signedAmount = transactionDetails?.amount;
-        if (typeof draftAmount === 'number' && draftAmount !== 0) {
-            const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
-            return sign * Math.abs(draftAmount);
-        }
-        if (typeof signedAmount !== 'number') {
-            return 0;
-        }
-        return signedAmount;
-    }, [draftTransaction?.amount, transactionDetails.amount]);
+    let transactionDetailsAmount;
+    // `initSplitExpense` computes the total against the fallback rate for self-DM splits
+    // where the original rate was deleted from the workspace, and stores it on the draft.
+    const draftAmount = draftTransaction?.amount;
+    const signedAmount = transactionDetails?.amount;
+    if (typeof draftAmount === 'number' && draftAmount !== 0) {
+        const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
+        transactionDetailsAmount = sign * Math.abs(draftAmount);
+    } else if (typeof signedAmount !== 'number') {
+        transactionDetailsAmount = 0;
+    } else {
+        transactionDetailsAmount = signedAmount;
+    }
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    const frozenSplitTransactionIDs = useFrozenSplitTransactionIDs({
+        splitExpenses,
+        allTransactions,
+        allReports,
+        fallbackReport: report,
+        searchResultsData: currentSearchResults?.data,
+        originalTransaction,
+        currentUserLogin: currentUserPersonalDetails.login ?? '',
+        currentUserAccountID: currentUserPersonalDetails.accountID,
+        rules,
+        personalDetails,
+        allPolicies,
+        parentReport,
+    });
+    const frozenSplitsContext = {frozenSplitTransactionIDs, searchResultsData: currentSearchResults?.data};
 
     useEffect(() => {
         setErrorMessage('');
@@ -261,7 +256,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     let isUnitRateIDOutOfPolicy = false;
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
-        const isEditable = isSplitExpenseEditable(splitExpense);
+        const isEditable = !frozenSplitTransactionIDs.has(splitExpense.transactionID);
         if (!splitTransaction || !isEditable) {
             continue;
         }
@@ -313,6 +308,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             getCurrencyDecimals,
             allPolicies,
+            frozenSplitsContext,
         );
     };
 
@@ -403,6 +399,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             getCurrencySymbol,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
+            reportDrafts,
             allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             allSnapshots,
@@ -413,7 +410,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash: isSearchBackPath ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
+            searchContext: {
+                currentSearchHash: isSearchBackPath ? currentSearchHash : undefined,
+                currentSearchQueryJSON: isSearchBackPath ? currentSearchQueryJSON : undefined,
+                activeGroupSearchHashes,
+                clearSelectedTransactions,
+            },
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
@@ -449,6 +451,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
@@ -462,6 +465,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 getCurrencySymbol,
                 getCurrencyDecimals,
                 allPolicies,
+                frozenSplitsContext,
             );
         }
     };
@@ -514,7 +518,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
             onSplitExpenseValueChange,
             isSelected: splitExpenseTransactionID === item.transactionID,
             keyForList: item?.transactionID,
-            isEditable: isSplitExpenseEditable(item),
+            isEditable: !frozenSplitTransactionIDs.has(item.transactionID),
         };
     });
 
@@ -622,7 +626,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
+        return (
+            <FullScreenLoadingIndicator
+                style={[styles.opacity1]}
+                onGoBack={() => Navigation.goBack(backPath)}
+            />
+        );
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;

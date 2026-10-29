@@ -9,7 +9,7 @@ import type {SearchKey} from './SearchKeyUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isGroupPolicy} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
-import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions, isArchivedReport, isOpenReport} from './ReportUtils';
+import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, isArchivedReport, isOpenReport, isPayOptional} from './ReportUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
     /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
@@ -161,7 +161,7 @@ function reportMatchesTodoBucket(
                     // payable, so keep it in the pay to-do to match the server's action:pay results.
                     isSecondaryAction: true,
                 }) &&
-                !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
+                !isPayOptional(report, reportTransactions) &&
                 (!allExpensesHeld || currentUserPlacedHold)
             );
         case CONST.SEARCH.SEARCH_KEYS.EXPORT: {

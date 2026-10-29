@@ -1,6 +1,6 @@
 import SkeletonRect from '@components/SkeletonRect';
 
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -20,12 +20,12 @@ const BUTTON_BORDER_RADIUS = BUTTON_HEIGHT / 2;
 // Row geometry read off the styles the real rows use (see BaseWidgetItem).
 function useWidgetSkeletonRowGeometry() {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {values} = useLayoutSpacing();
 
     return {
         iconTextGap: styles.gap3.gap,
         rowHeight: ICON_SLOT_SIZE + styles.pv3.paddingVertical * 2,
-        horizontalPadding: shouldUseNarrowLayout ? styles.ph5.paddingHorizontal : styles.ph8.paddingHorizontal,
+        horizontalPadding: values.cardPadding,
     };
 }
 

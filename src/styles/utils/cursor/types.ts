@@ -14,6 +14,7 @@ type CursorStylesKeys =
     | 'cursorInitial'
     | 'cursorText'
     | 'cursorEwResize'
+    | 'cursorColResize'
     | 'cursorNsResize'
     | 'cursorNeswResize'
     | 'cursorNwseResize';

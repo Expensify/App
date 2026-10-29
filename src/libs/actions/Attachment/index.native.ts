@@ -1,4 +1,5 @@
 import {getImageCacheFileExtension} from '@libs/AttachmentUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -26,7 +27,9 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
         try {
             // The OS can purge Caches wholesale, so the directory may need recreating
             await RNFS.mkdir(ATTACHMENT_DIR);
-            await RNFS.copyFile(uri, destPath);
+            const decodedPath = fileURIToPath(uri);
+            const sourcePath = (await RNFS.exists(decodedPath)) ? decodedPath : uri.slice('file://'.length);
+            await RNFS.copyFile(sourcePath, destPath);
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
                 source: destPath,

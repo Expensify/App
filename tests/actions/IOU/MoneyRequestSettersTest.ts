@@ -1,4 +1,5 @@
 import {
+    copyScanResultsToMovedExpenseDraft,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
@@ -93,6 +94,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -697,8 +703,8 @@ describe('actions/IOU', () => {
             resetDraftTransactionsCustomUnit(undefined);
             await waitForBatchedUpdates();
             const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-            // Assuming there are no draft transactions, this should be undefined or an empty object
-            expect(allDraftTransactions).toBeUndefined();
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
+            expect(allDraftTransactions).toEqual({});
         });
         it('should reset custom unit for a transaction', async () => {
             const transactionID = 'transaction_reset_001';
@@ -784,6 +790,64 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(draft?.billable).toBe(true);
+        });
+    });
+
+    describe('copyScanResultsToMovedExpenseDraft', () => {
+        const transactionID = 'movedScan123';
+        const scanningDraft: Transaction = {
+            transactionID,
+            amount: 0,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            isMerchantSet: false,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+        };
+        const scannedTransaction: Transaction = {
+            ...scanningDraft,
+            // Tracked expenses store the amount negated; the draft holds it positive, as when the move started
+            amount: -1250,
+            currency: 'EUR',
+            created: '2024-01-15',
+            merchant: 'Coffee Shop',
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
+        };
+
+        it('copies the scanned values into a draft that was copied while the receipt was still scanning', async () => {
+            // Given a draft copied from a tracked expense while its receipt was scanning, and the real transaction after SmartScan completed
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, scanningDraft);
+
+            // When the scan results are synced to the draft
+            copyScanResultsToMovedExpenseDraft(scanningDraft, scannedTransaction);
+            await waitForBatchedUpdates();
+
+            // Then the draft carries the scanned values and receipt state, so the confirmation page stops showing "Scanning…"
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.amount).toBe(1250);
+            expect(draft?.currency).toBe('EUR');
+            expect(draft?.created).toBe('2024-01-15');
+            expect(draft?.merchant).toBe('Coffee Shop');
+            expect(draft?.isMerchantSet).toBe(true);
+            expect(draft?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
+        });
+
+        it('keeps the merchant and date the user already entered on the draft', async () => {
+            // Given a scanning draft where the user already entered a merchant and a date on the confirmation page
+            const editedDraft: Transaction = {...scanningDraft, merchant: 'My merchant', isMerchantSet: true, created: '2024-02-02', isCreatedSet: true};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, editedDraft);
+
+            // When the scan results are synced to the draft
+            copyScanResultsToMovedExpenseDraft(editedDraft, scannedTransaction);
+            await waitForBatchedUpdates();
+
+            // Then the user's values win, and only the still-empty amount is filled from the scan
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.merchant).toBe('My merchant');
+            expect(draft?.created).toBe('2024-02-02');
+            expect(draft?.amount).toBe(1250);
         });
     });
 });

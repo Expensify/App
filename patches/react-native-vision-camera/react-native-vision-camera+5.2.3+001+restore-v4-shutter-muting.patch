@@ -1,0 +1,130 @@
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/margelo/nitro/camera/hybrids/outputs/HybridPhotoOutput.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/margelo/nitro/camera/hybrids/outputs/HybridPhotoOutput.kt
+index f3bdfe3..f100b86 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/margelo/nitro/camera/hybrids/outputs/HybridPhotoOutput.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/margelo/nitro/camera/hybrids/outputs/HybridPhotoOutput.kt
+@@ -1,5 +1,7 @@
+ package com.margelo.nitro.camera.hybrids.outputs
+ 
++import android.content.Context
++import android.media.AudioManager
+ import android.media.MediaActionSound
+ import android.util.Log
+ import androidx.camera.core.CameraInfo
+@@ -7,6 +9,7 @@ import androidx.camera.core.CameraSelector
+ import androidx.camera.core.ImageCapture
+ import androidx.camera.core.resolutionselector.ResolutionSelector
+ import androidx.camera.core.takePicture
++import com.margelo.nitro.NitroModules
+ import com.margelo.nitro.camera.CameraOrientation
+ import com.margelo.nitro.camera.CapturePhotoCallbacks
+ import com.margelo.nitro.camera.CapturePhotoSettings
+@@ -148,6 +151,19 @@ class HybridPhotoOutput(
+     }
+   }
+ 
++  private fun isRingerSilent(): Boolean {
++    val context = NitroModules.applicationContext ?: return false
++    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
++    return audioManager.ringerMode != AudioManager.RINGER_MODE_NORMAL
++  }
++
++  private fun shouldPlayShutterSound(settings: CapturePhotoSettings): Boolean {
++    if (CameraInfo.mustPlayShutterSound()) {
++      return true
++    }
++    return (settings.enableShutterSound ?: true) && !isRingerSilent()
++  }
++
+   override fun capturePhoto(
+     settings: CapturePhotoSettings,
+     callbacks: CapturePhotoCallbacks,
+@@ -161,7 +177,7 @@ class HybridPhotoOutput(
+ 
+       // 1. Get settings
+       val isMirrored = shouldMirror()
+-      val enableShutterSound = (settings.enableShutterSound ?: true) || CameraInfo.mustPlayShutterSound()
++      val enableShutterSound = shouldPlayShutterSound(settings)
+       imageCapture.flashMode = settings.flashMode?.toFlashMode() ?: ImageCapture.FLASH_MODE_OFF
+       val location =
+         if (settings.location != null) {
+@@ -228,8 +244,7 @@ class HybridPhotoOutput(
+ 
+       // 1. Get settings
+       val isMirrored = shouldMirror()
+-      val enableShutterSound =
+-        (settings.enableShutterSound ?: true) || CameraInfo.mustPlayShutterSound()
++      val enableShutterSound = shouldPlayShutterSound(settings)
+       imageCapture.flashMode = settings.flashMode?.toFlashMode() ?: ImageCapture.FLASH_MODE_OFF
+       val location =
+         if (settings.location != null) {
+diff --git a/node_modules/react-native-vision-camera/ios/Delegates/CapturePhotoDelegate.swift b/node_modules/react-native-vision-camera/ios/Delegates/CapturePhotoDelegate.swift
+index 58fdb4e..3990930 100644
+--- a/node_modules/react-native-vision-camera/ios/Delegates/CapturePhotoDelegate.swift
++++ b/node_modules/react-native-vision-camera/ios/Delegates/CapturePhotoDelegate.swift
+@@ -5,6 +5,7 @@
+ //  Created by Marc Rousavy on 29.10.25.
+ //
+ 
++import AudioToolbox
+ import AVFoundation
+ import Foundation
+ 
+@@ -15,9 +16,11 @@ final class CapturePhotoDelegate: NSObject, AVCapturePhotoCaptureDelegate {
+   private let onCaptured: (AVCapturePhoto, MediaSampleMetadata) -> Void
+   private let onError: (any Error) -> Void
+   private let callbacks: CapturePhotoCallbacks
++  private let shouldDisposeShutterSound: Bool
+   private var didResolve = false
+ 
+   init(
++    shouldDisposeShutterSound: Bool,
+     onCaptured: @escaping (AVCapturePhoto, MediaSampleMetadata) -> Void,
+     onError: @escaping (any Error) -> Void,
+     callbacks: CapturePhotoCallbacks
+@@ -25,6 +28,7 @@ final class CapturePhotoDelegate: NSObject, AVCapturePhotoCaptureDelegate {
+     self.onCaptured = onCaptured
+     self.onError = onError
+     self.callbacks = callbacks
++    self.shouldDisposeShutterSound = shouldDisposeShutterSound
+     super.init()
+     // Add a static strong reference while capture is in progress
+     CapturePhotoDelegate.delegates.append(self)
+@@ -43,6 +47,10 @@ final class CapturePhotoDelegate: NSObject, AVCapturePhotoCaptureDelegate {
+     _ output: AVCapturePhotoOutput,
+     willCapturePhotoFor resolvedSettings: AVCaptureResolvedPhotoSettings
+   ) {
++    if shouldDisposeShutterSound {
++      // disable system shutter sound (see https://stackoverflow.com/a/55235949/5281431)
++      AudioServicesDisposeSystemSoundID(1108)
++    }
+     callbacks.onWillCapturePhoto?()
+   }
+ 
+diff --git a/node_modules/react-native-vision-camera/ios/Hybrid Objects/Outputs/HybridCameraPhotoOutput.swift b/node_modules/react-native-vision-camera/ios/Hybrid Objects/Outputs/HybridCameraPhotoOutput.swift
+index e5249f2..97c08e7 100644
+--- a/node_modules/react-native-vision-camera/ios/Hybrid Objects/Outputs/HybridCameraPhotoOutput.swift	
++++ b/node_modules/react-native-vision-camera/ios/Hybrid Objects/Outputs/HybridCameraPhotoOutput.swift	
+@@ -115,6 +115,15 @@ final class HybridCameraPhotoOutput: HybridCameraPhotoOutputSpec, NativeCameraOu
+     self.output.setPreparedPhotoSettingsArray([avSettings])
+   }
+ 
++  // Below iOS 18 `isShutterSoundSuppressionEnabled` is unavailable, so the system shutter sound is disposed instead.
++  private func shouldDisposeShutterSound(for settings: CapturePhotoSettings) -> Bool {
++    guard settings.enableShutterSound == false else { return false }
++    if #available(iOS 18.0, *) {
++      return false
++    }
++    return true
++  }
++
+   func capturePhoto(
+     settings: CapturePhotoSettings,
+     callbacks: CapturePhotoCallbacks
+@@ -129,6 +138,7 @@ final class HybridCameraPhotoOutput: HybridCameraPhotoOutputSpec, NativeCameraOu
+     let promise = Promise<any HybridPhotoSpec>()
+     let resultingFormat = PhotoContainerFormat(targetFormat: self.options.containerFormat)
+     let delegate = CapturePhotoDelegate(
++      shouldDisposeShutterSound: shouldDisposeShutterSound(for: settings),
+       onCaptured: { photo, metadata in
+         // We received a Photo!
+         // 1. Check if we have a Preview Image (if it was requested)

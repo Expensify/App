@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {IOURequestType} from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -17,6 +17,7 @@ import {format, parseISO} from 'date-fns';
 
 import DateUtils from './DateUtils';
 import {getDistanceUnitLabel, getFormattedDistanceInUnits} from './DistanceDisplayUtils';
+import {convertDistanceUnit, convertToDistanceInMeters} from './DistanceUnitConversionUtils';
 import getStoredDefaultP2PMileageRate from './getStoredDefaultP2PMileageRate';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getUnitRateValue} from './PolicyUtils';
 import replaceAllDigits from './replaceAllDigits';
@@ -32,12 +33,11 @@ type MileageRate = {
     index?: number;
     startDate?: string | null;
     endDate?: string | null;
+    attributes?: RateAttributes;
 };
 
 type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
 
-const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
-const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 const DEFAULT_P2P_RATE_CENTS_PER_MILE = 67;
 
 function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates = false, selectedRateID?: string): Record<string, MileageRate> {
@@ -71,6 +71,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             index: rate.index,
             startDate: rate.startDate,
             endDate: rate.endDate,
+            attributes: rate.attributes,
         };
     }
 
@@ -117,22 +118,13 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
 }
 
 /**
- * Converts a given distance in meters to the specified unit (kilometers or miles).
- *
- * @param distanceInMeters - The distance in meters to be converted.
- * @param unit - The desired unit of conversion, either 'km' for kilometers or 'mi' for miles.
- *
- * @returns The converted distance in the specified unit.
+ * Converts a distance into the given unit at the two decimal places the backend stores distances with. The
+ * commuter exclusion arithmetic has to use this: the backend rounds both the trip and the commute before
+ * subtracting, so an amount derived from unrounded values lands a cent away from the one the backend calculates
+ * and is then mistaken for an amount the member typed themselves.
  */
-function convertDistanceUnit(distanceInMeters: number, unit: Unit): number {
-    switch (unit) {
-        case CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS:
-            return distanceInMeters * METERS_TO_KM;
-        case CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES:
-            return distanceInMeters * METERS_TO_MILES;
-        default:
-            throw new Error('Unsupported unit. Supported units are "mi" or "km".');
-    }
+function convertRoundedDistanceUnit(distanceInMeters: number, unit: Unit): number {
+    return Number(convertDistanceUnit(distanceInMeters, unit).toFixed(CONST.DISTANCE_DECIMAL_PLACES));
 }
 
 /**
@@ -173,7 +165,6 @@ function getFormattedRateValue(
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const formattedRate = getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
@@ -370,7 +361,7 @@ function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distan
 
     const fixedDistanceUnit: Unit =
         commuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+    const fixedDistanceInRequestUnit = convertRoundedDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
 
     return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
 }
@@ -418,7 +409,7 @@ function getTransactionCommuterExclusionData({
     if (typeof existingCustomUnit?.quantity === 'number') {
         routeDistance = existingCustomUnit.quantity;
     } else if (routeDistanceInMeters !== undefined) {
-        routeDistance = convertDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
+        routeDistance = convertRoundedDistanceUnit(routeDistanceInMeters, requestDistanceUnit);
     }
     if (routeDistance === undefined) {
         return;
@@ -437,7 +428,7 @@ function getTransactionCommuterExclusionData({
     let commuterExclusion: number;
     let commuterExclusionMethod: NonNullable<TransactionCustomUnit['commuterExclusionMethod']>;
     if (shouldReuseStoredExclusion) {
-        const storedExclusionInRequestUnit = convertDistanceUnit(
+        const storedExclusionInRequestUnit = convertRoundedDistanceUnit(
             convertToDistanceInMeters(storedCommuterExclusion, storedCustomUnit?.distanceUnit ?? requestDistanceUnit),
             requestDistanceUnit,
         );
@@ -454,7 +445,7 @@ function getTransactionCommuterExclusionData({
             // still comes out at nothing reimbursable when the member picked a different alternate route.
             commuterExclusion = routeDistance;
         } else {
-            commuterExclusion = Math.min(routeDistance, convertDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
+            commuterExclusion = Math.min(routeDistance, convertRoundedDistanceUnit(commuterExclusionPreview.commuteDistanceMeters, requestDistanceUnit));
         }
         commuterExclusionMethod = CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     } else {
@@ -537,20 +528,6 @@ function getDistanceDisplayDetailsWithCommuter(
             },
         ),
     };
-}
-
-/**
- * Converts the distance from kilometers or miles to meters.
- *
- * @param distance - The distance to be converted.
- * @param unit - The unit of measurement for the distance.
- * @returns The distance in meters.
- */
-function convertToDistanceInMeters(distance: number, unit: Unit): number {
-    if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) {
-        return distance / METERS_TO_KM;
-    }
-    return distance / METERS_TO_MILES;
 }
 
 /**
@@ -1035,6 +1012,67 @@ function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['tran
     return '';
 }
 
+type RateNameFields = Pick<MileageRate, 'name' | 'startDate' | 'endDate' | 'attributes'>;
+
+/** Matches a trailing ` - M/D/YY - M/D/YY` or ` - From M/D/YY` suffix that the backend appends to keep dated rate names unique */
+const RATE_NAME_DATE_SUFFIX_REGEX = / - (?:\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})? - \d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|From \d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?)$/;
+
+/**
+ * Returns the trailing date suffix that getRateDisplayName hides, or an empty string when nothing is hidden.
+ * Only rates copied from the government rate table get the suffix from the backend, so a custom rate that was named with a date on purpose keeps it.
+ */
+function getRateNameDateSuffix(rate: RateNameFields): string {
+    if (!rate.name || !rate.attributes?.governmentRate) {
+        return '';
+    }
+
+    const suffix = RATE_NAME_DATE_SUFFIX_REGEX.exec(rate.name)?.at(0) ?? '';
+
+    // Keep the full name when stripping would leave nothing
+    return suffix === rate.name ? '' : suffix;
+}
+
+/**
+ * Returns the rate name without its trailing date suffix, since the date range is already shown next to it.
+ * Editors prefill this name and save it through getRateNameWithDateSuffix, so the raw name keeps its suffix.
+ */
+function getRateDisplayName(rate: RateNameFields): string | undefined {
+    const suffix = getRateNameDateSuffix(rate);
+    return suffix ? rate.name?.slice(0, -suffix.length) : rate.name;
+}
+
+/**
+ * Re-appends the date suffix hidden by getRateDisplayName to a name edited from the display name, so Onyx and the API keep the full raw name.
+ * Pass a sanitized name. An empty name stays empty so it still fails the required-name check.
+ */
+function getRateNameWithDateSuffix(rate: RateNameFields, editedDisplayName: string): string {
+    if (!editedDisplayName) {
+        return editedDisplayName;
+    }
+
+    return `${editedDisplayName}${getRateNameDateSuffix(rate)}`;
+}
+
+/**
+ * Sorts rates by display name. Rates that share a display name are ordered newest start date first, so the
+ * current band sits above its ended bands and a rate without a start date sorts last. The raw name keeps the order stable.
+ * displayNameOrderMultiplier only flips the display name order, so the tie-break stays the same in both directions.
+ */
+function compareRatesByDisplayName(a: RateNameFields, b: RateNameFields, localeCompare: LocaleContextProps['localeCompare'], displayNameOrderMultiplier = 1): number {
+    const displayNameDiff = localeCompare(getRateDisplayName(a) ?? '', getRateDisplayName(b) ?? '');
+    if (displayNameDiff !== 0) {
+        return displayNameDiff * displayNameOrderMultiplier;
+    }
+
+    const aStart = a.startDate ?? '';
+    const bStart = b.startDate ?? '';
+    if (aStart !== bStart) {
+        return aStart < bStart ? 1 : -1;
+    }
+
+    return localeCompare(a.name ?? '', b.name ?? '');
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -1074,6 +1112,9 @@ export default {
     getBestEligibleRate,
     getRateForPolicyChange,
     getRateDateLabel,
+    getRateDisplayName,
+    getRateNameWithDateSuffix,
+    compareRatesByDisplayName,
 };
 
 export type {MileageRate, CommuterExclusionData};

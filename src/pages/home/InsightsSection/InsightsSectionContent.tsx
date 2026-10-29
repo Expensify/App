@@ -1,3 +1,4 @@
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
@@ -8,11 +9,9 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setNameValuePair} from '@libs/actions/User';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
 import type {SearchKey} from '@libs/SearchKeyUtils';
@@ -26,17 +25,15 @@ import {View} from 'react-native';
 
 import InsightTitleDropdown from './InsightTitleDropdown';
 import useHomeInsightConfigs from './useHomeInsightConfigs';
+import useInsightChartPaddingStyle from './useInsightChartPaddingStyle';
 import useInsightData from './useInsightData';
 
 function InsightsSectionContent() {
-    const styles = useThemeStyles();
+    const chartPaddingStyle = useInsightChartPaddingStyle();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
-    const {configs: insightConfigs, isResolved: isConfigResolved} = useHomeInsightConfigs();
+    const {configs: insightConfigs, isResolved: isConfigResolved, shouldShowRunningTotal} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
 
     // The persisted key can name an insight the user is no longer eligible for, so fall back to the first option.
@@ -54,7 +51,11 @@ function InsightsSectionContent() {
         return null;
     }
 
-    return (
+    const navigateToInsights = () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
+
+    const showRunningTotal = shouldShowRunningTotal && config.key === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME && view === CONST.SEARCH.VIEW.LINE;
+
+    const widget = (
         <WidgetContainer
             titleContent={
                 <InsightTitleDropdown
@@ -72,12 +73,7 @@ function InsightsSectionContent() {
                             {
                                 text: translate('common.view'),
                                 icon: icons.Expand,
-                                onSelected: () =>
-                                    Navigation.navigate(
-                                        isInsightsPageEnabled
-                                            ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)
-                                            : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
-                                    ),
+                                onSelected: navigateToInsights,
                                 shouldCallAfterModalHide: true,
                             },
                         ]}
@@ -89,18 +85,35 @@ function InsightsSectionContent() {
             {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID="insightsSectionEmptyState" />}
             {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={retry} />}
             {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={shouldUseNarrowLayout ? [styles.ph5, styles.pb5] : [styles.ph8, styles.pt3, styles.pb8]}>
+                <View style={chartPaddingStyle}>
                     <SearchChartView
                         queryJSON={queryJSON}
                         view={view}
                         groupBy={groupBy}
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
-                        shouldShowGroupLabels={!isInsightsPageEnabled}
+                        shouldShowRunningTotal={showRunningTotal}
+                        shouldShowSinglePointAsBar
+                        shouldUseResponsiveLabels
+                        shouldDrillDownOnPress={false}
                     />
                 </View>
             )}
         </WidgetContainer>
+    );
+
+    if (canUseTouchScreen()) {
+        return widget;
+    }
+
+    return (
+        <PressableWithoutFeedback
+            accessible={false}
+            onPress={navigateToInsights}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.WIDGET_ITEM}
+        >
+            {widget}
+        </PressableWithoutFeedback>
     );
 }
 

@@ -31,6 +31,15 @@ const avatarSizes = {
 
 export default {
     bottomTabHeight: 72,
+    floatingTabBarHeight: 60,
+    floatingTabBarHorizontalInset: 16,
+    // How far the selected pill reaches past its tab on each side, whatever the label's length.
+    floatingTabBarSelectedOverhang: 4,
+    // Space between a label's truncation edge and its tab's edge, so a neighbor's selected pill never reaches the label.
+    floatingTabBarLabelInset: 8,
+    floatingTabBarBottomInset: 8,
+    // Home, Inbox, Spend and Workspaces, with Insights or Account as the fifth.
+    floatingTabBarTabCount: 5,
     // styles.p3 (12) on each side of the DebugTabView row plus the View button (componentSizeNormal).
     debugTabViewHeight: 64,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
@@ -45,6 +54,7 @@ export default {
     spacing2: 8,
     rulesDocumentThumbnailMaxWidth: 368,
     rulesDocumentThumbnailHeight: 200,
+    hairlineBorderWidth: 0.5,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusMedium: 6,
@@ -98,6 +108,37 @@ export default {
     iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
+    /** Glyph size in the floating tab bar. */
+    iconFloatingTabBar: 20,
+    /** Account avatar size in the floating tab bar. */
+    avatarFloatingTabBar: avatarSizes.avatarSizeXSmall,
+    // The tab glyphs are drawn about this far above the bottom of their box.
+    floatingTabBarGlyphBottomInset: 1,
+    /** Glyph size in the iOS native tab bar. */
+    iconNativeTabBarIOS: 22,
+    /** Icon box size that preserves glyph and label spacing in the iOS native tab bar. */
+    nativeTabIconBoxIOS: 26,
+    /** Glyph size in the iOS native tab bar in landscape, where UIKit lays the label beside a smaller icon. */
+    iconNativeTabBarIOSLandscape: 18,
+    /** Icon box size in the iOS native tab bar in landscape. */
+    nativeTabIconBoxIOSLandscape: 21,
+    /** Radius of the status dot drawn into a native tab bar icon. */
+    nativeTabIconDotRadius: 4,
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    nativeTabIconDotCutout: 2,
+    /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
+    nativeTabIconLabelGap: 6,
+    /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
+    iosNativeTabBarHorizontalInset: 25,
+    // UITabBar sizes its items to their icons and gives the selected pill a minimum width, so a label as wide as an even
+    // share of the bar lets that pill reach over the label next to it.
+    iosNativeTabBarLabelInset: 8,
+    /** Material's BottomNavigationView row, without the gesture inset under it. */
+    androidNativeTabBarHeight: 80,
+    /** Material's bar row (androidNativeTabBarHeight) plus the 16 dp Material keeps between a FAB and the bar. */
+    androidNativeTabBarFloatingButtonsBottom: 96,
+    /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
+    iosNativeTabBarFloatingButtonsBottom: 50,
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
@@ -107,6 +148,7 @@ export default {
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
     sidePanelResponsiveWidthBreakpoint: 1300,
+    connectionCardMinWidth: 300,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
@@ -122,10 +164,11 @@ export default {
     receiptPreviewWidth: 380,
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
+    conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
-    insightsCardGap: 20,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
+    chartTooltipMinWidth: 200,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 260,
@@ -252,6 +295,7 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollFadeWidth: 32,
     tabSelectorScrollMarginInline: 20,
     tabSelectorMaxTabLabelWidth: 256,
     filterPillMaxWidth: 256,
@@ -314,7 +358,6 @@ export default {
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
-    sectionMargin: 20,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
     earlyRenewalOfferHeroWidth: 268,
@@ -329,7 +372,6 @@ export default {
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
     onboardingModalWidth: 640,
-    aiFeaturesPromoModalWidth: 440,
     productMarketingWindowWidth: 320,
     productMarketingWindowMaxWidthNarrow: 450,
     productMarketingWindowVisualAspectRatio: 7 / 4,
@@ -337,6 +379,7 @@ export default {
     productMarketingWindowOffset: 20,
     productMarketingWindowOffsetNarrow: 12,
     productMarketingWindowHorizontalOffsetNarrow: 16,
+    wiseGlobalReimbursementsIntroIllustrationSize: 250,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
     wideConfirmModalWidth: 400,
@@ -383,6 +426,8 @@ export default {
     expensifyCardEmptyIllustrationHeight: 172,
     rulesNewMenuItemMinHeight: 84,
     agentRulePromptInputHeight: 340,
+    describeRulePromptInputHeight: 312,
+    describeNewRulePromptInputHeight: 96,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
@@ -443,12 +488,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -120,
-    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 120,
     searchListContentWithFiltersMarginTop: 164,
     searchTopBarZIndex: 9,
+    // Above the search page header (zIndex 10), whose top bar floats over the list and reaches the footer when the screen is short.
+    searchFooterZIndex: 11,
 
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
@@ -568,10 +613,16 @@ export default {
     searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
-    // What an editable cell spends around its value, from `editableCell`'s padding and the border it reserves for its focus ring.
+    // Padding on every side of an editable cell. The edit button sits at this same inset.
+    editableCellPadding: 4,
+    // Border kept on each side so the focus ring does not shift the value.
+    editableCellBorderWidth: 1,
+    // What an editable cell spends around its value, from its padding and the border it reserves for the focus ring.
     editableCellChromeWidth: 4 * 2 + 1 * 2,
-    // What the edit button covers at the trailing edge of an editable cell, from `editableCellEditButton` and the inset it sits at.
+    // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
+    editableCellEditButtonSize: 28,
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
+    pieChartLegendMargin: 32,
 } as const;

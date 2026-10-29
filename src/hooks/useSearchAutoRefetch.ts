@@ -17,6 +17,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 type UseSearchAutoRefetch = {
     /** Current Search snapshot */
@@ -67,6 +68,7 @@ function useSearchAutoRefetch({
     const searchTriggeredRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
 
     const searchResultsData = searchResults?.data;
 
@@ -83,6 +85,16 @@ function useSearchAutoRefetch({
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        // Trip rows don't change when transactions or report actions do
+        if (shouldReturnTripRooms) {
+            return;
+        }
+
+        // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
+        if (transactions === previousTransactions && reportActions === previousReportActions && !hasPendingSearchRef.current) {
+            return;
+        }
+
         const previousTransactionIDsLocal = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -106,7 +118,7 @@ function useSearchAutoRefetch({
         // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
         // server, so those edits only become visible after a refetch.
         const hasChangedResultTransaction =
-            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData);
 
         // Check if there is a change in the transactions or report actions list
         if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction) || hasPendingSearchRef.current) {
@@ -179,6 +191,7 @@ function useSearchAutoRefetch({
         searchResultsData,
         isOffline,
         searchResults?.search?.isLoading,
+        shouldReturnTripRooms,
     ]);
 
     useEffect(() => {
@@ -258,6 +271,7 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
  */
 function hasChangedTransactionInSearchResults(
     transactions: OnyxCollection<Transaction>,
+    transactionKeys: string[],
     previousTransactions: OnyxCollection<Transaction>,
     previousTransactionKeys: Set<string>,
     searchResultsData: Partial<SearchResults['data']> | undefined,
@@ -269,7 +283,8 @@ function hasChangedTransactionInSearchResults(
     const isReportInSearchResults = (reportID: string | undefined) => !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const changedTransactionIDs: string[] = [];
-    for (const [key, transaction] of Object.entries(transactions ?? {})) {
+    for (const key of transactionKeys) {
+        const transaction = transactions?.[key];
         const previousTransaction = previousTransactions?.[key];
         if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
             continue;

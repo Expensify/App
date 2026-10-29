@@ -7,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
+import withUnifiedConnectionsBeta from '@pages/workspace/connections/withUnifiedConnectionsBeta';
 import MergeConnectionsPageBase from '@pages/workspace/merge/MergeConnectionsPageBase';
 
 import CONST from '@src/CONST';
@@ -51,4 +52,4 @@ function WorkspaceHRPage({
     );
 }
 
-export default WorkspaceHRPage;
+export default withUnifiedConnectionsBeta(WorkspaceHRPage);
