@@ -175,10 +175,9 @@ function InsightsChartWidget({
                         shouldShowGroupLabels={false}
                         renderDetails={
                             shouldShowTable
-                                ? ({rows, metric, formatValue}) => (
+                                ? ({rows, formatValue}) => (
                                       <InsightsDataTable
                                           rows={rows}
-                                          metric={metric}
                                           formatValue={formatValue}
                                           isLoading={isLoading}
                                       />
