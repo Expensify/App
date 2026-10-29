@@ -14,6 +14,7 @@ import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
+import {trackFullstoryEvent} from '@libs/Fullstory/utils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,6 +71,11 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('@libs/ConciergeResponseIndicator', () => ({__esModule: true, default: jest.fn()}));
+
+jest.mock('@libs/Fullstory/utils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/Fullstory/utils'),
+    trackFullstoryEvent: jest.fn(),
+}));
 
 jest.mock('@libs/NextStepUtils', () => ({
     buildOptimisticNextStep: jest.fn(),
@@ -328,6 +334,35 @@ describe('actions/Report', () => {
         } else {
             expect(parameters).not.toHaveProperty('optimisticConciergeReportActionID');
             expect(trackConciergeResponse).not.toHaveBeenCalled();
+        }
+        await waitForBatchedUpdates();
+    });
+
+    it.each<[string, string, boolean]>([
+        ['Concierge chat', '300', true],
+        ['ordinary chat', '600', false],
+    ])('tracks the FullStory Concierge message event only in a %s', async (_name, reportID, shouldTrack) => {
+        // Given a chat that is or isn't the user's Concierge chat
+        apiWriteSpy.mockResolvedValue(undefined);
+
+        // When the user sends a comment to it
+        Report.addComment({
+            report: {...createRandomReport(Number(reportID), undefined), reportID},
+            notifyReportID: reportID,
+            ancestors: [],
+            text: 'Please help me with expenses',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: 10,
+            delegateAccountID: undefined,
+            conciergeReportID: '300',
+        });
+
+        // Then the FullStory event fires once for Concierge, without message content, and never for other chats
+        if (shouldTrack) {
+            expect(trackFullstoryEvent).toHaveBeenCalledTimes(1);
+            expect(trackFullstoryEvent).toHaveBeenCalledWith(CONST.FULLSTORY.EVENT.CONCIERGE_MESSAGE_SENT, {has_attachment: false});
+        } else {
+            expect(trackFullstoryEvent).not.toHaveBeenCalled();
         }
         await waitForBatchedUpdates();
     });
@@ -3048,6 +3083,55 @@ describe('actions/Report', () => {
             expect(requests).toHaveLength(1);
             expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
             expect(requests.at(0)?.data?.reportComment).toContain(syncedSource);
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+        });
+
+        it('skips replaying an edit that restores a comment mentioning a room', async () => {
+            // Given a comment mentioning a room whose attachment is still uploading, with the mention still in the text form the frontend writes
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            const roomReportID = '456';
+            const reportIDToName = {[roomReportID]: '#admins'};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    reportID,
+                    reportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-10-21 10:37:59.881',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [
+                        {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: uploadingHtml.replace('hello', 'hello <mention-report>#admins</mention-report>'), text: 'hello #admins [Attachment]'},
+                    ],
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            await waitForBatchedUpdates();
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            await waitForBatchedUpdates();
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
+
+            // And the attachment syncs with the room mention stored by reportID, as the backend saves it
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    pendingAction: null,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            html: syncedHtml.replace('hello', `hello <mention-report reportID="${roomReportID}" />`),
+                            text: 'hello #admins [Attachment]',
+                        },
+                    ],
+                },
+            });
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+
+            // Then no edit is sent, because the replay resolves the room name saved with the edit instead of comparing against #Hidden
+            expect(getUpdateCommentRequests()).toHaveLength(0);
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
         });
     });
@@ -11200,6 +11284,45 @@ describe('actions/Report', () => {
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
+        });
+
+        it("should send the expense report policy's full policy snapshot marker with OpenReport", async () => {
+            // Given an expense report whose policy has a cached full policy snapshot
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(150, undefined),
+                reportID: '150',
+                policyID: 'policy150',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(150),
+                reportActionID: 'action-150',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            // When its transaction thread is created with that snapshot's lastModified
+            Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                iouReport: parentReport,
+                iouReportAction: reportAction,
+                fullPolicySnapshotLastModified: 123,
+            });
+            await waitForBatchedUpdates();
+
+            // Then OpenReport sends the marker so the server can leave out the policy collections the client already has
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).at(0)?.[1]?.body;
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.fullPolicySnapshotPolicyID).toBe('policy150');
+            expect(formEntries.fullPolicySnapshotLastModified).toBe('123');
         });
 
         it('should accept introSelected as first parameter and not bypass it', async () => {

@@ -15,7 +15,7 @@ import type {ComponentRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {PanGestureActiveEvent} from 'react-native-gesture-handler';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {GestureDetector, GestureHandlerRootView, usePanGesture} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
@@ -93,18 +93,22 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
     }, [imageUri, isAuthTokenRequired]);
 
     // Calculate scale factors to convert display coordinates to image coordinates
-    const {scaleX, scaleY, displayWidth, displayHeight, imageOffsetX, imageOffsetY} = useMemo(() => {
-        if (!containerSize.width || !containerSize.height || !imageSize.width || !imageSize.height) {
-            return {scaleX: 1, scaleY: 1, displayWidth: 0, displayHeight: 0, imageOffsetX: 0, imageOffsetY: 0};
-        }
-
+    let imageLayout;
+    if (!containerSize.width || !containerSize.height || !imageSize.width || !imageSize.height) {
+        imageLayout = {
+            scaleX: 1,
+            scaleY: 1,
+            displayWidth: 0,
+            displayHeight: 0,
+            imageOffsetX: 0,
+            imageOffsetY: 0,
+        };
+    } else {
         // Calculate how the image is scaled to fit the container
         const imageAspectRatio = imageSize.width / imageSize.height;
         const containerAspectRatio = containerSize.width / containerSize.height;
-
         let calculatedDisplayWidth: number;
         let calculatedDisplayHeight: number;
-
         if (imageAspectRatio > containerAspectRatio) {
             // Image is wider - fit to width
             calculatedDisplayWidth = containerSize.width;
@@ -128,8 +132,7 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         displayHeightSV.set(calculatedDisplayHeight);
         imageOffsetXSV.set(calculatedImageOffsetX);
         imageOffsetYSV.set(calculatedImageOffsetY);
-
-        return {
+        imageLayout = {
             scaleX: calculatedScaleX,
             scaleY: calculatedScaleY,
             displayWidth: calculatedDisplayWidth,
@@ -137,7 +140,8 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
             imageOffsetX: calculatedImageOffsetX,
             imageOffsetY: calculatedImageOffsetY,
         };
-    }, [containerSize.width, containerSize.height, imageSize.width, imageSize.height, displayWidthSV, displayHeightSV, imageOffsetXSV, imageOffsetYSV]);
+    }
+    const {scaleX, scaleY, displayWidth, displayHeight, imageOffsetX, imageOffsetY} = imageLayout;
 
     // Initialize crop rectangle when dimensions are available
     useEffect(() => {
@@ -246,80 +250,71 @@ function ReceiptCropView({imageUri, onCropChange, initialCrop, isAuthTokenRequir
         onCropChange?.(crop);
     }, [displayWidth, displayHeight, scaleX, scaleY, imageOffsetX, imageOffsetY, cropX, cropY, cropWidth, cropHeight, onCropChange]);
 
-    const onContainerLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const {width, height} = event.nativeEvent.layout;
-            setContainerSize({width, height});
-            containerWidthSV.set(width);
-            containerHeightSV.set(height);
-        },
-        [containerWidthSV, containerHeightSV],
-    );
+    const onContainerLayout = (event: LayoutChangeEvent) => {
+        const {width, height} = event.nativeEvent.layout;
+        setContainerSize({width, height});
+        containerWidthSV.set(width);
+        containerHeightSV.set(height);
+    };
 
-    const onImageLoad = useCallback(
-        (event: {nativeEvent: {width: number; height: number}}) => {
-            const {width, height} = event.nativeEvent;
-            if (!width || !height || (imageSize.width === width && imageSize.height === height)) {
-                return;
-            }
-            if (!hasImageDimensions) {
-                setHasImageDimensions(true);
-            }
-            if (!isImageInitialized.current) {
-                setImageSize({width, height});
-            }
-        },
-        [hasImageDimensions, imageSize.width, imageSize.height],
-    );
+    const onImageLoad = (event: {nativeEvent: {width: number; height: number}}) => {
+        const {width, height} = event.nativeEvent;
+        if (!width || !height || (imageSize.width === width && imageSize.height === height)) {
+            return;
+        }
+        if (!hasImageDimensions) {
+            setHasImageDimensions(true);
+        }
+        if (!isImageInitialized.current) {
+            setImageSize({width, height});
+        }
+    };
 
     /**
      * Clamp a value between min and max
      */
-    const clamp = useCallback((value: number, min: number, max: number) => {
+    const clamp = (value: number, min: number, max: number) => {
         'worklet';
 
         return Math.max(min, Math.min(max, value));
-    }, []);
+    };
 
-    const applyCropBoundsAndNotify = useCallback(
-        (newX: number, newY: number, newWidth: number, newHeight: number, imageLeft: number, imageRight: number, imageTop: number, imageBottom: number) => {
-            // clamp to image bounds
-            let x = newX;
-            let y = newY;
-            let w = newWidth;
-            let h = newHeight;
+    const applyCropBoundsAndNotify = (newX: number, newY: number, newWidth: number, newHeight: number, imageLeft: number, imageRight: number, imageTop: number, imageBottom: number) => {
+        // clamp to image bounds
+        let x = newX;
+        let y = newY;
+        let w = newWidth;
+        let h = newHeight;
 
-            if (x < imageLeft) {
-                const diff = imageLeft - x;
-                x = imageLeft;
-                w -= diff;
-            }
-            if (x + w > imageRight) {
-                w = imageRight - x;
-            }
-            if (y < imageTop) {
-                const diff = imageTop - y;
-                y = imageTop;
-                h -= diff;
-            }
-            if (y + h > imageBottom) {
-                h = imageBottom - y;
-            }
+        if (x < imageLeft) {
+            const diff = imageLeft - x;
+            x = imageLeft;
+            w -= diff;
+        }
+        if (x + w > imageRight) {
+            w = imageRight - x;
+        }
+        if (y < imageTop) {
+            const diff = imageTop - y;
+            y = imageTop;
+            h -= diff;
+        }
+        if (y + h > imageBottom) {
+            h = imageBottom - y;
+        }
 
-            cropX.set(x);
-            cropY.set(y);
-            cropWidth.set(w);
-            cropHeight.set(h);
+        cropX.set(x);
+        cropY.set(y);
+        cropWidth.set(w);
+        cropHeight.set(h);
 
-            onCropChange?.({
-                x: (x - imageOffsetX) * scaleX,
-                y: (y - imageOffsetY) * scaleY,
-                width: w * scaleX,
-                height: h * scaleY,
-            });
-        },
-        [cropX, cropY, cropWidth, cropHeight, imageOffsetX, scaleX, imageOffsetY, scaleY, onCropChange],
-    );
+        onCropChange?.({
+            x: (x - imageOffsetX) * scaleX,
+            y: (y - imageOffsetY) * scaleY,
+            width: w * scaleX,
+            height: h * scaleY,
+        });
+    };
 
     /**
      * Resize the crop area when a handle is dragged. Edge handles move one edge, corner handles move the two edges that meet at the corner.

@@ -23,7 +23,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
 // eslint-disable-next-line no-restricted-imports
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
@@ -265,6 +265,7 @@ import type {
     PolicyEmployeeList,
     PolicyTag,
     PolicyTagLists,
+    PolicyVendors,
     Report,
     ReportAction,
     ReportActions,
@@ -15632,6 +15633,165 @@ describe('ReportUtils', () => {
                 }),
             );
         });
+
+        it('pushes inactiveVendor error when a vendor is disabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = createMock<Policy>({
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            });
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: true,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: {},
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: false}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
+        });
+
+        it('clears inactiveVendor error when a disabled vendor is re-enabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = createMock<Policy>({
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            });
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: false,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: {},
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`]: [
+                                {
+                                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                                {
+                                    name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                            ],
+                        },
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: true}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
+        });
     });
 
     describe('pushTransactionAutoSelectionsOnyxData', () => {
@@ -16662,6 +16822,24 @@ describe('ReportUtils', () => {
 
             // Then account 3 (passed explicitly) cannot request money on it
             expect(canRequestMoney(iouReport, undefined, [1, 2], undefined, 3)).toBe(false);
+        });
+
+        it('should return false for a workspace chat when the current user is approve-only on that workspace', () => {
+            const policyID = 'approveOnlyPolicyID';
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+            const approveOnlyPolicy = createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            expect(canRequestMoney(report, approveOnlyPolicy, [1], undefined)).toBe(false);
         });
     });
 
@@ -21977,11 +22155,52 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy}, formatPhoneNumber);
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
             expect(result).toContain(groupPolicy.name);
+        });
+        it('should use the passed linkedTransaction (not module-level allTransactions) for the merchant', async () => {
+            // Given an IOU report whose latest expense has a stale copy in Onyx
+            const transactionID = 'linkedTransaction1';
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.IOU,
+                currency: CONST.CURRENCY.USD,
+            };
+            const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: 'linkedTransactionAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {IOUTransactionID: transactionID, amount: 1000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            const staleTransaction = {...createRandomTransaction(1), transactionID, merchant: 'Stale merchant', modifiedMerchant: '', amount: 1000, currency: CONST.CURRENCY.USD};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, staleTransaction);
+            await waitForBatchedUpdates();
+            const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined};
+
+            // When we pass a fresher transaction for the action
+            const result = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, merchant: 'Fresh merchant'}},
+                formatPhoneNumber,
+            );
+
+            // Then the preview uses the passed transaction
+            expect(result).toContain('Fresh merchant');
+
+            // When the passed transaction belongs to another action, the module-level copy is still used
+            const mismatchedResult = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, transactionID: 'otherTransaction', merchant: 'Other merchant'}},
+                formatPhoneNumber,
+            );
+            expect(mismatchedResult).toContain('Stale merchant');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         });
         it('getReportPreviewMessageForCopy should return the expense report name', async () => {
             const report = LHNTestUtils.getFakeReport();
@@ -22087,12 +22306,17 @@ describe('ReportUtils', () => {
                 };
 
                 // When the localized preview is built, since it is the only variant that receives IOU actions
-                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                    reportOrID: settledReport,
-                    iouReportAction: actionWithAccountNumber,
-                    originalReportAction: actionWithAccountNumber,
-                    policy: settledPolicy,
-                });
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: actionWithAccountNumber,
+                        originalReportAction: actionWithAccountNumber,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
+                );
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
@@ -22103,12 +22327,17 @@ describe('ReportUtils', () => {
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
                 // When the localized preview is built
-                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                    reportOrID: settledReport,
-                    iouReportAction: payReportAction,
-                    originalReportAction: payReportAction,
-                    policy: settledPolicy,
-                });
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: payReportAction,
+                        originalReportAction: payReportAction,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
+                );
 
                 // Then the policy default account is used
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
@@ -22130,12 +22359,17 @@ describe('ReportUtils', () => {
                     // Then it uses workspace payment wording and the selected account’s digits.
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: actionNamingAccount,
-                        originalReportAction: actionNamingAccount,
-                        policy: settledPolicy,
-                    });
+                    const result = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: actionNamingAccount,
+                            originalReportAction: actionNamingAccount,
+                            policy: settledPolicy,
+                        },
+                        formatPhoneNumber,
+                    );
 
                     expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
                 });
@@ -22148,7 +22382,9 @@ describe('ReportUtils', () => {
                     const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
 
                     // Then the preview names that account, matching PaymentContent, rather than the workspace default
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'),
+                    );
                 });
             });
 
@@ -22168,7 +22404,7 @@ describe('ReportUtils', () => {
 
                 // Then the hardcoded English copy must not drift from the localized function
                 expect(storedMessage).toContain('paid with wallet');
-                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
             });
 
             it('falls back to the marked as paid wording for a report preview action without a payment hint', () => {
@@ -22187,7 +22423,7 @@ describe('ReportUtils', () => {
 
                 // Then the stored message is the plain "marked as paid" wording and matches the localized variant
                 expect(storedMessage).toContain('marked as paid');
-                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
             });
 
             describe('cross-border payment', () => {
@@ -22200,7 +22436,7 @@ describe('ReportUtils', () => {
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams);
+                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber);
 
                     // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
                     expect(result).toBe(
@@ -22215,16 +22451,21 @@ describe('ReportUtils', () => {
                 it('still names the report total in the parent chat preview', () => {
                     // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
-                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: payReportAction,
-                        originalReportAction: payReportAction,
-                        policy: settledPolicy,
-                        isPreviewMessageForParentChatReport: true,
-                    });
+                    const paymentWithoutConversion = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: payReportAction,
+                            originalReportAction: payReportAction,
+                            policy: settledPolicy,
+                            isPreviewMessageForParentChatReport: true,
+                        },
+                        formatPhoneNumber,
+                    );
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(paymentWithoutConversion);
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(paymentWithoutConversion);
                 });
             });
         });
@@ -22251,9 +22492,13 @@ describe('ReportUtils', () => {
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
 
                 // The localized preview differs between English and Spanish...
-                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params, formatPhoneNumber)).not.toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -22277,7 +22522,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
+                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneNumber);
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -22300,7 +22545,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('owes');
             });
 
@@ -22350,7 +22595,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('spent');
             });
         });
@@ -29064,6 +29309,91 @@ describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', ()
 
         // Then the builder leaves the action unattributed instead of reading the signed-in copilot
         expect(reportAction.delegateAccountID).toBeUndefined();
+    });
+});
+
+describe.each([false, true])('buildOptimisticModifiedExpenseReportAction clock skew, newest first: %s', (isNewestFirst) => {
+    afterEach(async () => {
+        jest.useRealTimers();
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 0});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}clock-stale-report-test`, null);
+        await waitForBatchedUpdates();
+    });
+
+    it.each([
+        ['known', 4000, '2026-10-13T11:44:27.127Z', '2026-10-13 11:44:31.127'],
+        ['underestimated', 4050, '2026-10-13T11:44:23.077Z', '2026-10-13 11:44:27.304'],
+        ['unknown', 0, '2026-10-13T11:44:27.127Z', '2026-10-13 11:44:27.304'],
+    ] as const)('keeps a confirmed group collapsed with %s skew while the edit is pending', async (_skewCase, timeSkew, deviceTime, expectedCreated) => {
+        // Given two confirmed edits and a device clock whose skew is known, underestimated, or not yet measured
+        await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date(deviceTime)});
+        const pending = buildOptimisticModifiedExpenseReportAction({reportID: 'clock-test', lastVisibleActionCreated: '2026-10-13 11:44:27.303'}, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {...pending, reportActionID: 'first', created: '2026-10-13 11:44:23.393', pendingAction: null},
+            {...pending, reportActionID: 'second', created: '2026-10-13 11:44:27.303', pendingAction: null},
+        ];
+
+        // When the real builder creates the pending edit and the list constructs its display state
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the existing pair stays collapsed and the pending edit remains visible on its own
+        expect(pending.created).toBe(expectedCreated);
+        expect(pending.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+
+        // When the server confirms the edit, the group grows without losing an explicit expansion
+        const acknowledged = {...pending, pendingAction: null};
+        const sorted = getSortedReportActions([...confirmed, acknowledged], isNewestFirst);
+        expect(getSystemMessageDisplayState(sorted, new Set()).displayReportActions).toHaveLength(1);
+        expect(getSystemMessageDisplayState(sorted, new Set(['first'])).displayReportActions).toHaveLength(3);
+    });
+
+    it.each([0, 1250])('uses the loaded expense edits when the report timestamp is stale and measured skew is %sms', async (timeSkew) => {
+        // Given a stale report timestamp and two newer confirmed edits while the device clock falls between those edits
+        const thread = {
+            reportID: 'clock-stale-report-test',
+            lastVisibleActionCreated: '2026-10-14 12:23:42.090',
+        };
+        await Onyx.merge(ONYXKEYS.SESSION, {
+            email: currentUserEmail,
+            accountID: currentUserAccountID,
+        });
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        const action = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {
+                ...action,
+                reportActionID: 'first',
+                created: '2026-10-14 12:24:01.635',
+                pendingAction: null,
+            },
+            {
+                ...action,
+                reportActionID: 'second',
+                created: '2026-10-14 12:24:07.130',
+                pendingAction: null,
+            },
+        ];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, Object.fromEntries(confirmed.map((reportAction) => [reportAction.reportActionID, reportAction])));
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date('2026-10-14T12:24:03.421Z')});
+
+        // When a real optimistic edit is built from the same stale report metadata
+        const pending = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the edit sorts after the confirmed pair, which stays collapsed until the server confirms the new row
+        expect(pending.created).toBe('2026-10-14 12:24:07.131');
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+        expect(getSystemMessageDisplayState(getSortedReportActions([...confirmed, {...pending, pendingAction: null}], isNewestFirst), new Set()).displayReportActions).toHaveLength(1);
     });
 });
 

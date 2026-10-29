@@ -2,6 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -71,6 +72,7 @@ import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import {trackFullstoryEvent} from '@libs/Fullstory/utils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
@@ -402,6 +404,8 @@ type OpenReportActionParams = {
     /** The Concierge chat report used to build the guided setup onboarding data */
     conciergeChat: OnyxEntry<Report>;
 
+    /** The report policy's last full policy snapshot, so the server can leave out the members, tags and categories the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
@@ -1041,6 +1045,12 @@ function addActions({
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChat) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    // FullStory can't capture keyboard events, so emit a custom event to track every Concierge message, including Enter-key sends
+    if (isConciergeChat) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys.
+        trackFullstoryEvent(CONST.FULLSTORY.EVENT.CONCIERGE_MESSAGE_SENT, {has_attachment: !!file});
     }
 
     if (file) {
@@ -1731,6 +1741,7 @@ function openReport(params: OpenReportActionParams) {
         shouldMarkAsRead = true,
         shouldKeepManualUnreadMarker = false,
         conciergeChat,
+        fullPolicySnapshot,
         delegateAccountID,
     } = params;
     if (!reportID) {
@@ -1871,6 +1882,8 @@ function openReport(params: OpenReportActionParams) {
         includePartiallySetupBankAccounts: true,
         useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
         includeLockedBankAccounts: true,
+        fullPolicySnapshotPolicyID: fullPolicySnapshot?.policyID,
+        fullPolicySnapshotLastModified: fullPolicySnapshot?.lastModified,
     };
 
     if (optimisticSelfDMReport) {
@@ -2477,6 +2490,8 @@ type CreateTransactionThreadReportParams = {
 
     conciergeChat: OnyxEntry<Report>;
 
+    /** The lastModified of the expense report policy's cached full policy snapshot, so the server can leave out the collections the client already has */
+    fullPolicySnapshotLastModified?: number;
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
@@ -2495,6 +2510,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         conciergeChat,
+        fullPolicySnapshotLastModified,
         delegateAccountID,
     } = params;
 
@@ -2564,6 +2580,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions: false,
+        fullPolicySnapshot:
+            !selfDMReportID && reportToUse.policyID && fullPolicySnapshotLastModified ? {policyID: reportToUse.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         delegateAccountID,
     });
     return optimisticTransactionThread;
@@ -3785,11 +3803,21 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
     if (!originalReport) {
         return false;
     }
-    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache} = deferredEdit;
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName} = deferredEdit;
 
     // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
     Promise.resolve().then(() =>
-        editReportComment(originalReport, syncedAction, textForNewComment, isOriginalReportArchived, currentUserLogin, getAllPersonalDetails(), currentUserAccountID, videoAttributeCache),
+        editReportComment(
+            originalReport,
+            syncedAction,
+            textForNewComment,
+            isOriginalReportArchived,
+            currentUserLogin,
+            getAllPersonalDetails(),
+            currentUserAccountID,
+            videoAttributeCache,
+            reportIDToName,
+        ),
     );
     return true;
 });
@@ -3973,6 +4001,7 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
@@ -5583,7 +5612,7 @@ function showReportActionNotification(
         LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
     }
 
-    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
+    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
