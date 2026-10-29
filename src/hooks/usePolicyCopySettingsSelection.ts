@@ -10,6 +10,7 @@ import {
     getTimeTrackingCopySettingsDescription,
     hasCurrencyConflictWithAnyTarget,
     isCopyPolicySettingsPartEnabledOnSource,
+    isSourceProvisionedForTravel,
     isCurrencyBlockedByTargetBA,
     needsCurrencyForWorkflows,
 } from '@libs/CopyPolicySettingsUtils';
@@ -65,7 +66,7 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
 
     // Targets without an address need Overview copied before Travel can be set up.
     const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
-    const hasTargetWithoutAddress = targetPolicies.some((policy) => isEmptyObject(policy?.address));
+    const hasTargetWithoutAddress = isSourceProvisionedForTravel(sourcePolicy) && targetPolicies.some((policy) => !isSourceProvisionedForTravel(policy) && isEmptyObject(policy?.address));
 
     const sourceEmployeePersonalDetails = usePersonalDetailsByLogins(Object.keys(sourcePolicy?.employeeList ?? {}));
     const [memberCount = 0] = useAllPersonalDetails(

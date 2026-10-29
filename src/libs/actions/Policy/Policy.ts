@@ -3565,7 +3565,6 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         policyName = '',
         policyID = generatePolicyID(),
         file,
-        welcomeNote,
         parts,
         targetPolicyID = generatePolicyID(),
         policyCategories,
@@ -3591,6 +3590,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
 
     const policyMemberAccountIDs = isMemberOptionSelected ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, personalDetailsByLogins, false, false)) : [];
     const distanceCustomUnitID = generateCustomUnitID();
+    const customUnitRateID = generateCustomUnitID();
     const perDiemCustomUnitID = generateCustomUnitID();
 
     // Use fresh rate IDs to keep the duplicate separate from its source.
@@ -3859,8 +3859,8 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID,
         perDiemCustomUnitID,
         distanceCustomUnitID,
+        customUnitRateID,
         parts: JSON.stringify(parts),
-        welcomeNote,
         optimisticRateIDs: Object.keys(optimisticRateIDs).length ? JSON.stringify(optimisticRateIDs) : undefined,
         currency: options.localCurrency,
         hasAcceptedTravelTerms: options.hasAcceptedTravelTerms ?? false,

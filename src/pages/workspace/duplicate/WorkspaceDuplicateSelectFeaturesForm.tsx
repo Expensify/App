@@ -45,7 +45,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const localCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
-    const targetPolicies = policy ? [{...policy, outputCurrency: localCurrency, address: undefined, achAccount: undefined, connections: undefined}] : [];
+    const targetPolicies = policy ? [{...policy, outputCurrency: localCurrency, address: undefined, achAccount: undefined, connections: undefined, travelSettings: undefined}] : [];
     const {
         listItems: featuresToCopy,
         effectiveSelectedFeatures: effectiveSelectedItems,

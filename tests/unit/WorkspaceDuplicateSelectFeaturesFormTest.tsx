@@ -216,7 +216,11 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('excludes Travel when Overview is deselected and the new policy would have no address', async () => {
-        await renderForm(false, {isTravelEnabled: true, address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'}});
+        await renderForm(false, {
+            isTravelEnabled: true,
+            travelSettings: {spotnanaEntityID: 'source-entity'},
+            address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
+        });
         expect(getRow('travel')?.isSelected).toBe(true);
         await pressRow('overview');
         expect(getRow('travel')?.isSelected).toBe(false);
@@ -228,7 +232,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     it('requires Travel consent and sends it only after the checkbox is accepted', async () => {
         await renderForm(false, {
             isTravelEnabled: true,
-            travelSettings: {spotnanaCompanyID: 'source-company'},
+            travelSettings: {spotnanaEntityID: 'source-entity', spotnanaCompanyID: 'source-company'},
             address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
         });
         expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(true);

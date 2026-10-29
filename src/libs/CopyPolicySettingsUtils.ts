@@ -9,7 +9,7 @@ import type {Part} from './actions/Policy/CopyPolicySettings';
 
 import {isAuthenticationError} from './actions/connections';
 import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
-import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
+import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isTimeTrackingEnabled} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -264,7 +264,11 @@ function isCurrencyBlockedByTargetBA(source: Policy | undefined, targets: Readon
  * alongside workflows so the "currency" Part runs first and aligns the currencies (App#92397).
  */
 function needsCurrencyForWorkflows(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
-    return !!source && policyHasWithdrawalAccount(source) && targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target));
+    return (
+        !!source &&
+        (source.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > CONST.DEFAULT_NUMBER_ID &&
+        targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target))
+    );
 }
 
 /**
@@ -387,10 +391,10 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
  * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
  * source re-provisions each target (the backend creates a fresh entity), which requires accepting
  * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
- * provisioning check in BookTravelButton.
+ * entity check in Auth's CopyPolicySettings.
  */
 function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
-    return isWorkspaceProvisionedForTravel(policy?.travelSettings);
+    return !!policy?.travelSettings?.spotnanaEntityID;
 }
 
 export {

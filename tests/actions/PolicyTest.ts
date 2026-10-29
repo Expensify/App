@@ -645,7 +645,7 @@ describe('actions/Policy', () => {
                 outputCurrency: 'EUR',
                 address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
                 isTravelEnabled: true,
-                travelSettings: {spotnanaCompanyID: 'source-company', hasAcceptedTerms: true, autoAddTripName: false},
+                travelSettings: {spotnanaEntityID: 'source-entity', spotnanaCompanyID: 'source-company', hasAcceptedTerms: true, autoAddTripName: false},
                 units: {time: {enabled: true, rate: 75}},
                 receiptPartners: {enabled: true, uber: {enabled: true, organizationID: 'source-org', organizationName: 'Source org'}},
                 areInvoicesEnabled: true,
