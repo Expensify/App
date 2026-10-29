@@ -1,3 +1,4 @@
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
@@ -26,7 +27,6 @@ import type {ChatListItemProps, ReportActionListItemType} from './types';
  */
 function ChatListItem<TItem extends ListItem>({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -36,6 +36,7 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
 }: ChatListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);

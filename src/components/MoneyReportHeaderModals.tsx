@@ -2,8 +2,10 @@ import useAlertModals from '@hooks/useAlertModals';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
+import useMoneyReportHeaderEducationalModals from '@hooks/useMoneyReportHeaderEducationalModals';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPDFDownloadModal from '@hooks/useReportPDFDownloadModal';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -15,15 +17,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React, {useRef, useState} from 'react';
+import React from 'react';
 
-import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
 
-import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import {MoneyReportTransactionThreadProvider} from './MoneyReportTransactionThreadContext';
-import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
     reportID: string | undefined;
@@ -31,14 +30,17 @@ type MoneyReportHeaderModalsProps = {
 };
 
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
-    // PDF modal state
-    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    // Callback invoked when the PDF modal is dismissed while still generating (e.g. Submit via PDF retracts the submit).
-    const onPDFCancelRef = useRef<(() => void) | undefined>(undefined);
+    const [moneyRequestReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: (report) => report?.reportID});
 
-    // Educational modals ref
-    const educationalModalsRef = useRef<MoneyReportHeaderEducationalModalsHandle>(null);
+    return (
+        <MoneyReportTransactionThreadProvider reportID={moneyRequestReportID}>
+            <MoneyReportHeaderModalsContent reportID={reportID}>{children}</MoneyReportHeaderModalsContent>
+        </MoneyReportTransactionThreadProvider>
+    );
+}
 
+/** Rendered inside the transaction thread provider because the educational modals' follow-up actions need the transaction thread */
+function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderModalsProps) {
     // Fetch data from IDs
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -63,6 +65,8 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     // Imperative modals
     const {showHoldMenu} = useHoldMenuModal();
     const {showOfflineModal, showDownloadErrorModal} = useAlertModals();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
+    const {openHoldEducational, openRejectModal} = useMoneyReportHeaderEducationalModals(moneyRequestReport?.reportID);
 
     const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
         const open = () =>
@@ -93,35 +97,19 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     const contextValue = {
         openHoldMenu,
-        openPDFDownload: (options?: {onCancel?: () => void}) => {
-            onPDFCancelRef.current = options?.onCancel;
-            setIsPDFModalVisible(true);
+        openPDFDownload: () => {
+            if (!moneyRequestReport?.reportID) {
+                return Promise.resolve(undefined);
+            }
+            return showReportPDFDownloadModal({reportID: moneyRequestReport.reportID});
         },
-        openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
-        openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
+        openHoldEducational,
+        openRejectModal,
         showOfflineModal,
         showDownloadErrorModal,
     };
 
-    return (
-        <MoneyReportHeaderModalsContext.Provider value={contextValue}>
-            <MoneyReportTransactionThreadProvider reportID={moneyRequestReport?.reportID}>
-                {children}
-
-                <MoneyReportHeaderEducationalModals
-                    ref={educationalModalsRef}
-                    reportID={moneyRequestReport?.reportID}
-                />
-
-                <ReportPDFDownloadModal
-                    reportID={moneyRequestReport?.reportID}
-                    isVisible={isPDFModalVisible}
-                    onClose={() => setIsPDFModalVisible(false)}
-                    onCancel={() => onPDFCancelRef.current?.()}
-                />
-            </MoneyReportTransactionThreadProvider>
-        </MoneyReportHeaderModalsContext.Provider>
-    );
+    return <MoneyReportHeaderModalsContext.Provider value={contextValue}>{children}</MoneyReportHeaderModalsContext.Provider>;
 }
 
 export default MoneyReportHeaderModals;
