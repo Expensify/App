@@ -133,13 +133,6 @@ function renderColumnResize(params?: Partial<UseColumnResizeParams>) {
     return {...hook, initialProps, scopeElement, headingElement, handleElement, setPointerCapture, getHandleProps, readWidth, readGripHover, mountHandle, click};
 }
 
-/** Lets a click's wait for a second click run out. */
-function waitOutDoubleClick() {
-    act(() => {
-        jest.advanceTimersByTime(CONST.TABLES.COLUMN_RESIZE.DOUBLE_CLICK_INTERVAL);
-    });
-}
-
 describe('useColumnResize', () => {
     beforeEach(() => {
         jest.useFakeTimers();
@@ -524,7 +517,7 @@ describe('useColumnResize', () => {
         expect(readWidth('name')).toBe('');
     });
 
-    it('fits the column to its content once a click on its edge turns out not to be a double-click', () => {
+    it('fits the column to its content when its edge is clicked', () => {
         // Given a 200px column whose content fits in 120px
         const {handleElement, getHandleProps, readWidth} = renderColumnResize();
 
@@ -535,122 +528,60 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100 + CONST.TABLES.COLUMN_RESIZE.DRAG_SLOP}));
         });
 
-        // Then the column stays put while a second click may still come, since moving the edge now would send that click to the heading
-        expect(readWidth(NAME_COLUMN_KEY)).toBe('');
-        expect(setTableColumnWidths).not.toHaveBeenCalled();
-        expect(document.body.style.cursor).toBe('');
-
-        // When no second click comes
-        waitOutDoubleClick();
-
         // Then the column is painted at its content width the way a drag would, with its absorber taking the change,
         // and the layout is saved with the column marked as resized, rather than moved by the wobble
         expect(readWidth(NAME_COLUMN_KEY)).toBe('120px');
         expect(readWidth('email')).toBe('280px');
+        expect(document.body.style.cursor).toBe('');
         expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
         expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 280, role: 200}, NAME_COLUMN_KEY, true));
     });
 
-    it('clears the layout on double-click when no other column was dragged, without fitting it first', () => {
-        // Given a resizable column that is the only one the user dragged
-        const {click, readWidth} = renderColumnResize();
+    it('clears the layout when a fitted column is clicked again and no other column was dragged', () => {
+        // Given a resizable column that is the only one the user sized
+        const {click} = renderColumnResize();
 
-        // When its edge is clicked twice in quick succession
+        // When its edge is clicked once to fit it, then again
         click();
         click();
-        waitOutDoubleClick();
 
-        // Then the saved layout is cleared, so the table sizes every column from its content again, and nothing is
-        // painted since the cleared layout reflows the columns. The first click never fits the column, so the edge
-        // doesn't move out from under the second click
-        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, null);
-        expect(readWidth(NAME_COLUMN_KEY)).toBe('');
+        // Then the second click undoes the fit by clearing the saved layout, so the table sizes every column from its content again
+        expect(setTableColumnWidths).toHaveBeenCalledTimes(2);
+        expect(setTableColumnWidths).toHaveBeenLastCalledWith(COLUMN_RESIZING_ID, null);
     });
 
-    it('hands the column back to content sizing on double-click while other dragged columns keep the layout', () => {
-        // Given a resizable column, and another column the user dragged too
+    it('resets a fitted column on a second click while other dragged columns keep the layout', () => {
+        // Given a 200px column whose content fits in 120px, and another column the user dragged too
         const {click, readWidth} = renderColumnResize({
+            getTargetColumnWidth: (columnKey, target) => (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET ? 200 : getTargetColumnWidth(columnKey)),
             getStoredTableColumnWidths: (columnWidths) => ({availableColumnsWidth: 600, columnWidths, resizedColumnKeys: ['role']}),
         });
 
-        // When its edge is double-clicked
+        // When its edge is clicked once to fit it, then again
         click();
         click();
 
-        // Then it is painted at its content width with its absorber taking the change, and the layout is saved without
-        // it among the resized columns, so it absorbs room changes again
-        expect(readWidth(NAME_COLUMN_KEY)).toBe('120px');
-        expect(readWidth('email')).toBe('280px');
-        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, {
+        // Then it goes back to its reset width with its absorber taking the change, and the layout is saved without it
+        // among the resized columns, so it absorbs room changes again
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('200px');
+        expect(readWidth('email')).toBe('200px');
+        expect(setTableColumnWidths).toHaveBeenCalledTimes(2);
+        expect(setTableColumnWidths).toHaveBeenLastCalledWith(COLUMN_RESIZING_ID, {
             availableColumnsWidth: 600,
-            columnWidths: {name: 120, email: 280, role: 200},
+            columnWidths: {name: 200, email: 200, role: 200},
             resizedColumnKeys: ['role'],
         });
     });
 
-    it('drags without fitting when the edge is pressed again right after a click', () => {
-        // Given a click on a 200px column's edge that is still waiting for a second click
-        const {handleElement, getHandleProps, click, readWidth} = renderColumnResize();
-
-        click();
-
-        // When the edge is pressed again and dragged 60px right
-        act(() => {
-            getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
-            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 160}));
-            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 160}));
+    it('stores nothing when a column the user never sized already fits its content', () => {
+        // Given a column painted at its content width that the layout has no reset width for, since the user never sized it
+        const {click} = renderColumnResize({
+            resolvedColumnWidths: {...resolvedColumnWidths, name: 120},
+            getTargetColumnWidth: (columnKey, target) => (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET ? undefined : getTargetColumnWidth(columnKey)),
         });
-        waitOutDoubleClick();
-
-        // Then only the drag counts, so the column isn't fitted once the user has moved on to dragging it
-        expect(readWidth(NAME_COLUMN_KEY)).toBe('260px');
-        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 260, email: 140, role: 200}, NAME_COLUMN_KEY, true));
-    });
-
-    it('fits a clicked column right away when another edge is clicked', () => {
-        // Given a click on one column's edge that is still waiting for a second click
-        const {click} = renderColumnResize({resizableColumnKeys: [NAME_COLUMN_KEY, 'email']});
-
-        click(NAME_COLUMN_KEY);
-
-        // When another column's edge is clicked
-        click('email');
-
-        // Then the first column is fitted, since clicks on two edges aren't a double-click, and the second still waits
-        expect(setTableColumnWidths).toHaveBeenCalledTimes(1);
-        expect(setTableColumnWidths).toHaveBeenCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 280, role: 200}, NAME_COLUMN_KEY, true));
-
-        // When no second click comes
-        waitOutDoubleClick();
-
-        // Then the second column is fitted too
-        expect(setTableColumnWidths).toHaveBeenLastCalledWith(COLUMN_RESIZING_ID, getStoredTableColumnWidths({name: 120, email: 300, role: 200}, 'email', true));
-    });
-
-    it('drops a waiting click when the table unmounts', () => {
-        // Given a click on an edge that is still waiting for a second click
-        const columnResize = renderColumnResize();
-
-        columnResize.click();
-
-        // When the table unmounts before the wait is over
-        columnResize.unmount();
-        waitOutDoubleClick();
-
-        // Then nothing is stored for a table that is gone
-        expect(setTableColumnWidths).not.toHaveBeenCalled();
-    });
-
-    it('stores nothing when a clicked column already fits its content', () => {
-        // Given a column already painted at its content width
-        const {click} = renderColumnResize({resolvedColumnWidths: {...resolvedColumnWidths, name: 120}});
 
         // When its edge is clicked
         click();
-        waitOutDoubleClick();
 
         // Then nothing is stored, so the column isn't marked as sized by the user for nothing
         expect(setTableColumnWidths).not.toHaveBeenCalled();
@@ -664,25 +595,8 @@ describe('useColumnResize', () => {
 
         // When its edge is clicked
         click();
-        waitOutDoubleClick();
 
         // Then the column keeps its width, rather than guessing one
-        expect(readWidth(NAME_COLUMN_KEY)).toBe('');
-        expect(setTableColumnWidths).not.toHaveBeenCalled();
-    });
-
-    it('does nothing on double-click when the column was never resized', () => {
-        // Given a column the user never sized, so the layout has nothing to reset for it
-        const {click, readWidth} = renderColumnResize({
-            getTargetColumnWidth: (columnKey, target) => (target === CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET ? undefined : getTargetColumnWidth(columnKey)),
-        });
-
-        // When its edge is double-clicked
-        click();
-        click();
-        waitOutDoubleClick();
-
-        // Then nothing is painted or saved, so the columns the user did size keep their widths
         expect(readWidth(NAME_COLUMN_KEY)).toBe('');
         expect(setTableColumnWidths).not.toHaveBeenCalled();
     });

@@ -10121,9 +10121,6 @@ const CONST = {
             /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
             DRAG_SLOP: 3,
 
-            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
-            DOUBLE_CLICK_INTERVAL: 150,
-
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
 
@@ -10133,7 +10130,7 @@ const CONST = {
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
 
-            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            /** What a click on a column's edge sizes it to: `FIT` its content, or `RESET` it when it already fits. */
             WIDTH_TARGET: {
                 FIT: 'fit',
                 RESET: 'reset',
