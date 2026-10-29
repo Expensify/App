@@ -91,7 +91,7 @@ function TabNavigator() {
                     <Tab.Screen
                         name={SCREENS.INSIGHTS}
                         component={InsightsPage}
-                        // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                        // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
                         initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
                     />
                     <Tab.Screen
