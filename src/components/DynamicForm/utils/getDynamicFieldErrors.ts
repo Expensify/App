@@ -4,9 +4,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {
+    doesContainReservedWord,
     getCountryZipRegexDetails,
     isValidDate,
-    isValidLegalName,
+    isValidDisplayName,
     isValidPastDate,
     isValidPhoneInternational,
     isValidZipCodeForCountry,
@@ -14,6 +15,7 @@ import {
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 
+import CONST from '@src/CONST';
 import type {
     DynamicFormAddressField,
     DynamicFormChoiceField,
@@ -127,6 +129,20 @@ function getListErrors(field: DynamicFormListField, values: DynamicFormValues, t
     return messages;
 }
 
+/** The rules of the profile legal name page, so a name accepted there is accepted here */
+function getLegalNameErrors(value: string, translate: LocalizedTranslate): string[] {
+    const messages: string[] = [];
+    if (!isValidDisplayName(value)) {
+        messages.push(translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon'));
+    } else if (value.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+        messages.push(translate('common.error.characterLimitExceedCounter', value.length, CONST.LEGAL_NAME.MAX_LENGTH));
+    }
+    if (doesContainReservedWord(value, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        messages.push(translate('personalDetails.error.containsReservedWord'));
+    }
+    return messages;
+}
+
 /** For inputs that only accept valid answers: UploadFile checks type and count, AmountForm rejects invalid typing */
 const noChecks = () => [];
 
@@ -137,8 +153,8 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
     text: (field, values, translate) => {
         const value = getStringAnswer(field, values);
         const messages = getFormatErrors(field, value, translate);
-        if (field.rule === 'legalName' && !isValidLegalName(value)) {
-            messages.push(translate('privatePersonalDetails.error.hasInvalidCharacter'));
+        if (field.rule === 'legalName') {
+            messages.push(...getLegalNameErrors(value, translate));
         }
         if (field.rule === 'phone' && !isValidPhoneInternational(value)) {
             messages.push(translate('common.error.phoneNumber'));

@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type Props = {
@@ -35,41 +35,31 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
     const {environmentURL} = useEnvironment();
     const [subscriptionLink, setSubscriptionLink] = useState('');
 
-    const updateSubscriptionLink = useCallback(() => {
+    const updateSubscriptionLink = () => {
         const backTo = Navigation.getActiveRoute();
         setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
-    }, [environmentURL]);
+    };
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => updateSubscriptionLink());
     }, [updateSubscriptionLink]);
 
-    const description = useMemo(() => {
-        if (isCategorizing || isReporting) {
-            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
-        }
-
-        if (isTravelUpgrade) {
-            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
-        }
-
-        if (isDistanceRateUpgrade) {
-            return <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
-        }
-
-        return (
+    let description;
+    if (isCategorizing || isReporting) {
+        description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.categorizeMessage')}</Text>;
+    } else if (isTravelUpgrade) {
+        description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.travelMessage')}</Text>;
+    } else if (isDistanceRateUpgrade) {
+        description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
+    } else {
+        description = (
             <View style={[styles.renderHTML, styles.w100]}>
                 <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
-    }, [isDistanceRateUpgrade, isCategorizing, isReporting, isTravelUpgrade, policyName, planName, styles.renderHTML, styles.textAlignCenter, styles.w100, translate, subscriptionLink]);
+    }
 
-    const heading = useMemo(() => {
-        if (isCategorizing || isReporting) {
-            return translate('workspace.upgrade.completed.createdWorkspace');
-        }
-        return translate('workspace.upgrade.completed.headline');
-    }, [isCategorizing, isReporting, translate]);
+    const heading = isCategorizing || isReporting ? translate('workspace.upgrade.completed.createdWorkspace') : translate('workspace.upgrade.completed.headline');
 
     return (
         <ConfirmationPage>

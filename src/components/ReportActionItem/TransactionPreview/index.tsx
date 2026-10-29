@@ -34,7 +34,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GestureResponderEvent} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
-import React, {memo, useCallback, useMemo} from 'react';
+import React from 'react';
 
 import type {TransactionPreviewProps} from './types';
 
@@ -63,9 +63,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const personalDetails = usePersonalDetails();
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const allDuplicateIDs = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
+    const allDuplicateIDs = violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
-    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates ?? []), [allDuplicates]);
+    const duplicates = removeSettledAndApprovedTransactions(allDuplicates ?? []);
     const sessionAccountID = session?.accountID;
     const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
@@ -85,10 +85,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
         showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
-    const offlineWithFeedbackOnClose = useCallback(() => {
+    const offlineWithFeedbackOnClose = () => {
         clearWalletTermsError();
         clearIOUError(chatReportID);
-    }, [chatReportID]);
+    };
 
     const navigateToReviewFields = () =>
         Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.reportID, transaction, duplicates, policy, policyCategories, policyTags ?? {}, report));
@@ -165,4 +165,4 @@ function TransactionPreview(props: TransactionPreviewProps) {
     );
 }
 
-export default memo(TransactionPreview);
+export default TransactionPreview;
