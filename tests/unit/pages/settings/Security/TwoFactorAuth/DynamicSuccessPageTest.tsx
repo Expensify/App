@@ -98,7 +98,7 @@ describe('DynamicSuccessPage', () => {
 
         // Then Home is revealed under the RHP and setup data is cleared, instead of staying on the Enabled page or resuming onboarding
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.HOME, expect.anything());
-        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true);
+        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true, true);
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.SETTINGS_2FA_ENABLED, expect.anything());
         expect(resumeOnboardingAfterRequired2FASetup).not.toHaveBeenCalled();
         expect(quitAndNavigateBack).not.toHaveBeenCalled();
@@ -116,7 +116,7 @@ describe('DynamicSuccessPage', () => {
 
         // Then Home is revealed under the RHP instead of returning to Settings > Security
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.HOME, expect.anything());
-        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true);
+        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true, true);
         expect(quitAndNavigateBack).not.toHaveBeenCalled();
     });
 
@@ -148,7 +148,7 @@ describe('DynamicSuccessPage', () => {
 
         // Then the user stays in the RHP on the Enabled page, and setup progress is cleared
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
-        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true);
+        expect(clearTwoFactorAuthData).toHaveBeenCalledWith(true, true);
         expect(Navigation.revealRouteBeforeDismissingModal).not.toHaveBeenCalled();
         expect(quitAndNavigateBack).not.toHaveBeenCalled();
     });

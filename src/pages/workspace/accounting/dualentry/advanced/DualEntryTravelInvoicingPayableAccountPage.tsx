@@ -1,9 +1,9 @@
 import type {SelectorType} from '@components/SelectionScreen';
 
 import useOnyx from '@hooks/useOnyx';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearDualEntryErrorField, updateDualEntryTravelInvoicingPayableAccount} from '@libs/actions/connections/DualEntry';
+import {clearDualEntryErrorField, updateDualEntryTravelBillingPayableAccount} from '@libs/actions/connections/DualEntry';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -27,8 +27,8 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
     const travelInvoicingPayableAccountID = dualentryConfig?.export?.travelInvoicingPayableAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
     const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
@@ -52,7 +52,7 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
 
     const setPayableAccount = (item: SelectorType<string>) => {
         if (item.value !== travelInvoicingPayableAccountID && policyID) {
-            updateDualEntryTravelInvoicingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
+            updateDualEntryTravelBillingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
         }
         Navigation.goBack(backPath);
     };

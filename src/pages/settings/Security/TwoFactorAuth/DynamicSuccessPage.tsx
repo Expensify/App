@@ -65,8 +65,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
     const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
 
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+
     const completeForcedOnboarding2FAHandoff = () => {
-        clearTwoFactorAuthData(true);
+        clearTwoFactorAuthData(is2FAEnabled, true);
         const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
@@ -78,7 +80,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const sendForcedSetupUserHome = () => {
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
-                clearTwoFactorAuthData(true);
+                clearTwoFactorAuthData(is2FAEnabled, true);
             },
         });
     };
@@ -95,7 +97,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
-                    clearTwoFactorAuthData();
+                    clearTwoFactorAuthData(is2FAEnabled);
                     // Re-fetch bank account data so ReimbursementAccountPage reflects the latest state after 2FA setup.
                     openReimbursementAccountPage({
                         policyID: route.params?.policyID,
@@ -105,7 +107,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             });
             return;
         }
-        quitAndNavigateBack(dynamicBackPath);
+        quitAndNavigateBack(is2FAEnabled, dynamicBackPath);
     };
 
     const onButtonPress = () => {
@@ -129,7 +131,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             // Pass clearProgress=true to also reset twoFactorAuthSetupInProgress. Replacing the success screen with the
             // Enabled page keeps the TWO_FACTOR_AUTH modal mounted, so RightModalNavigator's beforeRemove cleanup never
             // runs here; without this the require-2FA overlay would persist for users who haven't finished guided setup.
-            clearTwoFactorAuthData(true);
+            clearTwoFactorAuthData(is2FAEnabled, true);
             return;
         }
         goBack();

@@ -49,13 +49,13 @@ function buildPayRequest(overrides: PayRequestOverrides = {}): Request<OnyxKey> 
     } as Request<OnyxKey>;
 }
 
-function buildCorpayPayModalResponse(jsonCode: number | string = CONST.JSON_CODE.EXP_ERROR): Response<OnyxKey> {
+function buildEnableGlobalReimbursementsModalResponse(jsonCode: number | string = CONST.JSON_CODE.EXP_ERROR): Response<OnyxKey> {
     return {
         jsonCode,
         onyxData: [
             {
                 onyxMethod: 'set',
-                key: ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
+                key: ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
                 value: {
                     bankAccountID: 100,
                     bankCountry: CONST.COUNTRY.CA,
@@ -71,9 +71,9 @@ function findFailureUpdate(request: Request<OnyxKey>, key: string) {
 }
 
 describe('GlobalReimbursementPayError middleware', () => {
-    it('replaces optimistic PAY action error with null in failureData when payment fails with corpayPayModal', async () => {
+    it('replaces optimistic PAY action error with null in failureData when payment fails with enableGlobalReimbursementsModal', async () => {
         const request = buildPayRequest();
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -87,7 +87,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
     it('works identically for PAY_MONEY_REQUEST_WITH_WALLET command', async () => {
         const request = buildPayRequest({command: WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET});
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         const result = await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -101,7 +101,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
     it('leaves failureData untouched if response is successful (jsonCode 200)', async () => {
         const request = buildPayRequest();
-        const response = buildCorpayPayModalResponse(CONST.JSON_CODE.SUCCESS);
+        const response = buildEnableGlobalReimbursementsModalResponse(CONST.JSON_CODE.SUCCESS);
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -114,7 +114,7 @@ describe('GlobalReimbursementPayError middleware', () => {
 
     it('leaves failureData untouched for non-payment commands', async () => {
         const request = buildPayRequest({command: WRITE_COMMANDS.APPROVE_MONEY_REQUEST});
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         await globalReimbursementPayError(Promise.resolve(response), request, false);
 
@@ -125,7 +125,7 @@ describe('GlobalReimbursementPayError middleware', () => {
         });
     });
 
-    it('leaves failureData untouched if response does not contain RAM_ONLY_CORPAY_PAY_MODAL', async () => {
+    it('leaves failureData untouched if response does not contain RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL', async () => {
         const request = buildPayRequest();
         const response: Response<OnyxKey> = {
             jsonCode: CONST.JSON_CODE.EXP_ERROR,
@@ -148,7 +148,7 @@ describe('GlobalReimbursementPayError middleware', () => {
     });
 
     it('handles missing or corrupt data fields gracefully', async () => {
-        const response = buildCorpayPayModalResponse();
+        const response = buildEnableGlobalReimbursementsModalResponse();
 
         // Missing iouReportID
         const requestWithoutIou = buildPayRequest({data: {reportActionID: REPORT_ACTION_ID}});

@@ -20,6 +20,7 @@ import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
+import Tooltip from './Tooltip';
 
 type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
@@ -155,19 +156,21 @@ function UploadFile({
                         style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
                         textStyle={styles.textBold}
                     />
-                    <PressableWithFeedback
-                        onPress={() => onRemove(file?.name ?? '')}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
-                        sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
-                        shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
-                    >
-                        <Icon
-                            src={icons.Close}
-                            fill={theme.icon}
-                            size={CONST.ICON_SIZE.MEDIUM}
-                        />
-                    </PressableWithFeedback>
+                    <Tooltip text={translate('common.remove')}>
+                        <PressableWithFeedback
+                            onPress={() => onRemove(file?.name ?? '')}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={`${translate('common.remove')}, ${file.name ?? ''}`}
+                            sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
+                            shouldUseAutoHitSlop={shouldExtendRemoveTouchArea}
+                        >
+                            <Icon
+                                src={icons.Close}
+                                fill={theme.icon}
+                                size={CONST.ICON_SIZE.MEDIUM}
+                            />
+                        </PressableWithFeedback>
+                    </Tooltip>
                 </View>
             ))}
             {errorText !== '' && (
