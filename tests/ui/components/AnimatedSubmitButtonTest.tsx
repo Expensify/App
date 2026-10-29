@@ -44,6 +44,7 @@ jest.mock('react-native-reanimated/src/createAnimatedComponent/AnimatedComponent
 );
 jest.mock('@hooks/useOnyx', () => jest.fn(() => [mockPendingExpenseAction]));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({justifyContentCenter: {justifyContent: 'center'}})));
+jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getHeight: (height: number) => ({height})})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({Send: () => null}),

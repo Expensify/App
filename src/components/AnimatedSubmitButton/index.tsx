@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -125,10 +126,11 @@ function SubmittingButton({variant, text, onAnimationFinish, shouldShowMarkAsDon
 
 function AnimatedSubmitButton({isSubmittingAnimationRunning, onPress, isDisabled, sentryLabel, ...props}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.reportID}`, {selector: pendingExpenseActionSelector});
 
     return (
-        <View style={[styles.justifyContentCenter, {height: variables.componentSizeNormal}]}>
+        <View style={[styles.justifyContentCenter, StyleUtils.getHeight(variables.componentSizeNormal)]}>
             {isSubmittingAnimationRunning ? (
                 <SubmittingButton
                     key={`${props.reportID}:${props.isDEWSubmission ? 'dew' : 'standard'}`}
