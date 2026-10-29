@@ -223,6 +223,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         amount={reportItem.total}
                         shouldDisablePointerEvents={shouldDisableActionPointerEvents}
                         chatReport={chatReport}
+                        snapshotTransactions={reportItem.transactions}
                     />
                 </View>
             )}
@@ -302,6 +303,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         currentUserLogin,
         introSelected,
         isASAPSubmitBetaEnabled,
+        isWiseReimbursementsBetaEnabled,
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
@@ -328,6 +330,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
+            isWiseReimbursementsBetaEnabled,
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
