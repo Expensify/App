@@ -45,9 +45,19 @@ type MoneyRequestAttendeesSelectorProps = {
 
     /** Empty selection shows no error until the user tries to save */
     shouldDeferEmptySelectionError?: boolean;
+
+    /** Whether the list ends in a Save button. A list that saves each toggle as it lands, e.g. in a pop-over, has nothing to save */
+    shouldShowSaveButton?: boolean;
 };
 
-function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, shouldDeferEmptySelectionError = false}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAttendeeSelector({
+    attendees = [],
+    onFinish,
+    onAttendeesAdded,
+    iouType,
+    shouldDeferEmptySelectionError = false,
+    shouldShowSaveButton = true,
+}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -151,15 +161,22 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             return;
         }
 
+        const errorMessage = shouldShowErrorMessage && (
+            <FormHelpMessage
+                style={[styles.ph1, styles.mb2]}
+                isError
+                message={translate('iou.error.atLeastOneAttendee')}
+            />
+        );
+
+        // Without a Save button the footer holds the error alone, and nothing at all while the selection is fine.
+        if (!shouldShowSaveButton) {
+            return errorMessage || undefined;
+        }
+
         return (
             <>
-                {shouldShowErrorMessage && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError
-                        message={translate('iou.error.atLeastOneAttendee')}
-                    />
-                )}
+                {errorMessage}
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={confirmSelection}
