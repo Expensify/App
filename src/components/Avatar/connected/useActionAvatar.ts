@@ -1,3 +1,6 @@
+/**
+ * Resolves the avatar and header details of a report action row in a chat, used by ReportActionItemSingle.
+ */
 import getAvatarLayout from '@components/Avatar/layouts/getAvatarLayout';
 import type {AvatarIcon} from '@components/Avatar/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -314,8 +317,10 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
         (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom && !isAccessPlaceholderReportPreview;
     const useNearestReportAvatars = !accountID || !action;
 
-    const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(
+    const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) => {
+        // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
+        const isChatReport = onyxReport?.reportID === chatReport?.reportID;
+        return getIcons(
             onyxReport,
             formatPhoneNumber,
             translate,
@@ -326,10 +331,10 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
             policy,
             invoiceReceiverPolicy,
             false,
-            // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
-            onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            isChatReport ? chatReportPendingDeleteMemberAccountIDs : undefined,
             conciergeReportID,
         );
+    };
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 

@@ -1,3 +1,6 @@
+/**
+ * Resolves an invoice report's avatars and layout, shared by InvoiceReportAvatar and the invoice preview rows in a chat.
+ */
 import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
@@ -38,7 +41,7 @@ type InvoiceReportIcons = {
 
 /**
  * Resolves an invoice report's avatars: the sending workspace and the receiver, with the layout they show in.
- * Without a reportID, nothing is subscribed.
+ * Without a reportID, every read selects nothing.
  */
 function useInvoiceReportIcons(reportID: string | undefined): InvoiceReportIcons {
     const defaultAvatars = useDefaultAvatars();
