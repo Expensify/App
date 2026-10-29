@@ -1,5 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
 import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
+import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -29,9 +30,6 @@ import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
 import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
-
-/** An average or a change between periods falls between whole expenses, so a count rounds rather than writing out every digit of the division */
-const MAX_COUNT_FRACTION_DIGITS = 2;
 
 /** What the chart hands to the details drawn below it, so they read the values the chart plotted */
 type SearchChartDetails = SearchChartModel & {
@@ -121,9 +119,7 @@ function SearchChartView({
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
     // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
-        options?.shouldUseCompactNotation
-            ? numberFormat(value, {maximumFractionDigits: 0, notation: 'compact'})
-            : translate('iou.expenseCount', {count: Number(value.toFixed(MAX_COUNT_FRACTION_DIGITS))});
+        options?.shouldUseCompactNotation ? numberFormat(value, {maximumFractionDigits: 0, notation: 'compact'}) : formatExpenseCount(value, translate, numberFormat);
     const formatValue = isCountMetric ? formatCount : undefined;
 
     const {series, rows} = buildChartSeries({

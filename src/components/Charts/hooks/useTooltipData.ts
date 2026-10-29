@@ -1,5 +1,6 @@
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import {getPrimaryValue} from '@components/Charts/utils';
+import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -19,7 +20,7 @@ type TooltipData = {
  * Computes the display amount of the primary series using the provided formatter and reads the share of total spend and the expense count off the point.
  */
 function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series: NonEmptyTuple<ChartSeries>, formatAmount: (value: number) => string): TooltipData | null {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, numberFormat} = useLocalize();
 
     if (activeDataIndex < 0 || activeDataIndex >= data.length) {
         return null;
@@ -35,7 +36,7 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], series:
         label: dataPoint.label,
         amount: formatAmount(value),
         percentage: dataPoint.percentOfTotal === undefined ? undefined : formatPercentOfTotal(dataPoint.percentOfTotal, value, preferredLocale),
-        expenseCount: dataPoint.count === undefined ? undefined : translate('iou.expenseCount', {count: dataPoint.count}),
+        expenseCount: dataPoint.count === undefined ? undefined : formatExpenseCount(dataPoint.count, translate, numberFormat),
     };
 }
 
