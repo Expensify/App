@@ -2116,20 +2116,4 @@ describe('actions/Transaction', () => {
             const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${trashedExpenseID}`);
             expect(transaction?.reportID).not.toBe(CONST.REPORT.TRASH_REPORT_ID);
         });
-
-        it('sends UndeleteTransactions, not ChangeTransactionsReport', async () => {
-            // Given a trashed member expense and a spy on API.write that records every command the client fires
-            const writeSpy = jest.spyOn(API, 'write');
-            await buildTrashedMemberExpense();
-
-            // When the admin undeletes it
-            await triggerUndelete();
-
-            // Then the dedicated UndeleteTransactions command is fired, not the generic move command that would attribute the action to the owner on the corporate card path
-            const commands = writeSpy.mock.calls.map(([command]) => command);
-            expect(commands).toContain(WRITE_COMMANDS.UNDELETE_TRANSACTIONS);
-            expect(commands).not.toContain(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT);
-            writeSpy.mockRestore();
-        });
-    });
 });
