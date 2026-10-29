@@ -4,7 +4,6 @@ import ScrollView from '@components/ScrollView';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -40,7 +39,6 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Export']);
 
@@ -54,12 +52,10 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
                 value={filters.date}
                 onChange={(date) => onChange({date})}
             />
-            {isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) && (
-                <InsightsCompareControl
-                    value={filters.compare}
-                    onChange={(compare) => onChange({compare})}
-                />
-            )}
+            <InsightsCompareControl
+                value={filters.compare}
+                onChange={(compare) => onChange({compare})}
+            />
             <InsightsWorkspaceControl
                 value={filters.policyIDs}
                 onChange={(policyIDs) => onChange({policyIDs})}

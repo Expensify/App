@@ -112,6 +112,8 @@ type GetWorkspaceMenuItemsParams = {
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the workspace agents has errors. */
+    hasAgentErrors?: boolean;
     /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
     hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
@@ -140,6 +142,7 @@ function getWorkspaceMenuItems({
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasAgentErrors,
     hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
@@ -264,6 +267,7 @@ function getWorkspaceMenuItems({
             screenName: SCREENS.WORKSPACE.AGENTS,
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
             badgeTranslationKey: 'common.beta',
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 

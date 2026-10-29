@@ -2,6 +2,8 @@ import {act, render, renderHook, screen} from '@testing-library/react-native';
 
 import {ChartCaptureContext, useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
 
+import Log from '@libs/Log';
+
 import exportInsightsDashboard from '@pages/Insights/exportInsightsDashboard';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import useInsightsExport from '@pages/Insights/useInsightsExport';
@@ -13,6 +15,7 @@ import {Alert, View} from 'react-native';
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useTheme', () => () => ({appBG: '#ffffff'}));
+jest.mock('@libs/Log', () => ({warn: jest.fn()}));
 jest.mock('@pages/Insights/exportInsightsDashboard', () => jest.fn());
 jest.mock('@pages/Insights/getInsightsExportFileName', () => () => 'Insights.png');
 
@@ -91,7 +94,7 @@ describe('useInsightsExport', () => {
         await act(async () => result.current.exportDashboard());
 
         // Then export is allowed and uses the current theme and filename
-        expect(exportInsightsDashboard).toHaveBeenCalledWith(expect.objectContaining({backgroundColor: '#ffffff', fileName: 'Insights.png'}));
+        expect(exportInsightsDashboard).toHaveBeenCalledWith(expect.objectContaining({headerRef: result.current.headerRef, backgroundColor: '#ffffff', fileName: 'Insights.png'}));
         expect(result.current.isExporting).toBe(false);
     });
 
@@ -99,6 +102,7 @@ describe('useInsightsExport', () => {
         // Given a ready dashboard whose capture has not finished
         const {result} = renderHook(() => useInsightsExport(CONST.INSIGHTS.DASHBOARD.SPEND, filters));
         const alert = jest.spyOn(Alert, 'alert');
+        const logWarning = jest.spyOn(Log, 'warn');
         let rejectCapture: (error: Error) => void = () => {};
         jest.mocked(exportInsightsDashboard).mockImplementationOnce(
             () =>
@@ -127,6 +131,7 @@ describe('useInsightsExport', () => {
 
         // Then the button recovers, the generic error is shown, and retry can succeed
         expect(result.current.isExporting).toBe(false);
+        expect(logWarning).toHaveBeenCalledWith('[Insights] Could not export dashboard', {error: 'Capture failed'});
         expect(alert).toHaveBeenCalledWith('common.genericErrorMessage');
         await act(async () => result.current.exportDashboard());
         expect(exportInsightsDashboard).toHaveBeenCalledTimes(2);

@@ -1,4 +1,4 @@
-/** Shares a temporary PNG assembled from the filter row and all mounted chart content. */
+/** Shares a temporary PNG assembled from the page header, filters, and all mounted chart content. */
 import {Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
@@ -7,7 +7,7 @@ import {captureRef, releaseCapture} from 'react-native-view-shot';
 import type ExportInsightsDashboard from './types';
 import type {InsightsCaptureRef} from './types';
 
-import {INSIGHTS_EXPORT_FILTER_GAP, INSIGHTS_EXPORT_SCALE} from './types';
+import {INSIGHTS_EXPORT_PADDING, INSIGHTS_EXPORT_SCALE} from './types';
 
 function measure(ref: InsightsCaptureRef): Promise<{x: number; width: number; height: number}> {
     const view = ref.current;
@@ -25,29 +25,35 @@ function measure(ref: InsightsCaptureRef): Promise<{x: number; width: number; he
     });
 }
 
-const exportInsightsDashboard: ExportInsightsDashboard = async ({controlsRef, contentRef, backgroundColor, fileName}) => {
-    const [controlsBounds, contentBounds] = await Promise.all([measure(controlsRef), measure(contentRef)]);
-    const width = Math.ceil(contentBounds.width * INSIGHTS_EXPORT_SCALE);
+const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, controlsRef, contentRef, backgroundColor, fileName}) => {
+    const refs = [headerRef, controlsRef, contentRef];
+    const bounds = await Promise.all(refs.map(measure));
+    const [headerBounds, controlsBounds, contentBounds] = bounds;
+    const width = Math.ceil(headerBounds.width * INSIGHTS_EXPORT_SCALE);
+    const headerHeight = Math.ceil(headerBounds.height * INSIGHTS_EXPORT_SCALE);
     const controlsHeight = Math.ceil(controlsBounds.height * INSIGHTS_EXPORT_SCALE);
     const contentHeight = Math.ceil(contentBounds.height * INSIGHTS_EXPORT_SCALE);
-    const gap = INSIGHTS_EXPORT_FILTER_GAP * INSIGHTS_EXPORT_SCALE;
+    const padding = INSIGHTS_EXPORT_PADDING * INSIGHTS_EXPORT_SCALE;
     const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
     const uris: string[] = [];
     const images = [];
-    const surface = Skia.Surface.MakeOffscreen(width, controlsHeight + gap + contentHeight);
+    const surface = Skia.Surface.MakeOffscreen(width, headerHeight + controlsHeight + contentHeight + padding * 3);
     if (!surface) {
         throw new Error('Could not create Insights image');
     }
     try {
-        for (const [index, ref] of [controlsRef, contentRef].entries()) {
-            const bounds = index === 0 ? controlsBounds : contentBounds;
+        for (const [index, ref] of refs.entries()) {
+            const sectionBounds = bounds.at(index);
+            if (!sectionBounds) {
+                throw new Error('Insights content is not mounted');
+            }
             // Capture and decode one section at a time to avoid overlapping native bitmap allocations.
             // eslint-disable-next-line no-await-in-loop
             const uri = await captureRef(ref, {
                 format: 'png',
                 result: 'tmpfile',
-                width: Math.ceil(bounds.width * INSIGHTS_EXPORT_SCALE),
-                height: Math.ceil(bounds.height * INSIGHTS_EXPORT_SCALE),
+                width: Math.ceil(sectionBounds.width * INSIGHTS_EXPORT_SCALE),
+                height: Math.ceil(sectionBounds.height * INSIGHTS_EXPORT_SCALE),
                 handleGLSurfaceViewOnAndroid: true,
             });
             uris.push(uri);
@@ -63,9 +69,10 @@ const exportInsightsDashboard: ExportInsightsDashboard = async ({controlsRef, co
         const canvas = surface.getCanvas();
         canvas.clear(Skia.Color(backgroundColor));
         const paint = Skia.Paint();
-        const [controlsImage, contentImage] = images;
-        canvas.drawImage(controlsImage, (controlsBounds.x - contentBounds.x) * INSIGHTS_EXPORT_SCALE, 0, paint);
-        canvas.drawImage(contentImage, 0, controlsHeight + gap, paint);
+        const [headerImage, controlsImage, contentImage] = images;
+        canvas.drawImage(headerImage, 0, 0, paint);
+        canvas.drawImage(controlsImage, (controlsBounds.x - headerBounds.x) * INSIGHTS_EXPORT_SCALE, headerHeight + padding, paint);
+        canvas.drawImage(contentImage, (contentBounds.x - headerBounds.x) * INSIGHTS_EXPORT_SCALE, headerHeight + controlsHeight + padding * 2, paint);
         surface.flush();
         const result = surface.makeImageSnapshot();
         const encoded = result.encodeToBase64();

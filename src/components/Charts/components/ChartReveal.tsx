@@ -101,7 +101,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
 
         // Read here so that the worklet below captures a number rather than all of CONST
         const duration = CONST.ANIMATED_TRANSITION;
-        const onRevealEnd = (finished?: boolean) => {
+        const markChartFullyVisible = (finished?: boolean) => {
             'worklet';
 
             if (!finished) {
@@ -110,7 +110,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
             scheduleOnRN(setIsFullyVisible, true);
         };
         if (!shouldHold) {
-            opacity.set(withTiming(1, {duration}, isCaptureTracked ? onRevealEnd : undefined));
+            opacity.set(withTiming(1, {duration}, isCaptureTracked ? markChartFullyVisible : undefined));
             return;
         }
 
@@ -124,7 +124,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
                     holdFrameID.set(requestAnimationFrame(countFrame));
                     return;
                 }
-                opacity.set(withTiming(1, {duration}, isCaptureTracked ? onRevealEnd : undefined));
+                opacity.set(withTiming(1, {duration}, isCaptureTracked ? markChartFullyVisible : undefined));
                 scheduleOnRN(setIsRevealed, true);
             };
             holdFrameID.set(requestAnimationFrame(countFrame));

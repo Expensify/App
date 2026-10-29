@@ -42,13 +42,27 @@ type ChartTooltipLayerProps = {
 
     /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
     onDismiss?: () => void;
+
+    /** Whether a compared tooltip shows how the primary series changed against the compared one */
+    shouldShowTooltipChange?: boolean;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({
+    matchedIndex,
+    isTooltipActive,
+    data,
+    series,
+    formatValue,
+    chartWidth,
+    initialTooltipPosition,
+    onChartMoved,
+    onDismiss,
+    shouldShowTooltipChange = true,
+}: ChartTooltipLayerProps) {
     const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
@@ -88,7 +102,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
             {comparison ? (
                 <ChartTooltipComparison
                     rows={comparison.rows}
-                    change={comparison.change}
+                    change={shouldShowTooltipChange ? comparison.change : undefined}
                 />
             ) : (
                 <ChartTooltipSummary

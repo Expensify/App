@@ -2,6 +2,9 @@
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 
+import {getErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+
 import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useCallback, useRef, useState} from 'react';
@@ -15,6 +18,7 @@ import getInsightsExportFileName from './getInsightsExportFileName';
 function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFilters) {
     const {translate} = useLocalize();
     const theme = useTheme();
+    const headerRef: InsightsCaptureRef = useRef(null);
     const controlsRef: InsightsCaptureRef = useRef(null);
     const contentRef: InsightsCaptureRef = useRef(null);
     const [loadingCharts, setLoadingCharts] = useState<Set<string>>(() => new Set());
@@ -48,8 +52,9 @@ function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFi
                 requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
             });
             const {default: exportInsightsDashboard} = await import('./exportInsightsDashboard');
-            await exportInsightsDashboard({controlsRef, contentRef, backgroundColor: theme.appBG, fileName: getInsightsExportFileName(dashboardID, filters.date, translate)});
-        } catch {
+            await exportInsightsDashboard({headerRef, controlsRef, contentRef, backgroundColor: theme.appBG, fileName: getInsightsExportFileName(dashboardID, filters.date, translate)});
+        } catch (error) {
+            Log.warn('[Insights] Could not export dashboard', {error: getErrorMessage(error)});
             Alert.alert(translate('common.genericErrorMessage'));
         } finally {
             exportInFlight.current = false;
@@ -57,7 +62,7 @@ function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFi
         }
     };
 
-    return {controlsRef, contentRef, isExporting, isLoading: loadingCharts.size > 0, exportDashboard, captureContext: {isCapturing: isExporting, reportLoading}};
+    return {headerRef, controlsRef, contentRef, isExporting, isLoading: loadingCharts.size > 0, exportDashboard, captureContext: {isCapturing: isExporting, reportLoading}};
 }
 
 export default useInsightsExport;

@@ -1,12 +1,17 @@
 ---
 name: app-coding-standards
 description: Provides coding standards for the Expensify App's React Native code, including performance patterns, consistency rules, and clean React architecture. Use when writing, modifying, or reviewing App code.
-alwaysApply: true
 ---
 
 # Expensify App Coding Standards
 
 Coding standards for the Expensify App. Each standard is a standalone file in `rules/` with reasoning, examples, and applicability conditions.
+
+## How to Use
+
+This index lists rule titles only. Before writing or editing code, read the full rule file for every category that applies to the files you touch: each file holds the rule's conditions, exceptions, and the fix it expects.
+
+Before committing, stage everything with `git add -A`. Then start a general-purpose subagent that follows `.claude/agents/code-inline-reviewer.md` and reviews `git diff --cached $(git merge-base origin/main HEAD)`. CI runs the same check.
 
 ## Categories
 
@@ -84,9 +89,3 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 
 ### Onyx
 - [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
-
-## Usage
-
-**During development**: When writing or modifying `src/` files, consult the relevant standard files for detailed conditions, examples, and exceptions.
-
-**During review**: The code-inline-reviewer agent loads all standards from this directory. See `.claude/agents/code-inline-reviewer.md`.
