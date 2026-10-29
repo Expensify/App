@@ -12,6 +12,7 @@ import Onyx from 'react-native-onyx';
 let credentials: Credentials | null | undefined;
 let lastShortAuthToken: string | null | undefined;
 let authToken: string | null | undefined;
+let encryptedAuthToken: string | null | undefined;
 let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let accountID: number | null | undefined;
 let authenticating = false;
@@ -60,6 +61,7 @@ Onyx.connectWithoutView({
             Log.info('[NetworkStore] authToken dropped', false, {source: 'session', hasEmail: !!val?.email, accountID: val?.accountID});
         }
         authToken = newAuthToken;
+        encryptedAuthToken = val?.encryptedAuthToken ?? null;
         authTokenType = val?.authTokenType ?? null;
         accountID = val?.accountID ?? null;
         checkRequiredData();
@@ -84,6 +86,10 @@ function getAuthToken(): string | null | undefined {
     return authToken;
 }
 
+function getEncryptedAuthToken(): string | null | undefined {
+    return encryptedAuthToken;
+}
+
 function getAccountID(): number | null | undefined {
     return accountID;
 }
@@ -100,11 +106,14 @@ function isSupportAuthToken(): boolean {
     return authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
-function setAuthToken(newAuthToken: string | null) {
+function setAuthToken(newAuthToken: string | null, newEncryptedAuthToken?: string) {
     if (authToken && !newAuthToken) {
         const stack = new Error().stack?.split('\n').slice(0, AUTH_TOKEN_DROP_STACK_FRAMES).join('\n');
         lastAuthTokenDrop = {source: 'setAuthToken', droppedAt: Date.now(), stack};
         Log.info('[NetworkStore] authToken dropped', false, {source: 'setAuthToken', stack});
+    }
+    if (authToken !== newAuthToken || newEncryptedAuthToken !== undefined) {
+        encryptedAuthToken = newEncryptedAuthToken ?? null;
     }
     authToken = newAuthToken;
 }
@@ -127,6 +136,7 @@ function setIsAuthenticating(val: boolean) {
 
 export {
     getAuthToken,
+    getEncryptedAuthToken,
     getAccountID,
     setAuthToken,
     getCurrentUserEmail,

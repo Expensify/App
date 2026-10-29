@@ -272,7 +272,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
                     return updateSessionAuthTokens(response?.restrictedToken, response?.encryptedAuthToken, CONST.AUTH_TOKEN_TYPES.DELEGATE);
                 })
                 .then(() => {
-                    NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    NetworkStore.setAuthToken(response?.restrictedToken ?? null, response?.encryptedAuthToken);
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
@@ -1010,7 +1010,7 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
         creationDate,
     })
         .then(() => {
-            NetworkStore.setAuthToken(authToken ?? null);
+            NetworkStore.setAuthToken(authToken ?? null, encryptedAuthToken);
             // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
             // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
             Pusher.disconnect();
