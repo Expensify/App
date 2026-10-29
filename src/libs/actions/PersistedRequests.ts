@@ -1,3 +1,4 @@
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -89,7 +90,6 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
-                trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
                 crossTabRequestsCallback?.();
                 return;
             }
@@ -99,7 +99,7 @@ Onyx.connectWithoutView({
             // inside Onyx.set) — skip to preserve Issue 4 protection. When counter is 0,
             // the callback is from a cross-tab storage event, safe to remove from memory
             // any requests the leader already processed.
-            if (pendingOnyxWrites === 0) {
+            if (pendingOnyxWrites === 0 && !isClientTheLeader()) {
                 const diskIDs = new Set<number>();
                 for (const r of val) {
                     const requestIndex = getClientRequestIndex(r);
