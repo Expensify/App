@@ -11646,6 +11646,14 @@ const translations = {
         missingComment: 'Description required for selected category',
         missingAttendees: 'Multiple attendees required for this category',
         missingTag: (tagName?: string) => `Missing ${tagName ?? 'tag'}`,
+        nonDefaultAmount: 'Amount differs from workspace default',
+        nonDefaultBillable: 'Billable differs from workspace default',
+        nonDefaultCategory: 'Category differs from workspace default',
+        nonDefaultComment: 'Description differs from workspace default',
+        nonDefaultMerchant: 'Merchant differs from workspace default',
+        nonDefaultReimbursable: 'Reimbursable differs from workspace default',
+        nonDefaultTag: 'Tag differs from workspace default',
+        nonDefaultTax: 'Tax differs from workspace default',
         modifiedAmount: (type?: ViolationDataType, displayPercentVariance?: number) => {
             switch (type) {
                 case 'distance':

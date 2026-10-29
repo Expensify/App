@@ -1273,14 +1273,21 @@ const ViolationsUtils = {
             case 'customRules':
                 return translate('violations.customRules', message);
             case CONST.VIOLATIONS.NONDEFAULT_AMOUNT:
+                return translate('violations.nonDefaultAmount');
             case CONST.VIOLATIONS.NONDEFAULT_BILLABLE:
+                return translate('violations.nonDefaultBillable');
             case CONST.VIOLATIONS.NONDEFAULT_CATEGORY:
+                return translate('violations.nonDefaultCategory');
             case CONST.VIOLATIONS.NONDEFAULT_COMMENT:
+                return translate('violations.nonDefaultComment');
             case CONST.VIOLATIONS.NONDEFAULT_MERCHANT:
+                return translate('violations.nonDefaultMerchant');
             case CONST.VIOLATIONS.NONDEFAULT_REIMBURSABLE:
+                return translate('violations.nonDefaultReimbursable');
             case CONST.VIOLATIONS.NONDEFAULT_TAG:
+                return translate('violations.nonDefaultTag');
             case CONST.VIOLATIONS.NONDEFAULT_TAX:
-                return translate('violations.customRules', message);
+                return translate('violations.nonDefaultTax');
             case 'ruleViolation':
                 return buildRuleViolationMessage(violation.data?.filters, transactionCurrency ?? currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {
