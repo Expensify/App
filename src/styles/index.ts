@@ -4357,7 +4357,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         translatedReceiptCard: {
             width: '100%',
-            maxWidth: 370,
+            maxWidth: 400,
         },
 
         bgGreenSuccess: {
