@@ -10,6 +10,7 @@ import StringUtils from '@libs/StringUtils';
 import type {ColorScheme} from '@styles/index';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 import type {NonEmptyTuple} from 'type-fest';
 
@@ -26,12 +27,9 @@ const CHART_SERIES_KEY = {
 } as const;
 
 /** Rows drawn as a second series against the primary one */
-type ChartComparison = {
+type ChartComparedRows = {
     /** The compared rows, paired with the chart's own rows by key, or time buckets by where they sit in their period when `periods` is set */
     data: GroupedItem[];
-
-    /** Names the series in the tooltip, like "Average". Left out, each row names the dates it covers. */
-    label?: string;
 
     /** Color of the compared line. Compared bars take a shade of their own bar's color instead. */
     color: string;
@@ -40,11 +38,37 @@ type ChartComparison = {
     periods?: ChartComparisonPeriods;
 };
 
+/** One value every group is compared against, drawn as a horizontal line */
+type ChartAverage = {
+    /** The average, in the same units and currency as a group's total */
+    total: number;
+};
+
+/** What the chart is compared against, drawn as a second series */
+type ChartComparison = ChartComparedRows | ChartAverage;
+
+/** Returns whether the chart is compared against an average rather than other rows */
+function isChartAverage(comparison: ChartComparison | undefined): comparison is ChartAverage {
+    return !!comparison && 'total' in comparison;
+}
+
+/** Tooltip label of the average for each group-by */
+const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
+    [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.compare.dailyAverage',
+    [CONST.SEARCH.GROUP_BY.WEEK]: 'insightsPage.compare.weeklyAverage',
+    [CONST.SEARCH.GROUP_BY.MONTH]: 'insightsPage.compare.monthlyAverage',
+    [CONST.SEARCH.GROUP_BY.QUARTER]: 'insightsPage.compare.quarterlyAverage',
+    [CONST.SEARCH.GROUP_BY.YEAR]: 'insightsPage.compare.yearlyAverage',
+    [CONST.SEARCH.GROUP_BY.FROM]: 'insightsPage.compare.allSpenderAverage',
+    [CONST.SEARCH.GROUP_BY.MERCHANT]: 'insightsPage.compare.allMerchantAverage',
+    [CONST.SEARCH.GROUP_BY.CATEGORY]: 'insightsPage.compare.allCategoryAverage',
+};
+
 type BuildChartSeriesParams = {
     /** Grouped search results, in the order the search returned them */
     data: GroupedItem[];
 
-    /** Rows the chart is compared against, drawn as a second series */
+    /** What the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
     /** Decides how compared groups pair up, and whether a missing one plots as nothing or as 0 */
@@ -71,7 +95,7 @@ type BuildChartSeriesParams = {
     /** Returns whether a group's period starts after today with no expenses of its own, which a running total's count no longer shows */
     isEmptyLaterPeriod?: (item: GroupedItem) => boolean;
 
-    /** Formats labels shared by paired time buckets */
+    /** Formats labels shared by paired time buckets, and the name of an average */
     translate: LocaleContextProps['translate'];
 
     /** Locale the names of compared periods are formatted in */
@@ -122,13 +146,24 @@ function buildChartSeries({
     colorScheme,
 }: BuildChartSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const periods = comparison?.periods;
+    const average = isChartAverage(comparison) ? comparison : undefined;
+    const comparedRows = comparison && !isChartAverage(comparison) ? comparison : undefined;
+    const periods = comparedRows?.periods;
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
-    const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
+    const comparedByKey = new Map(comparedRows?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
+    // The average is in the same currency as the rows
+    const averageValue = average && convertToFrontendAmountAsInteger(average.total, getCurrencyDecimals(data.at(0)?.currency ?? CONST.CURRENCY.USD));
 
-    /** Returns a group's compared value and share, plus its bucket labels when it is compared against another period */
+    /** Returns a group's compared value and share, plus its bucket labels when it is compared against another period, or nothing when the chart isn't compared */
     const getCompared = (item: GroupedItem) => {
+        if (averageValue !== undefined) {
+            return {value: averageValue, percentOfTotal: undefined};
+        }
+        if (!comparedRows) {
+            return undefined;
+        }
+
         const bucketRange = getDateRange?.(item);
         if (periods && isTimeGroupBy(groupBy) && bucketRange) {
             const counterpartRange = getCounterpartBucketRange(bucketRange, periods, groupBy);
@@ -154,7 +189,7 @@ function buildChartSeries({
         const inProgressLabel = getInProgressLabel?.(item);
         const isInProgress = inProgressLabel !== undefined;
         const isLater = !!isLaterPeriod?.(item);
-        const compared = comparison ? getCompared(item) : undefined;
+        const compared = getCompared(item);
         const bucketLabels = compared?.bucketLabels;
         const primarySeriesLabel = bucketLabels?.seriesLabels.primary;
 
@@ -197,8 +232,8 @@ function buildChartSeries({
 
     const pairedStarts = new Set(pairedRows.map((pairedRow) => pairedRow.counterpartStart));
     const unpairedRows =
-        comparison && periods && isTimeGroupBy(groupBy)
-            ? comparison.data.flatMap((comparedItem) => {
+        comparedRows && periods && isTimeGroupBy(groupBy)
+            ? comparedRows.data.flatMap((comparedItem) => {
                   const range = getDateRange?.(comparedItem);
                   return range && !pairedStarts.has(range.start) ? buildUnpairedRow(comparedItem, range, periods, groupBy) : [];
               })
@@ -218,20 +253,13 @@ function buildChartSeries({
     const rows = (firstTrimmedIndex === -1 ? sortedRows : sortedRows.slice(0, firstTrimmedIndex)).map(({row}) => row);
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
+    const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};
+    const comparisonSeries: ChartSeries | undefined = average
+        ? {key: CHART_SERIES_KEY.COMPARISON, label: translate(AVERAGE_LABEL_KEYS[groupBy] ?? 'insightsPage.compare.average'), isAverage: true}
+        : comparedRows && {key: CHART_SERIES_KEY.COMPARISON, color: comparedRows.color, label: periods && formatDates(periods.comparison, dateFnsLocale)};
 
     return {
-        series: [
-            {key: CHART_SERIES_KEY.PRIMARY, label: comparison?.periods && formatDates(comparison.periods.primary, dateFnsLocale)},
-            ...(comparison
-                ? [
-                      {
-                          key: CHART_SERIES_KEY.COMPARISON,
-                          color: comparison.color,
-                          label: comparison.label ?? (comparison.periods && formatDates(comparison.periods.comparison, dateFnsLocale)),
-                      },
-                  ]
-                : []),
-        ],
+        series: comparisonSeries ? [primarySeries, comparisonSeries] : [primarySeries],
         rows: rows.map((row, index) => {
             if (pieColors) {
                 return {...row, point: {...row.point, color: pieColors.at(index)}};
@@ -241,11 +269,14 @@ function buildChartSeries({
             }
 
             const color = VictoryTheme.colors.getColor(index);
-            const seriesColors = {[CHART_SERIES_KEY.PRIMARY]: color, ...(!!comparison && {[CHART_SERIES_KEY.COMPARISON]: VictoryTheme.colors.getComparisonColor(color, colorScheme)})};
+            const seriesColors = {
+                [CHART_SERIES_KEY.PRIMARY]: color,
+                [CHART_SERIES_KEY.COMPARISON]: comparedRows ? VictoryTheme.colors.getComparisonColor(color, colorScheme) : undefined,
+            };
             return {...row, point: {...row.point, color, seriesColors}};
         }),
     };
 }
 
-export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
+export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
 export type {ChartComparison, SearchChartModel};

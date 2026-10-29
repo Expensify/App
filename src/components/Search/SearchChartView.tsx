@@ -23,7 +23,7 @@ import {View} from 'react-native';
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
+import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
@@ -57,7 +57,7 @@ type SearchChartViewProps = {
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
-    /** Rows the chart is compared against, drawn as a second series */
+    /** What the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
     /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
@@ -180,6 +180,7 @@ function SearchChartView({
                     isLoading={isLoading}
                     onPointPress={onItemPress}
                     labelSteps={labelSteps}
+                    shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                 />
