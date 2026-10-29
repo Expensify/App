@@ -9680,7 +9680,10 @@ const translations = {
                     missingData: "Expensify doesn't have that information.",
                     retroactive: 'Rules only apply to new activity.',
                     historyLimit: "Rules can't look back that far.",
-                    tryThisInstead: 'Try this instead',
+                    useSuggestion: 'Use suggestion',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Try the suggestion below instead:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `"${suggestedPrompt}"`,
+                    createAnyway: 'Create anyway',
                 },
             },
             expenseDefaultsTable: {
