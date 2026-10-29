@@ -109,6 +109,7 @@ async function renderParticipantPickerState(transaction: Transaction) {
     renderHook(() =>
         useParticipantPickerState({
             transaction,
+            transactions: [transaction],
             iouType: CONST.IOU.TYPE.CREATE,
             reportID: REPORT_ID,
             reportDrafts: undefined,
