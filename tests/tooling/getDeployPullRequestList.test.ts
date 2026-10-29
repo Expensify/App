@@ -54,7 +54,7 @@ afterEach(() => {
 });
 
 describe('getDeployPullRequestList', () => {
-    it.each([false, true])('filters previously shipped cherry-picks only for staging (production: %s)', async (isProductionDeploy) => {
+    it.each([false, true])('filters previously shipped cherry-picks in either environment (production: %s)', async (isProductionDeploy) => {
         // Given the new branch contains the original merge of a PR already shipped as a cherry-pick.
         const currentTag = isProductionDeploy ? '9.5.25-0' : '9.5.25-0-staging';
         const previousTag = '9.5.24-8';
@@ -73,28 +73,29 @@ describe('getDeployPullRequestList', () => {
         // When deployment comments request PRs between the two releases.
         await run();
 
-        // Then staging excludes both repositories' prior cherry-picks, but production still announces them.
+        // Then both environments exclude cherry-picks already shipped in their own prior release.
         expect(setFailedSpy).not.toHaveBeenCalled();
-        expect(setOutputSpy).toHaveBeenCalledWith('PR_LIST', isProductionDeploy ? [105297, 105300] : [105300]);
-        expect(setOutputSpy).toHaveBeenCalledWith('MOBILE_EXPENSIFY_PR_LIST', isProductionDeploy ? [14210, 14211] : [14211]);
-        expect(getPullRequestsSpy).toHaveBeenCalledTimes(isProductionDeploy ? 2 : 4);
+        expect(setOutputSpy).toHaveBeenCalledWith('PR_LIST', [105300]);
+        expect(setOutputSpy).toHaveBeenCalledWith('MOBILE_EXPENSIFY_PR_LIST', [14211]);
+        expect(getPullRequestsSpy).toHaveBeenCalledTimes(4);
         for (const repo of [CONST.APP_REPO, CONST.MOBILE_EXPENSIFY_REPO]) {
             expect(getPullRequestsSpy).toHaveBeenCalledWith(previousTag, currentTag, repo);
-            if (!isProductionDeploy) {
-                expect(getPullRequestsSpy).toHaveBeenCalledWith(currentTag, previousTag, repo);
-            }
+            expect(getPullRequestsSpy).toHaveBeenCalledWith(currentTag, previousTag, repo);
         }
     });
 
-    it('keeps new staging cherry-picks when the previous tag is an ancestor', async () => {
+    it.each([false, true])('keeps newly shipped PRs when the previous tag is an ancestor (production: %s)', async (isProductionDeploy) => {
         // Given a genuine cherry-pick adds a PR and the reverse comparison has no commits.
+        const currentTag = isProductionDeploy ? '9.5.24-8' : '9.5.24-8-staging';
+        const previousTag = isProductionDeploy ? '9.5.24-7' : '9.5.24-7-staging';
+        getInputSpy.mockImplementation((name: string) => (name === 'TAG' ? currentTag : String(isProductionDeploy)));
         releases = [
-            {tag_name: '9.5.25-0-staging', prerelease: true},
-            {tag_name: '9.5.24-8-staging', prerelease: true},
+            {tag_name: currentTag, prerelease: !isProductionDeploy},
+            {tag_name: previousTag, prerelease: !isProductionDeploy},
         ];
-        getPullRequestsSpy.mockImplementation(async (fromTag, _toTag, repo) => (fromTag === '9.5.24-8-staging' && repo === CONST.APP_REPO ? [105297] : []));
+        getPullRequestsSpy.mockImplementation(async (fromTag, _toTag, repo) => (fromTag === previousTag && repo === CONST.APP_REPO ? [105297] : []));
 
-        // When the first staging notification is generated.
+        // When the first notification in this environment is generated.
         await run();
 
         // Then the new PR is retained and empty Mobile-Expensify history needs no reverse lookup.

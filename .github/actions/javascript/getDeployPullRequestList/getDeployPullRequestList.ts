@@ -6,13 +6,13 @@ import GitUtils from '@github/libs/GitUtils';
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-async function getNewlyDeployedPullRequests(fromTag: string, toTag: string, repo: string, isProductionDeploy: boolean): Promise<number[]> {
+async function getNewlyDeployedPullRequests(fromTag: string, toTag: string, repo: string): Promise<number[]> {
     const pullRequests = await GitUtils.getPullRequestsDeployedBetween(fromTag, toTag, repo);
-    if (isProductionDeploy || pullRequests.length === 0) {
+    if (pullRequests.length === 0) {
         return pullRequests;
     }
 
-    // When staging returns to main, original merge commits appear new even if their cherry-picks
+    // When a release branch returns to main, original merge commits appear new even if their cherry-picks
     // already shipped. The reverse comparison contains those earlier cherry-picks.
     const previouslyDeployedPullRequests = new Set(await GitUtils.getPullRequestsDeployedBetween(toTag, fromTag, repo));
     return pullRequests.filter((pr) => !previouslyDeployedPullRequests.has(pr));
@@ -74,14 +74,14 @@ async function run() {
         }
 
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await getNewlyDeployedPullRequests(priorTag, inputTag, CONST.APP_REPO, isProductionDeploy);
+        const prList = await getNewlyDeployedPullRequests(priorTag, inputTag, CONST.APP_REPO);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
 
         // Get Mobile-Expensify PRs deployed between the same tags
         let mobileExpensifyPRList: number[] = [];
         try {
-            mobileExpensifyPRList = await getNewlyDeployedPullRequests(priorTag, inputTag, CONST.MOBILE_EXPENSIFY_REPO, isProductionDeploy);
+            mobileExpensifyPRList = await getNewlyDeployedPullRequests(priorTag, inputTag, CONST.MOBILE_EXPENSIFY_REPO);
             console.log('Found Mobile-Expensify pull request list: ', mobileExpensifyPRList);
         } catch (error) {
             // Check if this is a forked repository
