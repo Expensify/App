@@ -245,17 +245,28 @@ describe('getConfirmationItems', () => {
             expect(group.rows).toEqual([expect.objectContaining({id: 'hasNoSSN', description: 'SSN', title: "I don't have an SSN"})]);
         });
 
-        it('keeps its yes or no row when it hides no question', () => {
-            // Given a link that is on with no other field depending on it
+        describe('when it opts out of nothing', () => {
             const linkPages: DynamicFormPage[] = [
                 {key: 'consent', title: 'Consent', content: [{key: 'skipNewsletter', type: 'boolean', presentation: 'link', required: false, label: 'Skip the newsletter'}]},
             ];
 
-            // When the confirmation sections are built
-            const [group] = getConfirmationItems(linkPages, getAllFields(linkPages), {skipNewsletter: true}, translateLocal, jest.fn(), jest.fn());
+            it('keeps its yes row while it is on', () => {
+                // Given a link that is on with no other field depending on it
+                // When the confirmation sections are built
+                const [group] = getConfirmationItems(linkPages, getAllFields(linkPages), {skipNewsletter: true}, translateLocal, jest.fn(), jest.fn());
 
-            // Then the link keeps its own label, since there is no question for it to stand in for
-            expect(group.rows).toEqual([expect.objectContaining({id: 'skipNewsletter', description: 'Skip the newsletter'})]);
+                // Then the link keeps its own label, since there is no question for it to stand in for
+                expect(group.rows).toEqual([expect.objectContaining({id: 'skipNewsletter', description: 'Skip the newsletter', title: translateLocal('common.yes')})]);
+            });
+
+            it('keeps its no row while it is off', () => {
+                // Given a link that is off with no other field depending on it
+                // When the confirmation sections are built
+                const [group] = getConfirmationItems(linkPages, getAllFields(linkPages), {skipNewsletter: false}, translateLocal, jest.fn(), jest.fn());
+
+                // Then the "No" stays, since no other row carries that answer
+                expect(group.rows).toEqual([expect.objectContaining({id: 'skipNewsletter', description: 'Skip the newsletter', title: translateLocal('common.no')})]);
+            });
         });
     });
 });

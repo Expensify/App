@@ -42,17 +42,30 @@ function getListItemRows(
     });
 }
 
-/** A boolean shown as an opt-out link the user turns on and off, such as "I don't have a social security number" */
+/** A boolean shown as a link the user turns on and off, such as "I don't have a social security number" */
 function isLink(field: DynamicFormField): boolean {
     return field.type === 'boolean' && field.presentation === 'link';
 }
 
-/** The question a link that is on opts out of, such as the SSN that "I don't have a social security number" hides, so the link's row can stand in for it */
+/** The fields a link opts out of, which show only while it is off, such as the SSN and ID document behind "I don't have a social security number". A link with none is a plain yes or no answer. */
+function getOptOutFields(field: DynamicFormField, allFields: DynamicFormField[]): DynamicFormField[] {
+    if (!isLink(field)) {
+        return [];
+    }
+    return allFields.filter((candidate) => candidate.showWhen?.key === field.key && candidate.showWhen.equals.includes('false'));
+}
+
+/** An opt-out link that is off is not an answer worth a row, since the fields it opts out of are shown and already carry the answer */
+function isOptOutLinkOff(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): boolean {
+    return values[field.key] !== true && getOptOutFields(field, allFields).length > 0;
+}
+
+/** The question an opt-out link that is on hides, such as the SSN, so the link's row can stand in for it */
 function getOptedOutField(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): DynamicFormField | undefined {
-    if (!isLink(field) || values[field.key] !== true) {
+    if (values[field.key] !== true) {
         return undefined;
     }
-    return allFields.find((candidate) => candidate.showWhen?.key === field.key && !isFieldVisible(candidate, values, allFields));
+    return getOptOutFields(field, allFields).find((candidate) => !isFieldVisible(candidate, values, allFields));
 }
 
 /** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
@@ -69,8 +82,7 @@ function getConfirmationItems(
             return [];
         }
 
-        // A link that is off, such as "I don't have a social security number" for an admin who has one, is not an answer worth a row
-        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter((field) => !isLink(field) || values[field.key] === true);
+        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter((field) => !isOptOutLinkOff(field, values, allFields));
 
         if (fields.length === 0) {
             return [];
