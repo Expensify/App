@@ -14,6 +14,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TIMEZONE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
@@ -670,6 +673,12 @@ type WorkspaceSettingsParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXPORT]: {
