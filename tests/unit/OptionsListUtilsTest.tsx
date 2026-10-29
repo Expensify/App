@@ -7210,6 +7210,7 @@ describe('OptionsListUtils', () => {
                     sortedActions: undefined,
                     conciergeReportID: undefined,
                     pendingDeleteMemberAccountIDs: undefined,
+                    formatPhoneNumber,
                 });
 
                 // Then createOption hands its report to getAlternateText, which labels the option as a group
@@ -7233,6 +7234,7 @@ describe('OptionsListUtils', () => {
                         convertToDisplayString,
                         conciergeReportID: undefined,
                         isSearching: true,
+                        formatPhoneNumber,
                     },
                     undefined,
                 );
@@ -7254,7 +7256,7 @@ describe('OptionsListUtils', () => {
                         includeMultipleParticipantReports: true,
                         personalDetails: PERSONAL_DETAILS,
                     },
-                    translateLocal,
+                    {translate: translateLocal, formatPhoneNumber},
                     undefined,
                 );
 
