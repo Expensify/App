@@ -10,6 +10,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDecisionModal from './useDecisionModal';
@@ -21,6 +22,7 @@ import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 /**
  * Returns a function that pays reports by downloading their ABA file, and tells the user when the download fails.
  * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
+ * Also returns whether a download is in progress, so the Pay button can show it's loading.
  */
 function usePayViaABA() {
     const {translate} = useLocalize();
@@ -37,8 +39,10 @@ function usePayViaABA() {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume) => resume?.());
+    const [isDownloadingABAFile, setIsDownloadingABAFile] = useState(false);
 
-    const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) =>
+    const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
+        setIsDownloadingABAFile(true);
         payViaABA({
             reportIDs,
             policy,
@@ -59,10 +63,11 @@ function usePayViaABA() {
                     secondOptionText: translate('common.buttonConfirm'),
                 });
             },
-        });
+        }).finally(() => setIsDownloadingABAFile(false));
+    };
 
     // Pay via ABA is always picked from a menu, so anything blocking it is shown once that menu has closed
-    return (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
+    const payReportsViaABA = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
         if (isAccountLocked) {
             deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
             return;
@@ -73,6 +78,8 @@ function usePayViaABA() {
         }
         downloadABAFile(reportIDs, policy, shouldReimburseHeldTransactions);
     };
+
+    return {payReportsViaABA, isDownloadingABAFile};
 }
 
 export default usePayViaABA;

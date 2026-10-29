@@ -950,7 +950,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const bulkPayPolicy = payScopedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${payScopedPolicyIDs.at(0)}`] : undefined;
     const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy);
     const shouldLoadBulkPayViaABAData = shouldLoadPayViaABAData(bulkPayPolicy);
-    const payReportsViaABA = usePayViaABA();
+    const {payReportsViaABA} = usePayViaABA();
 
     // The bulk pay menus have no hook for when they open, so the Pay via ABA data is loaded when the selection is made instead
     useEffect(() => {

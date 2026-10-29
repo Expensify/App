@@ -164,7 +164,7 @@ jest.mock('@hooks/useBulkPayOptions', () => ({
 }));
 
 const mockPayReportsViaABA = jest.fn();
-jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => mockPayReportsViaABA)}));
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
 
 jest.mock('@libs/actions/PaymentMethods', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),

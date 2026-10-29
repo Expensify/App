@@ -92,7 +92,7 @@ jest.mock('@hooks/useReportWithTransactionsAndViolations', () => ({__esModule: t
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: jest.fn(() => ({isOffline: false}))}));
 jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: jest.fn(() => undefined)}));
 const mockPayReportsViaABA = jest.fn();
-jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => mockPayReportsViaABA)}));
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
 jest.mock('@hooks/useCurrencyList', () => ({__esModule: true, useCurrencyListActions: jest.fn(() => ({convertToDisplayString: () => '$50.00'}))}));
 jest.mock('@hooks/useParticipantsInvoiceReport', () => ({__esModule: true, getParticipantsInvoiceReport: jest.fn(() => undefined)}));
 jest.mock('@hooks/usePaymentContext', () => ({

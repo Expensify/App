@@ -48,7 +48,7 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
 
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
-    payViaABA: jest.fn(),
+    payViaABA: jest.fn(() => Promise.resolve()),
 }));
 
 const ACCOUNT_ID = 1;
@@ -82,7 +82,7 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When two reports are paid without their held expenses
-        result.current(['123', '456'], policy, false);
+        act(() => result.current.payReportsViaABA(['123', '456'], policy, false));
 
         // Then the ABA file is downloaded for them, with what the billing and onboarding checks need about the current user
         expect(payViaABA).toHaveBeenCalledWith(
@@ -100,7 +100,7 @@ describe('usePayViaABA', () => {
         // Given a payment via ABA
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();
-        result.current(['123'], policy);
+        act(() => result.current.payReportsViaABA(['123'], policy));
 
         // When the download fails
         const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
@@ -122,7 +122,7 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a report is paid via ABA
-        result.current(['123'], policy);
+        act(() => result.current.payReportsViaABA(['123'], policy));
 
         // Then the user is told their account is locked, since the backend rejects payments from locked accounts
         expect(mockShowLockedAccountModal).toHaveBeenCalled();
@@ -136,15 +136,39 @@ describe('usePayViaABA', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When a report is paid via ABA
-        result.current(['123'], policy);
+        act(() => result.current.payReportsViaABA(['123'], policy));
 
         // Then they're asked to verify their account first, because the file pays out of the workspace's bank account
         expect(payViaABA).not.toHaveBeenCalled();
 
         // When they've verified it
-        mockVerifyAccountAndResume.mock.calls.at(0)?.at(0)?.();
+        act(() => mockVerifyAccountAndResume.mock.calls.at(0)?.at(0)?.());
 
         // Then the file they asked for is downloaded
         expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123'], policy}));
+    });
+
+    it('is loading while the ABA file downloads', async () => {
+        // Given an ABA file that takes a while to download
+        let finishDownload: () => void = () => {};
+        jest.mocked(payViaABA).mockReturnValueOnce(
+            new Promise((resolve) => {
+                finishDownload = resolve;
+            }),
+        );
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        act(() => result.current.payReportsViaABA(['123'], policy));
+
+        // Then it's loading, so the Pay button can show the user something is happening
+        expect(result.current.isDownloadingABAFile).toBe(true);
+
+        // When the download finishes
+        await act(async () => finishDownload());
+
+        // Then it stops loading
+        expect(result.current.isDownloadingABAFile).toBe(false);
     });
 });

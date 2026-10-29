@@ -68,7 +68,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
-    const payReportsViaABA = usePayViaABA();
+    const {payReportsViaABA} = usePayViaABA();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();

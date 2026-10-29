@@ -1015,8 +1015,9 @@ type PayViaABAFunctionParams = {
 
 /**
  * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
+ * Resolves once the download has finished or failed.
  */
-function payViaABA(params: PayViaABAFunctionParams) {
+function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
     const {
         reportIDs,
         policy,
@@ -1034,7 +1035,7 @@ function payViaABA(params: PayViaABAFunctionParams) {
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-        return;
+        return Promise.resolve();
     }
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
@@ -1047,7 +1048,7 @@ function payViaABA(params: PayViaABAFunctionParams) {
 
     // Matches the file names Classic gives ABA files
     const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
-    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed, undefined, false);
+    return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed, undefined, false);
 }
 
 function markReportPaymentReceived(

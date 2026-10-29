@@ -124,7 +124,7 @@ jest.mock('@hooks/useCurrencyList', () => ({__esModule: true, useCurrencyListAct
 jest.mock('@hooks/useParticipantsInvoiceReport', () => ({__esModule: true, default: jest.fn(() => undefined)}));
 jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: jest.fn(() => undefined)}));
 const mockPayReportsViaABA = jest.fn();
-jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => mockPayReportsViaABA)}));
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
 jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
