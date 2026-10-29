@@ -16,6 +16,7 @@ import {
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
@@ -34,6 +35,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import {getArchiveReason} from '@selectors/Report';
 import React, {useEffect, useRef} from 'react';
 
 import type {ActionHandledType} from './useHoldMenuSubmit';
@@ -164,7 +166,10 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 1;
 
-    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, getArchiveReason(chatReportActions));
+
+    const shouldBlockSubmit =
+        isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy || isBlockSubmitDueToDeletedWorkspace;
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 

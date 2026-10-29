@@ -8,6 +8,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    areApprovalsEnabled,
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
     canAdminPayReport,
@@ -97,6 +98,7 @@ import {
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
+    getTagListEntryByOrderWeight,
     getTravelStep,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
@@ -3379,6 +3381,38 @@ describe('PolicyUtils', () => {
                 expect(tagList.name).toEqual(expected);
             });
         });
+        describe('getTagListEntryByOrderWeight', () => {
+            // Given tag lists that share a name but are stored under unique Onyx keys, as a no-header import with
+            // GL codes in adjacent columns can return them
+            const tagListsWithDuplicateNames: PolicyTagLists = {
+                Clients: {name: 'Clients', orderWeight: 0, required: false, tags: {}},
+                'Sub-projects': {name: 'Sub-projects', orderWeight: 1, required: false, tags: {}},
+                'Sub-projects_2': {name: 'Sub-projects', orderWeight: 2, required: false, tags: {}},
+            };
+
+            it.each([
+                ['returns the entry of the first list with a repeated name', 1, 'Sub-projects'],
+                ['returns the entry of the second list with a repeated name', 2, 'Sub-projects_2'],
+            ])('%s', (_description, orderWeight, expectedKey) => {
+                // When the entry is looked up by orderWeight
+                const entry = getTagListEntryByOrderWeight(tagListsWithDuplicateNames, orderWeight);
+
+                // Then the key and value of the matching list are returned, so callers write to its key, not its name
+                expect(entry).toEqual([expectedKey, tagListsWithDuplicateNames[expectedKey]]);
+            });
+
+            it('returns undefined when no list has the orderWeight', () => {
+                // Given tag lists without orderWeight 3
+                // When / Then
+                expect(getTagListEntryByOrderWeight(tagListsWithDuplicateNames, 3)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no tag lists', () => {
+                // Given no tag lists
+                // When / Then
+                expect(getTagListEntryByOrderWeight(undefined, 0)).toBeUndefined();
+            });
+        });
         describe('hasAnyTagGLCode', () => {
             it('returns false when the workspace has no tags', () => {
                 // Given no tag lists, there is no GL code to pick, so the Tag GL code cell must stay read-only
@@ -4253,6 +4287,43 @@ describe('PolicyUtils', () => {
 
                 // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
                 expect(reimburserEmail).toBeUndefined();
+            });
+        });
+
+        describe('areApprovalsEnabled', () => {
+            it('should be false when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
+
+                // When approvals are resolved
+                // Then they read as off, rather than as on by virtue of the policy not saying they are off
+                expect(areApprovalsEnabled(undefined)).toBe(false);
+            });
+
+            it('should be false when the policy has no approval mode yet', () => {
+                // Given a workspace whose approval mode has not come back from the server
+                const policy = createMock<Policy>({id: '1'});
+
+                // When approvals are resolved
+                // Then they read as off, which is what separates this from `!isSubmitAndClose(policy)`
+                expect(areApprovalsEnabled(policy)).toBe(false);
+            });
+
+            it('should be false when the workspace submits and closes', () => {
+                // Given a workspace that has approvals turned off
+                const policy = createMock<Policy>({id: '1', approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+
+                // When approvals are resolved
+                // Then they read as off
+                expect(areApprovalsEnabled(policy)).toBe(false);
+            });
+
+            it.each([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED])('should be true in %s mode', (approvalMode) => {
+                // Given a workspace on an approval mode that submits to an approver
+                const policy = createMock<Policy>({id: '1', approvalMode});
+
+                // When approvals are resolved
+                // Then they read as on
+                expect(areApprovalsEnabled(policy)).toBe(true);
             });
         });
 

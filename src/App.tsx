@@ -49,7 +49,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
-import {ConciergeSessionProvider} from './pages/inbox/ConciergeSessionContext';
+import {ConciergeChatHistoryProvider} from './pages/inbox/ConciergeChatHistoryContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
 import './setup/fraudProtection';
@@ -115,7 +115,7 @@ function App() {
                                         SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
-                                        ConciergeSessionProvider,
+                                        ConciergeChatHistoryProvider,
                                         ScrollOffsetContextProvider,
                                         PickerStateProvider,
                                         EnvironmentProvider,
