@@ -142,3 +142,4 @@ export type {DualEntryCredentialsForm} from './DualEntryCredentialsForm';
 export type {CampfireCredentialsForm} from './CampfireCredentialsForm';
 export type {BusinessCentralCredentialsForm} from './BusinessCentralCredentialsForm';
 export type {ABAWithdrawalAccountForm} from './ABAWithdrawalAccountForm';
+export type {ABADepositAccountForm} from './ABADepositAccountForm';
