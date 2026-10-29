@@ -13,6 +13,7 @@ export type {default as VerifySetupIntentAndRequestPolicyOwnerChangeParams} from
 export type {default as AddPersonalBankAccountParams} from './AddPersonalBankAccountParams';
 export type {default as CreateCollectOnlyDepositAccountParams} from './CreateCollectOnlyDepositAccountParams';
 export type {default as CreateWithdrawalABAAccountParams} from './CreateWithdrawalABAAccountParams';
+export type {default as CreateDepositABAAccountParams} from './CreateDepositABAAccountParams';
 export type {default as RestartBankAccountSetupParams} from './RestartBankAccountSetupParams';
 export type {default as AddSchoolPrincipalParams} from './AddSchoolPrincipalParams';
 export type {default as AuthenticatePusherParams} from './AuthenticatePusherParams';
