@@ -3239,6 +3239,8 @@ ${amount} voor ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
         collectEmployeeBankDetails: 'Bankgegevens van medewerkers verzamelen',
         collectEmployeeBankDetailsDescription: 'Verzamel de bankgegevens van medewerkers, zodat je ze buiten Expensify kunt terugbetalen.',
+        businessBankAccountCountries: 'Landen met zakelijke bankrekeningen',
+        businessBankAccountCountriesDescription: 'Werknemers in deze landen geven lokale overboekingsgegevens op. Iedereen daarbuiten geeft internationale overschrijvingsgegevens op.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

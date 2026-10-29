@@ -3272,6 +3272,8 @@ ${amount} dla ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
         collectEmployeeBankDetails: 'Zbieraj dane bankowe pracowników',
         collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe pracowników, aby móc zwracać im wydatki poza Expensify.',
+        businessBankAccountCountries: 'Kraje firmowych kont bankowych',
+        businessBankAccountCountriesDescription: 'Pracownicy w tych krajach podają dane do lokalnego przelewu. Wszyscy pozostali podają dane do międzynarodowego przelewu bankowego.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym jest włączony niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>opiekunem klienta</account-manager-link> lub z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

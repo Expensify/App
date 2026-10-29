@@ -3255,6 +3255,9 @@ ${amount} pour ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
         collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
+        businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
+        businessBankAccountCountriesDescription:
+            'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
