@@ -3045,13 +3045,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - rnmapbox-maps (10.3.2):
+  - rnmapbox-maps (10.3.10):
     - MapboxMaps (~> 11.23.1)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.3.2)
+    - rnmapbox-maps/DynamicLibrary (= 10.3.10)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.3.2):
+  - rnmapbox-maps/DynamicLibrary (10.3.10):
     - hermes-engine
     - MapboxMaps (~> 11.23.1)
     - RCTRequired
@@ -4176,7 +4176,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
   RNLiveMarkdown: b6894bb864d517f51ea80c98facd26571f2cd0fe
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
-  rnmapbox-maps: 54eb40428a4fd89f484a492fc7186bc1c1eea9ce
+  rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
   RNNitroSQLite: 56c1f2b950788d3923ca6163c7a8117b6c31cc0d
   RNPermissions: 32bd3b977f28442af0900b102f4458f0f9f9b77c
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
