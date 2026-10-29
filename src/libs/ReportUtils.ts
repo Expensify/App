@@ -39,6 +39,8 @@ import type {
     PolicyReportField,
     PolicyTagLists,
     PolicyTags,
+    PolicyVendor,
+    PolicyVendors,
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
@@ -109,6 +111,7 @@ import type {AvatarSource} from './UserAvatarUtils';
 import {isIntuitEnterpriseSuiteConnection} from './AccountingUtils';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
+import {getAnchorHref, isAttachmentAnchorTag, isOwnAttachmentURL} from './AttachmentAnchorUtils';
 import {convertAttendeesToArray, normalizeAttendees} from './AttendeeUtils';
 import {buildOnboardingMessagesWithoutManageTeam} from './buildOnboardingMessages';
 import {isCardWithPotentialFraud} from './CardUtils';
@@ -142,10 +145,13 @@ import {getPolicyReimburserAccountID} from './PolicyPaymentUtils';
 import {
     arePaymentsEnabled,
     canMemberWrite as canMemberWritePolicyUtils,
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
+    getGroupPoliciesWhereReportCanBeCreated,
     getManagerAccountEmail,
     getManagerAccountID,
     getPerDiemCustomUnit,
@@ -369,6 +375,7 @@ type BuildOptimisticAddCommentReportActionParams = {
     reportID?: string;
     reportActionID?: string;
     attachmentID?: string;
+    additionalAttachments?: Array<{file: FileObject; attachmentID: string}>;
     isHTML?: boolean;
     delegateAccountIDParam: number | undefined;
     /** Anchor `created` to the server clock so it is comparable to Concierge's server-stamped replies. */
@@ -2170,6 +2177,7 @@ type PolicyOptimisticOnyxData = OnyxData<
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_TAGS
+    | typeof ONYXKEYS.COLLECTION.POLICY_VENDORS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
 >;
@@ -2199,10 +2207,12 @@ function getOptimisticPolicyState(
     policyUpdate: Partial<Policy>,
     categoriesUpdate: Record<string, Partial<PolicyCategory>>,
     tagListsUpdate: Record<string, Partial<PolicyTagList>>,
+    vendorsUpdate: Record<string, Partial<PolicyVendor>> = {},
 ) {
     const isPolicyUpdateEmpty = isEmptyObject(policyUpdate);
     const isCategoriesUpdateEmpty = isEmptyObject(categoriesUpdate);
     const isTagListsUpdateEmpty = isEmptyObject(tagListsUpdate);
+    const isVendorsUpdateEmpty = isEmptyObject(vendorsUpdate);
 
     const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
 
@@ -2265,16 +2275,35 @@ function getOptimisticPolicyState(
               }, {}),
           };
 
+    const optimisticVendors: PolicyVendors | undefined = isVendorsUpdateEmpty
+        ? policyData.vendors
+        : {
+              ...(policyData.vendors ?? {}),
+              ...Object.entries(vendorsUpdate).reduce<PolicyVendors>((acc, [vendorID, vendorUpdate]) => {
+                  const existingVendor = policyData.vendors?.[vendorID];
+                  if (!vendorUpdate || !existingVendor) {
+                      return acc;
+                  }
+                  acc[vendorID] = {
+                      ...existingVendor,
+                      ...vendorUpdate,
+                  };
+                  return acc;
+              }, {}),
+          };
+
     const hasDependentTagsValue = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticTagLists);
 
     return {
         optimisticPolicy,
         optimisticCategories,
         optimisticTagLists,
+        optimisticVendors,
         hasDependentTagsValue,
         isPolicyUpdateEmpty,
         isCategoriesUpdateEmpty,
         isTagListsUpdateEmpty,
+        isVendorsUpdateEmpty,
     };
 }
 
@@ -2405,6 +2434,7 @@ function pushTransactionAutoSelectionsOnyxData(
  * @param categoriesUpdate - Changed categories properties, if none pass empty object
  * @param tagListsUpdate - Changed tag properties, if none pass empty object
  * @param transactionAutoSelections - Auto-selected category/tag updates per transactionID (from `pushTransactionAutoSelectionsOnyxData`)
+ * @param vendorsUpdate - Changed vendor properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: PolicyOptimisticOnyxData,
@@ -2414,20 +2444,26 @@ function pushTransactionViolationsOnyxData(
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
     transactionAutoSelections: Map<string, Partial<Transaction>> = new Map<string, Partial<Transaction>>(),
+    vendorsUpdate: Record<string, Partial<PolicyVendor>> = {},
 ) {
     const nonInvoiceReportItems = getNonInvoiceReportItemsForPolicy(policyData);
     if (nonInvoiceReportItems.length === 0) {
         return;
     }
 
-    const {optimisticPolicy, optimisticCategories, optimisticTagLists, hasDependentTagsValue, isPolicyUpdateEmpty, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
-        policyData,
-        policyUpdate,
-        categoriesUpdate,
-        tagListsUpdate,
-    );
+    const {
+        optimisticPolicy,
+        optimisticCategories,
+        optimisticTagLists,
+        optimisticVendors,
+        hasDependentTagsValue,
+        isPolicyUpdateEmpty,
+        isCategoriesUpdateEmpty,
+        isTagListsUpdateEmpty,
+        isVendorsUpdateEmpty,
+    } = getOptimisticPolicyState(policyData, policyUpdate, categoriesUpdate, tagListsUpdate, vendorsUpdate);
 
-    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty) {
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty && isVendorsUpdateEmpty) {
         return;
     }
 
@@ -2449,7 +2485,7 @@ function pushTransactionViolationsOnyxData(
     //   `missingTag` calculation for *tagless* transactions changes and they'd be skipped incorrectly.
     let affectedTagNames: Set<string> | undefined;
     const tagListNames = Object.keys(optimisticTagLists ?? {});
-    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && !isTagListsUpdateEmpty && !hasDependentTagsValue && tagListNames.length === 1) {
+    if (isPolicyUpdateEmpty && isCategoriesUpdateEmpty && !isTagListsUpdateEmpty && isVendorsUpdateEmpty && !hasDependentTagsValue && tagListNames.length === 1) {
         const tagListName = tagListNames.at(0) ?? '';
         const originalTags = policyData.tags?.[tagListName]?.tags ?? {};
         const updatedTags = optimisticTagLists?.[tagListName]?.tags ?? {};
@@ -2460,6 +2496,10 @@ function pushTransactionViolationsOnyxData(
         }
     }
 
+    // Fast path: a vendor-only toggle only affects transactions holding the toggled vendor(s).
+    const isVendorOnlyUpdate = isPolicyUpdateEmpty && isCategoriesUpdateEmpty && isTagListsUpdateEmpty && !isVendorsUpdateEmpty;
+    const affectedVendorIDs = isVendorOnlyUpdate ? new Set(Object.keys(vendorsUpdate)) : undefined;
+
     for (const {
         transactionsAndViolations: {transactions, violations},
     } of nonInvoiceReportItems) {
@@ -2468,6 +2508,14 @@ function pushTransactionViolationsOnyxData(
             // whose tag was just auto-selected. Skip the recompute for every other transaction.
             if (affectedTagNames && !transactionAutoSelections.has(transaction.transactionID) && !(transaction.tag && affectedTagNames.has(transaction.tag))) {
                 continue;
+            }
+
+            // Fast path: a vendor-only toggle only affects transactions holding the toggled vendor(s).
+            if (affectedVendorIDs && !transactionAutoSelections.has(transaction.transactionID)) {
+                const transactionVendorID = transaction.comment?.vendor?.externalID;
+                if (!transactionVendorID || !affectedVendorIDs.has(transactionVendorID)) {
+                    continue;
+                }
             }
 
             const pendingUpdate = transactionAutoSelections.get(transaction.transactionID);
@@ -2484,6 +2532,7 @@ function pushTransactionViolationsOnyxData(
                 isInvoiceTransaction: false,
                 ownerLogin: undefined,
                 isVendorMatchingBetaEnabled,
+                policyVendors: optimisticVendors,
             });
 
             // Keep the pre-toggle taxOutOfPolicy state when the update isn't about tax tracking.
@@ -2491,6 +2540,13 @@ function pushTransactionViolationsOnyxData(
             if (!isTaxTrackingUpdate && Array.isArray(recomputedViolations)) {
                 const preservedTaxViolations = (existingViolations ?? []).filter((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
                 optimisticViolations.value = [...recomputedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.TAX_OUT_OF_POLICY), ...preservedTaxViolations];
+            }
+
+            // Keep existing non-vendor violations when the update is only about vendors.
+            if (isVendorOnlyUpdate && Array.isArray(optimisticViolations.value)) {
+                const nonVendorViolations = (existingViolations ?? []).filter((violation) => violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR);
+                const vendorViolations = optimisticViolations.value.filter((violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR);
+                optimisticViolations.value = [...nonVendorViolations, ...vendorViolations];
             }
 
             if (!isEmptyObject(optimisticViolations)) {
@@ -2746,7 +2802,7 @@ function isClosedReport(report: OnyxInputOrEntry<Report>): boolean {
 /**
  * Whether the provided report is the admin's room
  */
-function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined): boolean {
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined, hasPendingJoinRequest?: boolean): boolean {
     if (!report) {
         return false;
     }
@@ -2760,7 +2816,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: s
             return false;
         }
     }
-    return isActionableJoinRequestPending(report.reportID);
+    return hasPendingJoinRequest ?? isActionableJoinRequestPending(report.reportID);
 }
 
 /**
@@ -3178,6 +3234,10 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(moneyRequestReport?.policyID);
 
+    if (policy && !canCreateExpensesOnPolicy(policy)) {
+        return false;
+    }
+
     if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isGroupPolicyPolicyUtils(policy))) {
         return false;
     }
@@ -3469,6 +3529,7 @@ function getBadgeFromIOUReport(
     currentUserLogin: string,
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<ReportActions>,
+    isChatReportArchived: boolean,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -3478,10 +3539,6 @@ function getBadgeFromIOUReport(
     if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
-
-    // TODO: https://github.com/Expensify/App/issues/66518
-    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
@@ -3535,18 +3592,31 @@ function canPayIOUFromReportAction(action: ReportAction, chatReport: OnyxEntry<R
     );
 }
 
-function getIOUReportActionWithBadge(
-    chatReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    reportMetadata: OnyxEntry<ReportMetadata>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    chatReportActions: OnyxEntry<ReportActions>,
-    allViolations: OnyxCollection<TransactionViolations> | undefined,
-    allReports?: OnyxCollection<Report>,
-    allReportActionsParam?: OnyxCollection<ReportActions>,
-): {
+function getIOUReportActionWithBadge({
+    chatReport,
+    policy,
+    reportMetadata,
+    invoiceReceiverPolicy,
+    currentUserLogin,
+    currentUserAccountID,
+    chatReportActions,
+    allViolations,
+    isChatReportArchived,
+    allReports,
+    allReportActionsParam,
+}: {
+    chatReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    chatReportActions: OnyxEntry<ReportActions>;
+    allViolations: OnyxCollection<TransactionViolations> | undefined;
+    isChatReportArchived: boolean;
+    allReports?: OnyxCollection<Report>;
+    allReportActionsParam?: OnyxCollection<ReportActions>;
+}): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
 } {
@@ -3583,7 +3653,18 @@ function getIOUReportActionWithBadge(
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions, allViolations);
+        const badge = getBadgeFromIOUReport(
+            iouReport,
+            chatReport,
+            policy,
+            reportMetadata,
+            invoiceReceiverPolicy,
+            currentUserLogin,
+            currentUserAccountID,
+            iouReportActions,
+            isChatReportArchived,
+            allViolations,
+        );
         if (!badge) {
             continue;
         }
@@ -5144,18 +5225,20 @@ function getReasonAndReportActionThatRequiresAttention({
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(
-        optionOrReport,
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge({
+        chatReport: optionOrReport,
         policy,
         reportMetadata,
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
-        reportActions,
-        transactionViolations,
-        reports,
-        allReportActionsParam ?? allReportActions,
-    );
+        chatReportActions: reportActions,
+        allViolations: transactionViolations,
+        // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
+        isChatReportArchived: isReportArchived,
+        allReports: reports,
+        allReportActionsParam: allReportActionsParam ?? allReportActions,
+    });
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
     const transactions = getReportTransactions(iouReportID);
@@ -5190,6 +5273,7 @@ function getReasonAndReportActionThatRequiresAttention({
                 currentUserLogin,
                 currentUserAccountID,
                 reportActions,
+                false,
                 transactionViolations,
             );
             return {
@@ -6211,6 +6295,17 @@ function canEditFieldOfMoneyRequest({
             return false;
         }
 
+        // A member who cannot create expenses on the report's policy can only move their own expense to another workspace where they can create a report.
+        if (!isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail)) {
+            if (!isOwner) {
+                return false;
+            }
+            const isPerDiem = isPerDiemRequest(transaction);
+            return getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
+                (destinationPolicy) => destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy)),
+            );
+        }
+
         // Check the cheaper condition first
         if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
             return true;
@@ -6544,6 +6639,8 @@ type GetReportPreviewMessageBaseParams = {
     /** The current user's bank accounts, used to name the account a report was paid with. */
     bankAccountList?: OnyxEntry<BankAccountList>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    /** The transaction of `iouReportAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    linkedTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -6577,6 +6674,7 @@ function getReportPreviewMessage(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
     const {
         reportOrID,
@@ -6672,7 +6770,7 @@ function getReportPreviewMessage(
         : getDisplayNameForParticipant({
               accountID: report.managerID,
               shouldUseShortForm: !isPreviewMessageForParentChatReport,
-              formatPhoneNumber: formatPhoneNumberPhoneUtils,
+              formatPhoneNumber,
               hiddenTranslation: translate('common.hidden'),
           });
 
@@ -6684,7 +6782,10 @@ function getReportPreviewMessage(
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransaction =
+            params.linkedTransaction && params.linkedTransaction.transactionID === getOriginalMessage(iouReportAction)?.IOUTransactionID
+                ? params.linkedTransaction
+                : getLinkedTransaction(iouReportAction);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -6735,7 +6836,7 @@ function getReportPreviewMessage(
                 : getDisplayNameForParticipant({
                       accountID: payerAccountID,
                       shouldUseShortForm: true,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: translate('common.hidden'),
                   });
 
@@ -6772,7 +6873,7 @@ function getReportPreviewMessage(
             getDisplayNameForParticipant({
                 accountID: report.ownerAccountID,
                 shouldUseShortForm: true,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                formatPhoneNumber,
                 hiddenTranslation: translate('common.hidden'),
             }) ?? '';
         return translate('iou.waitingOnBankAccount', submitterDisplayName);
@@ -6806,7 +6907,7 @@ function getReportPreviewMessage(
                 ? getDisplayNameForParticipant({
                       accountID: lastActorID,
                       shouldUseShortForm: !isPreviewMessageForParentChatReport,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
+                      formatPhoneNumber,
                       hiddenTranslation: translate('common.hidden'),
                   })
                 : '';
@@ -6817,7 +6918,7 @@ function getReportPreviewMessage(
         return translate(
             'iou.payerSpentAmount',
             formattedAmount,
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ?? '',
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '',
         );
     }
     return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
@@ -6832,24 +6933,25 @@ function getReportPreviewMessage(
  * avoids depending on the async-loaded locale bundles. For a localized preview shown in the UI, call
  * {@link getReportPreviewMessage} with the caller's `translate`.
  *
+ * This only covers report preview actions. The wording for IOU actions (split, track, scanning, and bank account
+ * payments) lives only in {@link getReportPreviewMessage}.
+ *
  * IMPORTANT: keep the English strings here in sync with the `iou.*` entries in `en.ts` and with the branching
- * in {@link getReportPreviewMessage}.
+ * in {@link getReportPreviewMessage} that applies to report preview actions.
  */
 function getReportPreviewReportActionMessage(
     // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
-    params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
+    params: Omit<
+        GetReportPreviewMessageBaseParams,
+        'policy' | 'iouReportAction' | 'originalReportAction' | 'shouldConsiderScanningReceiptOrPendingRoute' | 'isPreviewMessageForParentChatReport' | 'isForListPreview'
+    > & {
+        policy?: OnyxInputOrEntry<Policy>;
+        iouReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
+        originalReportAction?: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
+    },
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
-    const {
-        reportOrID,
-        iouReportAction = null,
-        shouldConsiderScanningReceiptOrPendingRoute = false,
-        isPreviewMessageForParentChatReport = false,
-        policy,
-        isForListPreview = false,
-        bankAccountList,
-        personalDetails,
-    } = params;
+    const {reportOrID, iouReportAction = null, policy} = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6860,66 +6962,6 @@ function getReportPreviewReportActionMessage(
     }
 
     const allReportTransactions = getReportTransactions(report.reportID);
-    const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter(isScanning).length;
-
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
-        // This covers group chats where the last action is a split expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
-        if (isEmptyObject(linkedTransaction)) {
-            return reportActionMessage;
-        }
-
-        if (!isEmptyObject(linkedTransaction)) {
-            if (isScanning(linkedTransaction)) {
-                return 'Receipt scanning...';
-            }
-
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
-                return 'Receipt missing details';
-            }
-
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
-            const comment = getMerchantOrDescription(linkedTransaction);
-            return `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
-        }
-    }
-
-    if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
-        // This covers group chats where the last action is a track expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
-        if (isEmptyObject(linkedTransaction)) {
-            const originalMessage = getOriginalMessage(iouReportAction);
-            const amount = originalMessage?.amount;
-            const currency = originalMessage?.currency;
-            const comment = originalMessage?.comment;
-
-            if (amount && currency) {
-                const formattedAmount = convertToDisplayStringEnLocale(amount, currency, getCurrencyDecimals);
-                return `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
-            }
-
-            return reportActionMessage;
-        }
-
-        if (!isEmptyObject(linkedTransaction)) {
-            if (isScanning(linkedTransaction)) {
-                return 'Receipt scanning...';
-            }
-
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
-                return 'Receipt missing details';
-            }
-
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayStringEnLocale(amount, getCurrency(linkedTransaction), getCurrencyDecimals) ?? '';
-
-            const merchantOrComment = getMerchantOrDescription(linkedTransaction);
-
-            return `tracking ${formattedAmount}${merchantOrComment ? ` for ${merchantOrComment}` : ''}`;
-        }
-    }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(allReportTransactions);
     const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
@@ -6933,7 +6975,7 @@ function getReportPreviewReportActionMessage(
         ? policyName
         : getDisplayNameForParticipant({
               accountID: report.managerID,
-              shouldUseShortForm: !isPreviewMessageForParentChatReport,
+              shouldUseShortForm: true,
               formatPhoneNumber: formatPhoneNumberPhoneUtils,
               hiddenTranslation: 'Hidden',
           });
@@ -6946,97 +6988,24 @@ function getReportPreviewReportActionMessage(
         return `${payerName ?? ''} approved ${formattedAmount}`;
     }
 
-    let linkedTransaction;
-    if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
-    }
-
-    if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
-        return numberOfScanningReceipts === 1 ? 'Receipt scanning...' : 'Receipts scanning...';
-    }
-
-    if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
-        return 'Pending...';
-    }
-
-    const originalMessage = !isEmptyObject(iouReportAction) && isMoneyRequestAction(iouReportAction) ? getOriginalMessage(iouReportAction) : undefined;
-
-    // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
-    if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
-        // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
-        let translatePhraseKey: TranslationPaths = 'iou.paidElsewhere';
-        if (isPreviewMessageForParentChatReport) {
-            translatePhraseKey = 'iou.payerPaidAmount';
-        } else if (
-            [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
-            !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
-            report.isWaitingOnBankAccount
-        ) {
-            translatePhraseKey = 'iou.paidWithExpensify';
-            // A paying admin can record `bankAccountID` on a workspace payment too, so the report type is what says
-            // whether this was an invoice, matching `getIOUReportActionDisplayMessage`.
-            const isFromInvoice = isInvoiceReport(report) && !!originalMessage?.bankAccountID;
-            if (originalMessage?.automaticAction) {
-                translatePhraseKey = 'iou.automaticallyPaidWithExpensify';
-            }
-
-            if (originalMessage?.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
-                translatePhraseKey = 'iou.businessBankAccount';
-            }
-
-            if (isFromInvoice) {
-                const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
-                const last4Digits = currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '';
-                return originalMessage?.payAsBusiness ? `paid ${formattedAmount} with business account ${last4Digits}` : `paid ${formattedAmount} with personal account ${last4Digits}`;
-            }
-        }
-
-        const payerAccountID = iouReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? iouReportAction?.actorAccountID : report.managerID;
-        let actualPayerName =
-            report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
+    // Show Paid preview message if it's settled
+    if (isSettled(report.reportID)) {
+        const payerDisplayName =
+            report.managerID === deprecatedCurrentUserAccountID
                 ? ''
                 : getDisplayNameForParticipant({
-                      accountID: payerAccountID,
+                      accountID: report.managerID,
                       shouldUseShortForm: true,
                       formatPhoneNumber: formatPhoneNumberPhoneUtils,
                       hiddenTranslation: 'Hidden',
                   });
+        const payerPrefix = payerDisplayName ? `${payerDisplayName} ` : '';
 
-        actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
-        const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
-        if (translatePhraseKey === 'iou.businessBankAccount') {
-            const last4Digits = getBankAccountLastFourDigits({
-                bankAccountID: originalMessage?.bankAccountID,
-                bankAccountList,
-                policy: reportPolicy,
-                accountNumber: originalMessage?.accountNumber,
-                payerAccountID,
-                reimburserAccountID: getPolicyReimburserAccountID(reportPolicy, personalDetails),
-            });
-
-            // This variant returns raw English to match the surrounding non-localized preview strings.
-            if (originalMessage?.creditedAmount && originalMessage.creditedCurrency) {
-                const creditedAmountDisplay = convertToDisplayStringEnLocale(originalMessage.creditedAmount, originalMessage.creditedCurrency, getCurrencyDecimals);
-                return `paid ${creditedAmountDisplay} from account ${originalMessage.debitBankAccountLast4 ?? last4Digits} to account ${originalMessage.creditBankAccountLast4 ?? ''}`;
-            }
-            return `paid with bank account ${last4Digits}`;
+        // A settled report preview message can come in two formats "marked as paid" or "paid with wallet"
+        if (!!reportActionMessage.match(/ (with Expensify|using Expensify)$/) || report.isWaitingOnBankAccount) {
+            return `${payerPrefix}paid with wallet`;
         }
-        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify') {
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`;
-        }
-        if (translatePhraseKey === 'iou.paidWithExpensify') {
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid with wallet`;
-        }
-        if (translatePhraseKey === 'iou.paidElsewhere') {
-            if (originalMessage?.isSubmitterMarkedPaymentReceived) {
-                return `${payerDisplayName ? `${payerDisplayName} ` : ''}received payment`;
-            }
-            const trimmedComment = originalMessage?.comment?.trim();
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}marked as paid${trimmedComment ? `, saying "${trimmedComment}"` : ''}`;
-        }
-        if (translatePhraseKey === 'iou.payerPaidAmount') {
-            return `${payerDisplayName ? `${payerDisplayName} ` : ''}paid ${formattedAmount}`;
-        }
+        return `${payerPrefix}marked as paid`;
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -7050,46 +7019,11 @@ function getReportPreviewReportActionMessage(
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
-    const lastActorID = iouReportAction?.actorAccountID;
-    let amount = originalMessage?.amount;
-    let currency = originalMessage?.currency ? originalMessage?.currency : report.currency;
-
-    if (!isEmptyObject(linkedTransaction)) {
-        amount = getTransactionAmount(linkedTransaction, isExpenseReport(report));
-        currency = getCurrency(linkedTransaction);
-    }
-
-    if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
-    }
-
-    let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
-    if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
-        comment = undefined;
-    }
-
-    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
-    if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
-        const amountToDisplay = convertToDisplayStringEnLocale(Math.abs(amount), currency, getCurrencyDecimals);
-
-        // We only want to show the actor name in the preview if it's not the current user who took the action
-        const requestorName =
-            lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({
-                      accountID: lastActorID,
-                      shouldUseShortForm: !isPreviewMessageForParentChatReport,
-                      formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                      hiddenTranslation: 'Hidden',
-                  })
-                : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
-    }
-
     if (containsNonReimbursable) {
         const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: 'Hidden'}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
-    return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
+    return `${payerName ?? ''} owes ${formattedAmount}`;
 }
 
 /**
@@ -7615,40 +7549,67 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
-/**
- * Saving a draft captured mid-upload would persist a local URI only the author's device can resolve, so swap it
- * for the synced attachment, or drop it while the upload is pending because the queued Add re-attaches the file.
- */
-function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
-    const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
-    if (!localAttachmentReferenceRegex.test(draftMarkdown)) {
+// ExpensiMark allows one level of brackets inside a link label, so a file named `report [Q1].csv` is one of these.
+const MARKDOWN_LABEL_PATTERN = '[^\\[\\]\\r\\n]*(?:\\[[^\\[\\]\\r\\n]*\\][^\\[\\]\\r\\n]*)*';
+
+/** Swaps each local attachment URI in a draft for its synced attachment, or drops them while the upload is pending. */
+function replaceLocalAttachmentReferences(
+    draftMarkdown: string,
+    currentCommentHtml: string | undefined,
+    reportActionID: string,
+    attachmentIDByLocalSource: Partial<Record<string, string>> = {},
+): string {
+    const localAttachmentReferenceRegex = new RegExp(`\\n*(?:!?\\[${MARKDOWN_LABEL_PATTERN}\\]\\((?:blob:|file:|content:)[^)]*\\)|!\\((?:blob:|file:|content:)[^)]*\\))`, 'g');
+    const draftLabelRegex = new RegExp(`^\\n*!?\\[(${MARKDOWN_LABEL_PATTERN})\\]`);
+    const localReferences = draftMarkdown.match(localAttachmentReferenceRegex) ?? [];
+    if (localReferences.length === 0) {
         return draftMarkdown;
     }
-    localAttachmentReferenceRegex.lastIndex = 0;
 
     const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
     if (isStillUploading) {
-        return draftMarkdown.replace(localAttachmentReferenceRegex, '').trim();
+        return draftMarkdown.replaceAll(localAttachmentReferenceRegex, '').trim();
     }
 
     const attachmentTags = currentCommentHtml.match(/<img\b[^>]*>|<video\b[^>]*>[\s\S]*?<\/video>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
-    const syncedAttachmentTag = attachmentTags.find((tag) => {
+    const syncedAttachmentTags = attachmentTags.filter((tag) => {
         const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.at(2) ?? '';
         return source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1) === reportActionID;
     });
-    if (!syncedAttachmentTag) {
+    if (syncedAttachmentTags.length === 0) {
         return draftMarkdown;
     }
 
-    const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
-    let isReplaced = false;
-    localAttachmentReferenceRegex.lastIndex = 0;
-    return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
-        if (isReplaced) {
+    const fileNameAttributeRegex = new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`);
+    const getSyncedFileName = (tag: string) => tag.match(fileNameAttributeRegex)?.at(1) ?? tag.match(/\balt="([^"]*)"/)?.at(1) ?? tag.match(/>([^<]*)<\/(?:a|video)>$/)?.at(1);
+
+    // Matching by position is only safe when the draft kept every attachment.
+    const canMatchByPosition = localReferences.length === syncedAttachmentTags.length;
+    let localReferenceIndex = 0;
+    const matchedTags = new Set<string>();
+    const findUnmatchedTag = (isMatch: (tag: string) => boolean) => syncedAttachmentTags.find((tag) => !matchedTags.has(tag) && isMatch(tag));
+    return draftMarkdown.replaceAll(localAttachmentReferenceRegex, (match) => {
+        const localSource = match.match(/\(([^)]*)\)$/)?.at(1) ?? '';
+        const attachmentID = attachmentIDByLocalSource[localSource];
+        const draftLabel = match.match(draftLabelRegex)?.at(1);
+        const localFileName = draftLabel ?? localSource.split('/').pop();
+        const positionTag = canMatchByPosition ? syncedAttachmentTags.at(localReferenceIndex) : undefined;
+        const syncedAttachmentTag =
+            (attachmentID ? findUnmatchedTag((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) === attachmentID) : undefined) ??
+            (positionTag && !matchedTags.has(positionTag) ? positionTag : undefined) ??
+            (localFileName ? findUnmatchedTag((tag) => getSyncedFileName(tag) === localFileName) : undefined);
+        localReferenceIndex++;
+        if (!syncedAttachmentTag) {
             return '';
         }
-        isReplaced = true;
-        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
+        matchedTags.add(syncedAttachmentTag);
+
+        // The synced tag carries the name the file was uploaded under, so a rename made during the upload loses to it.
+        const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
+        const labelledAttachmentMarkdown = draftLabel
+            ? syncedAttachmentMarkdown.replace(/^(!?)\[[^\]]*\]/, (_reference, imagePrefix: string) => `${imagePrefix}[${draftLabel}]`)
+            : syncedAttachmentMarkdown;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${labelledAttachmentMarkdown}`;
     });
 }
 
@@ -7660,27 +7621,175 @@ function buildEditedCommentWithAttachment(commentHtml: string, uploadingAttachme
     return [commentHtml, uploadingAttachmentHtml].filter(Boolean).join('<br /><br />');
 }
 
-/** The still-uploading attachment tag, re-appended to an edit's optimistic message so it stays on screen. */
-function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined): string | undefined {
+function getUploadingAttachmentTags(currentCommentHtml: string | undefined): string[] {
     if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
-        return undefined;
+        return [];
     }
     const attachmentTagRegex = new RegExp(
         `<img\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>` +
             `|<video\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</video>` +
             `|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
-        'i',
+        'gi',
     );
-    return currentCommentHtml.match(attachmentTagRegex)?.at(0);
+    return currentCommentHtml.match(attachmentTagRegex) ?? [];
+}
+
+/** The still-uploading attachment tags, re-appended to an edit's optimistic message so they stay on screen. */
+function getUploadingAttachmentHtmlFromComment(
+    currentCommentHtml: string | undefined,
+    removedAttachmentIDs: string[] = [],
+    labelByAttachmentID: Partial<Record<string, string>> = {},
+): string | undefined {
+    const keptTags = getUploadingAttachmentTags(currentCommentHtml)
+        .map((tag) => ({tag, attachmentID: tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? ''}))
+        .filter(({attachmentID}) => !removedAttachmentIDs.includes(attachmentID))
+        .map(({tag, attachmentID}) => applyLabelToUploadingAttachmentHtml(tag, labelByAttachmentID[attachmentID]));
+    return keptTags.length > 0 ? keptTags.join('<br />') : undefined;
 }
 
 /**
- * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
+ * The attachment IDs of still-uploading attachments a draft dropped. Compared against the local URI, not the parsed HTML,
  * because a kept reference stays plain markdown and never parses back into an attachment tag.
  */
-function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
-    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
-    return !!localSource && !draftMarkdown.includes(localSource);
+function getUploadingAttachmentIDsRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): string[] {
+    const optimisticSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
+    return getUploadingAttachmentTags(currentCommentHtml)
+        .filter((tag) => !draftMarkdown.includes(tag.match(optimisticSourceRegex)?.at(1) ?? ''))
+        .map((tag) => tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2) ?? '')
+        .filter((attachmentID) => !!attachmentID);
+}
+
+/**
+ * The label a draft gives the still-uploading attachment, taken from the markdown reference the editor shows
+ * (`[label](blob:…)`). An image written without a label parses as `!(blob:…)`, which yields nothing to carry over.
+ */
+function getUploadingAttachmentLabelFromDraft(draftMarkdown: string, localSource: string): string | undefined {
+    const labelledReferenceRegex = new RegExp(`!?\\[(${MARKDOWN_LABEL_PATTERN})\\]\\(${Str.escapeForRegExp(localSource)}\\)`);
+    return draftMarkdown.match(labelledReferenceRegex)?.at(1) ?? undefined;
+}
+
+/**
+ * Applies the draft's label to the still-uploading attachment tag. `AnchorRenderer` shows the anchor's own text,
+ * so renaming the file in the editor is only kept if that text is carried over rather than the original filename.
+ */
+function applyLabelToUploadingAttachmentHtml(uploadingAttachmentHtml: string, label: string | undefined): string {
+    if (!label) {
+        return uploadingAttachmentHtml;
+    }
+
+    // The label is whatever the user typed in the editor, so it is encoded before it goes anywhere near the markup,
+    // and applied through a callback because a string replacement would expand `$&` and friends into the match.
+    const encodedLabel = Str.htmlEncode(label);
+
+    // `data-name` moves with the label so that the next edit compares against the name the comment currently shows,
+    // otherwise renaming back to the original name reads as "unchanged" and the queued file keeps the interim one.
+    const renamedHtml = uploadingAttachmentHtml.replace(
+        new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="[^"]*"`, 'i'),
+        () => `${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="${encodedLabel}"`,
+    );
+    if (renamedHtml.startsWith('<img')) {
+        return renamedHtml.replace(/alt="[^"]*"/i, () => `alt="${encodedLabel}"`);
+    }
+    return renamedHtml.replace(/>[\s\S]*?<\/(a|video)>$/i, (_match, tagName: string) => `>${encodedLabel}</${tagName}>`);
+}
+
+const uploadingAttachmentSourceRegex = new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`);
+
+function getUploadingAttachmentSource(currentCommentHtml: string | undefined): string | undefined {
+    return currentCommentHtml?.match(uploadingAttachmentSourceRegex)?.at(1);
+}
+
+/**
+ * The new labels a draft gives still-uploading attachments, keyed by attachment ID. The server names the stored attachment
+ * after the uploaded file, so a rename has to travel with the queued file as well as the optimistic markup.
+ */
+function getUploadingAttachmentLabelsRenamedInDraft(draftMarkdown: string, currentCommentHtml: string | undefined): Record<string, string> {
+    const currentLabelRegex = new RegExp(`${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`, 'i');
+    const labelByAttachmentID: Record<string, string> = {};
+    for (const tag of getUploadingAttachmentTags(currentCommentHtml)) {
+        const attachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.at(2);
+        const localSource = getUploadingAttachmentSource(tag);
+        const draftLabel = localSource ? getUploadingAttachmentLabelFromDraft(draftMarkdown, localSource) : undefined;
+
+        // `data-name` carries the encoded label the comment shows now, while the draft carries what the user typed.
+        if (attachmentID && draftLabel && draftLabel !== Str.htmlDecode(tag.match(currentLabelRegex)?.at(1) ?? '')) {
+            labelByAttachmentID[attachmentID] = draftLabel;
+        }
+    }
+    return labelByAttachmentID;
+}
+
+function hasAttachmentAnchorAttributes(html: string): boolean {
+    return html.includes(CONST.ATTACHMENT_SOURCE_ATTRIBUTE) || html.includes(CONST.ATTACHMENT_ID_ATTRIBUTE);
+}
+
+/**
+ * The parser caches these attributes for images and videos but not for anchors, so an edited file attachment comes
+ * back as an ordinary link. The server keeps only the attachment ID, which is all a second edit has left to match on.
+ */
+function restoreAttachmentAnchorAttributes(newCommentHtml: string, originalCommentHtml: string | undefined): string {
+    if (!originalCommentHtml || !hasAttachmentAnchorAttributes(originalCommentHtml) || !newCommentHtml.includes('<a ')) {
+        return newCommentHtml;
+    }
+
+    const anchorTagRegex = /<a\s([^>]*)>/gi;
+    const attachmentAttributesByHref = new Map<string, string>();
+    for (const [, attributes] of originalCommentHtml.matchAll(anchorTagRegex)) {
+        if (!isAttachmentAnchorTag(attributes)) {
+            continue;
+        }
+        const href = getAnchorHref(attributes);
+        const attachmentAttributes = attributes.match(/data-[\w-]+="[^"]*"/gi)?.join(' ');
+        if (href && attachmentAttributes) {
+            attachmentAttributesByHref.set(href, attachmentAttributes);
+        }
+    }
+    if (attachmentAttributesByHref.size === 0) {
+        return newCommentHtml;
+    }
+
+    return newCommentHtml.replaceAll(anchorTagRegex, (match: string, attributes: string) => {
+        if (hasAttachmentAnchorAttributes(attributes)) {
+            return match;
+        }
+        const href = getAnchorHref(attributes);
+        const attachmentAttributes = href ? attachmentAttributesByHref.get(href) : undefined;
+        return attachmentAttributes ? `<a ${attributes} ${attachmentAttributes}>` : match;
+    });
+}
+
+const MARKDOWN_LINK_REGEX = new RegExp(`(!?)\\[(${MARKDOWN_LABEL_PATTERN})\\]\\(([^)]*)\\)`, 'g');
+
+/**
+ * A file name such as `my_report_v2.csv` reads as markdown emphasis when the edit is parsed, which leaves the anchor
+ * with `<em>` children and no plain label to show. The draft still holds the literal label, so it is put back.
+ */
+function restoreAttachmentAnchorLabels(newCommentHtml: string, draftMarkdown: string, reportActionID: string | undefined): string {
+    if (!newCommentHtml.includes('<a ')) {
+        return newCommentHtml;
+    }
+    const labelsBySourceID = new Map<string, string[]>();
+    for (const [, imagePrefix, label, url] of draftMarkdown.matchAll(MARKDOWN_LINK_REGEX)) {
+        const sourceID = url.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        if (imagePrefix || !sourceID || !label) {
+            continue;
+        }
+        labelsBySourceID.set(sourceID, [...(labelsBySourceID.get(sourceID) ?? []), label]);
+    }
+    if (labelsBySourceID.size === 0) {
+        return newCommentHtml;
+    }
+    return newCommentHtml.replaceAll(/(<a\s[^>]*>)([\s\S]*?)(<\/a>)/gi, (match: string, openTag: string, inner: string, closeTag: string) => {
+        const href = getAnchorHref(openTag);
+        const sourceID = href?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1);
+        const label = sourceID ? labelsBySourceID.get(sourceID)?.shift() : undefined;
+
+        // Only a file card draws its name from the anchor's own text, so only there does markdown in the label have
+        // to be read literally. A link to another message's attachment stays a link, and `[*Download*](url)` means bold.
+        const rendersAsFileCard = isAttachmentAnchorTag(openTag) || isOwnAttachmentURL(href ?? '', reportActionID);
+        const hasOnlyEmphasisMarkup = /<[a-z]/i.test(inner) && /^(?:[^<]|<\/?(?:em|strong)>)*$/i.test(inner);
+        return label && rendersAsFileCard && hasOnlyEmphasisMarkup ? `${openTag}${Str.htmlEncode(label)}${closeTag}` : match;
+    });
 }
 
 function getReportDescription(report: OnyxEntry<Report>): string {
@@ -7712,6 +7821,7 @@ function buildOptimisticAddCommentReportAction({
     reportID,
     reportActionID = rand64(),
     attachmentID,
+    additionalAttachments = [],
     currentUserEmail,
     currentUserAccountID,
     isHTML = false,
@@ -7720,7 +7830,12 @@ function buildOptimisticAddCommentReportAction({
     lastActionCreated,
 }: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = isHTML ? (text ?? '') : getParsedComment(text ?? '', {reportID});
-    const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
+    const attachmentHtml = [
+        getUploadingAttachmentHtml(file, attachmentID),
+        ...additionalAttachments.map((attachment) => getUploadingAttachmentHtml(attachment.file, attachment.attachmentID)),
+    ]
+        .filter((html) => !!html)
+        .join('<br />');
 
     const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
@@ -9121,13 +9236,16 @@ function buildOptimisticModifiedExpenseReportAction(
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
+    // Expense edits can arrive without updating the report's lastVisibleActionCreated, so also check the loaded actions.
+    const latestActionCreated = transactionThread?.reportID ? getLastVisibleAction(transactionThread.reportID)?.created : undefined;
+    const lastActionCreated = (latestActionCreated ?? '') > (transactionThread?.lastVisibleActionCreated ?? '') ? latestActionCreated : transactionThread?.lastVisibleActionCreated;
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: deprecatedCurrentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
+        created: getServerAnchoredDBTime('', lastActionCreated),
         isAttachmentOnly: false,
         message: [
             {
@@ -10975,6 +11093,16 @@ function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, po
     return isProcessingReport(report) && (report?.managerID === report?.ownerAccountID || isSubmitterSameAsNextApprover);
 }
 
+/**
+ * Whether Submit is blocked because the report's workspace was deleted. Deleting a workspace archives its workspace chat
+ * with a POLICY_DELETED close reason but doesn't set archivedDate on the policy, so the archived-policy guard in
+ * isSubmitAction doesn't catch it and the backend rejects the submission. Chats archived for other reasons (e.g. the
+ * submitter was removed from the workspace) can still submit.
+ */
+function shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived: boolean, chatArchiveReason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined): boolean {
+    return isChatReportArchived && chatArchiveReason === CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+}
+
 type ReportErrorsAndReportActionThatRequiresAttention = {
     errors: ErrorFields;
     reportAction?: OnyxEntry<ReportAction>;
@@ -11622,6 +11750,11 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
 
     // Prevent requesting money if pending IOU report waiting for their bank account already exists
     if (hasIOUWaitingOnCurrentUserBankAccount(report, currentUserAccountID)) {
+        return false;
+    }
+
+    // Members without create-expenses permission get no create options in the workspace chats and reports.
+    if (!!policy?.id && report?.policyID === policy.id && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 
@@ -14162,7 +14295,7 @@ function getReportLastVisibleActionCreated(report: OnyxEntry<Report>, oneTransac
 function getSourceIDFromReportAction(reportAction: OnyxEntry<ReportAction>): string {
     const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     const html = message?.html ?? '';
-    const {sourceURL} = getAttachmentDetails(html);
+    const {sourceURL} = getAttachmentDetails(html, reportAction?.reportActionID);
     const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
     return sourceID;
 }
@@ -14181,6 +14314,7 @@ function getIntegrationIcon(
                   | 'RilletSquare'
                   | 'DualEntrySquare'
                   | 'CampfireSquare'
+                  | 'DigitsSquare'
                   | 'ZohoBooksSquare'
                   | 'BusinessCentralSquare'
                   | 'GustoSquare'
@@ -14220,6 +14354,9 @@ function getIntegrationIcon(
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
         return expensifyIcons?.CampfireSquare;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+        return expensifyIcons?.DigitsSquare;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
         return expensifyIcons?.ZohoBooksSquare;
@@ -14354,6 +14491,10 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
         return false;
     }
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
+        return false;
+    }
+    // Moving a report creates expenses there, so the submitter must hold create-expenses permission.
+    if (!canCreateExpensesOnPolicy(newPolicy, submitterEmail)) {
         return false;
     }
     return !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
@@ -15477,6 +15618,7 @@ export {
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParsedComment,
+    getParticipantIcon,
     getParticipantsAccountIDsForDisplay,
     getParticipantsChatKey,
     getParticipantsList,
@@ -15760,6 +15902,7 @@ export {
     getReportForHeader,
     isReportOpenOrUnsubmitted,
     getIconsForExpenseReport,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     getReportCustomColumnValue,
     getTransactionSortValue,
@@ -15770,9 +15913,14 @@ export {
     canMergeReports,
     canModifyHoldStatus,
     replaceLocalAttachmentReferences,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
+    getUploadingAttachmentLabelsRenamedInDraft,
+    restoreAttachmentAnchorAttributes,
+    restoreAttachmentAnchorLabels,
     getUploadingAttachmentHtmlFromComment,
     buildEditedCommentWithAttachment,
+    getUploadingAttachmentLabelFromDraft,
+    applyLabelToUploadingAttachmentHtml,
     parseMovedTransactionReportIDs,
 };
 
@@ -15794,4 +15942,5 @@ export type {
     OptimisticReportAction,
     ActionErrorsByTransaction,
     LastAccessedReport,
+    PolicyOptimisticOnyxData,
 };

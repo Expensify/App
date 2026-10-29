@@ -301,6 +301,8 @@ function getExpenseReportColumnContentToMeasure(column: SearchColumnType, item: 
             return [{text: item.submitterPayrollID}];
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return [{text: item.orderDealNumbers}];
+        case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+            return [{text: item.withdrawalIDs}];
         default:
             return [];
     }
