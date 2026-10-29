@@ -11742,7 +11742,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Wenn du zukünftige Aktivitäten und Gebühren verhindern möchtest, musst du deinen <a href="${workspacesListRoute}">Workspace bzw. deine Workspaces löschen</a>. Bitte beachte, dass dir beim Löschen deines Workspace bzw. deiner Workspaces alle ausstehenden Aktivitäten in Rechnung gestellt werden, die im aktuellen Kalendermonat angefallen sind.`,
                 preventFutureActivityWithArchive: (workspacesListRoute: string) =>
-                    `Um zukünftige Aktivitäten und Gebühren zu verhindern, <a href="${workspacesListRoute}">archivieren Sie alle Ihre kostenpflichtigen Arbeitsbereiche</a>. Archivierte Arbeitsbereiche mit abrechenbaren Aktivitäten im aktuellen Monat werden weiterhin in Ihrer Rechnung berücksichtigt.`,
+                    `Um zukünftige Aktivitäten und Gebühren zu verhindern, <a href="${workspacesListRoute}">archiviere alle deine kostenpflichtigen Arbeitsbereiche</a>. Archivierte Arbeitsbereiche mit abrechenbaren Aktivitäten im aktuellen Monat werden weiterhin in deiner Rechnung berücksichtigt.`,
             },
             requestSubmitted: {
                 title: 'Anfrage gesendet',
