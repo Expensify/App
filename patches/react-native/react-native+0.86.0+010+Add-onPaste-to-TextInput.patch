@@ -642,10 +642,10 @@ index 9e548c0..2603e07 100644
      view.setOnKeyPress(onKeyPress)
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteListener.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteListener.kt
 new file mode 100644
-index 0000000..0c6dab2
+index 0000000..156ae40
 --- /dev/null
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputPasteListener.kt
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,154 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -658,7 +658,6 @@ index 0000000..0c6dab2
 +import android.content.ContentResolver
 +import android.content.Context
 +import android.net.Uri
-+import android.os.Build
 +import android.provider.OpenableColumns
 +import android.view.View
 +import android.webkit.MimeTypeMap
@@ -693,13 +692,10 @@ index 0000000..0c6dab2
 +    val fileContent = split.first ?: return payload
 +    val context = editText.context.applicationContext
 +
++    // The task holds on to `fileContent` until the files are copied, which keeps a keyboard's read access alive.
 +    executor.execute {
 +      val clip = fileContent.clip
 +      val files = (0 until clip.itemCount).mapNotNull { index -> clip.getItemAt(index).uri?.let { copyFile(context, it) } }
-+      // Keyboards grant access to the content they insert until it's released.
-+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-+        fileContent.toContentInfo().releasePermissions()
-+      }
 +      if (files.isNotEmpty()) {
 +        editText.post { dispatchPasteEvent(editText, files) }
 +      }
