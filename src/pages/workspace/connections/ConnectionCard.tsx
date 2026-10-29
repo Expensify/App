@@ -80,7 +80,8 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                 styles.workspaceSectionMoreFeaturesItem,
                 styles.p0,
                 styles.overflowHidden,
-                shouldUseFullWidth ? [styles.flexBasis100, StyleUtils.getMinimumWidth(0)] : styles.connectionCard,
+                // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
+                shouldUseFullWidth ? [styles.flexBasisAuto, styles.w100, StyleUtils.getMinimumWidth(0)] : styles.connectionCard,
             ]}
         >
             <MenuItem
