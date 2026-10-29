@@ -3302,7 +3302,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, cardList, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(
+            selectedTransactions,
+            currentSearchResults?.data,
+            accountID,
+            rules,
+            personalDetails,
+            cardList,
+            allReportActions,
+            selectedReports,
+            queryJSON?.type,
+        );
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;

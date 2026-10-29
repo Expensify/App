@@ -41,13 +41,27 @@ type ChartTooltipLayerProps = {
 
     /** Hides the tooltip */
     onDismiss: () => void;
+
+    /** Whether a compared tooltip shows how the primary series changed against the compared one */
+    shouldShowTooltipChange?: boolean;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({
+    matchedIndex,
+    isTooltipActive,
+    data,
+    series,
+    formatValue,
+    chartWidth,
+    initialTooltipPosition,
+    onChartMoved,
+    onDismiss,
+    shouldShowTooltipChange = true,
+}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -86,7 +100,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
             {comparison ? (
                 <ChartTooltipComparison
                     rows={comparison.rows}
-                    change={comparison.change}
+                    change={shouldShowTooltipChange ? comparison.change : undefined}
                 />
             ) : (
                 <ChartTooltipSummary
