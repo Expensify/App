@@ -10474,6 +10474,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `atualizou "Impedir marcar relatórios não reembolsáveis como pagos" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (antes "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
+        addedExpensifyCardFeed: (feedName: string) => `adicionou o feed do Cartão Expensify "${feedName}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
