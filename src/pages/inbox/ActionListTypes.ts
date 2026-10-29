@@ -21,7 +21,7 @@ type ActionListRef = {
     scrollToIndex: (params: ScrollToIndexParams) => void;
     scrollToOffset: (params: ScrollToOffsetParams) => void;
     scrollToEnd: (params?: ScrollToEndParams) => void;
-    getNativeScrollRef?: () => unknown;
+    getNativeScrollRef?: () => {scrollToEnd?: (params?: ScrollToEndParams) => void} | null | undefined;
     getScrollableNode?: () => unknown;
     getLayout?: (index: number) => unknown;
     computeVisibleIndices?: () => {startIndex: number; endIndex: number} | undefined;

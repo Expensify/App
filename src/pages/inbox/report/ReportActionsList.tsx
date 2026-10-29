@@ -272,7 +272,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     useImperativeHandle(
         listRef,
         (): ActionListRef => ({
-            getNativeScrollRef: () => legendListRef.current?.getNativeScrollRef(),
             getScrollableNode: (): unknown => legendListRef.current?.getScrollableNode(),
             getState: () => legendListRef.current?.getState(),
             computeVisibleIndices: () => {
