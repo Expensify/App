@@ -601,7 +601,9 @@ describe('DistanceRate', () => {
             });
 
             it('should keep a disabled fuel band disabled for every later rate of its series in the same request', async () => {
-                // Given an eligible GBP workspace whose earlier petrol band an admin disabled
+                // Given an eligible GBP workspace whose earlier petrol band an admin disabled, and whose earlier diesel band an
+                // admin edited to their own amount and disabled
+                const editedDieselRateID = 'EDITEDDIESEL1';
                 const policy = buildUKPolicy(true, true, {
                     [existingRateID]: {
                         customUnitRateID: existingRateID,
@@ -616,6 +618,19 @@ describe('DistanceRate', () => {
                             governmentRate: {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-05-31', taxClaimablePercentage: 12 / 45},
                         },
                     },
+                    [editedDieselRateID]: {
+                        customUnitRateID: editedDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 50,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-08-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-08-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
                 });
 
                 // When auto-update copies two later petrol periods and a diesel band, listed out of date order
@@ -625,7 +640,8 @@ describe('DistanceRate', () => {
                 expect(getRateBySourceID(rates, petrolBandJune.sourceRateID)?.enabled).toBe(false);
                 expect(getRateBySourceID(rates, petrolBandSeptember.sourceRateID)?.enabled).toBe(false);
 
-                // And the diesel band, which has no earlier rate in its series, uses the reference rate's enabled state
+                // And the September diesel band is enabled, because the earlier diesel rate was edited and is the admin's own,
+                // so its disabled state doesn't opt the workspace out of the government rate
                 expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
             });
         });

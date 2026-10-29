@@ -2284,15 +2284,7 @@ function updateGeneralSettings(
     const shouldCopyGovernmentRates =
         !!governmentRateCountry || (!!policy.shouldAutoUpdateGovernmentDistanceRates && currencyPendingAction !== undefined && !!getGovernmentRateCountryForCurrency(currency));
     const governmentRateAutoUpdateData = shouldCopyGovernmentRates
-        ? buildOnyxDataForGovernmentRateAutoUpdate(
-              policy,
-              true,
-              governmentMileageRates,
-              currency,
-              governmentRateCountry,
-              !!policy.shouldAutoUpdateGovernmentDistanceRates,
-              policy.autoUpdateGovernmentRateCountry,
-          )
+        ? buildOnyxDataForGovernmentRateAutoUpdate(policy, true, governmentMileageRates, currency, governmentRateCountry)
         : undefined;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [

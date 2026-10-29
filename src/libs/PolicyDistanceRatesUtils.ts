@@ -418,11 +418,10 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
  * correction are skipped then, and the server response fills them in.
  *
  * A UK workspace tracking distance tax gets the fuel-band rates instead of the standard rate when the reference list has
- * fuel bands, and the standard rate otherwise. Every copied rate keeps
- * the enabled state of the previous rate in its series, matching the server's copy.
+ * fuel bands, and the standard rate otherwise. Every copied rate keeps the enabled state of the previous rate in its series
+ * (ordered by the snapshot's start date) when that rate is an unmodified government rate, and is enabled otherwise.
  *
- * The previous enabled state and country describe the policy before the change, so a failed request restores exactly
- * what the server still has.
+ * A failed request restores the policy's current auto-update flag and country, which is what the server still has.
  */
 function buildOnyxDataForGovernmentRateAutoUpdate(
     policy: Policy,
@@ -430,13 +429,12 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
     countryCode?: string,
-    previousAutoUpdateEnabled?: boolean,
-    previousCountryCode?: string,
 ): {optimisticRateIDs: Record<string, string>; onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY>} {
     const policyID = policy.id;
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
+    const currentUnit = customUnit?.attributes?.unit;
 
     const optimisticRates: Record<string, Rate> = {};
     const clearedRatePendingActions: Record<string, NullishDeep<Rate>> = {};
@@ -449,7 +447,8 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
         const shouldUseFuelBandRates = isTaxTrackingEnabled(true, policy, true) && governmentMileageRates.some((rate) => isFuelBandGovernmentRate(rate.sourceRateID));
 
         // Rates already in each series, so a copied rate can take the enabled state of the one before it. Rates copied in
-        // this request are added as they go, so a second rate of the same series inherits from the first.
+        // this request are added as they go, so a second rate of the same series inherits from the first. Rates are ordered
+        // by the snapshot's start date, since the admin can edit the rate's own dates.
         const seriesRates = new Map<string, Array<{startDate: string; enabled: boolean}>>();
         const addSeriesRate = (sourceRateID: string, startDate: string | undefined, enabled: boolean | undefined) => {
             if (!startDate) {
@@ -461,7 +460,8 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
         for (const rate of Object.values(customUnit.rates ?? {})) {
             const sourceRateID = rate.attributes?.governmentRate?.sourceRateID;
             if (sourceRateID) {
-                addSeriesRate(sourceRateID, rate.startDate ?? rate.attributes?.governmentRate?.startDate, rate.enabled);
+                // A rate the admin edited is their own, so its enabled state doesn't decide the next government rate
+                addSeriesRate(sourceRateID, rate.attributes?.governmentRate?.startDate, isGovernmentRateUnmodified(rate, currentUnit) ? rate.enabled : true);
             }
         }
         const getPreviousSeriesRateEnabled = (sourceRateID: string, startDate: string): boolean | undefined => {
@@ -510,7 +510,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 continue;
             }
 
-            const enabled = getPreviousSeriesRateEnabled(governmentMileageRate.sourceRateID, governmentMileageRate.startDate) ?? governmentMileageRate.enabled ?? true;
+            const enabled = getPreviousSeriesRateEnabled(governmentMileageRate.sourceRateID, governmentMileageRate.startDate) ?? true;
             addSeriesRate(governmentMileageRate.sourceRateID, governmentMileageRate.startDate, enabled);
 
             const taxClaimablePercentage = governmentMileageRate.taxClaimablePercentage;
@@ -542,12 +542,11 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
         }
     }
 
-    const currentUnit = customUnit?.attributes?.unit;
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
     // The failure data restores the state the server still has, so the previous values decide what to write back
-    const failureAutoUpdateValue = previousAutoUpdateEnabled ? true : null;
+    const failureAutoUpdateValue = policy.shouldAutoUpdateGovernmentDistanceRates ? true : null;
 
     const optimisticCustomUnit: NullishDeep<CustomUnit> = {
         ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),
@@ -599,7 +598,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 key: policyKey,
                 value: {
                     shouldAutoUpdateGovernmentDistanceRates: failureAutoUpdateValue,
-                    ...(countryCode ? {autoUpdateGovernmentRateCountry: previousCountryCode ?? null} : {}),
+                    ...(countryCode ? {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null} : {}),
                     pendingFields: {
                         shouldAutoUpdateGovernmentDistanceRates: null,
                         ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
