@@ -100,8 +100,10 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM>) => {
+        // The BSB can be entered with or without a dash, but the back end only accepts the xxx-xxx form
+        const bsbDigits = values[INPUT_IDS.BSB_NUMBER].trim().replace('-', '');
         createWithdrawalABAAccount({
-            bsbNumber: values[INPUT_IDS.BSB_NUMBER].trim(),
+            bsbNumber: `${bsbDigits.slice(0, 3)}-${bsbDigits.slice(3)}`,
             accountNumber: values[INPUT_IDS.ACCOUNT_NUMBER].trim(),
             bankUserIdentificationNumber: values[INPUT_IDS.BANK_USER_IDENTIFICATION_NUMBER].trim(),
             companyName: values[INPUT_IDS.COMPANY_NAME].trim(),
