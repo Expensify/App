@@ -4,6 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
+import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 
@@ -23,7 +24,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPageRevamp').default,
     [SCREENS.WORKSPACE.INVOICES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
     [SCREENS.WORKSPACE.MEMBERS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMembersPage').default,
-    [SCREENS.WORKSPACE.AGENTS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceAgentsPage').default,
+    [SCREENS.WORKSPACE.AGENTS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceAgentsPage').default),
     [SCREENS.WORKSPACE.ROOMS]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
     [SCREENS.WORKSPACE.HR]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/WorkspaceHRPage').default,

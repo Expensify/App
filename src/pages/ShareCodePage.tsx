@@ -50,7 +50,7 @@ import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type ShareCodePageOnyxProps = {
@@ -113,7 +113,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const reportForTitle = useMemo(() => getReportForHeader(report, parentReport), [report, parentReport]);
+    const reportForTitle = getReportForHeader(report, parentReport);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForTitle?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
     const derivedTitleReportName = getReportNameFromNames(derivedReportNames, reportForTitle?.reportID);
@@ -121,39 +121,33 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
 
-    const subtitle = useMemo(() => {
-        if (isReport) {
-            if (isExpenseReport(report)) {
-                return getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
-            }
-            if (isMoneyRequestReport(report)) {
-                // generate subtitle from participants; resolve the translation once, not per participant
-                const hiddenText = translate('common.hidden');
-                return getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation: hiddenText}))
-                    .join(' & ');
-            }
-
-            return (
+    let subtitle;
+    if (isReport) {
+        if (isExpenseReport(report)) {
+            subtitle = getPolicyName({
+                report,
+                unavailableTranslation: translate('workspace.common.unavailable'),
+            });
+        } else if (isMoneyRequestReport(report)) {
+            // generate subtitle from participants; resolve the translation once, not per participant
+            const hiddenText = translate('common.hidden');
+            subtitle = getParticipantsAccountIDsForDisplay(report, undefined, true)
+                .map((accountID) =>
+                    getDisplayNameForParticipant({
+                        accountID,
+                        formatPhoneNumber,
+                        hiddenTranslation: hiddenText,
+                    }),
+                )
+                .join(' & ');
+        } else {
+            subtitle =
                 getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived).workspaceName ??
-                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived)
-            );
+                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
-
-        return currentUserPersonalDetails.login;
-    }, [
-        report,
-        policy,
-        currentUserPersonalDetails.login,
-        isReport,
-        isReportArchived,
-        isParentReportArchived,
-        formatPhoneNumber,
-        conciergeReportID,
-        translate,
-        derivedParentReportName,
-        rules,
-    ]);
+    } else {
+        subtitle = currentUserPersonalDetails.login;
+    }
 
     const title = isReport ? getReportName(reportForTitle, derivedTitleReportName) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);

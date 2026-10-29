@@ -5,6 +5,7 @@
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {MerchantRuleForm} from '@src/types/form';
 import type {Policy, Rule} from '@src/types/onyx';
 import type {ApprovalWorkflowAction} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {
@@ -15,6 +16,7 @@ import type {
     ExpenseDefaultTaxValue,
     ExpenseDefaultTriggers,
 } from '@src/types/onyx/ExpenseDefaultRules';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -222,8 +224,8 @@ function buildMerchantRuleActions(formValues: Partial<MerchantRuleFormValues>, p
 }
 
 /**
- * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores, and what the
- * legacy `codingRuleValue` is derived from until writes move to `SetRule`.
+ * Builds the rules engine body for a merchant rule. It is what the `rules_` collection stores and what is sent
+ * as the `value` param of `SetRule`.
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
 function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: Policy | undefined): BuiltMerchantRule | undefined {
@@ -234,7 +236,7 @@ function buildMerchantRule(formValues: Partial<MerchantRuleFormValues>, policy: 
         return undefined;
     }
 
-    const triggers: ExpenseDefaultTriggers = toIndexMap([TRIGGER.CREATE_TRANSACTION]);
+    const triggers: ExpenseDefaultTriggers = toIndexMap([TRIGGER.CREATE_TRANSACTION, TRIGGER.UPDATE_TRANSACTION]);
 
     return {triggers, filters, actions};
 }
@@ -252,7 +254,7 @@ function isExpenseDefaultTaxValue(value: unknown): value is ExpenseDefaultTaxVal
 /** Every trigger has to be one the editor knows about, otherwise saving the form would drop the rest. */
 function areTriggersEditable(triggers: Record<string, string> | undefined): boolean {
     const triggerValues = fromIndexMap(triggers);
-    return triggerValues.length > 0 && triggerValues.every((trigger) => trigger === TRIGGER.CREATE_TRANSACTION);
+    return triggerValues.length > 0 && triggerValues.every((trigger) => trigger === TRIGGER.CREATE_TRANSACTION || trigger === TRIGGER.UPDATE_TRANSACTION);
 }
 
 /** The editor matches on exactly one merchant condition, so anything else (a tree, another field, a list) can't be shown in the form. */
@@ -445,19 +447,25 @@ function isEditableMerchantRule(rule: Rule | ExpenseDefaultRule | undefined): bo
  * stale link or a bookmark can resolve to another policy's rule or to an approval workflow. Saving from the
  * editor writes a freshly built merchant rule over that same ruleID, so anything it can't represent has to be
  * refused rather than opened. A rule the form can edit is already an expense default rule, because the form only
- * accepts `CreateTransaction` triggers and `Set` actions.
+ * accepts `CreateTransaction` and `UpdateTransaction` triggers and `Set` actions.
  */
 function canEditMerchantRule(rule: Rule | undefined, policyID: string | undefined): boolean {
     return isPolicyScopedRule(rule, policyID) && isEditableMerchantRule(rule);
 }
 
-export type {BuiltMerchantRule, MerchantRuleFormValues};
+/** Returns the merchant rule draft for generated values */
+function getMerchantRuleDraftFromGeneratedValues(values: GeneratedRuleValues): Partial<MerchantRuleForm> {
+    return {...values, ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT};
+}
+
+export type {MerchantRuleFormValues};
 export {
     buildCopiedExpenseDefaultRules,
     buildMerchantRule,
     canEditMerchantRule,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
+    getMerchantRuleDraftFromGeneratedValues,
     getMerchantRuleFormValues,
     getPolicyExpenseDefaultRules,
     getRuleMerchantMatchSummary,

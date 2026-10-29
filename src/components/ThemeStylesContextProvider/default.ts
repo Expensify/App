@@ -11,25 +11,26 @@ import type {ThemeStylesActionsContextType, ThemeStylesStateContextType} from '.
 let cachedState: ThemeStylesStateContextType | undefined;
 let cachedActions: ThemeStylesActionsContextType | undefined;
 
-const defaultThemeStylesStateContextValue = new Proxy({} as ThemeStylesStateContextType, {
-    get(_, prop: keyof ThemeStylesStateContextType) {
-        if (!cachedState) {
-            cachedState = {styles: styles(defaultTheme)};
-        }
-        return cachedState[prop];
-    },
-});
+function getDefaultState(): ThemeStylesStateContextType {
+    if (!cachedState) {
+        cachedState = {styles: styles(defaultTheme)};
+    }
+    return cachedState;
+}
 
-const defaultThemeStylesActionsContextValue = new Proxy({} as ThemeStylesActionsContextType, {
-    get(_, prop: keyof ThemeStylesActionsContextType) {
-        if (!cachedActions) {
-            if (!cachedState) {
-                cachedState = {styles: styles(defaultTheme)};
-            }
-            cachedActions = {StyleUtils: createStyleUtils(defaultTheme, cachedState.styles)};
-        }
-        return cachedActions[prop];
+const defaultThemeStylesStateContextValue: ThemeStylesStateContextType = {
+    get styles() {
+        return getDefaultState().styles;
     },
-});
+};
+
+const defaultThemeStylesActionsContextValue: ThemeStylesActionsContextType = {
+    get StyleUtils() {
+        if (!cachedActions) {
+            cachedActions = {StyleUtils: createStyleUtils(defaultTheme, getDefaultState().styles)};
+        }
+        return cachedActions.StyleUtils;
+    },
+};
 
 export {defaultThemeStylesStateContextValue, defaultThemeStylesActionsContextValue};

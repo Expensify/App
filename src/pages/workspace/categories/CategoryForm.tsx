@@ -17,7 +17,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 type CategoryFormProps = {
@@ -37,35 +37,28 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, a
 
     const decodedCategoryName = getDecodedCategoryName(categoryName ?? '');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const nameError = getCategoryNameError(policyCategories, values.categoryName);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+        const nameError = getCategoryNameError(policyCategories, values.categoryName);
 
-            if (nameError) {
-                addErrorMessage(errors, 'categoryName', getCategoryNameErrorMessage(translate, nameError, values.categoryName));
-            }
+        if (nameError) {
+            addErrorMessage(errors, 'categoryName', getCategoryNameErrorMessage(translate, nameError, values.categoryName));
+        }
 
-            return errors;
-        },
-        [policyCategories, translate],
-    );
+        return errors;
+    };
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            Keyboard.dismiss();
-            onSubmit(values);
-        },
-        [onSubmit],
-    );
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        Keyboard.dismiss();
+        onSubmit(values);
+    };
 
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
             onSubmit={submit}
             submitButtonText={translate('common.save')}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            validate={validateEdit || validate}
+            validate={validateEdit ?? validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
             shouldHideFixErrorsAlert

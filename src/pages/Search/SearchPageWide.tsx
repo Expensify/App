@@ -33,7 +33,7 @@ import type {ComponentRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useContext, useMemo, useRef} from 'react';
+import React, {useContext, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 
@@ -90,24 +90,15 @@ function SearchPageWide({
 
     const endSubmitNavigationSpans = useEndSubmitNavigationSpans({requireLayout: false});
 
-    const scrollHandler = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            if (!e.nativeEvent.contentOffset.y) {
-                return;
-            }
-
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [saveScrollOffset, route],
-    );
-
-    const offlineIndicatorStyle = useMemo(() => {
-        if (shouldReserveFooterSpace) {
-            return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
+    const scrollHandler = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        if (!e.nativeEvent.contentOffset.y) {
+            return;
         }
 
-        return [styles.mtAuto];
-    }, [shouldReserveFooterSpace, styles]);
+        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+    };
+
+    const offlineIndicatorStyle = shouldReserveFooterSpace ? [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0] : [styles.mtAuto];
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery(), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
