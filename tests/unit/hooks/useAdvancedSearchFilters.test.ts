@@ -540,4 +540,40 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
     });
+
+    describe('section order', () => {
+        it('groups expense filters into sections and keeps Keyword with the core filters', async () => {
+            // Given no cards, so the card transactions section has nothing to show
+            // When the expense filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then Keyword closes the core section, the empty card section is dropped instead of leaving a stray divider, and report actions keep their order
+            await waitFor(() => {
+                expect(result.current.at(0)?.at(-1)).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+                expect(result.current).toHaveLength(6);
+                expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED);
+                expect(result.current.at(3)).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+                ]);
+            });
+        });
+
+        it('leads the invoice details with the amounts and gives report ID its own section', async () => {
+            // Given no cards, so the invoice card transactions section has nothing to show
+            // When the invoice filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.INVOICE), {wrapper});
+
+            // Then Total and Amount lead the details section, and Report ID sits alone right after it
+            await waitFor(() => {
+                expect(result.current.at(1)?.slice(0, 2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]);
+                expect(result.current.at(2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]);
+            });
+        });
+    });
 });

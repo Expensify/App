@@ -16,7 +16,7 @@ import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getChatReportFromMoneyRequestReport, isInvoiceRoom, isOneOnOneChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, getTransactionDetails, isInvoiceRoom, isOneOnOneChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -32,6 +32,7 @@ import {
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 import {getRouteDistanceMetersMatchingQuantity} from '@libs/TransactionUtils/hasManualMapDistanceOverride';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 
@@ -1226,6 +1227,26 @@ function updateDistanceRateOnExpenseDateChange({
     }
 }
 
+/**
+ * Copies the SmartScan results of a tracked expense into the draft created when it is moved (e.g. "Submit it to
+ * someone"). That draft is a one-off copy taken while the receipt was still scanning, so without this the confirmation
+ * page keeps showing "Scanning…" and would submit the pre-scan values. Values the user already entered on the draft are kept.
+ */
+function copyScanResultsToMovedExpenseDraft(draftTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
+    const transactionID = draftTransaction?.transactionID;
+    if (!transactionID || !sourceTransaction) {
+        return;
+    }
+
+    const {created, amount, currency, merchant} = getTransactionDetails(sourceTransaction) ?? {};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        ...(!draftTransaction.amount ? {amount, currency} : {}),
+        ...(!draftTransaction.isMerchantSet ? {merchant, isMerchantSet: !isInvalidMerchantValue(merchant)} : {}),
+        ...(!draftTransaction.isCreatedSet ? {created} : {}),
+        receipt: {state: sourceTransaction.receipt?.state},
+    });
+}
+
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         reportID,
@@ -1284,4 +1305,5 @@ export {
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
+    copyScanResultsToMovedExpenseDraft,
 };
