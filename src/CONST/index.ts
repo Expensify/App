@@ -3147,6 +3147,7 @@ const CONST = {
     HTTP_STATUS: {
         // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
         UNAUTHORIZED: 401,
+        FORBIDDEN: 403,
         // When Cloudflare throttles
         TOO_MANY_REQUESTS: 429,
         INTERNAL_SERVER_ERROR: 500,
@@ -3214,6 +3215,7 @@ const CONST = {
     },
     NETWORK: {
         METHOD: {
+            HEAD: 'head',
             POST: 'post',
         },
         MIN_RETRY_WAIT_TIME_MS: 10,

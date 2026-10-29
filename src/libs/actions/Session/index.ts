@@ -1452,7 +1452,7 @@ function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
     // Note: It is important to manually set the authToken that is in the store here since
     // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
     // enough to do the updateSessionAuthTokens() call above.
-    NetworkStore.setAuthToken(authToken ?? null);
+    NetworkStore.setAuthToken(authToken ?? null, encryptedAuthToken);
 }
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {

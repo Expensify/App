@@ -1,4 +1,7 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {setAuthToken} from '@libs/Network/NetworkStore';
+
+import CONFIG from '@src/CONFIG';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +21,8 @@ jest.mock('@libs/Prefetch/preparePrefetchRequest', () => ({
     default: () => mockPreparePrefetchRequest(),
 }));
 
+type FetchArguments = [input: Parameters<typeof fetch>[0] | URL, init?: Parameters<typeof fetch>[1]];
+
 const RECONNECT_APP_PREFETCH_KEY = `${WRITE_COMMANDS.RECONNECT_APP}:1`;
 
 function mockUpdateRequiredResponse(isPrefetched: boolean) {
@@ -30,7 +35,7 @@ function mockUpdateRequiredResponse(isPrefetched: boolean) {
 }
 
 function mockFetchResponse(message: string, jsonCode: number = CONST.JSON_CODE.EXP_ERROR) {
-    global.fetch = jest.fn().mockResolvedValue({
+    globalThis.fetch = jest.fn().mockResolvedValue({
         ok: true,
         status: 200,
         headers: {get: () => null},
@@ -98,7 +103,7 @@ describe('HttpUtils', () => {
         mockPreparePrefetchRequest.mockReturnValueOnce({prefetchKey: RECONNECT_APP_PREFETCH_KEY, prefetchHeaders: {prefetchKey: RECONNECT_APP_PREFETCH_KEY}});
         const responses = [mockUpdateRequiredResponse(true), {ok: true, status: 200, headers: {get: () => null}, json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS})}];
         const requestHeaders: Array<HeadersInit | undefined> = [];
-        global.fetch = jest.fn().mockImplementation((_url: string, init: RequestInit) => {
+        globalThis.fetch = jest.fn().mockImplementation((_url: string, init: RequestInit) => {
             requestHeaders.push(init.headers);
             return Promise.resolve(responses.shift());
         });
@@ -117,7 +122,7 @@ describe('HttpUtils', () => {
         // Given the installed build itself is below the server's minimum version, so both the prefetch and the retry get a 426
         mockPreparePrefetchRequest.mockReturnValueOnce({prefetchKey: RECONNECT_APP_PREFETCH_KEY, prefetchHeaders: {prefetchKey: RECONNECT_APP_PREFETCH_KEY}});
         const fetchMock = jest.fn().mockResolvedValueOnce(mockUpdateRequiredResponse(true)).mockResolvedValueOnce(mockUpdateRequiredResponse(false));
-        global.fetch = fetchMock;
+        globalThis.fetch = fetchMock;
 
         // When ReconnectApp is sent
         await HttpUtils.xhr(WRITE_COMMANDS.RECONNECT_APP, {});
@@ -125,5 +130,117 @@ describe('HttpUtils', () => {
         // Then it is retried only once, because the second 426 came from the server, and the user is asked to update
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(mockAlertUser).toHaveBeenCalledTimes(1);
+    });
+
+    describe('attachment HEAD requests', () => {
+        const imageURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}receipts/image.jpg`;
+
+        beforeEach(() => {
+            setAuthToken('api-token', 'image-token');
+        });
+
+        afterEach(() => {
+            jest.clearAllTimers();
+            jest.useRealTimers();
+        });
+
+        it.each([200, 206, 302, 403, 404, 405, 407, 429, 500])('returns HTTP %s without reading a response body', async (status) => {
+            // Given an image response without a body that must not enter JSON API parsing
+            const json = jest.fn();
+            const fetchMock = jest.fn().mockResolvedValue({ok: status >= 200 && status < 300, status, headers: new Headers(), json});
+            globalThis.fetch = fetchMock;
+
+            // When the existing transport sends an authenticated HEAD to the image endpoint
+            const result = await HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD);
+
+            // Then its HTTP status is preserved without FormData, JSON parsing, or startup prefetch
+            expect(result).toEqual({jsonCode: status});
+            expect(json).not.toHaveBeenCalled();
+            expect(fetchMock).toHaveBeenCalledWith(
+                imageURL,
+                expect.objectContaining({method: CONST.NETWORK.METHOD.HEAD, body: null, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: 'image-token'}, credentials: 'omit'}),
+            );
+            expect(mockPreparePrefetchRequest).not.toHaveBeenCalled();
+            expect(mockAlertUser).not.toHaveBeenCalled();
+        });
+
+        it('preserves HTTP 401 for the image-specific expired-session check', async () => {
+            // Given an image endpoint that explicitly rejects its credential
+            globalThis.fetch = jest.fn().mockResolvedValue({status: 401, headers: new Headers()});
+
+            // When the HEAD response is classified
+            const result = await HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD);
+
+            // Then the middleware can distinguish image expiry from a proxy HTTP 407
+            expect(result).toEqual({jsonCode: CONST.HTTP_STATUS.UNAUTHORIZED});
+        });
+
+        it('does not expose image credentials to an untrusted host', async () => {
+            // Given a URL outside the permitted image hosts
+            const fetchMock = jest.fn();
+            globalThis.fetch = fetchMock;
+
+            // When a caller attempts an authenticated HEAD through the transport
+            const result = await HttpUtils.xhr('HeadAttachment', {imageURL: 'https://attacker.example/image.jpg'}, CONST.NETWORK.METHOD.HEAD);
+
+            // Then the transport independently prevents credential leakage
+            expect(result.jsonCode).toBe(CONST.HTTP_STATUS.FORBIDDEN);
+            expect(fetchMock).not.toHaveBeenCalled();
+        });
+
+        it('does not send an obsolete encrypted token after the plain token changes', async () => {
+            // Given a session transition whose encrypted token has not arrived yet
+            setAuthToken('different-api-token');
+            const fetchMock = jest.fn();
+            globalThis.fetch = fetchMock;
+
+            // When an image attempts recovery during that transition
+            const result = await HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD);
+
+            // Then no credential from the prior session is sent
+            expect(result.jsonCode).toBe(CONST.HTTP_STATUS.FORBIDDEN);
+            expect(fetchMock).not.toHaveBeenCalled();
+        });
+
+        it('aborts a stalled HEAD and releases its timeout', async () => {
+            // Given a probe that never produces an HTTP response
+            jest.useFakeTimers();
+            globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation(
+                (input, options) =>
+                    new Promise((resolve, reject) => {
+                        options?.signal?.addEventListener('abort', () => reject(new Error('Probe aborted')));
+                    }),
+            );
+            const probe = HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD);
+            const rejection = expect(probe).rejects.toThrow('Probe aborted');
+
+            // When the per-probe deadline passes
+            await jest.advanceTimersByTimeAsync(CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT);
+            await rejection;
+
+            // Then the caller is released without a lingering timeout
+            expect(jest.getTimerCount()).toBe(0);
+        });
+
+        it('forwards caller cancellation without waiting for the HEAD timeout', async () => {
+            // Given a pending HEAD whose image is being replaced
+            jest.useFakeTimers();
+            const controller = new AbortController();
+            globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation(
+                (input, options) =>
+                    new Promise((resolve, reject) => {
+                        options?.signal?.addEventListener('abort', () => reject(new Error('Image replaced')));
+                    }),
+            );
+            const probe = HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD, false, false, controller.signal);
+            const rejection = expect(probe).rejects.toThrow('Image replaced');
+
+            // When the request generation is cancelled
+            controller.abort();
+            await rejection;
+
+            // Then only this probe is aborted and its timeout is removed
+            expect(jest.getTimerCount()).toBe(0);
+        });
     });
 });

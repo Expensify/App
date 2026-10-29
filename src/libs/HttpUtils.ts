@@ -15,8 +15,10 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
+import canSendAuthTokenToURL from './canSendAuthTokenToURL';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
+import {getEncryptedAuthToken} from './Network/NetworkStore';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
@@ -76,8 +78,7 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
 /**
- * Send an HTTP request, and attempt to resolve the json response.
- * If there is a network error, we'll set the application offline.
+ * Send an HTTP request and resolve its JSON response, or only its status for an image HEAD probe.
  */
 function processHTTPRequest<TKey extends OnyxKey>(
     url: string,
@@ -87,18 +88,29 @@ function processHTTPRequest<TKey extends OnyxKey>(
     shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
+    const isHeadRequest = method === CONST.NETWORK.METHOD.HEAD;
+    const encryptedAuthToken = isHeadRequest ? getEncryptedAuthToken() : undefined;
+    if (isHeadRequest && (abortSignal?.aborted || !encryptedAuthToken || !canSendAuthTokenToURL(url))) {
+        return Promise.resolve({jsonCode: CONST.HTTP_STATUS.FORBIDDEN});
+    }
+    const headController = isHeadRequest ? new AbortController() : undefined;
+    const abortHead = () => headController?.abort();
+    const headTimeout = isHeadRequest ? setTimeout(abortHead, CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT) : undefined;
+    if (isHeadRequest) {
+        abortSignal?.addEventListener('abort', abortHead, {once: true});
+    }
 
     const command = url.match(APICommandRegex)?.[1];
 
-    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
+    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch || isHeadRequest ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
     let isPrefetchedResponse = false;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
-        signal: abortSignal,
+        signal: headController?.signal ?? abortSignal,
         method,
-        body,
-        headers: prefetchHeaders,
+        body: isHeadRequest ? null : body,
+        headers: isHeadRequest ? {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: encryptedAuthToken ?? ''} : prefetchHeaders,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
@@ -106,7 +118,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
-    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
+    if (!isHeadRequest) {
+        registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
+    }
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
     const phaseSpanNames = getRequestPhaseSpanNames(command);
@@ -125,7 +139,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
                     [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
                 });
             }
-            if (response.headers) {
+            if (response.headers && !isHeadRequest) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
                 isPrefetchedResponse = response.headers.get('nitroPrefetched') === 'true';
             }
@@ -148,6 +162,10 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
+            }
+
+            if (isHeadRequest) {
+                return {jsonCode: response.status};
             }
 
             if (!response.ok) {
@@ -196,6 +214,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
             );
         })
         .then((response) => {
+            if (isHeadRequest) {
+                return response;
+            }
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
             if (response.jsonCode === CONST.JSON_CODE.BAD_REQUEST && response.message === CONST.ERROR_TITLE.DUPLICATE_RECORD) {
                 throw new HttpsError({
@@ -259,17 +280,29 @@ function processHTTPRequest<TKey extends OnyxKey>(
             // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
             cancelSpan(waitSpanId);
             cancelSpan(downloadSpanId);
+            if (headController?.signal.aborted) {
+                const cancelledError = new Error(error instanceof Error ? error.message : CONST.ERROR.REQUEST_CANCELLED);
+                cancelledError.name = CONST.ERROR.REQUEST_CANCELLED;
+                throw cancelledError;
+            }
             throw error;
         })
-        .finally(() => markAppStartupNetworkRequestEnd(command));
+        .finally(() => {
+            if (headTimeout !== undefined) {
+                clearTimeout(headTimeout);
+                abortSignal?.removeEventListener('abort', abortHead);
+            }
+            markAppStartupNetworkRequestEnd(command);
+        });
 }
 
 /**
  * Makes XHR request
  * @param command the name of the API command
  * @param data parameters for the API command
- * @param type HTTP request type (get/post)
+ * @param type HTTP request method
  * @param shouldUseSecure should we use the secure server
+ * @param signal optional cancellation for an image HEAD probe
  */
 function xhr<TKey extends OnyxKey>(
     command: string,
@@ -277,7 +310,11 @@ function xhr<TKey extends OnyxKey>(
     type: RequestType = CONST.NETWORK.METHOD.POST,
     shouldUseSecure = false,
     initiatedOffline = false,
+    signal?: AbortSignal,
 ): Promise<Response<TKey>> {
+    if (type === CONST.NETWORK.METHOD.HEAD) {
+        return processHTTPRequest(typeof data.imageURL === 'string' ? data.imageURL : '', type, null, signal);
+    }
     return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
         const url = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;

@@ -1,43 +1,21 @@
+import {makeRequestWithSideEffects} from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import canSendAuthTokenToURL from '@libs/canSendAuthTokenToURL';
+import {getEncryptedAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
-import reauthenticate from '@libs/Reauthentication';
 import type {ReauthenticationResult} from '@libs/Reauthentication';
 
 import CONST from '@src/CONST';
 
-let pendingReauthentication: Promise<ReauthenticationResult> | undefined;
+/** Let the API middleware recover rejected image credentials without a separate authentication flow. */
+async function reauthenticateAttachmentImages(url: string, encryptedAuthToken: string, signal?: AbortSignal): Promise<ReauthenticationResult> {
+    if (getIsOffline() || !canSendAuthTokenToURL(url) || signal?.aborted) {
+        return {wasSuccessful: false};
+    }
 
-/** Share image-triggered authentication so simultaneous failures do not start competing sign-in flows. */
-function reauthenticateAttachmentImages(): Promise<ReauthenticationResult> {
-    if (getIsOffline()) {
-        return Promise.resolve({wasSuccessful: false});
-    }
-    if (!pendingReauthentication) {
-        pendingReauthentication = reauthenticate().finally(() => {
-            pendingReauthentication = undefined;
-        });
-    }
-    return pendingReauthentication;
+    const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT, {imageURL: url}, {}, {signal});
+    const currentToken = getEncryptedAuthToken();
+    return {wasSuccessful: response?.jsonCode === CONST.JSON_CODE.SUCCESS && !!currentToken && currentToken !== encryptedAuthToken};
 }
 
-/** Check the image endpoint directly because the image loader does not expose HTTP status consistently. */
-async function isImageAuthenticationRequired(url: string, encryptedAuthToken: string): Promise<boolean> {
-    if (getIsOffline() || !canSendAuthTokenToURL(url)) {
-        return false;
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT);
-    try {
-        const response = await fetch(url, {
-            method: 'HEAD',
-            headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: encryptedAuthToken},
-            signal: controller.signal,
-        });
-        return response.status === CONST.HTTP_STATUS.UNAUTHORIZED;
-    } finally {
-        clearTimeout(timeout);
-    }
-}
-
-export {isImageAuthenticationRequired, reauthenticateAttachmentImages};
+export default reauthenticateAttachmentImages;

@@ -334,7 +334,7 @@ function reauthenticate(command = ''): Promise<ReauthenticationResult> {
                 // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
                 // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
                 // enough to do the updateSessionAuthTokens() call above.
-                setAuthToken(response.authToken ?? null);
+                setAuthToken(response.authToken ?? null, response.encryptedAuthToken);
 
                 // The authentication process is finished so the network can be unpaused to continue processing requests
                 setIsAuthenticating(false);

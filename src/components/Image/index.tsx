@@ -3,7 +3,7 @@ import {useSession} from '@components/OnyxListItemProvider';
 
 import useNetwork from '@hooks/useNetwork';
 
-import {isImageAuthenticationRequired, reauthenticateAttachmentImages} from '@libs/actions/Session/AttachmentImageReauthenticator';
+import reauthenticateAttachmentImages from '@libs/actions/Session/AttachmentImageReauthenticator';
 import canSendAuthTokenToURL from '@libs/canSendAuthTokenToURL';
 import Log from '@libs/Log';
 
@@ -55,6 +55,7 @@ function Image({
     const {isOffline} = useNetwork();
     const [failedImage, setFailedImage] = useState<FailedImage>();
     const activeRequest = useRef<number>(undefined);
+    const recoveryController = useRef<AbortController>(undefined);
     const imageErrorCallback = useRef<(failedRequestID: number) => void>(undefined);
     const sourceKey =
         typeof propsSource === 'object' && propsSource !== null && 'uri' in propsSource && typeof propsSource.uri === 'string' && Object.keys(propsSource).every((key) => key === 'uri')
@@ -137,8 +138,11 @@ function Image({
 
     useLayoutEffect(() => {
         activeRequest.current = requestID;
+        const controller = new AbortController();
+        recoveryController.current = controller;
         return () => {
             activeRequest.current = undefined;
+            controller.abort();
         };
     }, [requestID]);
 
@@ -168,25 +172,14 @@ function Image({
             return;
         }
 
-        isImageAuthenticationRequired(propsSource.uri ?? '', token)
-            .then((isAuthenticationRequired) => {
-                if (activeRequest.current !== requestID) {
+        reauthenticateAttachmentImages(propsSource.uri ?? '', token, recoveryController.current?.signal)
+            .then(({wasSuccessful}) => {
+                if (wasSuccessful || activeRequest.current !== requestID) {
                     return;
                 }
-                if (!isAuthenticationRequired) {
-                    setFailedImage((current) => (current === imageFailure ? {...current, shouldRetry: false} : current));
-                    onError?.();
-                    return;
-                }
-
-                return reauthenticateAttachmentImages().then(({wasSuccessful}) => {
-                    if (wasSuccessful || activeRequest.current !== requestID) {
-                        return;
-                    }
-                    // A false result may start SAML; a still-mounted image must also leave its loading state.
-                    setFailedImage((current) => (current === imageFailure ? {...current, shouldRetry: false} : current));
-                    onError?.();
-                });
+                // A false result may start SAML; a still-mounted image must also leave its loading state.
+                setFailedImage((current) => (current === imageFailure ? {...current, shouldRetry: false} : current));
+                onError?.();
             })
             .catch((error: unknown) => {
                 if (activeRequest.current !== requestID) {

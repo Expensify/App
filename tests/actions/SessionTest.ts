@@ -865,7 +865,7 @@ describe('Session', () => {
 
             // Then the next authenticated state is seeded before Onyx is cleared without entering the global loading state.
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, {twoFactorAuthCode: '123456'}, expect.any(Object));
-            expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken');
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('newAuthToken', 'newEncryptedAuthToken');
             expect(setAuthTokenSpy.mock.invocationCallOrder.at(0)).toBeLessThan(multiSetSpy.mock.invocationCallOrder.at(0) ?? Number.MAX_SAFE_INTEGER);
             expect(multiSetSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
