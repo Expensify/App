@@ -1,7 +1,7 @@
 /** Builds a CSV from the current period's loaded chart groups, without exporting individual expenses. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
-import isPeriodAfterToday from '@components/Search/isPeriodAfterToday';
+import {isEmptyPeriodAfterToday} from '@components/Search/isPeriodAfterToday';
 import applyRunningTotal from '@components/Search/runningTotal';
 import type {GroupedItem, SearchGroupBy} from '@components/Search/types';
 
@@ -34,12 +34,7 @@ function buildInsightsChartCSV({data, groupBy, dateFilterStart, currency, getCur
     const header = [groupHeader, translate('common.expenses'), translate('common.total'), translate('common.currency')].map(escapeCsvField).join(',');
 
     // Trimmed before the running total, which replaces each period's count with the count so far
-    const lastKeptIndex = getDateRange
-        ? data.findLastIndex((item) => {
-              const start = getDateRange(item)?.start;
-              return !start || !!item.count || !isPeriodAfterToday(start, today, dateFilterStart);
-          })
-        : data.length - 1;
+    const lastKeptIndex = data.findLastIndex((item) => !isEmptyPeriodAfterToday(item, groupBy, today, dateFilterStart));
     const keptData = data.slice(0, lastKeptIndex + 1);
     const exportedData = shouldShowRunningTotal ? applyRunningTotal({data: keptData, groupBy}).data : keptData;
 

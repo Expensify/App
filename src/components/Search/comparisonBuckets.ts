@@ -133,6 +133,11 @@ function getBucketAtSamePosition(bucketStart: Date, periods: ChartComparisonPeri
     return getBucketStart(groupBy, dateInBucket, bucketStart);
 }
 
+/** Returns whether days pair with the same date in the compared period, rather than by their position in it */
+function isPairedByDate(periods: ChartComparisonPeriods, groupBy: TimeGroupBy): periods is ChartComparisonPeriods & {monthsApart: number} {
+    return groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined;
+}
+
 /**
  * Returns the bucket a current bucket is compared with, or undefined when the comparison period has none, like October 31
  * against September, February 29 against a year without one, or a sixth week against a month of five.
@@ -141,7 +146,7 @@ function getCounterpartBucketRange(bucketRange: ChartBucketRange, periods: Chart
     const bucketStart = parseISO(bucketRange.start);
 
     let counterpartStart: Date;
-    if (groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined) {
+    if (isPairedByDate(periods, groupBy)) {
         counterpartStart = subMonths(bucketStart, periods.monthsApart);
         // Going back a month turns October 31 into September 30, since September has no 31st, so that day has no counterpart.
         if (getDate(counterpartStart) !== getDate(bucketStart)) {
@@ -204,9 +209,9 @@ function getComparedBucketLabels(
     const primaryEnd = parseISO(periods.primary.end);
     const patterns = getCalendarNamePatterns(groupBy, primaryStart, primaryEnd);
     // A bucket with no counterpart is named like its neighbors, by the bucket at its position. Days paired by date always share a name.
-    const isPairedByDate = groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined;
     const comparedDate = counterpartRange ? parseISO(counterpartRange.start) : getBucketAtSamePosition(bucketDate, periods, groupBy);
-    const sharedPatterns = patterns && ((!counterpartRange && isPairedByDate) || format(bucketDate, patterns.label) === format(comparedDate, patterns.label)) ? patterns : undefined;
+    const sharedPatterns =
+        patterns && ((!counterpartRange && isPairedByDate(periods, groupBy)) || format(bucketDate, patterns.label) === format(comparedDate, patterns.label)) ? patterns : undefined;
 
     const formatSeriesLabel = (range: ChartBucketRange, period: ChartPeriod) =>
         sharedPatterns ? format(parseISO(range.start), sharedPatterns.seriesLabel, {locale: dateFnsLocale}) : formatDates(clipToPeriod(range, period), dateFnsLocale);
@@ -230,10 +235,9 @@ function getComparedBucketLabels(
 /** Returns the date in the current period a compared bucket lines up with, the counterpart lookup in reverse, so the two can be sorted together */
 function getPositionInPrimaryPeriod(range: ChartBucketRange, periods: ChartComparisonPeriods, groupBy: TimeGroupBy): string {
     const bucketStart = parseISO(range.start);
-    const position =
-        groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined
-            ? addMonths(bucketStart, periods.monthsApart)
-            : BUCKET_ADD[groupBy](parseISO(periods.primary.start), BUCKET_OFFSET[groupBy](bucketStart, parseISO(periods.comparison.start)));
+    const position = isPairedByDate(periods, groupBy)
+        ? addMonths(bucketStart, periods.monthsApart)
+        : BUCKET_ADD[groupBy](parseISO(periods.primary.start), BUCKET_OFFSET[groupBy](bucketStart, parseISO(periods.comparison.start)));
     return format(position, CONST.DATE.FNS_FORMAT_STRING);
 }
 
@@ -251,8 +255,7 @@ function getUnpairedBucketLabels(
     const bucketDate = parseISO(range.start);
     const patterns = getCalendarNamePatterns(groupBy, parseISO(periods.primary.start), parseISO(periods.primary.end));
     // Days paired by date always share a name. Others take a calendar name only if it matches their spot, as paired buckets do.
-    const isPairedByDate = groupBy === CONST.SEARCH.GROUP_BY.DAY && periods.monthsApart !== undefined;
-    if (patterns && (isPairedByDate || format(bucketDate, patterns.label) === format(parseISO(getPositionInPrimaryPeriod(range, periods, groupBy)), patterns.label))) {
+    if (patterns && (isPairedByDate(periods, groupBy) || format(bucketDate, patterns.label) === format(parseISO(getPositionInPrimaryPeriod(range, periods, groupBy)), patterns.label))) {
         return {
             label: format(bucketDate, patterns.label, {locale: dateFnsLocale}),
             shortLabel: format(bucketDate, patterns.shortLabel, {locale: dateFnsLocale}),

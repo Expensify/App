@@ -27,7 +27,7 @@ import {buildChartSeries} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
-import isPeriodAfterToday from './isPeriodAfterToday';
+import isPeriodAfterToday, {isEmptyPeriodAfterToday} from './isPeriodAfterToday';
 import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
 
@@ -97,11 +97,11 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const emptyGroupKeys = new Set(data.filter((item) => !item.count).map((item) => item.keyForList));
-    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
-
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
+    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
+
     const {series, rows} = buildChartSeries({
         data: chartData,
         comparison: chartComparison,
@@ -115,7 +115,7 @@ function SearchChartView({
             const range = getDateRange?.(item);
             return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
-        isEmptyPeriod: (item) => emptyGroupKeys.has(item.keyForList),
+        isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
