@@ -42,14 +42,14 @@ function getListItemRows(
     });
 }
 
-/** A link the user never tapped, such as "I don't have a social security number" for an admin who has one, is not an answer worth a row */
-function isUntappedLink(field: DynamicFormField, values: DynamicFormValues): boolean {
-    return field.type === 'boolean' && field.presentation === 'link' && values[field.key] !== true;
+/** A boolean shown as an opt-out link the user turns on and off, such as "I don't have a social security number" */
+function isLink(field: DynamicFormField): boolean {
+    return field.type === 'boolean' && field.presentation === 'link';
 }
 
-/** The question a tapped link opts out of, such as the SSN that "I don't have a social security number" hides, so the link's row can stand in for it */
+/** The question a link that is on opts out of, such as the SSN that "I don't have a social security number" hides, so the link's row can stand in for it */
 function getOptedOutField(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): DynamicFormField | undefined {
-    if (field.type !== 'boolean' || field.presentation !== 'link' || values[field.key] !== true) {
+    if (!isLink(field) || values[field.key] !== true) {
         return undefined;
     }
     return allFields.find((candidate) => candidate.showWhen?.key === field.key && !isFieldVisible(candidate, values, allFields));
@@ -69,7 +69,8 @@ function getConfirmationItems(
             return [];
         }
 
-        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter((field) => !isUntappedLink(field, values));
+        // A link that is off, such as "I don't have a social security number" for an admin who has one, is not an answer worth a row
+        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter((field) => !isLink(field) || values[field.key] === true);
 
         if (fields.length === 0) {
             return [];

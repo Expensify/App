@@ -224,7 +224,7 @@ describe('getConfirmationItems', () => {
         ];
 
         it('has no row while it is off', () => {
-            // Given an admin who typed an SSN and never tapped the no-SSN link
+            // Given an admin who typed an SSN and left the no-SSN link off
             const values = {ssn: '123451234', hasNoSSN: false};
 
             // When the confirmation sections are built
@@ -234,8 +234,8 @@ describe('getConfirmationItems', () => {
             expect(group.rows.map((row) => row.id)).toEqual(['ssn']);
         });
 
-        it('stands in for the question it hides once it is tapped', () => {
-            // Given an admin who tapped the no-SSN link, which hides the SSN
+        it('stands in for the question it hides while it is on', () => {
+            // Given an admin who turned the no-SSN link on, which hides the SSN
             const values = {ssn: '', hasNoSSN: true};
 
             // When the confirmation sections are built
@@ -246,7 +246,7 @@ describe('getConfirmationItems', () => {
         });
 
         it('keeps its yes or no row when it hides no question', () => {
-            // Given a tapped link that no other field depends on
+            // Given a link that is on with no other field depending on it
             const linkPages: DynamicFormPage[] = [
                 {key: 'consent', title: 'Consent', content: [{key: 'skipNewsletter', type: 'boolean', presentation: 'link', required: false, label: 'Skip the newsletter'}]},
             ];
