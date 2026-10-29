@@ -22,7 +22,7 @@ import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCom
 import type {WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
-import {READ_COMMANDS, WRITE_COMMANDS} from './types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './types';
 import baseWrite from './write';
 import {armTransitionBarrier, createTransitionBarrier, writeWhenReady as baseWriteWhenReady} from './writeWhenReady';
 
@@ -155,9 +155,14 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, T
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
+    requestOptions: Pick<OnyxRequest<TKey>, 'signal'> = {},
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, buildLogParams(command, apiCommandParameters ?? {}));
-    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
+    const request = {...prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData), ...requestOptions};
+    if (command === SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT) {
+        request.type = CONST.NETWORK.METHOD.HEAD;
+        request.commandName = command;
+    }
 
     // Return a promise containing the response from HTTPS
     return processRequest(request, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS);

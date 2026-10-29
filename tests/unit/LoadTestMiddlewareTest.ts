@@ -1,5 +1,6 @@
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import HttpUtils from '@src/libs/HttpUtils';
 import LoadTest from '@src/libs/Middleware/LoadTest';
 import {setLoadTestParameters} from '@src/libs/Network/LoadTestState';
@@ -60,6 +61,16 @@ function getFormBodyAt(index: number): FormData {
 }
 
 describe('LoadTest middleware', () => {
+    it('does not duplicate image authentication probes', async () => {
+        // Given an active load-test window intended for API commands
+        setLoadTestParameters(JSON.stringify({multiplier: 3, expire: FUTURE}));
+
+        // When a status-only image probe passes through the middleware
+        await LoadTest(Promise.resolve({jsonCode: 200}), {command: 'HeadAttachment', type: CONST.NETWORK.METHOD.HEAD}, false);
+
+        // Then no synthetic requests are sent to an image or a nonexistent API command
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
     it('does not fire any duplicate requests when load testing is inactive', async () => {
         // Given the LoadTest middleware is registered and no X-Load-Test parameters are set
         Request.addMiddleware(LoadTest);

@@ -13,7 +13,7 @@ import RequestThrottle from '@libs/RequestThrottle';
 
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
-import type {PaginatedRequest} from '@src/types/onyx/Request';
+import type {PaginatedRequest, RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -61,8 +61,8 @@ function resetReauthentication(): void {
     reauthThrottle.clear();
 }
 
-function isExpiredSessionError(error: unknown): error is HttpsError {
-    return error instanceof HttpsError && Number(error.status) === CONST.JSON_CODE.NOT_AUTHENTICATED;
+function isExpiredSessionError(error: unknown, type?: RequestType): error is HttpsError {
+    return error instanceof HttpsError && Number(error.status) === (type === CONST.NETWORK.METHOD.HEAD ? CONST.HTTP_STATUS.UNAUTHORIZED : CONST.JSON_CODE.NOT_AUTHENTICATED);
 }
 
 // Preserve hard HTTP failures from Authenticate as response-shaped data so the
@@ -98,7 +98,7 @@ function handleExpiredSession<TKey extends OnyxKey>(
     // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
     // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
     // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
-    const skipReauthentication = request?.data?.skipReauthentication;
+    const skipReauthentication = request?.data?.skipReauthentication || request.signal?.aborted;
     if ((!shouldRetry && !apiRequestType) || skipReauthentication) {
         if (isFromSequentialQueue) {
             return Promise.resolve(data);
@@ -137,6 +137,10 @@ function handleExpiredSession<TKey extends OnyxKey>(
             }
 
             if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                if (request.type === CONST.NETWORK.METHOD.HEAD) {
+                    // A rejected replacement token must not start another image authentication cycle.
+                    request.data = {...request.data, skipReauthentication: true};
+                }
                 return processWithMiddleware(request, isFromSequentialQueue);
             }
 
@@ -167,7 +171,8 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                 return;
             }
 
-            if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+            const isExpiredSession = request.type === CONST.NETWORK.METHOD.HEAD ? data.jsonCode === CONST.HTTP_STATUS.UNAUTHORIZED : data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED;
+            if (isExpiredSession) {
                 return handleExpiredSession(request, isFromSequentialQueue, data);
             }
 
@@ -183,7 +188,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
             return data;
         })
         .catch((error) => {
-            if (isExpiredSessionError(error)) {
+            if (isExpiredSessionError(error, request.type)) {
                 return Promise.resolve()
                     .then(() => handleExpiredSession(request, isFromSequentialQueue))
                     .catch((reauthenticationError) => {
