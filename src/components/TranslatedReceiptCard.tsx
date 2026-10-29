@@ -75,7 +75,7 @@ function TranslatedReceiptCard({rows}: TranslatedReceiptCardProps) {
     return (
         <ScrollView
             style={styles.w100}
-            contentContainerStyle={[styles.alignItemsCenter, styles.ph5]}
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5]}
         >
             <View style={[styles.translatedReceiptCard, styles.highlightBG, styles.p10]}>
                 {rows.map((row, index) => {
