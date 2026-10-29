@@ -700,6 +700,7 @@ describe('useTodoCounts', () => {
                 reportAttributes,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
             const reportIDs = Object.keys(reportsToDisplay).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));
 
