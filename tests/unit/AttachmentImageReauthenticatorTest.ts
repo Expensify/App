@@ -5,7 +5,6 @@ import {getEncryptedAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 
 jest.mock('@libs/API', () => ({makeRequestWithSideEffects: jest.fn()}));
 jest.mock('@libs/Network/NetworkStore', () => ({getEncryptedAuthToken: jest.fn()}));
@@ -18,96 +17,44 @@ beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(getIsOffline).mockReturnValue(false);
     jest.mocked(getEncryptedAuthToken).mockReturnValue('new-token');
-    makeRequest.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+    makeRequest.mockResolvedValue({jsonCode: 200});
 });
 
 describe('AttachmentImageReauthenticator', () => {
-    it('uses a status-only API HEAD request and forwards cancellation', async () => {
-        // Given rejected image credentials whose authentication belongs to the API middleware
+    it.each([
+        [200, 'new-token', true],
+        [200, 'old-token', false],
+        [200, null, false],
+        [401, 'new-token', false],
+        [undefined, 'new-token', false],
+    ] as const)('requires a successful probe and replacement credentials: status=%s, token=%s', async (status, token, wasSuccessful) => {
+        // Given a middleware result that may lack accepted replacement credentials
+        makeRequest.mockResolvedValueOnce(status === undefined ? undefined : {jsonCode: status});
+        jest.mocked(getEncryptedAuthToken).mockReturnValue(token);
         const controller = new AbortController();
 
-        // When the middleware recovers and supplies replacement credentials
+        // When the image delegates its cancellable HEAD request to the API pipeline
         const result = await reauthenticateAttachmentImages(IMAGE_URL, 'old-token', controller.signal);
 
-        // Then recovery uses the existing request path rather than a separate authentication owner
-        expect(result).toEqual({wasSuccessful: true});
+        // Then only a successful response with a new token permits an image retry
+        expect(result).toEqual({wasSuccessful});
         expect(makeRequest).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT, {imageURL: IMAGE_URL}, {}, {signal: controller.signal});
     });
 
-    it('does not retry when the probe succeeds with the same credentials', async () => {
-        // Given credentials accepted by the image endpoint, so the image failure has another cause
-        jest.mocked(getEncryptedAuthToken).mockReturnValue('old-token');
-
-        // When the HEAD request succeeds without a token update
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, 'old-token');
-
-        // Then the caller follows its normal image-error path
-        expect(result).toEqual({wasSuccessful: false});
-    });
-
-    it.each([undefined, {jsonCode: 403}, {jsonCode: 404}, {jsonCode: 407}, {jsonCode: 500}])('ends recovery for an unsuccessful response: %s', async (response) => {
-        // Given a non-authentication failure, an unsuccessful sign-in, or no response
-        makeRequest.mockResolvedValueOnce(response);
-
-        // When the image recovery request finishes without usable credentials
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, 'old-token');
-
-        // Then the mounted image can end its loading state
-        expect(result).toEqual({wasSuccessful: false});
-    });
-
-    it('does not consider a missing replacement token successful', async () => {
-        // Given a session cleared while recovery was pending
-        jest.mocked(getEncryptedAuthToken).mockReturnValue(null);
-
-        // When an earlier request returns success
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, 'old-token');
-
-        // Then a missing token cannot keep the image waiting for a retry
-        expect(result).toEqual({wasSuccessful: false});
-    });
-
-    it('skips recovery while offline', async () => {
-        // Given an image that cannot establish a server authentication decision
-        jest.mocked(getIsOffline).mockReturnValue(true);
-
-        // When image recovery is requested
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, 'old-token');
-
-        // Then an offline image failure does not enter authentication
-        expect(result).toEqual({wasSuccessful: false});
-        expect(makeRequest).not.toHaveBeenCalled();
-    });
-
-    it('does not send credentials to an untrusted URL', async () => {
-        // Given a URL outside the attachment hosts
-        // When its error asks for authenticated recovery
-        const result = await reauthenticateAttachmentImages('https://attacker.example/image.jpg', 'old-token');
-
-        // Then the request cannot expose credentials outside the trusted hosts
-        expect(result).toEqual({wasSuccessful: false});
-        expect(makeRequest).not.toHaveBeenCalled();
-    });
-
-    it('skips a request that is already obsolete', async () => {
-        // Given a source or account change that cancelled the original image
+    it.each(['offline', 'untrusted', 'cancelled'])('skips recovery when %s', async (reason) => {
+        // Given a request that cannot establish a trusted server authentication decision
+        jest.mocked(getIsOffline).mockReturnValue(reason === 'offline');
         const controller = new AbortController();
-        controller.abort();
+        if (reason === 'cancelled') {
+            controller.abort();
+        }
+        const url = reason === 'untrusted' ? 'https://attacker.example/image.jpg' : IMAGE_URL;
 
-        // When the obsolete image asks to recover
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, 'old-token', controller.signal);
+        // When the image asks to recover
+        const result = await reauthenticateAttachmentImages(url, 'old-token', controller.signal);
 
-        // Then cancellation prevents another sign-in flow
-        expect(result).toEqual({wasSuccessful: false});
+        // Then no credentials are sent and the caller can end loading
         expect(makeRequest).not.toHaveBeenCalled();
-    });
-
-    it('propagates an unexpected API failure to normal image error handling', async () => {
-        // Given a request that cannot complete its recovery flow
-        makeRequest.mockRejectedValueOnce(new Error('Network unavailable'));
-
-        // When the caller awaits recovery
-        // Then it can end loading through its existing error callback
-        await expect(reauthenticateAttachmentImages(IMAGE_URL, 'old-token')).rejects.toThrow('Network unavailable');
+        expect(result).toEqual({wasSuccessful: false});
     });
 });

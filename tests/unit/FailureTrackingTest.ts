@@ -11,29 +11,6 @@ jest.mock('@src/libs/Log');
 const request: Request<OnyxKey> = {command: 'FailureTrackingTest'};
 
 describe('FailureTracking middleware', () => {
-    test('does not count an image-only CORS failure as an API failure', async () => {
-        // Given a HEAD probe that fails independently of ordinary API connectivity
-        reset();
-        const error = new Error(CONST.ERROR.FAILED_TO_FETCH);
-
-        // When failure tracking observes this image request
-        await expect(FailureTracking(Promise.reject(error), {...request, type: CONST.NETWORK.METHOD.HEAD}, false)).rejects.toThrow(error);
-
-        // Then image-specific failures do not mark the API unreachable
-        expect(getFailureCount()).toBe(0);
-    });
-
-    test('does not clear API failures after a successful image HEAD', async () => {
-        // Given an API failure that an image response cannot disprove
-        reset();
-        recordFailure();
-
-        // When the image endpoint remains reachable
-        await FailureTracking(Promise.resolve({jsonCode: 200}), {...request, type: CONST.NETWORK.METHOD.HEAD}, false);
-
-        // Then API health remains based on API requests rather than image probes
-        expect(getFailureCount()).toBe(1);
-    });
     beforeEach(() => {
         reset();
         jest.restoreAllMocks();

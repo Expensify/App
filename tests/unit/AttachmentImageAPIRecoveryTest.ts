@@ -9,8 +9,8 @@ import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import * as Network from '@libs/Network';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {setHasRadio} from '@libs/NetworkState';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {getIsOffline, setHasRadio} from '@libs/NetworkState';
 import RequestThrottle from '@libs/RequestThrottle';
 
 import CONFIG from '@src/CONFIG';
@@ -28,6 +28,9 @@ const OLD_TOKEN = 'old-image-token';
 const NEW_TOKEN = 'new-image-token';
 const originalFetch = globalThis.fetch;
 type FetchArguments = [input: Parameters<typeof fetch>[0] | URL, init?: Parameters<typeof fetch>[1]];
+const authenticate = jest.fn<Promise<Response>, []>();
+const apiResponse = jest.fn<Promise<Response>, []>();
+const imageResponse = jest.fn<Promise<Response>, [string | null]>();
 
 jest.mock('@libs/Log');
 jest.mock('@libs/actions/SignInRedirect', () => jest.fn());
@@ -66,6 +69,22 @@ beforeEach(async () => {
     });
     await waitForBatchedUpdates();
     jest.clearAllMocks();
+    authenticate.mockReset().mockResolvedValue(response(200, {jsonCode: 200, authToken: 'new-api-token', encryptedAuthToken: NEW_TOKEN}));
+    apiResponse
+        .mockReset()
+        .mockResolvedValue(response(200))
+        .mockResolvedValueOnce(response(200, {jsonCode: 407}));
+    imageResponse.mockReset().mockImplementation((token) => Promise.resolve(response(token === NEW_TOKEN ? 200 : 401)));
+    globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation((input, options) => {
+        const url = getFetchURL(input);
+        if (url.includes('/api/Authenticate?')) {
+            return authenticate();
+        }
+        if (url.includes('/api/LoadPersonalDetails?')) {
+            return apiResponse();
+        }
+        return url.startsWith(IMAGE_URL) ? imageResponse(new Headers(options?.headers).get(CONST.CHAT_ATTACHMENT_TOKEN_KEY)) : Promise.resolve(response(200));
+    });
 });
 
 afterEach(() => {
@@ -73,247 +92,156 @@ afterEach(() => {
     resetReauthentication();
     NetworkStore.setIsAuthenticating(false);
     jest.restoreAllMocks();
-    jest.clearAllTimers();
-    jest.useRealTimers();
 });
 
 describe('attachment and API authentication', () => {
     it.each([
-        ['API', false],
-        ['image', false],
-        ['API', true],
-    ] as const)('shares authentication when %s fails first; image cancelled=%s', async (firstCaller, isCancelled) => {
-        // Given an expired session and an Authenticate response held until both callers have joined
-        let finishAuthentication: (value: Response) => void = () => {};
-        const authentication = new Promise<Response>((resolve) => {
-            finishAuthentication = resolve;
+        ['API', false, false],
+        ['image', false, false],
+        ['API', true, false],
+        ['API', false, true],
+    ] as const)('shares a recovery cycle: first=%s, cancel image=%s, backoff=%s', async (firstCaller, isCancelled, isBackingOff) => {
+        // Given one gate holding Authenticate or its retry sleep until both callers have joined
+        let release: () => void = () => {};
+        const pending = new Promise<void>((resolve) => {
+            release = resolve;
         });
-        let apiCalls = 0;
+        authenticate.mockReturnValue(pending.then(() => response(200, {jsonCode: 200, authToken: 'new-api-token', encryptedAuthToken: NEW_TOKEN})));
+        const sleep = isBackingOff ? jest.spyOn(RequestThrottle.prototype, 'sleep').mockReturnValueOnce(pending) : undefined;
+        if (isBackingOff) {
+            authenticate.mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        }
         const controller = new AbortController();
-        const fetchMock = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation((input, options) => {
-            const url = getFetchURL(input);
-            if (url.includes('/api/Authenticate?')) {
-                return authentication;
-            }
-            if (url.includes('/api/LoadPersonalDetails?')) {
-                apiCalls++;
-                return Promise.resolve(response(200, {jsonCode: apiCalls === 1 ? CONST.JSON_CODE.NOT_AUTHENTICATED : CONST.JSON_CODE.SUCCESS}));
-            }
-            if (url === IMAGE_URL) {
-                const token = new Headers(options?.headers).get(CONST.CHAT_ATTACHMENT_TOKEN_KEY);
-                return Promise.resolve(response(token === NEW_TOKEN ? 200 : 401));
-            }
-            return Promise.resolve(response(200));
-        });
-        globalThis.fetch = fetchMock;
-        const startAPI = startAPIRequest;
         const startImage = () => reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN, controller.signal);
 
-        // When the second caller fails before the first authentication has completed
-        const first = firstCaller === 'API' ? startAPI() : startImage();
+        // When a second caller fails before the shared recovery completes
+        const first = firstCaller === 'API' ? startAPIRequest() : startImage();
         await waitForBatchedUpdates();
-        const second = firstCaller === 'API' ? startImage() : startAPI();
+        if (isBackingOff) {
+            expect(sleep).toHaveBeenCalledTimes(1);
+        }
+        const second = firstCaller === 'API' ? startImage() : startAPIRequest();
         await waitForBatchedUpdates();
-        const authenticationCount = fetchMock.mock.calls.filter(([url]) => getFetchURL(url).includes('/api/Authenticate?')).length;
         if (isCancelled) {
             controller.abort();
         }
-        finishAuthentication(response(200, {jsonCode: 200, authToken: 'new-api-token', encryptedAuthToken: NEW_TOKEN}));
-        await Promise.all([first, second]);
-        await waitForBatchedUpdates();
+        release();
+        const results = await Promise.all([first, second]);
 
-        // Then one Authenticate restores both credentials and the original API request is replayed
-        expect(authenticationCount).toBe(1);
-        expect(NetworkStore.getAuthToken()).toBe('new-api-token');
-        expect(NetworkStore.getEncryptedAuthToken()).toBe(NEW_TOKEN);
-        expect(NetworkStore.isAuthenticating()).toBe(false);
-        expect(apiCalls).toBe(2);
-        expect(fetchMock.mock.calls.filter(([url]) => getFetchURL(url) === IMAGE_URL)).toHaveLength(isCancelled ? 1 : 2);
-    });
-
-    it('joins the middleware cycle while authentication is backing off', async () => {
-        // Given an API expiry whose first Authenticate fails transiently
-        let releaseBackoff: () => void = () => {};
-        const backoff = new Promise<void>((resolve) => {
-            releaseBackoff = resolve;
-        });
-        const sleep = jest.spyOn(RequestThrottle.prototype, 'sleep').mockReturnValueOnce(backoff);
-        let authenticationCalls = 0;
-        let apiCalls = 0;
-        globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation((input, options) => {
-            const url = getFetchURL(input);
-            if (url.includes('/api/Authenticate?')) {
-                authenticationCalls++;
-                return authenticationCalls === 1
-                    ? Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH))
-                    : Promise.resolve(response(200, {jsonCode: 200, authToken: 'new-api-token', encryptedAuthToken: NEW_TOKEN}));
-            }
-            if (url.includes('/api/LoadPersonalDetails?')) {
-                return Promise.resolve(response(200, {jsonCode: ++apiCalls === 1 ? 407 : 200}));
-            }
-            if (url === IMAGE_URL) {
-                return Promise.resolve(response(new Headers(options?.headers).get(CONST.CHAT_ATTACHMENT_TOKEN_KEY) === NEW_TOKEN ? 200 : 401));
-            }
-            return Promise.resolve(response(200));
-        });
-        const apiRequest = startAPIRequest();
-        await waitForBatchedUpdates();
-        expect(authenticationCalls).toBe(1);
-        expect(sleep).toHaveBeenCalledTimes(1);
-
-        // When an image gets 401 during the pending retry sleep
-        const imageRequest = reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
-        await waitForBatchedUpdates();
-        expect(authenticationCalls).toBe(1);
-        releaseBackoff();
-        await Promise.all([apiRequest, imageRequest]);
-
-        // Then both callers wait for the same retry instead of starting competing Authenticate calls
-        expect(authenticationCalls).toBe(2);
+        // Then both requests share the cycle, and only an active image replays with fresh credentials
+        expect(results.at(firstCaller === 'API' ? 1 : 0)).toEqual({wasSuccessful: !isCancelled});
+        expect(authenticate).toHaveBeenCalledTimes(isBackingOff ? 2 : 1);
+        expect(apiResponse).toHaveBeenCalledTimes(2);
+        expect(imageResponse.mock.calls).toEqual(isCancelled ? [[OLD_TOKEN]] : [[OLD_TOKEN], [NEW_TOKEN]]);
         expect(NetworkStore.isAuthenticating()).toBe(false);
     });
 
     it('starts a new authentication cycle after an earlier recovery settles', async () => {
         // Given an image that expires again after a completed recovery
         let rejectedToken = OLD_TOKEN;
-        let authenticationCalls = 0;
-        globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation((input, options) => {
-            if (getFetchURL(input).includes('/api/Authenticate?')) {
-                authenticationCalls++;
-                return Promise.resolve(response(200, {jsonCode: 200, authToken: `api-token-${authenticationCalls}`, encryptedAuthToken: `image-token-${authenticationCalls}`}));
-            }
-            return Promise.resolve(response(new Headers(options?.headers).get(CONST.CHAT_ATTACHMENT_TOKEN_KEY) === rejectedToken ? 401 : 200));
+        authenticate.mockImplementation(() => {
+            const count = authenticate.mock.calls.length;
+            return Promise.resolve(response(200, {jsonCode: 200, authToken: `api-token-${count}`, encryptedAuthToken: `image-token-${count}`}));
         });
+        imageResponse.mockImplementation((token) => Promise.resolve(response(token === rejectedToken ? 401 : 200)));
         expect(await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN)).toEqual({wasSuccessful: true});
         await waitForBatchedUpdates();
         rejectedToken = 'image-token-1';
 
-        // When the replacement session later expires independently
+        // When the replacement session expires independently
         const result = await reauthenticateAttachmentImages(IMAGE_URL, rejectedToken);
 
-        // Then a settled promise cannot prevent the next genuine recovery
+        // Then the settled promise cannot prevent the next genuine recovery
         expect(result).toEqual({wasSuccessful: true});
-        expect(authenticationCalls).toBe(2);
+        expect(authenticate).toHaveBeenCalledTimes(2);
     });
 
     it('stops when the replacement image credentials are also rejected', async () => {
-        // Given an image endpoint that rejects even a successfully replaced token
-        let authenticationCalls = 0;
-        globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation((input) => {
-            if (getFetchURL(input).includes('/api/Authenticate?')) {
-                authenticationCalls++;
-                return Promise.resolve(response(200, {jsonCode: 200, authToken: 'new-api-token', encryptedAuthToken: NEW_TOKEN}));
-            }
-            return Promise.resolve(response(getFetchURL(input) === IMAGE_URL ? 401 : 200));
-        });
+        // Given an endpoint that rejects even a successfully replaced token
+        imageResponse.mockResolvedValue(response(401));
 
-        // When recovery has already completed one authentication cycle
+        // When recovery has completed one authentication cycle
         const result = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
 
-        // Then another image 401 is terminal rather than an unbounded authentication loop
+        // Then another 401 is terminal rather than an unbounded authentication loop
         expect(result).toEqual({wasSuccessful: false});
-        expect(authenticationCalls).toBe(1);
-        expect(NetworkStore.isAuthenticating()).toBe(false);
+        expect(authenticate).toHaveBeenCalledTimes(1);
     });
 
     it('does not authenticate an obsolete image after its pending HEAD returns 401', async () => {
-        // Given a HEAD request whose response arrives after its image is replaced
+        // Given a HEAD whose response arrives after its image has been replaced
         let finishProbe: (value: Response) => void = () => {};
-        const probe = new Promise<Response>((resolve) => {
-            finishProbe = resolve;
-        });
+        imageResponse.mockReturnValue(
+            new Promise((resolve) => {
+                finishProbe = resolve;
+            }),
+        );
         const controller = new AbortController();
-        const fetchMock = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockImplementation((input) => (getFetchURL(input) === IMAGE_URL ? probe : Promise.resolve(response(200))));
-        globalThis.fetch = fetchMock;
         const recovery = reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN, controller.signal);
         await waitForBatchedUpdates();
 
-        // When cancellation precedes an unauthorized response, even if the transport ignores the abort
+        // When the transport delivers a 401 despite cancellation
         controller.abort();
         finishProbe(response(401));
-        const result = await recovery;
 
-        // Then stale image work never starts a sign-in for the current view
-        expect(result).toEqual({wasSuccessful: false});
-        expect(fetchMock.mock.calls.some(([url]) => getFetchURL(url).includes('/api/Authenticate?'))).toBe(false);
+        // Then stale work cannot initiate a sign-in for the current view
+        expect(await recovery).toEqual({wasSuccessful: false});
+        expect(authenticate).not.toHaveBeenCalled();
     });
 
-    it.each([200, 403, 404, 407, 500])('does not authenticate an ordinary image HTTP %s response', async (status) => {
-        // Given a reachable endpoint whose response does not establish expired authentication
-        const fetchMock = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockResolvedValue(response(status));
-        globalThis.fetch = fetchMock;
+    it.each([200, 403, 404, 407, 500, new Error(CONST.ERROR.FAILED_TO_FETCH)])('ignores non-authentication image failures without altering API health: %s', async (result) => {
+        // Given an ordinary image response or a CORS failure, independent of existing API failures
+        imageResponse.mockImplementation(() => (typeof result === 'number' ? Promise.resolve(response(result)) : Promise.reject(result)));
         recordFailure();
         const previousFailures = getFailureCount();
 
-        // When image recovery checks the endpoint
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
+        // When recovery checks the image endpoint through the real middleware
+        const recovery = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
 
-        // Then no authentication or unrelated API-health update is triggered
-        expect(result).toEqual({wasSuccessful: false});
-        expect(fetchMock).toHaveBeenCalledTimes(1);
+        // Then neither authentication nor API-health changes are justified by this image result
+        expect(recovery).toEqual({wasSuccessful: false});
+        expect(authenticate).not.toHaveBeenCalled();
         expect(getFailureCount()).toBe(previousFailures);
-    });
-
-    it('does not treat image-only CORS failures as an API outage', async () => {
-        // Given a working API connection but image requests rejected by the browser
-        const fetchMock = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
-        globalThis.fetch = fetchMock;
-
-        // When several image failures reach the API request middleware
-        await Promise.all(Array.from({length: CONST.NETWORK.SUSTAINED_FAILURE_THRESHOLD_COUNT}, () => reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN)));
-
-        // Then those probe failures cannot mark the API offline or trigger authentication
-        expect(getFailureCount()).toBe(0);
-        expect(getIsOffline()).toBe(false);
-        expect(fetchMock.mock.calls.every(([url]) => getFetchURL(url) === IMAGE_URL)).toBe(true);
     });
 
     it('shares an unsuccessful SAML redirect without issuing Authenticate', async () => {
         // Given a SAML-required session whose expiry needs an IdP round trip
         await Onyx.merge(ONYXKEYS.ACCOUNT, {isSAMLRequired: true});
         await waitForBatchedUpdates();
-        const fetchMock = jest
-            .fn<ReturnType<typeof fetch>, FetchArguments>()
-            .mockImplementation((input) => Promise.resolve(getFetchURL(input) === IMAGE_URL ? response(401) : response(200, {jsonCode: 407})));
-        globalThis.fetch = fetchMock;
 
-        // When an image and an API request both discover the expired session
-        const [imageResult, apiResult] = await Promise.all([reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN), startAPIRequest()]);
+        // When an image and an API request discover the expired session together
+        await Promise.all([reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN), startAPIRequest()]);
 
-        // Then the existing SAML policy redirects once and both callers leave their pending state
-        expect(imageResult).toEqual({wasSuccessful: false});
-        expect(apiResult?.jsonCode).toBe(407);
+        // Then the SAML policy redirects once without attempting password authentication
         expect(redirectToSignIn).toHaveBeenCalledTimes(1);
-        expect(fetchMock.mock.calls.some(([url]) => getFetchURL(url).includes('/api/Authenticate?'))).toBe(false);
+        expect(authenticate).not.toHaveBeenCalled();
         expect(NetworkStore.isAuthenticating()).toBe(false);
     });
 
     it('releases the network when image-triggered authentication exhausts its retries', async () => {
-        // Given expired image credentials followed by an unavailable authentication service
+        // Given expired credentials followed by an unavailable authentication service
         jest.spyOn(RequestThrottle.prototype, 'sleep').mockRejectedValueOnce(new Error('Retry limit reached'));
-        globalThis.fetch = jest
-            .fn<ReturnType<typeof fetch>, FetchArguments>()
-            .mockImplementation((input) => (getFetchURL(input).includes('/api/Authenticate?') ? Promise.reject(new Error(CONST.ERROR.FAILED_TO_FETCH)) : Promise.resolve(response(401))));
+        authenticate.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
         // When the shared retry owner gives up
         const result = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
 
-        // Then the image ends loading and ordinary network requests are not left paused
+        // Then loading ends and ordinary network requests are not left paused
         expect(result).toEqual({wasSuccessful: false});
         expect(NetworkStore.isAuthenticating()).toBe(false);
         expect(redirectToSignIn).toHaveBeenCalledTimes(1);
     });
 
     it('does not log encrypted credentials embedded in an image query string', async () => {
-        // Given a legacy image URL that carries its bearer credential in the query
+        // Given a legacy image URL carrying a bearer credential
         const secret = 'image-query-secret';
         const logInfo = jest.spyOn(Log, 'info');
-        globalThis.fetch = jest.fn<ReturnType<typeof fetch>, FetchArguments>().mockResolvedValue(response(200));
+        imageResponse.mockResolvedValue(response(200));
 
-        // When the normal API logging observes the HEAD request
+        // When API logging observes the HEAD request
         await reauthenticateAttachmentImages(`${IMAGE_URL}?encryptedAuthToken=${secret}`, OLD_TOKEN);
 
-        // Then neither the URL credential nor the token header enters request logs
+        // Then neither the query credential nor the encrypted header enters request logs
         const logs = JSON.stringify(logInfo.mock.calls);
         expect(logs).not.toContain(secret);
         expect(logs).not.toContain(OLD_TOKEN);

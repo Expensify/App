@@ -7,57 +7,31 @@ const MOCK_URI = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}receipts/w_receipt.jpg`;
 const MOCK_TOKEN = 'encrypted-token';
 
 describe('getImageSource', () => {
-    it('returns the original source for images that do not require auth', () => {
-        // Given a public image that must not receive session credentials
-        const propsSource = {uri: MOCK_URI};
-
-        // When preparing it while an encrypted token is available
-        const source = getImageSource({propsSource, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: false});
-
-        // Then its source is unchanged
-        expect(source).toBe(propsSource);
-    });
-
-    it('adds the token header and a stable cache key without estimating token expiry', () => {
+    it('adds the token header and a stable cache key without estimating expiry', () => {
         // Given a receipt whose token validity can only be determined by the server
         const propsSource = {uri: MOCK_URI};
 
         // When preparing its authenticated request
         const source = getImageSource({propsSource, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true});
 
-        // Then the loader can try the token, without putting it into the cache key or URL
+        // Then the loader can try the token without including it in the cache key or URL
         expect(source).toEqual({...propsSource, cacheKey: MOCK_URI, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: MOCK_TOKEN}});
     });
 
-    it('preserves sources when there is no encrypted token', () => {
-        // Given a source before the session has hydrated
-        const propsSource = {uri: MOCK_URI};
-
-        // When preparing it without credentials
-        const source = getImageSource({propsSource, encryptedAuthToken: undefined, isAuthTokenRequired: true});
-
-        // Then no fabricated token is sent
-        expect(source).toBe(propsSource);
-    });
-
-    it('does not send credentials to an image outside Expensify', () => {
-        // Given an untrusted image marked as requiring authentication
-        const propsSource = {uri: 'https://attacker.example/receipt.jpg'};
-
-        // When preparing its source with an available token
-        const source = getImageSource({propsSource, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true});
-
-        // Then the remote host cannot receive the token
-        expect(source).toBe(propsSource);
-    });
-
-    it.each([undefined, 42, [{uri: MOCK_URI}]])('preserves non-URI sources: %s', (propsSource) => {
-        // Given a source that does not describe an individual remote image
+    it.each<Parameters<typeof getImageSource>[0]>([
+        {propsSource: {uri: MOCK_URI}, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: false},
+        {propsSource: {uri: MOCK_URI}, encryptedAuthToken: undefined, isAuthTokenRequired: true},
+        {propsSource: {uri: 'https://attacker.example/receipt.jpg'}, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true},
+        {propsSource: undefined, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true},
+        {propsSource: 42, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true},
+        {propsSource: [{uri: MOCK_URI}], encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true},
+    ])('preserves the source when credentials are inapplicable: %j', (params) => {
+        // Given a native, public or untrusted source, or a session awaiting hydration
         // When preparing it for the loader
-        const source = getImageSource({propsSource, encryptedAuthToken: MOCK_TOKEN, isAuthTokenRequired: true});
+        const source = getImageSource(params);
 
-        // Then the loader retains its native source representation
-        expect(source).toBe(propsSource);
+        // Then neither credentials nor a new source identity are introduced
+        expect(source).toBe(params.propsSource);
     });
 
     it('preserves numeric object URIs', () => {

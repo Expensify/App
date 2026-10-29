@@ -48,6 +48,11 @@ function TestImage({session = SESSION, isOffline = false, source = SOURCE, ...pr
     );
 }
 
+function renderImage(props: TestImageProps = {}) {
+    const {rerender, unmount} = render(<TestImage {...props} />);
+    return {unmount, rerenderImage: (nextProps: TestImageProps = {}) => rerender(<TestImage {...nextProps} />)};
+}
+
 function imageProps(uri = SOURCE.uri) {
     return jest.mocked(BaseImage).mock.calls.findLast(([props]) => typeof props.source === 'object' && props.source !== null && 'uri' in props.source && props.source.uri === uri)?.[0];
 }
@@ -64,52 +69,47 @@ describe('Image authentication recovery', () => {
         jest.useFakeTimers();
         jest.setSystemTime(NOW);
         jest.clearAllMocks();
-
-        jest.mocked(reauthenticateAttachmentImages).mockResolvedValue({wasSuccessful: true});
+        jest.mocked(reauthenticateAttachmentImages).mockReset().mockResolvedValue({wasSuccessful: true});
     });
 
     afterEach(() => {
         jest.useRealTimers();
     });
 
-    it.each([undefined, SESSION.creationDate])('loads an image without preemptive authentication when creationDate is %s', (creationDate) => {
-        // Given an account whose client timestamp cannot establish token validity
-        // When rendering its first authenticated image
-        render(<TestImage session={{...SESSION, creationDate}} />);
+    it.each([undefined, SESSION.creationDate])('loads without preemptive authentication when creationDate is %s', (creationDate) => {
+        // Given a timestamp that cannot establish token validity
+        // When the first authenticated image renders
+        renderImage({session: {...SESSION, creationDate}});
 
-        // Then the image server decides validity before any authentication request
-        expect(imageProps()?.source).toEqual({...SOURCE, cacheKey: SOURCE.uri, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: SESSION.encryptedAuthToken}});
+        // Then existing credentials reach the loader before any authentication request
+        expect(imageProps()?.source).toHaveProperty(['headers', CONST.CHAT_ATTACHMENT_TOKEN_KEY], SESSION.encryptedAuthToken);
         expect(reauthenticateAttachmentImages).not.toHaveBeenCalled();
     });
 
-    it('delegates authentication classification and recovery to the API path', async () => {
-        // Given a authenticated image whose loader does not expose the HTTP failure status
+    it.each([false, true])('delegates recovery to the API path for either account type; SAML=%s', async (signedInWithSAML) => {
+        // Given an authenticated image whose loader does not expose the HTTP failure status
         const onError = jest.fn();
         const waitForSession = jest.fn();
-        render(
-            <TestImage
-                onError={onError}
-                waitForSession={waitForSession}
-            />,
-        );
-        const originalSource = imageProps()?.source;
+        renderImage({session: {...SESSION, signedInWithSAML}, onError, waitForSession});
 
-        // When loading fails and the authenticated HEAD probe confirms a 401
+        // When the image fails but recovery is still permitted
         await failImage();
 
-        // Then the existing IdP flow starts only after checking the image endpoint
+        // Then classification belongs to the API helper and the caller waits rather than ending loading
         expect(reauthenticateAttachmentImages).toHaveBeenCalledWith(SOURCE.uri, SESSION.encryptedAuthToken, expect.any(AbortSignal));
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
         expect(waitForSession).toHaveBeenCalledTimes(1);
         expect(onError).not.toHaveBeenCalled();
-        expect(imageProps()?.source).toBe(originalSource);
     });
 
-    it('retries only the failed authenticated image when session tokens change', async () => {
+    it('retries only the failed image once while keeping successful sources stable', async () => {
         // Given two images, only one of which reports an error
+        const onError = jest.fn();
         const tree = (session: Session) => (
             <>
-                <TestImage session={session} />
+                <TestImage
+                    session={session}
+                    onError={onError}
+                />
                 <TestImage
                     session={session}
                     source={OTHER_SOURCE}
@@ -120,353 +120,182 @@ describe('Image authentication recovery', () => {
         const successfulSource = imageProps(OTHER_SOURCE.uri)?.source;
         await failImage();
 
-        // When authentication or another API request restores current image credentials
-        rerender(tree({...SESSION, authToken: 'new-auth-token', encryptedAuthToken: 'new-encrypted-token', creationDate: NOW.getTime()}));
-
-        // Then the failed image follows the new token without flickering already successful images
-        expect(imageProps()?.source).toEqual({...SOURCE, cacheKey: SOURCE.uri, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: 'new-encrypted-token'}});
+        // When the session supplies a replacement token and that image retry also fails
+        rerender(tree({...SESSION, encryptedAuthToken: 'retry-token'}));
+        expect(imageProps()?.source).toHaveProperty(['headers', CONST.CHAT_ATTACHMENT_TOKEN_KEY], 'retry-token');
         expect(imageProps(OTHER_SOURCE.uri)?.source).toBe(successfulSource);
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
         const retriedSource = imageProps()?.source;
-        rerender(tree({...SESSION, encryptedAuthToken: 'later-token', creationDate: NOW.getTime() + 1000}));
+        rerender(tree({...SESSION, encryptedAuthToken: 'later-token'}));
         expect(imageProps()?.source).toBe(retriedSource);
+        await failImage();
+
+        // Then later rotations cannot reload the replacement, and a failed retry is terminal
+        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
+        expect(onError).toHaveBeenCalledTimes(1);
     });
 
     it('uses current credentials even when web retains an earlier error callback', async () => {
-        // Given the callback retained by the web loader before an API session update
-        const {rerender} = render(<TestImage />);
+        // Given a callback retained before an API session update
+        const {rerenderImage} = renderImage();
         const oldError = imageProps()?.onError;
-        const oldSource = imageProps()?.source;
-        rerender(<TestImage session={{...SESSION, encryptedAuthToken: 'current-token', creationDate: NOW.getTime()}} />);
-        expect(imageProps()?.source).toBe(oldSource);
+        rerenderImage({session: {...SESSION, encryptedAuthToken: 'current-token'}});
 
-        // When that older image request invokes its retained callback
+        // When the older image request invokes its callback
         await act(async () => {
             oldError?.();
         });
 
         // Then current credentials are reused without an unnecessary probe or sign-in
-        expect(imageProps()?.source).toEqual({...SOURCE, cacheKey: SOURCE.uri, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: 'current-token'}});
+        expect(imageProps()?.source).toHaveProperty(['headers', CONST.CHAT_ATTACHMENT_TOKEN_KEY], 'current-token');
         expect(reauthenticateAttachmentImages).not.toHaveBeenCalled();
     });
 
-    it('reports a retry failure without starting another authentication flow in the mounted image', async () => {
-        // Given a failed image whose credentials have subsequently changed
-        const onError = jest.fn();
-        const {rerender} = render(<TestImage onError={onError} />);
-        await failImage();
-        rerender(
-            <TestImage
-                onError={onError}
-                session={{...SESSION, encryptedAuthToken: 'retry-token'}}
-            />,
-        );
-
-        // When its retried request also fails
-        await failImage();
-
-        // Then a permanent image error is delivered instead of another authentication attempt
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
-        expect(onError).toHaveBeenCalledTimes(1);
-    });
-
-    it('ignores duplicate errors from a retained web callback during recovery', async () => {
-        // Given an image whose authentication request is still pending
-        let completeAuthentication: ((result: {wasSuccessful: boolean}) => void) | undefined;
+    it('keeps one recovery pending across duplicate callbacks and recreated plain URI sources', async () => {
+        // Given a pending probe and a caller that recreates its source object on each render
+        let complete: ((result: {wasSuccessful: boolean}) => void) | undefined;
         jest.mocked(reauthenticateAttachmentImages).mockReturnValueOnce(
             new Promise((resolve) => {
-                completeAuthentication = resolve;
+                complete = resolve;
             }),
         );
         const onError = jest.fn();
-        render(<TestImage onError={onError} />);
+        const {rerenderImage} = renderImage({onError, source: {uri: SOURCE.uri}});
+        const originalSource = imageProps()?.source;
         const oldError = imageProps()?.onError;
         await failImage();
 
-        // When the web loader invokes the same retained callback again
+        // When the parent re-renders and the loader invokes its retained callback again
+        rerenderImage({onError, source: {uri: SOURCE.uri}});
         await act(async () => {
             oldError?.();
+            complete?.({wasSuccessful: true});
         });
 
-        // Then recovery is not started twice and the image stays pending until it completes
+        // Then source identity and the pending recovery survive without caller memoization
+        expect(imageProps()?.source).toBe(originalSource);
         expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
         expect(onError).not.toHaveBeenCalled();
-        await act(async () => {
-            completeAuthentication?.({wasSuccessful: true});
-        });
     });
 
-    it.each([{isOffline: true}, {isAuthTokenRequired: false}, {source: {uri: 'https://attacker.example/receipt.jpg'}}])(
-        'does not start authentication for an offline or unauthenticated image: %s',
-        async (props) => {
-            // Given a request outside online authenticated attachment loading
-            const onError = jest.fn();
-            render(
-                <TestImage
-                    {...props}
-                    onError={onError}
-                />,
-            );
-
-            // When that request fails
-            await failImage();
-
-            // Then its normal error handler runs without a sign-in attempt
-            expect(reauthenticateAttachmentImages).not.toHaveBeenCalled();
-            expect(onError).toHaveBeenCalledTimes(1);
-        },
-    );
-
-    it.each([false, true])('uses failure-driven authentication for both account types; SAML=%s', async (signedInWithSAML) => {
-        // Given an authenticated image whose account type must not change image recovery
-        render(<TestImage session={{...SESSION, signedInWithSAML}} />);
-
-        // When loading fails and the probe confirms HTTP 401
-        await failImage();
-
-        // Then both account types use the existing reauthentication flow
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledWith(SOURCE.uri, SESSION.encryptedAuthToken, expect.any(AbortSignal));
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
-    });
-
-    it('reports a failed authentication request through the normal image error handler', async () => {
-        // Given a transport failure while initiating image-triggered reauthentication
+    it.each([{isOffline: true}, {isAuthTokenRequired: false}, {source: {uri: 'https://attacker.example/receipt.jpg'}}])('skips recovery outside trusted online images: %s', async (props) => {
+        // Given an image outside online authenticated attachment loading
         const onError = jest.fn();
-        jest.mocked(reauthenticateAttachmentImages).mockRejectedValueOnce(new Error('Network unavailable'));
-        render(<TestImage onError={onError} />);
+        renderImage({...props, onError});
 
-        // When recovery cannot start or complete its request
+        // When that image fails
         await failImage();
 
-        // Then the image does not leave its caller loading indefinitely
+        // Then ordinary error handling runs without a sign-in attempt
+        expect(reauthenticateAttachmentImages).not.toHaveBeenCalled();
         expect(onError).toHaveBeenCalledTimes(1);
     });
 
-    it.each(['source', 'account', 'unmount'] as const)('ignores an old error callback after a %s change', async (change) => {
-        // Given the callback from an image request that is about to become obsolete
-        const {rerender, unmount} = render(<TestImage />);
-        const staleError = imageProps()?.onError;
-
-        // When the request or mounted view changes before its callback arrives
-        if (change === 'source') {
-            rerender(<TestImage source={OTHER_SOURCE} />);
-        } else if (change === 'account') {
-            rerender(<TestImage session={{...SESSION, accountID: 456}} />);
+    it.each(['unsuccessful', 'rejected'])('ends loading after %s recovery without retrying on later token changes', async (outcome) => {
+        // Given recovery that cannot restore the failed image
+        if (outcome === 'rejected') {
+            jest.mocked(reauthenticateAttachmentImages).mockRejectedValueOnce(new Error('Failed to fetch'));
         } else {
-            unmount();
+            jest.mocked(reauthenticateAttachmentImages).mockResolvedValueOnce({wasSuccessful: false});
         }
-        await act(async () => {
-            staleError?.();
-        });
-
-        // Then the obsolete request cannot initiate a sign-in for the current view
-        expect(reauthenticateAttachmentImages).not.toHaveBeenCalled();
-    });
-
-    it('preserves loading without a token header before credentials hydrate', () => {
-        // Given a session whose encrypted token has not hydrated
-        const waitForSession = jest.fn();
-        const {rerender} = render(
-            <TestImage
-                session={{accountID: SESSION.accountID}}
-                waitForSession={waitForSession}
-            />,
-        );
-        expect(imageProps()?.source).toBe(SOURCE);
-        expect(waitForSession).not.toHaveBeenCalled();
-
-        // When the encrypted token becomes available
-        rerender(<TestImage waitForSession={waitForSession} />);
-
-        // Then the source can include credentials without adding a new pre-hydration wait
-        expect(imageProps()?.source).toEqual({...SOURCE, cacheKey: SOURCE.uri, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: SESSION.encryptedAuthToken}});
-    });
-
-    it('ends loading when authentication returns unsuccessful without a session update', async () => {
-        // Given authentication that stops early without redirecting or restoring credentials
-        jest.mocked(reauthenticateAttachmentImages).mockResolvedValueOnce({wasSuccessful: false});
         const onError = jest.fn();
-        const waitForSession = jest.fn();
-        const {rerender} = render(
-            <TestImage
-                onError={onError}
-                waitForSession={waitForSession}
-            />,
-        );
+        const {rerenderImage} = renderImage({onError});
         const originalSource = imageProps()?.source;
 
-        // When the image needs authentication but recovery does not succeed
+        // When recovery ends and an unrelated API later updates credentials
         await failImage();
+        rerenderImage({onError, session: {...SESSION, encryptedAuthToken: 'later-token'}});
 
-        // Then the caller is notified instead of waiting indefinitely for an unrelated token update
-        expect(waitForSession).toHaveBeenCalledTimes(1);
+        // Then loading ends once and the terminal failure is not retried
         expect(onError).toHaveBeenCalledTimes(1);
-        rerender(
-            <TestImage
-                onError={onError}
-                session={{...SESSION, encryptedAuthToken: 'later-token'}}
-            />,
-        );
         expect(imageProps()?.source).toBe(originalSource);
     });
 
-    it('preserves source rebuilding after reconnect so offline loads can restart', () => {
-        // Given an image whose web fetch may have failed while offline
-        const {rerender} = render(<TestImage isOffline />);
-        const offlineSource = imageProps()?.source;
+    it.each([
+        ['source', false],
+        ['account', false],
+        ['unmount', false],
+        ['source', true],
+        ['account', true],
+        ['unmount', true],
+        ['token', true],
+    ] as const)('ignores obsolete callbacks and recovery after %s changes; recovery pending=%s', async (change, isPending) => {
+        // Given an image that becomes obsolete before its error or recovery result arrives
+        let complete: ((result: {wasSuccessful: boolean}) => void) | undefined;
+        jest.mocked(reauthenticateAttachmentImages).mockReturnValueOnce(
+            new Promise((resolve) => {
+                complete = resolve;
+            }),
+        );
+        const onError = jest.fn();
+        const {rerenderImage, unmount} = renderImage({onError});
+        const staleError = imageProps()?.onError;
+        if (isPending) {
+            await failImage();
+        }
 
-        // When the connection is restored
-        rerender(<TestImage />);
+        // When a new request or view takes over, even a late failure belongs to the old image
+        if (change === 'unmount') {
+            unmount();
+        } else {
+            rerenderImage({
+                onError,
+                source: change === 'source' ? OTHER_SOURCE : SOURCE,
+                session: {...SESSION, accountID: change === 'account' ? 456 : SESSION.accountID, encryptedAuthToken: change === 'token' ? 'current-token' : SESSION.encryptedAuthToken},
+            });
+        }
+        await act(async () => {
+            staleError?.();
+            complete?.({wasSuccessful: false});
+        });
 
-        // Then the changed source restarts the loader without preemptive authentication
-        expect(imageProps()?.source).not.toBe(offlineSource);
-        expect(imageProps()?.source).toEqual({...SOURCE, cacheKey: SOURCE.uri, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: SESSION.encryptedAuthToken}});
-        const firstOnlineSource = imageProps()?.source;
-        rerender(<TestImage isOffline />);
-        rerender(<TestImage />);
-        expect(imageProps()?.source).not.toBe(firstOnlineSource);
+        // Then old work cannot authenticate or report an error for the current view
+        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(isPending ? 1 : 0);
+        if (isPending) {
+            expect(jest.mocked(reauthenticateAttachmentImages).mock.calls.at(0)?.[2]?.aborted).toBe(true);
+        }
+        expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('preserves loading before credentials hydrate, then adds the token header', () => {
+        // Given a session whose encrypted token has not hydrated
+        const {rerenderImage} = renderImage({session: {accountID: SESSION.accountID}});
+        expect(imageProps()?.source).toBe(SOURCE);
+
+        // When the encrypted token becomes available
+        rerenderImage();
+
+        // Then the loader receives credentials without a preemptive authentication flow
+        expect(imageProps()?.source).toHaveProperty(['headers', CONST.CHAT_ATTACHMENT_TOKEN_KEY], SESSION.encryptedAuthToken);
         expect(reauthenticateAttachmentImages).not.toHaveBeenCalled();
     });
 
-    it('clears terminal failure bookkeeping when reconnect starts a new request', async () => {
-        // Given an image whose non-authentication failure already ended loading
+    it('rebuilds sources and clears terminal failures when reconnect starts a new request', async () => {
+        // Given an image whose ordinary failure already ended loading
         jest.mocked(reauthenticateAttachmentImages).mockResolvedValue({wasSuccessful: false});
         const onError = jest.fn();
-        const {rerender} = render(<TestImage onError={onError} />);
+        const {rerenderImage} = renderImage({onError});
         await failImage();
-        expect(onError).toHaveBeenCalledTimes(1);
+        const originalSource = imageProps()?.source;
 
         // When reconnect starts a fresh request and that request also fails
-        rerender(
-            <TestImage
-                onError={onError}
-                isOffline
-            />,
-        );
-        rerender(<TestImage onError={onError} />);
+        rerenderImage({onError, isOffline: true});
+        rerenderImage({onError});
+        expect(imageProps()?.source).not.toBe(originalSource);
         await failImage();
 
-        // Then the old terminal state cannot swallow the new request's error callback
+        // Then old failure bookkeeping cannot swallow the new request's error callback
         expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(2);
         expect(onError).toHaveBeenCalledTimes(2);
     });
 
-    it('keeps recovery pending when a caller recreates a plain URI source', async () => {
-        // Given a pending probe and a caller that creates a fresh source object on every render
-        let completeProbe: ((result: {wasSuccessful: boolean}) => void) | undefined;
-        jest.mocked(reauthenticateAttachmentImages).mockReturnValueOnce(
-            new Promise((resolve) => {
-                completeProbe = resolve;
-            }),
-        );
-        const {rerender} = render(<TestImage source={{uri: SOURCE.uri}} />);
-        const originalSource = imageProps()?.source;
-        await failImage();
+    it('rebuilds a same-URI source when additional options change', () => {
+        // Given source options carrying information beyond the URI
+        const {rerenderImage} = renderImage({source: {uri: SOURCE.uri, width: 100}});
 
-        // When the parent re-renders with the same URI while recovery is pending
-        rerender(<TestImage source={{uri: SOURCE.uri}} />);
-        expect(imageProps()?.source).toBe(originalSource);
-        await act(async () => {
-            completeProbe?.({wasSuccessful: true});
-        });
+        // When the caller supplies different dimensions
+        rerenderImage({source: {uri: SOURCE.uri, width: 200}});
 
-        // Then the same image request can finish recovery without relying on caller memoization
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
-    });
-
-    it('rebuilds a same-URI source when additional source options change', () => {
-        // Given a source whose options carry information beyond the URI
-        const {rerender} = render(<TestImage source={{uri: SOURCE.uri, width: 100}} />);
-        const originalSource = imageProps()?.source;
-
-        // When the caller supplies different source dimensions
-        rerender(<TestImage source={{uri: SOURCE.uri, width: 200}} />);
-
-        // Then URI matching does not hide the changed source options
-        expect(imageProps()?.source).not.toBe(originalSource);
-        expect(imageProps()?.source).toEqual(expect.objectContaining({width: 200}));
-    });
-
-    it('keeps non-401 image failures on the normal error path', async () => {
-        // Given a failed image whose HEAD request does not confirm an authentication failure
-        const onError = jest.fn();
-        jest.mocked(reauthenticateAttachmentImages).mockResolvedValueOnce({wasSuccessful: false});
-        const {rerender} = render(<TestImage onError={onError} />);
-        const originalSource = imageProps()?.source;
-
-        // When the probe reports an ordinary image failure and another API later updates the session
-        await failImage();
-        rerender(
-            <TestImage
-                onError={onError}
-                session={{...SESSION, encryptedAuthToken: 'later-token'}}
-            />,
-        );
-
-        // Then neither authentication nor an unrelated token update retries a non-authentication error
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
-        expect(onError).toHaveBeenCalledTimes(1);
-        expect(imageProps()?.source).toBe(originalSource);
-    });
-
-    it('does not reauthenticate when the authentication probe fails', async () => {
-        // Given a network or CORS failure that cannot establish an HTTP status
-        const onError = jest.fn();
-        jest.mocked(reauthenticateAttachmentImages).mockRejectedValueOnce(new Error('Failed to fetch'));
-        render(<TestImage onError={onError} />);
-
-        // When the follow-up HEAD request fails
-        await failImage();
-
-        // Then transport errors do not become SAML sign-in requests
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
-        expect(onError).toHaveBeenCalledTimes(1);
-    });
-
-    it.each(['token', 'source', 'account', 'unmount'] as const)('ignores an HTTP 401 probe after a %s change', async (change) => {
-        // Given a pending authentication check for an image that may become obsolete
-        let completeProbe: ((result: {wasSuccessful: boolean}) => void) | undefined;
-        jest.mocked(reauthenticateAttachmentImages).mockReturnValueOnce(
-            new Promise((resolve) => {
-                completeProbe = resolve;
-            }),
-        );
-        const onError = jest.fn();
-        const {rerender, unmount} = render(<TestImage onError={onError} />);
-        await failImage();
-
-        // When a new request or session takes over before the response arrives
-        if (change === 'token') {
-            rerender(
-                <TestImage
-                    onError={onError}
-                    session={{...SESSION, encryptedAuthToken: 'already-current-token'}}
-                />,
-            );
-        } else if (change === 'source') {
-            rerender(
-                <TestImage
-                    onError={onError}
-                    source={OTHER_SOURCE}
-                />,
-            );
-        } else if (change === 'account') {
-            rerender(
-                <TestImage
-                    onError={onError}
-                    session={{...SESSION, accountID: 456}}
-                />,
-            );
-        } else {
-            unmount();
-        }
-        await act(async () => {
-            completeProbe?.({wasSuccessful: true});
-        });
-
-        // Then a stale authorization rejection cannot start a new sign-in flow
-        expect(reauthenticateAttachmentImages).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(reauthenticateAttachmentImages).mock.calls.at(0)?.[2]?.aborted).toBe(true);
-        expect(onError).not.toHaveBeenCalled();
+        // Then URI matching cannot hide the changed options
+        expect(imageProps()?.source).toHaveProperty('width', 200);
     });
 });
