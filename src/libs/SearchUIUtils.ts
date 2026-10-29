@@ -2156,7 +2156,7 @@ function getSearchReportAvatarProps(
     isReportArchived = false,
     conciergeReportID?: string,
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
+    const avatarIcons = getIcons({report, formatPhoneNumber, translate, personalDetails: personalDetailsList, policy, isReportArchived, conciergeReportID});
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2339,7 +2339,9 @@ function getActions(
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
+
     if (
+        isGroupPolicy(policy) &&
         canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
@@ -2518,20 +2520,16 @@ function getTaskSections(
                 // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
                 const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
                 const parentReportPendingDeleteMemberAccountIDs = parentReportMetadata ? getPendingDeleteMemberAccountIDs(parentReportMetadata.pendingChatMembers) : undefined;
-                const icons = getIcons(
-                    parentReport,
+                const icons = getIcons({
+                    report: parentReport,
                     formatPhoneNumber,
                     translate,
                     personalDetails,
-                    null,
-                    '',
-                    -1,
                     policy,
-                    undefined,
-                    isParentReportArchived,
-                    parentReportPendingDeleteMemberAccountIDs,
+                    isReportArchived: isParentReportArchived,
+                    pendingDeleteMemberAccountIDs: parentReportPendingDeleteMemberAccountIDs,
                     conciergeReportID,
-                );
+                });
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
