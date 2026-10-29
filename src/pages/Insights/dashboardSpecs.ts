@@ -2,6 +2,8 @@
 
 import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
+import {isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -40,6 +42,9 @@ type InsightsDashboardSpec = {
 
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+
+    /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
+    requiresControlPlan?: boolean;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
@@ -94,6 +99,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         labelKey: 'insightsPage.compliance',
         beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
+        requiresControlPlan: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.compliance',
@@ -103,10 +109,35 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
-/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
+/** Returns the workspaces the filter leaves in scope. No selected workspaces means every workspace is in scope. */
+function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+}
+
+/** Returns the charts that at least one workspace in scope is eligible for. */
 function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
-    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+    const policiesInScope = getPoliciesInScope(policies, policyIDs);
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
+}
+
+/** Whether the dashboard needs Control but no workspace in scope is on it, so the upsell stands in for the charts. */
+function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policies: OnyxCollection<Policy>, policyIDs: string[]): boolean {
+    if (!INSIGHTS_DASHBOARD_SPECS[dashboardID].requiresControlPlan) {
+        return false;
+    }
+    return !getPoliciesInScope(policies, policyIDs).some(isControlPolicy);
+}
+
+/**
+ * The workspace the upsell's CTA pre-selects: the one in scope the user could actually upgrade.
+ * Returns undefined when none or several qualify, leaving the upgrade flow to ask which one.
+ *
+ * Eligibility mirrors `canEditWorkspaceSettings`, which is what the upgrade page itself gates on. Pre-selecting a
+ * workspace that fails it drops the user on a not-found page instead of the upgrade flow.
+ */
+function getUpgradeablePolicyIDInScope(policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): string | undefined {
+    const upgradeable = getPoliciesInScope(policies, policyIDs).filter((policy) => isGroupPolicy(policy) && !isControlPolicy(policy) && canEditWorkspaceSettings(policy, login));
+    return upgradeable.length === 1 ? upgradeable.at(0)?.id : undefined;
 }
 
 /** Returns the dashboards the user can open, ignoring the workspace filter. */
@@ -118,6 +149,6 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
     });
 }
 
-export {getAccessibleDashboards, getVisibleCharts};
+export {getAccessibleDashboards, getUpgradeablePolicyIDInScope, getVisibleCharts, shouldUpsellControlPlan};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;

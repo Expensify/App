@@ -19,6 +19,7 @@ const INSIGHTS_DASHBOARD_STATE = {
     OFFLINE: 'offline',
     EMPTY: 'empty',
     NO_EXPENSES: 'noExpenses',
+    UPSELL: 'upsell',
 } as const;
 
 type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
@@ -29,8 +30,17 @@ type InsightsDashboardChart = InsightsChartQuery & {
     averageSnapshot?: OnyxEntry<SearchResults>;
 };
 
-/** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[]): InsightsDashboardState {
+/**
+ * Resolves the page's state from the dashboard record and the snapshot of every chart on screen.
+ *
+ * `shouldUpsell` wins over every other state because it is settled from the policies already in Onyx: the dashboard
+ * has nothing to show whether or not the request succeeded, so the user never waits on one or lands on an offline blocker.
+ */
+function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], shouldUpsell = false): InsightsDashboardState {
+    if (shouldUpsell) {
+        return INSIGHTS_DASHBOARD_STATE.UPSELL;
+    }
+
     // Only a GetInsights response sets `inputQuery`.
     const hasDashboardResponse = !!dashboard?.inputQuery;
     const chartStates = charts.map(({snapshot, queryJSON}) => {

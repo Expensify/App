@@ -1341,6 +1341,11 @@ const translations = {
             title: 'See where your money goes',
             subtitle: 'Once you have expenses, you’ll find spending trends, top merchants, and more.',
         },
+        upsellState: {
+            title: 'Upgrade to Control for more insights',
+            subtitle: 'Track expense policy compliance trends and flag repeat offenders.',
+            button: 'Upgrade to Control',
+        },
     },
     allSettingsScreen: {
         subscription: 'Subscription',
