@@ -56,7 +56,6 @@ let mockParentReportID: string | undefined = EXPENSE_REPORT_ID;
 let mockParentTransactionCount: number | undefined = 1;
 let mockSiblingTransactionIDs: string[] | undefined;
 let mockSingleExpenseReportView: string | undefined;
-let mockSingleExpenseReportViewStatus = 'loaded';
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
@@ -65,7 +64,7 @@ jest.mock('@hooks/useOnyx', () => ({
             return [options?.selector ? options.selector(mockSiblingTransactionIDs) : mockSiblingTransactionIDs, {status: 'loaded'}];
         }
         if (key === SINGLE_EXPENSE_REPORT_VIEW_KEY) {
-            return [mockSingleExpenseReportView, {status: mockSingleExpenseReportViewStatus}];
+            return [mockSingleExpenseReportView, {status: 'loaded'}];
         }
         const value = key.endsWith(EXPENSE_REPORT_ID)
             ? {reportID: EXPENSE_REPORT_ID, type: 'expense', transactionCount: mockParentTransactionCount}
@@ -116,7 +115,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
         mockParentReportAction = createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
         mockSiblingTransactionIDs = undefined;
         mockSingleExpenseReportView = undefined;
-        mockSingleExpenseReportViewStatus = 'loaded';
     });
 
     it('replaces the route with the parent report when the thread is the only expense of the report', async () => {
@@ -335,19 +333,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
         // Then it's replaced with the report, which shows the table the user picked
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
         expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}?backTo=home`, {forceReplace: true});
-    });
-
-    it('waits for the single-expense report view to load before redirecting', async () => {
-        // Given the saved view hasn't loaded yet, so we can't tell whether the user picked the table view
-        mockSingleExpenseReportViewStatus = 'loading';
-
-        // When the expense's thread opens, for example from a deep link
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Then it doesn't redirect too early
-        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('redirects when the user views single-expense reports in the expense view', async () => {

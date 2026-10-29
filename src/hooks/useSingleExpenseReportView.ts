@@ -2,7 +2,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -17,9 +16,6 @@ type UseSingleExpenseReportViewResult = {
 
     /** Whether single-expense reports should render in the table view */
     shouldUseTableViewForSingleExpense: boolean;
-
-    /** Whether the saved preference is still loading from storage */
-    isLoading: boolean;
 };
 
 /**
@@ -32,14 +28,13 @@ type UseSingleExpenseReportViewResult = {
  */
 function useSingleExpenseReportView(reportID?: string): UseSingleExpenseReportViewResult {
     const {isBetaEnabled} = usePermissions();
-    const [singleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, singleExpenseReportViewMetadata] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
+    const [singleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
     const [isSentMoneyReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: isSentMoneyReportSelector});
 
     return {
         singleExpenseReportView,
         shouldUseTableViewForSingleExpense:
             isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW) && singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport,
-        isLoading: isLoadingOnyxValue(singleExpenseReportViewMetadata),
     };
 }
 

@@ -398,7 +398,14 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             return;
         }
 
-        const targetReportID = resolveSiblingReportID(siblingTransactionID, siblingTransaction, siblingParentReportAction, siblingParentReport, siblingThreadReport, isSiblingSentMoneyReport);
+        const targetReportID = resolveSiblingReportID(
+            siblingTransactionID,
+            siblingTransaction,
+            siblingParentReportAction,
+            siblingParentReport,
+            siblingThreadReport,
+            isSiblingSentMoneyReport,
+        );
 
         // Report "0" is the unreported placeholder, not a report that can be opened. Navigating to it lands the user
         // on their self-DM (or a "not here" page), so stay put instead.

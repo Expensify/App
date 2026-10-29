@@ -8,8 +8,9 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));

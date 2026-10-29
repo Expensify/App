@@ -86,8 +86,7 @@ function OneTransactionThreadRedirectHandler() {
     // A message deep link points at an action inside the thread, so dropping the thread route would drop its anchor.
     const hasLinkedReportAction = !!route.params?.reportActionID;
 
-    // Wait for the saved view to load so a deep link doesn't redirect before we know which view the user picked.
-    const {shouldUseTableViewForSingleExpense, isLoading: isSingleExpenseReportViewLoading} = useSingleExpenseReportView();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
 
     const referrer = route.name === SCREENS.REPORT ? route.params?.referrer : undefined;
     const backTo = route.params?.backTo;
@@ -99,8 +98,7 @@ function OneTransactionThreadRedirectHandler() {
     // Other ways in (Home, the growl, a link) still open the report, which then shows the table.
     const isOpenedFromTableRow = shouldUseTableViewForSingleExpense && isBackToParentReport;
 
-    const shouldRedirectToParentReport =
-        !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction && !isSingleExpenseReportViewLoading && !isOpenedFromTableRow;
+    const shouldRedirectToParentReport = !!parentReportID && isOneTransactionThread && !isSteppingThroughExpenses && !hasLinkedReportAction && !isOpenedFromTableRow;
 
     useEffect(() => {
         if (!isFocused || !shouldRedirectToParentReport || !parentReportID) {

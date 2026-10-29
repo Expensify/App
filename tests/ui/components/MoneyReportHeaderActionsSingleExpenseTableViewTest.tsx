@@ -53,7 +53,6 @@ function mockSingleExpenseReportView(shouldUseTableViewForSingleExpense: boolean
     mockedUseSingleExpenseReportView.mockReturnValue({
         singleExpenseReportView: shouldUseTableViewForSingleExpense ? CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE : CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE,
         shouldUseTableViewForSingleExpense,
-        isLoading: false,
     });
 }
 
