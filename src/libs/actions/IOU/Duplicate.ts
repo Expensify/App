@@ -39,6 +39,7 @@ import {
     isExpenseSplit,
     isFromCreditCardImport,
     isGPSDistanceRequest,
+    isMapDistanceRequest,
     isOdometerDistanceRequest,
     isPartialTransaction,
     isPerDiemRequest,
@@ -660,6 +661,9 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         count: transaction.comment?.units?.count,
         rate: transaction.comment?.units?.rate,
         unit: transaction.comment?.units?.unit,
+        // Saved expenses don't keep `routes`, so the selected route's distance only survives in routeDistanceMeters.
+        // Without it, the backend recalculates the duplicate using the primary route instead of the alternate route.
+        selectedRouteDistance: isMapDistanceRequest(transaction) && shouldKeepWaypoints ? (transaction.comment?.customUnit?.routeDistanceMeters ?? undefined) : undefined,
     };
 
     if (isDistanceRequest(transaction) && (isExpenseSplit(transaction) || isOdometerDistanceRequest(transaction) || isManualDistanceDuplicate)) {
