@@ -253,7 +253,7 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
             }
         }
         if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation !== 'checkbox')) {
-            // A sensitive answer the server holds is kept when the field is left blank
+            // A resumed sensitive field, such as an SSN, is blank because the server never sends it back. The server keeps the saved answer when it is left blank, so it is not an error
             if (hasProvidedAnswer(field, values)) {
                 continue;
             }

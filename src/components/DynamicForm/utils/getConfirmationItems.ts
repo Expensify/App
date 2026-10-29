@@ -79,6 +79,7 @@ function getConfirmationItems(
                     }
 
                     const typedAnswer = formatDynamicFieldValue(field, values, translate);
+                    // A resumed sensitive answer, such as an SSN, is blank because the server never sends it back, so the row says it is on file instead of looking unanswered
                     const answer = !typedAnswer && hasProvidedAnswer(field, values) ? translate('dynamicForm.onFile') : typedAnswer;
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
@@ -88,7 +89,7 @@ function getConfirmationItems(
                         {
                             id: field.key,
                             description: fieldLabel,
-                            title: isSensitiveField(field) && typedAnswer ? maskSensitiveValue(answer) : answer,
+                            title: isSensitiveField(field) && typedAnswer ? maskSensitiveValue(typedAnswer) : answer,
                             // Screen readers would read out each bullet of the mask
                             accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(typedAnswer)}) : undefined,
                             shouldShowRightIcon: isEditable,

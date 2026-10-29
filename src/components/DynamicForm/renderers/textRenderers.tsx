@@ -38,7 +38,7 @@ function getTextInputMode(field: DynamicFormTextField): InputModeOptions | undef
 }
 
 function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate, values: DynamicFormValues | undefined): string | undefined {
-    // The server holds the answer, so the hint says leaving the field blank keeps it
+    // A resumed sensitive field, such as an SSN, opens blank because the server never sends it back, so the hint says it is saved and leaving it blank keeps it
     if (values && hasProvidedAnswer(field, values)) {
         return translate('dynamicForm.onFileHint');
     }

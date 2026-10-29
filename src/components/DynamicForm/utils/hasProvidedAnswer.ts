@@ -9,7 +9,10 @@ function getProvidedKey(fieldKey: string): string {
     return `${fieldKey}Provided`;
 }
 
-/** The server already holds the field's sensitive answer, so leaving it blank keeps that answer */
+/**
+ * Whether the server already holds the field's sensitive answer, such as an SSN saved on an earlier visit.
+ * The server never sends a sensitive answer back. A resumed draft holds `<key>Provided: true` in its place, so the field opens blank, and leaving it blank keeps the saved answer.
+ */
 function hasProvidedAnswer(field: DynamicFormField, values: DynamicFormValues): boolean {
     return isSensitiveField(field) && values[getProvidedKey(field.key)] === true;
 }
