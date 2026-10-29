@@ -7,7 +7,10 @@ import CONST from '@src/CONST';
 
 import type {InsightsFilters} from './insightsFilters';
 
-import {INSIGHTS_GROUP_BY_OPTIONS} from './insightsFilters';
+import {INSIGHTS_GROUP_BY_OPTIONS, INSIGHTS_RUNNING_TOTAL_GROUP_BY} from './insightsFilters';
+
+// buildSearchQueryJSON drops running total because it's not in the shared grammar, so read it off the raw query. Matches the `groupBy:` and `group-by:` key forms.
+const RUNNING_TOTAL_GROUP_BY_REGEX = new RegExp(`\\bgroup-?by:["']?${INSIGHTS_RUNNING_TOTAL_GROUP_BY}["']?`, 'i');
 
 function parseDate(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'date'> | undefined {
     const dateFilters = queryJSON.flatFilters.filter(({key}) => key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE).flatMap(({filters}) => filters);
@@ -37,7 +40,10 @@ function parseGroupCurrency(queryJSON: SearchQueryJSON): Pick<InsightsFilters, '
     return groupCurrency && !isNegated ? {groupCurrency} : undefined;
 }
 
-function parseGroupBy(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'groupBy'> | undefined {
+function parseGroupBy(queryJSON: SearchQueryJSON, query: string): Pick<InsightsFilters, 'groupBy'> | undefined {
+    if (RUNNING_TOTAL_GROUP_BY_REGEX.test(query)) {
+        return {groupBy: INSIGHTS_RUNNING_TOTAL_GROUP_BY};
+    }
     const groupBy = INSIGHTS_GROUP_BY_OPTIONS.find((option) => option === queryJSON.groupBy);
     return groupBy ? {groupBy} : undefined;
 }
@@ -49,7 +55,7 @@ function parseCompare(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'compar
 /** Reads a dashboard's stored selections. Anything the query doesn't carry is left out, so the caller's defaults show through. */
 function parseInsightsFilters(query: string | undefined): Partial<InsightsFilters> {
     const queryJSON = query ? buildSearchQueryJSON(query) : undefined;
-    if (!queryJSON) {
+    if (!queryJSON || query === undefined) {
         return {};
     }
 
@@ -57,7 +63,7 @@ function parseInsightsFilters(query: string | undefined): Partial<InsightsFilter
         ...parseDate(queryJSON),
         ...parsePolicyIDs(queryJSON),
         ...parseGroupCurrency(queryJSON),
-        ...parseGroupBy(queryJSON),
+        ...parseGroupBy(queryJSON, query),
         ...parseCompare(queryJSON),
     };
 }

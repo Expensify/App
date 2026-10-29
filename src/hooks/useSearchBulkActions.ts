@@ -13,7 +13,7 @@ import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntu
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
-import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {getBankAccountToSetUpBeforePaying, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -173,6 +173,7 @@ import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -633,6 +634,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
@@ -1896,6 +1898,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
+                const methodID =
+                    paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined;
                 payMoneyRequest({
                     bankAccountList,
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -1915,8 +1919,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     paymentPolicyID,
-                    methodID:
-                        paymentItem.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? (paymentItem.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID) : undefined,
+                    methodID,
+                    isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                     additionalOnyxData,
                     shouldPlaySuccessSound: false,
                     chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`],
@@ -1926,6 +1930,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     isFallbackChatReport,
                     rules,
                 });
+
+                // payMoneyRequest opens the global reimbursements onboarding instead of paying, so this report stays unpaid
+                if (
+                    getBankAccountToSetUpBeforePaying({
+                        paymentType: paymentItem.paymentType as PaymentMethodType,
+                        methodID,
+                        bankAccountList,
+                        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
+                    })
+                ) {
+                    continue;
+                }
                 paidReportCount += 1;
             }
 
@@ -2986,6 +3002,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                             shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
                                             isOffline,
                                             isLoading: !!currentSearchResults?.search?.isLoading,
+                                            shouldReturnTripRooms,
                                         });
                                         clearSelectedTransactions();
                                     },
@@ -3067,6 +3084,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
                             isOffline,
                             isLoading: !!currentSearchResults?.search?.isLoading,
+                            shouldReturnTripRooms,
                         });
                         clearSelectedTransactions();
                     };
@@ -3493,6 +3511,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hasUnloadedMatchingExpenses,
         isUnreportedOnlyQuery,
         currentSearchQueryJSON,
+        shouldReturnTripRooms,
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,
