@@ -8,6 +8,7 @@ import type {
     GetRouteParams,
     MarkAsCashParams,
     TransactionThreadInfo,
+    UndeleteTransactionsParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -27,6 +28,7 @@ import {
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
     buildOptimisticSelfDMReport,
+    buildOptimisticUndeletedTransactionAction,
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
@@ -879,6 +881,9 @@ type ChangeTransactionsReportProps = {
     isVendorMatchingBetaEnabled: boolean | undefined;
     jsonQuery?: string;
     hash?: number;
+
+    /** When true, each transaction gets an UNDELETED_TRANSACTION action from the caller instead of the normal move action. */
+    isUndelete?: boolean;
 };
 
 function getChangeTransactionsReportOnyxData({
@@ -903,6 +908,7 @@ function getChangeTransactionsReportOnyxData({
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
     cardList,
+    isUndelete,
 }: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -1727,9 +1733,12 @@ function getChangeTransactionsReportOnyxData({
             );
         }
 
-        // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
+        // 7. Add MOVED_TRANSACTION / UNREPORTED_TRANSACTION / UNDELETED_TRANSACTION report actions.
+        // The undelete flow always emits the action and attributes it to the caller, including when an admin undeletes another member's expense.
         let movedAction;
-        if (!isUnreportingSomeoneElsesTransaction) {
+        if (isUndelete) {
+            movedAction = buildOptimisticUndeletedTransactionAction(transactionThreadReportID);
+        } else if (!isUnreportingSomeoneElsesTransaction) {
             if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 movedAction = buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID);
             } else if (!isOpenReport(newReport)) {
@@ -2143,17 +2152,14 @@ function getChangeTransactionsReportOnyxData({
     };
 }
 
-/**
- * Drops moved expenses from a carousel seeded from the report they left. Every move goes through
- * `changeTransactionsReport`, so doing it here covers all entry points at once.
- */
+/** Drops moved expenses from a carousel seeded from the report they left. Called by every move entry point. */
 function removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID: Record<string, string[]> | undefined) {
     for (const [oldReportID, transactionIDs] of Object.entries(movedTransactionIDsByOldReportID ?? {})) {
         removeActiveTransactionIDsForReport(transactionIDs, oldReportID);
     }
 }
 
-function changeTransactionsReport(props: ChangeTransactionsReportProps) {
+function changeTransactionsReport(props: Omit<ChangeTransactionsReportProps, 'isUndelete'>) {
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     // Without a hash the move falls back to the explicit list and only the loaded page moves, so surface that
@@ -2248,6 +2254,35 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
 }
 
 /**
+ * Restore trashed card expenses to unreported through the dedicated UndeleteTransactions command, so
+ * the backend records the caller as the actor on the UNDELETED_TRANSACTION action even when a card
+ * admin undeletes another member's expense.
+ */
+function undeleteTransactions(props: Omit<ChangeTransactionsReportProps, 'isUndelete'>) {
+    const undeleteOnyxData = getChangeTransactionsReportOnyxData({...props, isUndelete: true});
+    if (!undeleteOnyxData) {
+        return;
+    }
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs, movedTransactionIDsByOldReportID} = undeleteOnyxData;
+
+    if (movedTransactionIDs.length === 0) {
+        return;
+    }
+
+    const parameters: UndeleteTransactionsParams = {
+        transactionList: movedTransactionIDs.join(','),
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+    };
+
+    API.write(WRITE_COMMANDS.UNDELETE_TRANSACTIONS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+    removeMovedTransactionsFromCarousel(movedTransactionIDsByOldReportID);
+}
+
+/**
  * Reports expenses without naming a destination: the backend puts each one in its owner's latest draft report, or a new
  * report when they have none. Needed when a selection spans submitters, since any report the App picked would belong to
  * just one of them. Carries no optimistic data because every update the normal move builds hangs off a destination only
@@ -2320,6 +2355,7 @@ export {
     revert,
     changeTransactionsReport,
     getChangeTransactionsReportOnyxData,
+    undeleteTransactions,
     setTransactionReport,
     getDefaultP2PMileageRate,
     mergeExpenseAddedGrowlTransactionIDs,
