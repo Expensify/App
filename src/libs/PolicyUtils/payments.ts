@@ -114,7 +114,7 @@ function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
  */
 function shouldWarnBeforeDisablingPayments(policy: OnyxInputOrEntry<Policy>): boolean {
     const hasSelectedCountry = Object.values(policy?.reimbursement?.countries ?? {}).some((value) => !!value);
-    return hasSelectedCountry || (policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > 0;
+    return hasSelectedCountry || !!policy?.achAccount?.bankAccountID;
 }
 
 /** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */

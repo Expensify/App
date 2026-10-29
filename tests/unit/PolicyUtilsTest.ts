@@ -4393,7 +4393,7 @@ describe('PolicyUtils', () => {
 
             it('should warn when a country has a truthy value', () => {
                 // Given a workspace with a selected business bank account country
-                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: true}}});
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
 
                 // When we check whether turning off Payments needs a warning
                 const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
