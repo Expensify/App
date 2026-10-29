@@ -4,7 +4,6 @@ import MerchantRuleSuggestionBanner from '@components/MerchantRuleSuggestionBann
 import {ReportActionsAnimatedSkeletonCover} from '@components/ReportActionsSkeletonCover';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
-import useConciergeSessionStartTime from '@hooks/useConciergeSessionStartTime';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitial from '@hooks/useInitial';
@@ -18,12 +17,14 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
@@ -57,6 +58,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import type {ActionListRef} from '@pages/inbox/ActionListTypes';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 
 import CONST from '@src/CONST';
@@ -78,7 +80,9 @@ import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 
+import AskConciergeWelcome from './AskConciergeWelcome';
 import CollapsedSystemMessages from './CollapsedSystemMessages';
+import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
 import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
@@ -195,6 +199,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         showFullHistory,
         hasPreviousMessages,
         allReportActionIDs,
+        shouldShowConciergeWelcome,
+        isConciergeHistoryExpanded,
     } = useReportActionsListState();
 
     // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
@@ -208,7 +214,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionIDFromRoute = route?.params?.reportActionID;
-    const sessionStartTime = useConciergeSessionStartTime();
+    const {sessionStartTime} = useSidePanelState();
+    const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
 
     const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
     const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
@@ -825,10 +832,23 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     ];
 
     const latestActionsFooter = (
-        <ReportActionsListHeader
-            reportID={reportID}
-            isDraftPendingCompletion={isDraftPendingCompletion}
-        />
+        <>
+            {isConciergeHistoryExpanded && (
+                <ConciergeChatHistoryToggle
+                    isHistoryShown
+                    onPress={() => {
+                        collapseConciergeHistory();
+                        if (reportActionIDFromRoute) {
+                            Navigation.setParams({reportActionID: ''}, route.key);
+                        }
+                    }}
+                />
+            )}
+            <ReportActionsListHeader
+                reportID={reportID}
+                isDraftPendingCompletion={isDraftPendingCompletion}
+            />
+        </>
     );
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
@@ -861,6 +881,15 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     // is cleared mid-session while the latch keeps the content mounted.
     if (!report) {
         return <ReportActionsAnimatedSkeletonCover />;
+    }
+
+    if (shouldShowConciergeWelcome) {
+        return (
+            <AskConciergeWelcome
+                reportID={reportID}
+                onShowPreviousMessages={onShowPreviousMessages}
+            />
+        );
     }
 
     return (
