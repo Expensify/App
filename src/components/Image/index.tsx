@@ -10,7 +10,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type Session from '@src/types/onyx/Session';
 
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {ImageOnLoadEvent, ImageProps} from './types';
 
@@ -90,7 +90,7 @@ function Image({
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
-    const aspectRatioStyle = useMemo(() => {
+    const getAspectRatioStyle = () => {
         if (!shouldSetAspectRatioInStyle || !aspectRatio) {
             return {};
         }
@@ -103,33 +103,28 @@ function Image({
         }
 
         return {aspectRatio, height: 'auto'};
-    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
+    };
+    const aspectRatioStyle = getAspectRatioStyle();
 
-    const updateAspectRatio = useCallback(
-        (width: number, height: number) => {
-            if (!isObjectPositionTop) {
-                return;
-            }
+    const updateAspectRatio = (width: number, height: number) => {
+        if (!isObjectPositionTop) {
+            return;
+        }
 
-            if (width > height && !shouldCalculateAspectRatioForWideImage) {
-                setAspectRatio(1);
-                return;
-            }
+        if (width > height && !shouldCalculateAspectRatioForWideImage) {
+            setAspectRatio(1);
+            return;
+        }
 
-            setAspectRatio(height ? width / height : 'auto');
-        },
-        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
-    );
+        setAspectRatio(height ? width / height : 'auto');
+    };
 
-    const handleLoad = useCallback(
-        (event: ImageOnLoadEvent) => {
-            const {width, height} = event.nativeEvent;
+    const handleLoad = (event: ImageOnLoadEvent) => {
+        const {width, height} = event.nativeEvent;
 
-            onLoad?.(event);
-            updateAspectRatio(width, height);
-        },
-        [onLoad, updateAspectRatio],
-    );
+        onLoad?.(event);
+        updateAspectRatio(width, height);
+    };
 
     const isAuthenticatedURL =
         isAuthTokenRequired &&
@@ -244,8 +239,4 @@ function Image({
 
 Image.displayName = 'Image';
 
-export default React.memo(
-    Image,
-    (prevProps: ImageProps, nextProps: ImageProps) =>
-        prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight && prevProps.recyclingKey === nextProps.recyclingKey,
-);
+export default Image;
