@@ -5203,6 +5203,25 @@ describe('ReportActionsUtils', () => {
             const result = getAddedCardFeedMessage(translateLocal, action);
             expect(result).toBe('added card feed "Visa Commercial"');
         });
+
+        it('should return the Expensify Card message when feedType is ExpensifyCard', () => {
+            // Given an added card feed action for an Expensify Card feed shared to the workspace
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'acme.com',
+                    feedType: CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD,
+                },
+            } as ReportAction;
+
+            // When the message is built
+            const result = getAddedCardFeedMessage(translateLocal, action);
+
+            // Then it uses the Expensify Card wording so admins can tell it apart from a company card feed
+            expect(result).toBe('added "acme.com" Expensify Card feed');
+        });
     });
 
     describe('getRemovedCardFeedMessage', () => {
@@ -7913,6 +7932,38 @@ describe('ReportActionsUtils', () => {
                     isReversed: true,
                 }),
             ).toEqual(['unread-newer', 1]);
+        });
+
+        it.each([null, 'older-unread'])('keeps older unread actions before the offline boundary with manual anchor %s', (manuallyMarkedUnreadReportActionID) => {
+            // Given an older unread action before the remembered offline row in an oldest-first list
+            const visibleReportActions = [makeAction({reportActionID: 'older-unread'}), makeAction({reportActionID: 'offline-newer', created: '2023-01-01 12:00:00.000'})];
+
+            // When either the timestamp or an explicit manual anchor selects that older action
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                    manuallyMarkedUnreadReportActionID,
+                }),
+            ).toEqual(['older-unread', 0]);
+        });
+
+        it('still marks the first offline row when earlier visible actions are already read', () => {
+            // Given a remembered offline message and a read older row
+            const visibleReportActions = [makeAction({reportActionID: 'read-older'}), makeAction({reportActionID: 'offline-anchor', created: '2023-01-01 12:00:00.000'})];
+
+            // Then scanning all visible rows still preserves the existing offline marker rule
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    unreadMarkerTime: '2023-01-01 13:00:00.000',
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                }),
+            ).toEqual(['offline-anchor', 1]);
         });
 
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {

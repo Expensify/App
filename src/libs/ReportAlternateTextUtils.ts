@@ -508,6 +508,7 @@ function getLastMessageTextForReport({
     rules,
     bankAccountList,
     formatPhoneNumber,
+    lastActionTransaction,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -538,6 +539,9 @@ function getLastMessageTextForReport({
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The transaction of `lastAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -611,6 +615,7 @@ function getLastMessageTextForReport({
                 policy,
                 isForListPreview: true,
                 bankAccountList,
+                linkedTransaction: lastActionTransaction,
             },
             formatPhoneNumber,
         );
@@ -1241,6 +1246,9 @@ type GetReportAlternateTextParams = {
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The transaction of `lastAction`, see `getLastMessageTextForReport`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -1280,6 +1288,7 @@ function getReportAlternateText({
     convertToDisplayStringWithoutCurrency,
     rules,
     bankAccountList,
+    lastActionTransaction,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1344,6 +1353,7 @@ function getReportAlternateText({
             rules,
             bankAccountList,
             formatPhoneNumber,
+            lastActionTransaction,
         });
 
     const getLastActorDisplayNamePrefix = () =>
