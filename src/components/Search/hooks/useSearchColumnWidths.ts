@@ -7,7 +7,7 @@ import type {PersistedColumnLayout} from '@components/Table/columnResize/getPers
 import getPersistedColumnLayout from '@components/Table/columnResize/getPersistedColumnLayout';
 import {getAvailableColumnsWidth, getFreshColumnWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
-import {getPinnedColumn, isColumnResizable} from '@components/Table/columnResize/resolveDraggedColumnWidths';
+import {getFixedColumn, isColumnResizable} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -168,7 +168,7 @@ function useSearchColumnWidths({
     }
 
     // What the dynamic columns share: the table, less what the row spends on anything that is not a column, less the
-    // columns pinned to a width of their own. The inset comes from the same helper the horizontal scroller subtracts,
+    // columns held at a width of their own. The inset comes from the same helper the horizontal scroller subtracts,
     // so the two cannot disagree about whether the columns fit.
     //
     // It does not have to be exact. The resolved widths are applied as a flex basis that still grows and shrinks, so an
@@ -213,7 +213,7 @@ function useSearchColumnWidths({
 
         contentWidths.push(contentWidth);
 
-        // A column holding a fixed-size element is pinned to its content: it takes no share of the spare room and is
+        // A column holding a fixed-size element is held at its content width: it takes no share of the spare room and is
         // never squeezed, so its three constraints are the same number and the resolver settles it there immediately.
         if (HUGGED_SEARCH_COLUMNS.has(column)) {
             constraints.push({contentWidth, minWidth: contentWidth, maxWidth: contentWidth});
@@ -267,13 +267,13 @@ function useSearchColumnWidths({
 
     const rowChromeWidths = getSearchTableRowChromeWidths(columns.length);
 
-    // Fixed and hugged columns are pinned and passed headless, since the leftover room goes to the last headed column
+    // Fixed and hugged columns are held at one width and passed headless, since the leftover room goes to the last headed column
     // and it should land on a free-text one rather than a date or a badge. Their real headers still render.
     const resizableColumns: ResizableColumn[] = columns.map((column) => {
         const sizing = columnSizing[column];
 
         if (!sizing || sizing.shouldHug) {
-            return getPinnedColumn(column, sizing?.contentWidth ?? declaredColumnWidths.get(column) ?? 0);
+            return getFixedColumn(column, sizing?.contentWidth ?? declaredColumnWidths.get(column) ?? 0);
         }
 
         return {

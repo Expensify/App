@@ -151,7 +151,7 @@ function SearchListViewLayoutContent({
     const sizedColumns = new Set(columns);
 
     // What each column would rather have than its minimum. Only the dynamic columns differ between the two: everything
-    // else is pinned to one width, so it wants exactly what it is never squeezed below.
+    // else is held at one width, so it wants exactly what it is never squeezed below.
     const columnContentWidths: Partial<Record<SearchColumnType, number>> = {};
 
     for (const column of columns) {

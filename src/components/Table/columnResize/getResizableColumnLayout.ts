@@ -83,20 +83,20 @@ function getAvailableColumnsWidth(tableWidth: number, {selectionColumnWidth, tot
 }
 
 /**
- * Widths a fresh load paints: pinned columns at their declared width, and the rest at `contentSizedWidths` in render
+ * Widths a fresh load paints: fixed columns at their declared width, and the rest at `contentSizedWidths` in render
  * order, or at equal shares of the room left when there are none.
  */
 function getFreshColumnWidths(columns: ResizableColumn[], contentSizedWidths: number[], availableColumnsWidth: number): Record<string, number> {
     const contentSizedColumns = columns.filter((column) => column.declaredWidth === undefined);
-    const pinnedColumnsWidth = columns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
-    const widths = contentSizedWidths.length > 0 ? contentSizedWidths : distributeEqualWidths(contentSizedColumns.length, availableColumnsWidth - pinnedColumnsWidth);
+    const fixedColumnsWidth = columns.reduce((total, column) => total + (column.declaredWidth ?? 0), 0);
+    const widths = contentSizedWidths.length > 0 ? contentSizedWidths : distributeEqualWidths(contentSizedColumns.length, availableColumnsWidth - fixedColumnsWidth);
 
     return Object.fromEntries(columns.map((column) => [column.key, column.declaredWidth ?? widths.at(contentSizedColumns.indexOf(column)) ?? 0]));
 }
 
 function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths, freshColumnWidths}: GetResizableColumnLayoutParams): ResizableColumnLayout {
     const {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth} = rowChromeWidths;
-    // Absorbs leftover width, so trailing headless columns like an arrow, menu or icon keep their size and stay pinned right.
+    // Absorbs leftover width, so trailing headless columns like an arrow, menu or icon keep their size and stay at the right edge.
     const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
     const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
     const columnWidths = {...resolvedColumnWidths};

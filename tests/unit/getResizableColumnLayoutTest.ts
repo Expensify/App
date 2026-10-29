@@ -345,25 +345,25 @@ describe('getResizableColumnLayout', () => {
 });
 
 describe('getFreshColumnWidths', () => {
-    it('keeps pinned columns at their declared width and gives the rest the widths content sizing resolved', () => {
-        // Given a pinned date column between two content-sized columns that content sizing gave 180px and 240px
+    it('keeps fixed columns at their declared width and gives the rest the widths content sizing resolved', () => {
+        // Given a fixed date column between two content-sized columns that content sizing gave 180px and 240px
         const columns = [column('merchant'), {...column('date'), declaredWidth: 62}, column('description')];
 
         // When the fresh widths are worked out
         const freshColumnWidths = getFreshColumnWidths(columns, [180, 240], 500);
 
-        // Then each content-sized column gets its own resolved width in render order, skipping the pinned one
+        // Then each content-sized column gets its own resolved width in render order, skipping the fixed one
         expect(freshColumnWidths).toEqual({merchant: 180, date: 62, description: 240});
     });
 
-    it('splits the room the pinned columns leave equally when content sizing resolved no widths', () => {
+    it('splits the room the fixed columns leave equally when content sizing resolved no widths', () => {
         // Given content that fits an equal share, so content sizing resolved no widths and the columns share the row
         const columns = [column('merchant'), {...column('date'), declaredWidth: 62}, column('description')];
 
         // When the fresh widths are worked out for 500px of column room
         const freshColumnWidths = getFreshColumnWidths(columns, [], 500);
 
-        // Then the 438px left beside the pinned column is split equally, as a fresh load paints it
+        // Then the 438px left beside the fixed column is split equally, as a fresh load paints it
         expect(freshColumnWidths).toEqual({merchant: 219, date: 62, description: 219});
     });
 });

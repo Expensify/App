@@ -26,7 +26,7 @@ type ResizableColumn = {
 };
 
 /** A headless column held at one width, so it never resizes or takes the leftover room. Its real header still renders. */
-function getPinnedColumn(key: string, width: number): ResizableColumn {
+function getFixedColumn(key: string, width: number): ResizableColumn {
     return {key, label: '', declaredWidth: width, contentWidth: width, minWidth: width, maxWidth: width};
 }
 
@@ -86,5 +86,5 @@ function resolveDraggedColumnWidths({columns, startWidths, resizedColumnKeys, av
 }
 
 export default resolveDraggedColumnWidths;
-export {getAbsorbedDelta, getColumnAbsorbers, getPinnedColumn, isColumnResizable};
+export {getAbsorbedDelta, getColumnAbsorbers, getFixedColumn, isColumnResizable};
 export type {ResizableColumn};

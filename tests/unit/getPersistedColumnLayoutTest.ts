@@ -1,7 +1,7 @@
 import getPersistedColumnLayout from '@components/Table/columnResize/getPersistedColumnLayout';
 import type {RowChromeWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
-import {getPinnedColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
+import {getFixedColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import CONST from '@src/CONST';
 
@@ -14,9 +14,9 @@ function freeTextColumn(key: string, contentWidth = 0, minWidth = 0): ResizableC
 }
 
 describe('getPersistedColumnLayout', () => {
-    it('resizes only the free-text columns and gives the last one the leftover, keeping fixed and hugged columns pinned', () => {
+    it('resizes only the free-text columns and gives the last one the leftover, keeping fixed and hugged columns at their width', () => {
         // Given a date column, two free-text columns and a status badge, whose fresh widths leave 30px of the row unused
-        const columns = [getPinnedColumn('date', 62), freeTextColumn('merchant'), freeTextColumn('description'), getPinnedColumn('status', 70)];
+        const columns = [getFixedColumn('date', 62), freeTextColumn('merchant'), freeTextColumn('description'), getFixedColumn('status', 70)];
 
         // When the layout is built with nothing saved
         const layout = getPersistedColumnLayout({
@@ -34,7 +34,7 @@ describe('getPersistedColumnLayout', () => {
 
     it('keeps a resized column at its width when the table narrows, with the other free-text columns absorbing the change', () => {
         // Given a save where merchant was dragged to 300px in a table whose columns had 600px
-        const columns = [getPinnedColumn('date', 62), freeTextColumn('merchant', 100, 60), freeTextColumn('description', 100, 60), freeTextColumn('category', 100, 60)];
+        const columns = [getFixedColumn('date', 62), freeTextColumn('merchant', 100, 60), freeTextColumn('description', 100, 60), freeTextColumn('category', 100, 60)];
         const storedTableColumnWidths = {availableColumnsWidth: 600, columnWidths: {date: 62, merchant: 300, description: 119, category: 119}, resizedColumnKeys: ['merchant']};
 
         // When the table loses 100px

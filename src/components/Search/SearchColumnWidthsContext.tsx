@@ -40,7 +40,7 @@ type SearchColumnSizingState = {
 };
 
 /** Holds a column at the width set beside it, so it neither grows into spare room nor shrinks. */
-const PINNED_FLEX_STYLE: ViewStyle = {flex: undefined, flexGrow: 0, flexShrink: 0};
+const FIXED_FLEX_STYLE: ViewStyle = {flex: undefined, flexGrow: 0, flexShrink: 0};
 
 /**
  * Defaults to sizing nothing, because the components that read this are shared well beyond the Search table: the same
@@ -79,12 +79,12 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
         const resizableWidth = sizedColumns.has(columnName) ? resizableColumnWidths?.[columnName] : undefined;
 
         // A drag rewrites this custom property on the scope element, so the header and rows repaint without a render.
-        // Pinned rather than grown, because the header row has no trailing arrow and would end up wider than the rows.
+        // Fixed rather than grown, because the header row has no trailing arrow and would end up wider than the rows.
         // The row still fills the table, since the last free-text column's width already includes the leftover room.
         if (resizableWidth !== undefined) {
             const widthValue = getColumnWidthValue(columnName, resizableWidth);
 
-            return {...columnStyles, ...PINNED_FLEX_STYLE, ...StyleUtils.getWidthStyle(widthValue), ...StyleUtils.getMinimumWidth(widthValue)};
+            return {...columnStyles, ...FIXED_FLEX_STYLE, ...StyleUtils.getWidthStyle(widthValue), ...StyleUtils.getMinimumWidth(widthValue)};
         }
 
         if (!sizing) {
@@ -97,15 +97,15 @@ function useSearchColumnStyles(): (columnName: SearchColumnType, options?: GetRe
             // Only for a column of the sized table itself. A column belonging to some inner table rendered below it was
             // never part of what was measured, so pinning it would hold it to a width chosen for a different layout.
             if (isSizingColumns && sizedColumns.has(columnName) && typeof columnStyles.width === 'number' && columnStyles.flex !== undefined) {
-                return {...columnStyles, ...PINNED_FLEX_STYLE, flexBasis: columnStyles.width, minWidth: columnStyles.width};
+                return {...columnStyles, ...FIXED_FLEX_STYLE, flexBasis: columnStyles.width, minWidth: columnStyles.width};
             }
 
             return columnStyles;
         }
 
-        // A hugging column is sized to its content and pinned there, the same way a column with a declared width is.
+        // A hugging column is sized to its content and held there, the same way a column with a declared width is.
         if (sizing.shouldHug) {
-            return {...columnStyles, ...PINNED_FLEX_STYLE, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
+            return {...columnStyles, ...FIXED_FLEX_STYLE, flexBasis: sizing.contentWidth, minWidth: sizing.contentWidth, width: undefined};
         }
 
         // The resolved width is the column's starting size, not its final one: it still grows and shrinks from there.
