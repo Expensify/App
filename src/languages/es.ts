@@ -2154,6 +2154,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'el último día del mes',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'al final de tu viaje',
         },
+        scheduleEta: {
+            weekly: {monday: 'el lunes', tuesday: 'el martes', wednesday: 'el miércoles', thursday: 'el jueves', friday: 'el viernes', saturday: 'el sábado', sunday: 'el domingo'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `el ${firstDay} y el ${secondDay} de cada mes`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `el ${firstDay} y el último día de cada mes`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'el último lunes del mes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'el último martes del mes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'el último miércoles del mes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'el último jueves del mes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'el último viernes del mes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'el último sábado del mes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'el último domingo del mes',
+            },
+        },
     },
     profilePage: {
         profile: 'Perfil',
@@ -3151,6 +3165,13 @@ ${amount} para ${merchant} - ${date}`,
                 '9': 'Noveno',
                 '10': 'Décimo',
             },
+            lastMondayOfMonth: 'El lunes pasado',
+            lastTuesdayOfMonth: 'El martes pasado',
+            lastWednesdayOfMonth: 'El miércoles pasado',
+            lastThursdayOfMonth: 'El jueves pasado',
+            lastFridayOfMonth: 'El viernes pasado',
+            lastSaturdayOfMonth: 'El sábado pasado',
+            lastSundayOfMonth: 'El domingo pasado',
         },
         approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
         approverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador o elimina este flujo de trabajo.',
@@ -3164,10 +3185,60 @@ ${amount} para ${merchant} - ${date}`,
             approverSubtitle: 'Todos los aprobadores pertenecen a un flujo de trabajo existente.',
             bulkApproverSubtitle: 'Ningún aprobador coincide con los criterios de los informes seleccionados.',
         },
+        submitFrequency: 'Frecuencia de envío',
+        submitOn: 'Enviar el día',
+        dayOfTheWeek: 'Día de la semana',
+        dayOfTheMonth: 'Día del mes',
+        firstSubmission: 'Primer envío',
+        secondSubmission: 'Segundo envío',
+        submissionDatesOrderError: 'La primera fecha de envío debe ser anterior a la segunda fecha de envío',
+        daysOfWeek: {monday: 'Lunes', tuesday: 'martes', wednesday: 'miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo'},
+        frequencySummary: {
+            weekly: {
+                monday: 'Semanalmente los lunes',
+                tuesday: 'Semanalmente los martes',
+                wednesday: 'Semanalmente los miércoles',
+                thursday: 'Semanalmente los jueves',
+                friday: 'Semanalmente los viernes',
+                saturday: 'Semanalmente los sábados',
+                sunday: 'Semanalmente los domingos',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Dos veces al mes los días ${firstDay} y ${secondDay}`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Dos veces al mes los días ${firstDay} y el último día`,
+            monthly: ({day}: {day: string}) => `Mensualmente el día ${day}`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Mensualmente el último día',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Mensualmente el último día hábil',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Mensualmente el último lunes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Mensualmente el último martes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Mensualmente el último miércoles',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Mensualmente el último jueves',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Mensualmente el último viernes',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Mensualmente el último sábado',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Mensualmente el último domingo',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Los gastos se envían tan pronto como se crean',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Los informes se envían después de dos días sin gastos',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Los informes permanecen en borrador hasta que un miembro los envía',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Los gastos se envían inmediatamente después de crearlos.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Los informes se envían automáticamente cada día, según la <a href="${timezoneLink}">zona horaria del espacio de trabajo</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Los informes se envían automáticamente cada semana, según la <a href="${timezoneLink}">zona horaria del espacio de trabajo</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Los informes se envían automáticamente dos veces al mes, según la <a href="${timezoneLink}">zona horaria del espacio de trabajo</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Los informes se envían automáticamente cada mes, según la <a href="${timezoneLink}">zona horaria del espacio de trabajo</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Los informes se envían después de dos días completos sin gastos nuevos.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Los informes permanecen en borrador hasta que un miembro los envía.',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'La frecuencia de envío no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
-        monthlyOffsetErrorMessage: 'La frecuencia mensual no pudo ser cambiada. Por favor, inténtelo de nuevo o contacte al soporte.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Comisiones por conversión de moneda',
@@ -5001,6 +5072,11 @@ ${amount} para ${merchant} - ${date}`,
             archived: 'Archivado',
             workspaceStatus: 'Estado del espacio de trabajo',
             findRoom: 'Encontrar sala',
+            emptyRoomsTitle: 'No hay salas que mostrar',
+            emptyRoomsSubtitle: 'Las salas de este espacio de trabajo aparecerán aquí.',
+            emptyRoomsArchivedTitle: 'Estas salas están archivadas',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Desarchiva este espacio de trabajo</a> para volver a utilizarlos.</centered-text></muted-text>`,
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -7754,6 +7830,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                             return 'Sincronizando datos de Campfire';
                         case 'campfireSyncConnection':
                             return 'Iniciando conexión con Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Sincronizando datos de Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Iniciando conexión con Zoho Books';
                         case 'campfireSyncImportData':
@@ -8240,6 +8318,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
             addressContext: 'Se requiere una dirección para habilitar Expensify Travel. Por favor, introduce una dirección asociada con tu negocio.',
             policy: 'Política de gastos',
+            timezoneInputLabel: 'Zona horaria',
+            timezoneInputHelpText: 'Tu zona horaria se usa para el envío automático de informes',
+            timezoneErrorMessage: 'No se pudo cambiar la zona horaria. Por favor, inténtalo de nuevo o contacta con soporte.',
         },
         officeLocations: {
             title: 'Ubicaciones de oficinas',
@@ -9064,7 +9145,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Para aplicar tus reglas de agente, hemos creado un agente para ti y lo hemos añadido como administrador de tu espacio de trabajo.<br><br>Edita los datos de tu agente en <a href="${agentsRoute}">Cuenta &gt; Agentes</a>.</muted-text>`,
                 suggestionsTab: 'Sugerencias',
-                writeTab: 'Editar',
+                writeTab: 'Personalizado',
                 findSuggestion: 'Buscar una regla',
                 emptySuggestionsTitle: 'No hay sugerencias disponibles',
                 emptySuggestionsSubtitle: 'Prueba a escribir tu propia regla.',
@@ -9355,6 +9436,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Organización Zoho Books',
+            organizationSelectDescription: 'Elige la organización de Zoho Books desde la que deseas importar datos.',
+            noOrganizationsFound: 'No se encontraron organizaciones',
+            noOrganizationsFoundDescription: 'Añade una organización en Zoho Books y vuelve a sincronizar la conexión',
+            multiLocationNotSupported: 'Las organizaciones con varias ubicaciones aún no son compatibles',
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
@@ -10698,6 +10783,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Error inesperado al actualizar el campo. Por favor, inténtalo más tarde.',
         genericUpdateReportNameEditFailureMessage: 'Error inesperado al cambiar el nombre del informe. Por favor, intentarlo más tarde.',
         noActivityYet: 'Sin actividad todavía',
+        collapsedSystemMessages: () => ({
+            one: 'mostrar 1 actualización',
+            other: (count: number) => `mostrar ${count} actualizaciones`,
+        }),
         connectionSettings: 'Configuración de conexión',
         actions: {
             type: {
