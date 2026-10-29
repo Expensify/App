@@ -8,7 +8,7 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
-    canSubmitterCreateExpenses,
+    canSubmitOwnReportOnPolicy,
     getManagerAccountID,
     getSubmitToAccountID,
     getValidConnectedIntegration,
@@ -168,7 +168,7 @@ function isSubmitAction(
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
     // A role that cannot create expenses cannot submit its own report.
-    if (isReportSubmitter && !canSubmitterCreateExpenses(policy, currentUserEmail)) {
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
         return false;
     }
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;

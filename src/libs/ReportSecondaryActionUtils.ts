@@ -23,7 +23,7 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
-    canSubmitterCreateExpenses,
+    canSubmitOwnReportOnPolicy,
     canMemberWrite,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
@@ -281,7 +281,7 @@ function isSubmitAction({
     }
 
     // A role that cannot create expenses cannot submit its own report.
-    if (isReportSubmitter && !canSubmitterCreateExpenses(policy, currentUserLogin)) {
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserLogin)) {
         return false;
     }
 

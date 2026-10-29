@@ -145,7 +145,7 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
-    canSubmitterCreateExpenses,
+    canSubmitOwnReportOnPolicy,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
@@ -3442,7 +3442,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isReportSubmitter = report?.ownerAccountID === currentUserAccountID;
     // A role that cannot create expenses cannot submit its own report.
-    const canSubmitOwnReport = !isReportSubmitter || canSubmitterCreateExpenses(policy, currentUserEmailParam);
+    const canSubmitOwnReport = !isReportSubmitter || canSubmitOwnReportOnPolicy(policy, currentUserEmailParam);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, currentUserAccountID, report, reportOwnerLogin, policy);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(
         transactions,

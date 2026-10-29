@@ -7,7 +7,7 @@ import type {ValueOf} from 'type-fest';
 import {
     arePaymentsEnabled,
     canAdminPayReport,
-    canSubmitterCreateExpenses,
+    canSubmitOwnReportOnPolicy,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -54,14 +54,14 @@ function canSubmit(
         return false;
     }
 
-    // A role that cannot create expenses cannot submit its own report.
-    if (!canSubmitterCreateExpenses(policy, currentUserEmail)) {
-        return false;
-    }
-
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
+
+    // A role that cannot create expenses cannot submit its own report.
+    if (isSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
