@@ -73,7 +73,7 @@ function IntentOption({illustration, title, description, onPress}: IntentOptionP
 function ReimbursementIntent({onSubmit, onBackButtonPress, policyID, currency, currentSubPage, backTo}: NonUSDPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ReportReceipt']);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'Report']);
 
     if (currentSubPage === REIMBURSEMENT_INTENT_STEP.SUB_PAGE_NAMES.ABA_WITHDRAWAL_SUCCESS) {
         return <ABAWithdrawalSuccess onFinish={() => Navigation.dismissModal()} />;
@@ -115,7 +115,7 @@ function ReimbursementIntent({onSubmit, onBackButtonPress, policyID, currency, c
                     onPress={onSubmit}
                 />
                 <IntentOption
-                    illustration={illustrations.ReportReceipt}
+                    illustration={illustrations.Report}
                     title={translate('reimbursementIntentStep.payViaABAFile')}
                     description={translate('reimbursementIntentStep.payViaABAFileDescription')}
                     onPress={() =>

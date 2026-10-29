@@ -206,6 +206,7 @@ import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptPartners from '@assets/images/simple-illustrations/simple-illustration__receipt.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
+import Report from '@assets/images/simple-illustrations/simple-illustration__report.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
@@ -385,6 +386,7 @@ const Illustrations = {
     ReceiptWrangler,
     ReceiptUpload,
     TravelAlerts,
+    Report,
     ReportReceipt,
     Rules,
     Stopwatch,
