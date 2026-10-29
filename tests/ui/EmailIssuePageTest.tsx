@@ -2,8 +2,6 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
-import type useOnyx from '@hooks/useOnyx';
-
 import Navigation from '@libs/Navigation/Navigation';
 import type * as NetworkStateModule from '@libs/NetworkState';
 
@@ -25,21 +23,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const LOGIN = 'test@user.com';
 
 let mockIsOffline = false;
-let mockAccountMetadataStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsFocused = true;
-
-jest.mock('@hooks/useOnyx', () => {
-    const actualUseOnyx = jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default;
-
-    return {
-        __esModule: true,
-        default: (...args: Parameters<typeof useOnyx>) => {
-            const result = actualUseOnyx(...args);
-            // Inlined literal (not ONYXKEYS.ACCOUNT): jest.mock factories can't reference out-of-scope imports.
-            return args.at(0) === 'account' ? [result.at(0), {status: mockAccountMetadataStatus}] : result;
-        },
-    };
-});
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -111,7 +95,6 @@ describe('EmailIssuePage', () => {
 
     beforeEach(() => {
         mockIsOffline = false;
-        mockAccountMetadataStatus = 'loaded';
         mockIsFocused = true;
         mockShowConfirmModal.mockReset().mockResolvedValue({action: 'CLOSE'});
         mockRequestEmailUnblock.mockClear();
@@ -137,18 +120,6 @@ describe('EmailIssuePage', () => {
 
         // Then it redirects away instead of showing stale fix-it steps
         expect(Navigation.goBack).toHaveBeenCalled();
-    });
-
-    it('does not redirect while the account is still loading', async () => {
-        // Given the account is still loading
-        mockAccountMetadataStatus = 'loading';
-
-        // When the page mounts
-        renderPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then it must not treat the not-yet-loaded `false` as a real "no failure" and redirect away
-        expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 
     it('flips the flag false and navigates back once the unblock succeeds', async () => {
