@@ -2599,6 +2599,12 @@ describe('SearchQueryUtils', () => {
                 expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH}`,
             },
             {
+                modifier: 'never',
+                formKey: FILTER_KEYS.ANY_APPROVAL_ON,
+                formValue: CONST.SEARCH.DATE_PRESETS.NEVER,
+                expectedQuery: `type:expense ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}:${CONST.SEARCH.DATE_PRESETS.NEVER}`,
+            },
+            {
                 modifier: 'AFTER',
                 formKey: FILTER_KEYS.ANY_APPROVAL_AFTER,
                 formValue: '2026-04-01',
