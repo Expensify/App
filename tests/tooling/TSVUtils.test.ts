@@ -146,8 +146,8 @@ describe('TSVUtils.serialize', () => {
     });
 
     it('round-trips leading comments, per-row comments, and trailing comments', () => {
-        const original = `# eslint-seatbelt temporarily allowed errors
-# docs: https://github.com/justjake/eslint-seatbelt#readme
+        const original = `# seatbelt temporarily allowed errors
+# docs: contributingGuides/LINTING.md#seatbelt
 
 "../../src/a.ts"\t"no-console"\t1
 # grandfathered until the Foo migration

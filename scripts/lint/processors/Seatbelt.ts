@@ -8,10 +8,10 @@ import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
 import {LINT_SEVERITY} from '../types';
 
-const SEATBELT_NAME = 'eslint-seatbelt';
+const SEATBELT_NAME = 'seatbelt';
 const SEATBELT_TSV_RELATIVE = 'config/oxlint/oxlint.seatbelt.tsv';
 const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
-# docs: https://github.com/justjake/${SEATBELT_NAME}#readme`;
+# docs: contributingGuides/LINTING.md#seatbelt`;
 
 type SeatbeltFileLine = {
     filename: string;

@@ -110,8 +110,8 @@ describe('transformMessages', () => {
 
 describe('serializeSeatbeltTSV', () => {
     it('round-trips the committed header and row format', () => {
-        const original = `# eslint-seatbelt temporarily allowed errors
-# docs: https://github.com/justjake/eslint-seatbelt#readme
+        const original = `# seatbelt temporarily allowed errors
+# docs: contributingGuides/LINTING.md#seatbelt
 
 "../../src/a.ts"	"no-console"	1
 "../../src/b.ts"	"@typescript-eslint/no-deprecated/Foo"	2
@@ -125,7 +125,7 @@ describe('serializeSeatbeltTSV', () => {
     });
 
     it('keeps per-row and trailing comments when rewriting counts', () => {
-        const original = `# eslint-seatbelt temporarily allowed errors
+        const original = `# seatbelt temporarily allowed errors
 
 "../../src/a.ts"	"no-console"	1
 # tracked in Expensify/App#123
