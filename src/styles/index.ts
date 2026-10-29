@@ -4351,9 +4351,8 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
             bottom: 0,
-            borderTopWidth: 4,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
             borderTopColor: theme.success,
-            backgroundColor: `${theme.success}33`,
         },
 
         translatedReceiptCard: {

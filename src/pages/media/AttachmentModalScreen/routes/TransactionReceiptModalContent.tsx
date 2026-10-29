@@ -76,7 +76,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound', 'Globe']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound', 'Globe', 'ArrowsLeftRight']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -582,7 +582,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     style={styles.transactionReceiptButton}
                     sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.VIEW_ORIGINAL_RECEIPT}
                 >
-                    <Button.Icon src={expensifyIcons.Globe} />
+                    <Button.Icon src={expensifyIcons.ArrowsLeftRight} />
                     <Button.Text>{translate('receipt.viewOriginal')}</Button.Text>
                 </Button>
             </View>
@@ -671,9 +671,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         );
     }
 
+    const displayedImageUri = sourceUri || source;
     let customAttachmentContent;
     if (translatedReceiptRows && !isCropping) {
         customAttachmentContent = <TranslatedReceiptCard rows={translatedReceiptRows} />;
+    } else if (isTranslating && !isPDF && typeof displayedImageUri === 'string' && !!displayedImageUri) {
+        customAttachmentContent = (
+            <ReceiptScanningLine
+                imageUri={displayedImageUri}
+                isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
+            />
+        );
     } else if (!isCropping || (!sourceUri && !source)) {
         customAttachmentContent = null;
     } else {
@@ -703,7 +711,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         shouldMinimizeMenuButton: false,
         footerActionButtons,
         customAttachmentContent,
-        attachmentOverlay: isTranslating && <ReceiptScanningLine />,
         attachmentViewContainerStyles: [styles.pv5, styles.ph2],
         fallbackSource: expensifyIcons.AttachmentNotFound,
     };

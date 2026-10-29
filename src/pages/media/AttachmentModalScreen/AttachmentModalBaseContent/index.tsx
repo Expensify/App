@@ -79,7 +79,6 @@ function AttachmentModalBaseContent({
     shouldCloseOnSwipeDown = false,
     footerActionButtons,
     customAttachmentContent,
-    attachmentOverlay,
     attachmentViewContainerStyles,
     pdfRotation,
 }: AttachmentModalBaseContentProps) {
@@ -313,7 +312,6 @@ function AttachmentModalBaseContent({
                     />
                 )}
                 {shouldDisplayContent && (customAttachmentContent ?? Content)}
-                {shouldDisplayContent && attachmentOverlay}
             </View>
             {!!footerActionButtons && (
                 <LayoutAnimationConfig skipEntering>
