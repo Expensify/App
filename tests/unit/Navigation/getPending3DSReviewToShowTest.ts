@@ -43,13 +43,13 @@ describe('getPending3DSReviewToShow', () => {
     });
 
     it('returns the oldest eligible review', () => {
-        // Given several reviews that nobody has answered yet
-        const queue = buildQueue([buildReview('3', '2026-10-27 12:00:00'), buildReview('1', '2026-10-27 10:00:00'), buildReview('2', '2026-10-27 11:00:00')]);
+        // Given several unanswered reviews whose IDs run opposite to their age, since Object.values iterates numeric keys in ascending order
+        const queue = buildQueue([buildReview('1', '2026-10-27 12:00:00'), buildReview('2', '2026-10-27 11:00:00'), buildReview('3', '2026-10-27 10:00:00')]);
 
         // When we pick the review to show
         const review = getPending3DSReviewToShow(queue, {});
 
         // Then the oldest one is shown first, keeping the order stable while the user works through them
-        expect(review?.transactionID).toBe('1');
+        expect(review?.transactionID).toBe('3');
     });
 });
