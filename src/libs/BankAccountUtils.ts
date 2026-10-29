@@ -38,6 +38,14 @@ function getLastFourDigits(bankAccountNumber: string): string {
 }
 
 /**
+ * Normalizes a BSB entered without a dash to match the backend's expected xxx-xxx form.
+ */
+function normalizeBSB(bsbNumber: string): string {
+    const digits = bsbNumber.trim().replace('-', '');
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+}
+
+/**
  * Renders a bank account as `${friendlyBankName} xx${last4}` for Search filter
  * pickers, chips, and autocomplete suggestions. Falls back to GENERIC_BANK when
  * the bank name is missing or not in CONST.BANK_NAMES_USER_FRIENDLY.
@@ -470,6 +478,7 @@ export {
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
+    normalizeBSB,
     hasPartiallySetupBankAccount,
     hasBrokenPlaidConnectionBankAccount,
     hasPersonalBankAccountMissingInfo,

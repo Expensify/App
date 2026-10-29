@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {normalizeBSB} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import {clearCreateWithdrawalABAAccount, createWithdrawalABAAccount} from '@userActions/BankAccounts';
@@ -100,10 +101,8 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM>) => {
-        // The BSB can be entered with or without a dash, but the back end only accepts the xxx-xxx form
-        const bsbDigits = values[INPUT_IDS.BSB_NUMBER].trim().replace('-', '');
         createWithdrawalABAAccount({
-            bsbNumber: `${bsbDigits.slice(0, 3)}-${bsbDigits.slice(3)}`,
+            bsbNumber: normalizeBSB(values[INPUT_IDS.BSB_NUMBER]),
             accountNumber: values[INPUT_IDS.ACCOUNT_NUMBER].trim(),
             bankUserIdentificationNumber: values[INPUT_IDS.BANK_USER_IDENTIFICATION_NUMBER].trim(),
             companyName: values[INPUT_IDS.COMPANY_NAME].trim(),

@@ -1,4 +1,5 @@
 import {
+    normalizeBSB,
     getBankAccountConnectionStatus,
     getBankAccountState,
     getCompletedStepsForBankAccount,
@@ -329,6 +330,17 @@ describe('BankAccountUtils', () => {
             {input: '1234', expected: '1234', description: 'exactly 4 characters'},
         ])('returns $expected for $description', ({input, expected}) => {
             expect(getLastFourDigits(input)).toBe(expected);
+        });
+    });
+
+    describe('normalizeBSB', () => {
+        // Given a BSB typed in either form the form accepts, then the back end gets the dashed form it requires
+        it.each([
+            {input: '123-456', description: 'a BSB with the dash'},
+            {input: '123456', description: 'a BSB without the dash'},
+            {input: ' 123456 ', description: 'a BSB with surrounding spaces'},
+        ])('returns 123-456 for $description', ({input}) => {
+            expect(normalizeBSB(input)).toBe('123-456');
         });
     });
 
