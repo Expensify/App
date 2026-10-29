@@ -57,6 +57,9 @@ type EmptySearchViewProps = {
     violationSnapshotStartedAt?: string;
     onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The page header, when it scrolls with the content instead of being pinned above it. */
+    listHeader?: React.JSX.Element;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -78,7 +81,7 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle, listHeader}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const typeMenuSections = useSearchTypeMenuSections();
 
@@ -106,6 +109,7 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
                 violationSnapshotStartedAt={violationSnapshotStartedAt}
                 onScroll={onScroll}
                 contentContainerStyle={contentContainerStyle}
+                listHeader={listHeader}
             />
         </SearchScopeProvider>
     );
@@ -130,6 +134,7 @@ function EmptySearchViewContent({
     violationSnapshotStartedAt,
     onScroll,
     contentContainerStyle,
+    listHeader,
 }: EmptySearchViewContentProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
@@ -419,6 +424,7 @@ function EmptySearchViewContent({
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}
         >
+            {listHeader}
             <GenericEmptyStateComponent
                 headerMedia={content.headerMedia}
                 headerStyles={styles.emptyStateCardIllustrationContainer}

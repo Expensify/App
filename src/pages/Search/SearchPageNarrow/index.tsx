@@ -25,6 +25,7 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -108,6 +109,7 @@ function SearchPageNarrow({
     // The footer is shown and hidden by its own selection state, so its height is read from layout.
     const [footerHeight, setFooterHeight] = useState(0);
     const StyleUtils = useStyleUtils();
+    const {isInLandscapeMode} = useResponsiveLayout();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {shouldUseLiveData} = useSearchResultsContext();
     const {isOffline} = useNetwork();
@@ -256,7 +258,59 @@ function SearchPageNarrow({
     const isDataLoaded = shouldUseLiveData || isSearchDataLoaded(searchResults, queryJSON);
     // Use the request state because `isLoading` also covers temporary UI loading that should not keep this bar visible.
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || isSearchPending(searchResults));
-    const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+    const searchPageHeader = (
+        <SearchPageHeaderNarrow
+            queryJSON={queryJSON}
+            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+            isMobileSelectionModeEnabled={false}
+        />
+    );
+
+    const searchHeaderContent = (
+        <PulsingView
+            shouldPulse={!isHeaderInteractive}
+            style={styles.flex1}
+            wrapperStyle={[styles.flex1, styles.appBG]}
+        >
+            <CollapsibleHeaderOnKeyboardGroupMember>
+                <SearchTypeMenuSwitch
+                    showStatic={!isHeaderInteractive}
+                    queryJSON={queryJSON}
+                />
+            </CollapsibleHeaderOnKeyboardGroupMember>
+            <View style={[styles.flex1, styles.flexRow, styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
+                <SearchPageInputSwitch
+                    showStatic={!isHeaderInteractive}
+                    queryJSON={queryJSON}
+                    onFocus={() => topBarOffset.set(StyleUtils.searchHeaderDefaultOffset)}
+                />
+                <SearchActionsBarSwitch
+                    showStatic={!isHeaderInteractive}
+                    queryJSON={queryJSON}
+                    searchResults={searchResults}
+                    onSort={onSortPressedCallback}
+                />
+            </View>
+            <SearchFiltersBarSwitch
+                showStatic={!isHeaderInteractive}
+                queryJSON={queryJSON}
+            />
+        </PulsingView>
+    );
+
+    // A phone in landscape is too short to keep the header pinned over the list: the header, the footer and the tab
+    // bar can cover all of it. There the header is the list's own header, so it scrolls away with the rows and a drag
+    // that starts on it scrolls the list. Selection mode keeps its pinned header, as that header is the way out of it.
+    const listHeader =
+        isInLandscapeMode && !isMobileSelectionModeEnabled ? (
+            <View style={styles.appBG}>
+                {searchPageHeader}
+                {searchHeaderContent}
+            </View>
+        ) : undefined;
+    // The pinned header floats over the list, so the list starts below it. A list header takes up its own room.
+    const searchListContainerStyle = listHeader ? undefined : styles.searchListContentContainerStyles(hasFilterBars);
+    const contentContainerStyle = !isMobileSelectionModeEnabled ? searchListContainerStyle : undefined;
 
     const shouldRenderLayoutProbe = (isOverlayActive || !isHeaderInteractive) && !searchOverlayContent;
     // Static rendering also covers Spend mounted in the background by native tabs, which may be first shown before
@@ -282,52 +336,19 @@ function SearchPageNarrow({
                     offlineIndicatorStyle={[styles.mtAuto, footerHeight > 0 ? styles.offlineIndicatorAboveFooter(footerHeight) : tabRootScreenWrapperProps.offlineIndicatorStyle]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
-                        {!isMobileSelectionModeEnabled ? (
+                        {!isMobileSelectionModeEnabled && !listHeader && (
                             <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), styles.mh100]}>
                                 <CollapsibleHeaderOnKeyboardGroup>
-                                    <View style={[styles.zIndex10, styles.appBG]}>
-                                        <SearchPageHeaderNarrow
-                                            queryJSON={queryJSON}
-                                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                                            isMobileSelectionModeEnabled={false}
-                                        />
-                                    </View>
+                                    <View style={[styles.zIndex10, styles.appBG]}>{searchPageHeader}</View>
                                     <View style={styles.flex1}>
                                         <Animated.View style={[topBarAnimatedStyle, styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.appBG, styles.searchTopBarZIndexStyle]}>
-                                            <PulsingView
-                                                shouldPulse={!isHeaderInteractive}
-                                                style={styles.flex1}
-                                                wrapperStyle={[styles.flex1, styles.appBG]}
-                                            >
-                                                <CollapsibleHeaderOnKeyboardGroupMember>
-                                                    <SearchTypeMenuSwitch
-                                                        showStatic={!isHeaderInteractive}
-                                                        queryJSON={queryJSON}
-                                                    />
-                                                </CollapsibleHeaderOnKeyboardGroupMember>
-                                                <View style={[styles.flex1, styles.flexRow, styles.pt2, pageGutterMargin, styles.mb3, styles.gap3]}>
-                                                    <SearchPageInputSwitch
-                                                        showStatic={!isHeaderInteractive}
-                                                        queryJSON={queryJSON}
-                                                        onFocus={() => topBarOffset.set(StyleUtils.searchHeaderDefaultOffset)}
-                                                    />
-                                                    <SearchActionsBarSwitch
-                                                        showStatic={!isHeaderInteractive}
-                                                        queryJSON={queryJSON}
-                                                        searchResults={searchResults}
-                                                        onSort={onSortPressedCallback}
-                                                    />
-                                                </View>
-                                                <SearchFiltersBarSwitch
-                                                    showStatic={!isHeaderInteractive}
-                                                    queryJSON={queryJSON}
-                                                />
-                                            </PulsingView>
+                                            {searchHeaderContent}
                                         </Animated.View>
                                     </View>
                                 </CollapsibleHeaderOnKeyboardGroup>
                             </View>
-                        ) : (
+                        )}
+                        {isMobileSelectionModeEnabled && (
                             <>
                                 <HeaderWithBackButton
                                     title={translate('common.selectMultiple')}
@@ -349,7 +370,12 @@ function SearchPageNarrow({
                                 <>
                                     {isInteractive &&
                                         (shouldShowStaticLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                            <View style={styles.flex1}>
+                                                {listHeader}
+                                                <View style={styles.flex1}>
+                                                    <SearchLoadingSkeleton containerStyle={searchListContainerStyle} />
+                                                </View>
+                                            </View>
                                         ) : (
                                             <Search
                                                 searchResults={contentSearchResults}
@@ -362,13 +388,17 @@ function SearchPageNarrow({
                                                 onDestinationVisible={endSubmitNavigationSpans}
                                                 onContentReady={onSearchContentReady}
                                                 hasFilterBars={hasFilterBars}
+                                                listHeader={listHeader}
                                             />
                                         ))}
                                     {!isInteractive && !searchOverlayContent && (
-                                        <SearchRowSkeleton
-                                            shouldAnimate={hasBeenFocused}
-                                            containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
-                                        />
+                                        <>
+                                            {listHeader}
+                                            <SearchRowSkeleton
+                                                shouldAnimate={hasBeenFocused}
+                                                containerStyle={searchListContainerStyle}
+                                            />
+                                        </>
                                     )}
                                     {shouldRenderLayoutProbe && <View onLayout={onSearchLayout} />}
                                     {!!searchOverlayContent && (
@@ -385,11 +415,17 @@ function SearchPageNarrow({
                                 <>
                                     <Animated.View
                                         key={contentQueryJSON.hash}
-                                        entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                                        // The list header is part of this layer, so fading it in would blink the header on every query.
+                                        entering={listHeader ? undefined : FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                                         style={StyleSheet.absoluteFill}
                                     >
                                         {shouldShowLoadingSkeleton ? (
-                                            <SearchLoadingSkeleton containerStyle={styles.searchListContentContainerStyles(hasFilterBars)} />
+                                            <View style={styles.flex1}>
+                                                {listHeader}
+                                                <View style={styles.flex1}>
+                                                    <SearchLoadingSkeleton containerStyle={searchListContainerStyle} />
+                                                </View>
+                                            </View>
                                         ) : (
                                             <SearchWithNavigationDeferredMount
                                                 isReplacingContent={isReplacingPreviousContent}
@@ -402,6 +438,7 @@ function SearchPageNarrow({
                                                 onDestinationVisible={endSubmitNavigationSpans}
                                                 onContentReady={onSearchContentReady}
                                                 hasFilterBars={hasFilterBars}
+                                                listHeader={listHeader}
                                             />
                                         )}
                                     </Animated.View>

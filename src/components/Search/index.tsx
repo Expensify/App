@@ -137,6 +137,12 @@ type SearchProps = {
     /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
      *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
+
+    /**
+     * The page header, given when it is not pinned above the results but scrolls with them. Whatever renders in place
+     * of the list (skeleton, empty state, error, chart) renders it too, or the page would lose its header.
+     */
+    listHeader?: React.JSX.Element;
 };
 
 type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
@@ -152,6 +158,7 @@ function Search({
     onSortPressedCallback,
     onContentReady,
     onDestinationVisible,
+    listHeader,
 }: SearchProps) {
     const {type, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
 
@@ -1290,33 +1297,48 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
-    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+    // A pinned header floats over the results, so they start below it. A list header takes up its own room.
+    let listContainerStyle: StyleProp<ViewStyle> = styles.mt3;
+    if (shouldUseNarrowLayout) {
+        listContainerStyle = listHeader ? undefined : styles.searchListContentContainerStyles(!!hasFilterBars);
+    }
 
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowRowSkeleton) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                onLayout={onSkeletonLayout}
-                containerStyle={listContainerStyle}
-            />
+            <>
+                {listHeader}
+                <SearchRowSkeleton
+                    shouldAnimate
+                    onLayout={onSkeletonLayout}
+                    containerStyle={listContainerStyle}
+                />
+            </>
         );
     }
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
         cancelNavigationSpans();
-        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+        return (
+            <>
+                {listHeader}
+                <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>
+            </>
+        );
     }
 
     if (hasUnresolvedErrors) {
         return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={listContainerStyle}
-            />
+            <>
+                {listHeader}
+                <SearchRowSkeleton
+                    shouldAnimate
+                    containerStyle={listContainerStyle}
+                />
+            </>
         );
     }
 
@@ -1369,14 +1391,17 @@ function Search({
             },
         } as const;
         return (
-            <View style={[listContainerStyle, styles.flex1]}>
-                <FullPageErrorView
-                    shouldShow
-                    containerStyle={styles.searchBlockingErrorViewContainer}
-                    subtitleStyle={styles.textSupporting}
-                    {...errorViewByKind[failureKind]}
-                />
-            </View>
+            <>
+                {listHeader}
+                <View style={[listContainerStyle, styles.flex1]}>
+                    <FullPageErrorView
+                        shouldShow
+                        containerStyle={styles.searchBlockingErrorViewContainer}
+                        subtitleStyle={styles.textSupporting}
+                        {...errorViewByKind[failureKind]}
+                    />
+                </View>
+            </>
         );
     }
     // Guard: don't render the empty view while the data is transiently empty.
@@ -1401,7 +1426,8 @@ function Search({
                     queryJSON={queryJSON}
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
-                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                    contentContainerStyle={isInLandscapeMode ? listContainerStyle : undefined}
+                    listHeader={listHeader}
                 />
             </View>
         );
@@ -1440,6 +1466,7 @@ function Search({
                     onLayout={onLayoutChart}
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 >
+                    {listHeader}
                     <View style={[listContainerStyle, styles.mh4, styles.mb4, styles.flex1]}>
                         <SearchChartWrapper
                             title={chartTitle}
@@ -1533,6 +1560,7 @@ function Search({
         onViewableItemsChanged,
         onEndReached: fetchMoreResults,
         ListFooterComponent: listFooterComponent,
+        ListHeaderComponent: listHeader,
         onLayout,
         isMobileSelectionModeEnabled,
         newTransactions,

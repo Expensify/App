@@ -40,7 +40,8 @@ function handleSkeletonLayout() {
 function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: SearchWithNavigationDeferredMountProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
+    // A pinned header floats over the results, so they start below it. A list header takes up its own room.
+    const containerStyle = shouldUseNarrowLayout && !props.listHeader ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
 
     // Read once at mount: the placeholder only ever covers this mount's deferral window, so a later prop change must
     // not un-hide it mid-swap.
@@ -50,17 +51,21 @@ function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: Searc
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        onLayout={handleSkeletonLayout}
-                        containerStyle={containerStyle}
-                    />
+                <View style={[styles.flex1, StyleSheet.absoluteFill]}>
+                    {props.listHeader}
+                    <View style={[styles.flex1, isReplacingContentAtMount && styles.opacity0]}>
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            onLayout={handleSkeletonLayout}
+                            containerStyle={containerStyle}
+                        />
+                    </View>
                 </View>
             }
         >
             <Animated.View
-                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                // The list header is already shown by the placeholder, so fading it in again would blink it.
+                entering={props.listHeader ? undefined : FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
                 style={styles.flex1}
             >
                 <Search {...props} />
