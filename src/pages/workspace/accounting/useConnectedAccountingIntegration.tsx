@@ -462,8 +462,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting && zohoBooksOrganizationList.length > 1,
-                          // Multi-location organizations are not supported yet, so explain why the connection doesn't work.
-                          errorText: currentZohoBooksOrganization?.isMultiLocation ? translate('workspace.zohoBooks.multiLocationNotSupported') : undefined,
                           pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
                           brickRoadIndicator:
                               !!policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID || !!currentZohoBooksOrganization?.isMultiLocation
@@ -480,6 +478,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         }
     };
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
+    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
     const getConnectionDetails = () => {
         if (!connectedIntegration || !policyID) {
@@ -504,26 +503,22 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Zoho Books import and advanced screens are added in a later release, so hide their entry points until then.
-        const shouldShowImportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        // Zoho Books advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
         const configurationOptions = canWriteAccounting
             ? [
-                  ...(shouldShowImportAndAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Pencil,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.import'),
-                                wrapperStyle: menuItemWrapperStyle,
-                                onPress: integrationData?.onImportPagePress,
-                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined,
-                                pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Pencil,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.import'),
+                      wrapperStyle: menuItemWrapperStyle,
+                      onPress: integrationData?.onImportPagePress,
+                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
+                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                          : undefined,
+                      pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
+                  },
                   {
                       icon: icons.Send,
                       iconRight: icons.ArrowRight,
@@ -552,7 +547,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                             },
                         ]
                       : []),
-                  ...(shouldShowImportAndAdvancedOptions
+                  ...(shouldShowAdvancedOptions
                       ? [
                             {
                                 icon: icons.Gear,
@@ -572,7 +567,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             : [];
 
         const settingsMenuItems: MenuItemData[] = [
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || (shouldShowSynchronizationError && !shouldKeepIntegrationSpecificMenuItemOnSyncError) || !hasAccountingConnection
+                ? []
+                : [integrationSpecificMenuItems]),
             ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
         return {icon: integrationData?.icon, title: integrationData?.title, connectionMessage, settingsMenuItems};
