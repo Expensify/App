@@ -242,7 +242,7 @@ const translations = {
         dob: 'Date of birth',
         currentYear: 'Current year',
         currentMonth: 'Current month',
-        today: 'Today',
+        todayDateLabel: (date: string) => `${date}, today`,
         ssnLast4: 'Last 4 digits of SSN',
         ssnFull9: 'Full 9 digits of SSN',
         addressLine: (lineNumber: number) => `Address line ${lineNumber}`,

@@ -207,7 +207,7 @@ function CalendarPicker({
                 const key = `${index}_day-${day}`;
                 const longDateLabel = currentDate ? DateUtils.formatToLongDateWithWeekday(currentDate, dateFnsLocale) : '';
                 // Screen readers can't see today's fill, so today's label says it too
-                const accessibilityDateLabel = isCurrentDay ? `${longDateLabel}, ${translate('common.today')}` : longDateLabel;
+                const accessibilityDateLabel = isCurrentDay ? translate('common.todayDateLabel', longDateLabel) : longDateLabel;
                 return (
                     <PressableWithoutFeedback
                         key={key}

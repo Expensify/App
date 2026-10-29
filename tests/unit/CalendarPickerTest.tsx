@@ -33,7 +33,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: jest.fn((key: string) => key),
+        translate: jest.fn((key: string, ...params: string[]) => [key, ...params].join('|')),
     })),
 );
 
@@ -222,7 +222,7 @@ describe('CalendarPicker', () => {
         render(<CalendarPicker />);
 
         // Then today is shown but not selected, because nothing has been picked yet
-        expect(screen.getByLabelText(`${DateUtils.formatToLongDateWithWeekday(new Date(), undefined)}, common.today`)).not.toBeSelected();
+        expect(screen.getByLabelText(`common.todayDateLabel|${DateUtils.formatToLongDateWithWeekday(new Date(), undefined)}`)).not.toBeSelected();
     });
 
     test('clicking next month arrow and selecting day updates the selected date', () => {
@@ -1110,7 +1110,7 @@ describe('CalendarPicker today highlight', () => {
     /** Returns the label screen readers announce for a day, which names today as today */
     function getDayLabel(date: Date) {
         const longDateLabel = DateUtils.formatToLongDateWithWeekday(date, undefined);
-        return isToday(date) ? `${longDateLabel}, common.today` : longDateLabel;
+        return isToday(date) ? `common.todayDateLabel|${longDateLabel}` : longDateLabel;
     }
 
     /** Returns the circle the real Day draws inside the day's cell, which carries the background color */
@@ -1179,7 +1179,7 @@ describe('CalendarPicker today highlight', () => {
         render(<CalendarPicker />);
 
         // Then only today's label says it is today, because screen reader users can't see today's fill
-        expect(screen.getByLabelText(`${DateUtils.formatToLongDateWithWeekday(today, undefined)}, common.today`)).toBeTruthy();
+        expect(screen.getByLabelText(`common.todayDateLabel|${DateUtils.formatToLongDateWithWeekday(today, undefined)}`)).toBeTruthy();
         for (const day of getOtherDaysOfMonth(today)) {
             expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(day, undefined))).toBeTruthy();
         }

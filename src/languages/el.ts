@@ -180,7 +180,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Ημερομηνία γέννησης',
         currentYear: 'Τρέχον έτος',
         currentMonth: 'Τρέχων μήνας',
-        today: 'Σήμερα',
+        todayDateLabel: (date: string) => `${date}, σήμερα`,
         ssnLast4: 'Τελευταία 4 ψηφία του SSN',
         ssnFull9: 'Ολόκληροι οι 9 αριθμοί του SSN',
         addressLine: (lineNumber: number) => `Γραμμή διεύθυνσης ${lineNumber}`,

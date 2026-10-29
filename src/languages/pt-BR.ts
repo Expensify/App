@@ -176,7 +176,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dob: 'Data de nascimento',
         currentYear: 'Ano atual',
         currentMonth: 'Mês atual',
-        today: 'Hoje',
+        todayDateLabel: (date: string) => `${date}, hoje`,
         ssnLast4: 'Últimos 4 dígitos do SSN',
         ssnFull9: '9 dígitos completos do SSN',
         addressLine: (lineNumber: number) => `Linha de endereço ${lineNumber}`,
