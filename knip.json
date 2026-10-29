@@ -89,7 +89,7 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl"],
+    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl", "xdg-open"],
     "ignoreIssues": {
         "config/oxlint/ruleNames.mjs": ["exports"]
     }
