@@ -36,6 +36,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
     };
     const stopPositioningFromEffect = useEffectEvent(stopPositioning);
 
+    // Each link and list mount starts a new positioning session. Refs keep this out of render, and the
+    // cleanup cancels a scroll that is still scheduled for the previous session.
     useEffect(() => {
         shouldPositionRef.current = !!linkedReportActionID;
         wasLastActionRef.current = false;
@@ -79,6 +81,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         );
     });
 
+    // Positioning scrolls LegendList imperatively, so it runs here where it can be cancelled. The size and scroll
+    // handlers only bump measurementVersion, so a burst of measurements collapses into one scroll to the latest target.
     useEffect(() => {
         if (!isFocused || !linkedReportActionID || readyListID !== listID || targetIndex < 0 || !shouldPositionRef.current) {
             return;
@@ -102,6 +106,8 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         return cancel;
     }, [isFocused, linkedReportActionID, listID, readyListID, targetIndex, isLastAction, measurementVersion]);
 
+    // On web, the reader can also scroll with the wheel, the scrollbar or the keyboard. Treat that input on the
+    // scroll element like a native drag, which hands the viewport back to the reader.
     useEffect(() => {
         if (Platform.OS !== 'web' || readyListID !== listID) {
             return;
