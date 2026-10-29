@@ -227,6 +227,7 @@ type AccountSettingsParamList = {
         subPage?: string;
     };
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
+    [SCREENS.SETTINGS.ADD_ABA_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
         policyID?: string;
     };

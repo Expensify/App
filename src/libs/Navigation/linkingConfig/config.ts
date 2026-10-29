@@ -320,6 +320,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.ADD_ABA_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_ADD_ABA_BANK_ACCOUNT,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW]: {
                             path: DYNAMIC_ROUTES.AGENT_NEW.path,
                             exact: true,

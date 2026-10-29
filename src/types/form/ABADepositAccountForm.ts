@@ -9,6 +9,7 @@ const INPUT_IDS = {
     LAST_NAME: 'lastName',
     BILLING_ADDRESS: 'billingAddress',
     CITY: 'city',
+    ACCEPT_TERMS: 'acceptTerms',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -22,6 +23,7 @@ type ABADepositAccountForm = Form<
         [INPUT_IDS.LAST_NAME]: string;
         [INPUT_IDS.BILLING_ADDRESS]: string;
         [INPUT_IDS.CITY]: string;
+        [INPUT_IDS.ACCEPT_TERMS]: boolean;
     }
 > & {isSuccess?: boolean};
 
