@@ -2218,7 +2218,6 @@
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/index.ts"	"import/no-named-as-default"	1
-"../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/platformSetup/index.native.ts"	"no-empty-function"	1
 "../../src/setup/telemetry/index.ts"	"no-empty-function"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
