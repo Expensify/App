@@ -653,10 +653,10 @@ function beginSignIn(email: string) {
 /**
  * Create Onyx update to clean up anonymous user data
  */
-function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
+function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): PersonalDetailsOnyxUpdate {
     const data: Record<string, null> = {};
-    if (deprecatedSession.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && deprecatedSession.accountID) {
-        data[deprecatedSession.accountID] = null;
+    if (session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && session.accountID) {
+        data[session.accountID] = null;
     }
     return buildPersonalDetailsUpdate(data);
 }
@@ -665,7 +665,13 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
  * Creates an account for the new user and signs them into the application with the newly created account.
  * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
-function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
+function signUpUser(
+    login: string | undefined,
+    preferredLocale: Locale | undefined,
+    hasSMSMarketingConsent: boolean | undefined,
+    storedMarketingAttribution: OnyxEntry<StoredMarketingAttribution>,
+    session: OnyxEntry<Session>,
+) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -677,7 +683,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
         },
     ];
 
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.MARKETING_ATTRIBUTION> | PersonalDetailsOnyxUpdate> = [
         {
@@ -975,7 +981,8 @@ function signIn(
     twoFactorAuthCode: string | undefined,
     login: string | undefined,
     storedValidateCode: string | undefined,
-    storedAuthToken?: string,
+    storedAuthToken: string | undefined,
+    session: OnyxEntry<Session>,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
@@ -989,7 +996,7 @@ function signIn(
         },
     ];
 
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS> | PersonalDetailsOnyxUpdate> = [
         {
@@ -1044,11 +1051,20 @@ function signIn(
     });
 }
 
-function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string, storedAuthToken?: string) {
+// `session` is optional while signInWithValidateCodeAndNavigate still omits it. Refactor issue: https://github.com/Expensify/App/issues/67782
+function signInWithValidateCode(
+    accountID: number,
+    code: string,
+    preferredLocale: Locale | undefined,
+    twoFactorAuthCode = '',
+    storedValidateCode?: string,
+    storedAuthToken?: string,
+    session?: OnyxEntry<Session>,
+) {
     // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? storedValidateCode : code;
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session === undefined ? deprecatedSession : session);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
