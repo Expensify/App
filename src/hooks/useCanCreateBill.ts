@@ -12,8 +12,12 @@ const isFromPublicDomainSelector = (account: OnyxEntry<Account>) => account?.isF
 
 /** Returns whether the current user can create a bill from the Create menus. */
 function useCanCreateBill(): boolean {
-    // s77rt
-    return true;
+    const {login} = useCurrentUserPersonalDetails();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [isFromPublicDomain] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isFromPublicDomainSelector});
+
+    return canCreateBill(policies, domains, login, isFromPublicDomain);
 }
 
 export default useCanCreateBill;
