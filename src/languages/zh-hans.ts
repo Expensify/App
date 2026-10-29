@@ -2764,6 +2764,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: '请确认测试交易',
             accountRequiresAttention: '此账户需要处理',
             unlock: '解锁',
+            plaidBrokenReconnect: '修复您的 Plaid 连接以获得更准确的 Expensify 卡额度',
+            plaidConnectForLimit: '连接 Plaid，以获得更精确的 Expensify 卡额度',
+            connect: '连接',
+        },
+        linkPlaid: {
+            title: '连接到 Plaid',
+            successHeading: '连接成功',
+            successDescription: '感谢你连接 Plaid！',
+            failureHeading: '连接失败',
+            failureDescription: '<muted-text>请重试，或<concierge-link>联系 Concierge</concierge-link>。</muted-text>',
+            wrongAccountHeading: '银行账户错误',
+            wrongAccountDescription: '请在 Plaid 中选择对应的银行账户。',
         },
         wiseOnboarding: {
             confirmationTitle: '请确认所有信息无误',
@@ -3124,6 +3136,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
         collectEmployeeBankDetails: '收集员工银行账户信息',
         collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
+        businessBankAccountCountries: '企业银行账户国家',
+        businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批流程。若要查看或更改此流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>Concierge</concierge-link>。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

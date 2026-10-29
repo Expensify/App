@@ -3212,6 +3212,18 @@ const translations = {
             confirmTestTransactions: 'Please confirm test transactions',
             accountRequiresAttention: 'This account requires attention',
             unlock: 'Unlock',
+            plaidBrokenReconnect: 'Fix your Plaid connection for a more accurate Expensify Card limit',
+            plaidConnectForLimit: 'Connect to Plaid for a more accurate Expensify Card limit',
+            connect: 'Connect',
+        },
+        linkPlaid: {
+            title: 'Connect to Plaid',
+            successHeading: 'Successful connection',
+            successDescription: 'Thanks for connecting to Plaid!',
+            failureHeading: 'Unsuccessful connection',
+            failureDescription: '<muted-text>Please try again or <concierge-link>reach out to Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Wrong bank account',
+            wrongAccountDescription: 'Please select the matching bank account in Plaid.',
         },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
@@ -3457,6 +3469,8 @@ const translations = {
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         collectEmployeeBankDetails: 'Collect employee bank details',
         collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
+        businessBankAccountCountries: 'Business bank account countries',
+        businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

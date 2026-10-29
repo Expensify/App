@@ -2776,6 +2776,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Confirma las transacciones de prueba',
             accountRequiresAttention: 'Esta cuenta requiere atención',
             unlock: 'Desbloquear',
+            plaidBrokenReconnect: 'Repara tu conexión con Plaid para tener un límite de la Tarjeta Expensify más preciso',
+            plaidConnectForLimit: 'Conéctate a Plaid para tener un límite más preciso en la Tarjeta Expensify',
+            connect: 'Conectar',
+        },
+        linkPlaid: {
+            title: 'Conectar con Plaid',
+            successHeading: 'Conexión correcta',
+            successDescription: '¡Gracias por conectarte a Plaid!',
+            failureHeading: 'Conexión fallida',
+            failureDescription: '<muted-text>Por favor, inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Cuenta bancaria incorrecta',
+            wrongAccountDescription: 'Selecciona la cuenta bancaria correspondiente en Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Comprobemos que todo esté correcto',
@@ -3135,6 +3147,9 @@ ${amount} para ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
         collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
+        businessBankAccountCountries: 'Países con cuenta bancaria de empresa',
+        businessBankAccountCountriesDescription:
+            'Los empleados de estos países proporcionan datos de transferencia local. Todos los demás proporcionan datos de transferencia bancaria internacional.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

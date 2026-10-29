@@ -2839,6 +2839,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'テスト取引を確認してください',
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
+            plaidBrokenReconnect: 'より正確な Expensify カードの限度額のために Plaid 接続を修正しましょう',
+            plaidConnectForLimit: 'Plaid に接続して、より正確な Expensify カードの利用限度額を設定しましょう',
+            connect: '接続',
+        },
+        linkPlaid: {
+            title: 'Plaid に接続',
+            successHeading: '接続が成功しました',
+            successDescription: 'Plaid に接続していただきありがとうございます！',
+            failureHeading: '接続に失敗しました',
+            failureDescription: '<muted-text>もう一度お試しいただくか、<concierge-link>Concierge へお問い合わせください</concierge-link>。</muted-text>',
+            wrongAccountHeading: '誤った銀行口座',
+            wrongAccountDescription: 'Plaid で一致する銀行口座を選択してください。',
         },
         wiseOnboarding: {
             confirmationTitle: '内容に間違いがないか確認しましょう',
@@ -3199,6 +3211,8 @@ ${date} の ${merchant} への ${amount}`,
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
         collectEmployeeBankDetails: '従業員の銀行口座情報を収集',
         collectEmployeeBankDetailsDescription: '従業員の銀行口座情報を収集して、Expensify以外で精算できるようにします。',
+        businessBankAccountCountries: 'ビジネス銀行口座の国',
+        businessBankAccountCountriesDescription: 'これらの国の従業員は現地送金の詳細を入力します。それ以外の方は国際電信送金の詳細を入力します。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>このワークスペースではカスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>Concierge</concierge-link>までご連絡ください。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

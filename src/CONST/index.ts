@@ -847,6 +847,7 @@ const CONST = {
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
     },
     BANK_ACCOUNT: {
+        PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
         BENEFICIAL_OWNER_INFO_STEP: {
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -1469,7 +1470,6 @@ const CONST = {
         NL_FILTERS: 'nlFilters',
         PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
-        SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -10811,6 +10811,7 @@ const CONST = {
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
                 APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
                 APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
                 APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',

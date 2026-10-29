@@ -2876,6 +2876,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Veuillez confirmer les transactions de test',
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
+            plaidBrokenReconnect: 'Corrigez votre connexion Plaid pour un plafond de Carte Expensify plus précis',
+            plaidConnectForLimit: 'Connectez Plaid pour une limite de Carte Expensify plus précise',
+            connect: 'Connecter',
+        },
+        linkPlaid: {
+            title: 'Se connecter à Plaid',
+            successHeading: 'Connexion réussie',
+            successDescription: 'Merci de vous être connecté à Plaid !',
+            failureHeading: 'Connexion infructueuse',
+            failureDescription: '<muted-text>Veuillez réessayer ou <concierge-link>contactez Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Mauvais compte bancaire',
+            wrongAccountDescription: 'Veuillez sélectionner le compte bancaire correspondant dans Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Vérifions que tout est correct',
@@ -3243,6 +3255,9 @@ ${amount} pour ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
         collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
+        businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
+        businessBankAccountCountriesDescription:
+            'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

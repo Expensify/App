@@ -2899,6 +2899,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Potwierdź proszę transakcje testowe',
             accountRequiresAttention: 'To konto wymaga uwagi',
             unlock: 'Odblokuj',
+            plaidBrokenReconnect: 'Napraw połączenie z Plaid, aby limit Karty Expensify był dokładniejszy',
+            plaidConnectForLimit: 'Połącz się z Plaid, aby uzyskać dokładniejszy limit Karty Expensify',
+            connect: 'Połącz',
+        },
+        linkPlaid: {
+            title: 'Połącz z Plaid',
+            successHeading: 'Połączono pomyślnie',
+            successDescription: 'Dzięki za połączenie z Plaid!',
+            failureHeading: 'Nieudane połączenie',
+            failureDescription: '<muted-text>Spróbuj ponownie lub <concierge-link>skontaktuj się z Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Nieprawidłowe konto bankowe',
+            wrongAccountDescription: 'Wybierz pasujące konto bankowe w Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Sprawdźmy, czy wszystko się zgadza',
@@ -3260,6 +3272,8 @@ ${amount} dla ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
         collectEmployeeBankDetails: 'Zbieraj dane bankowe pracowników',
         collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe pracowników, aby móc zwracać im wydatki poza Expensify.',
+        businessBankAccountCountries: 'Kraje firmowych kont bankowych',
+        businessBankAccountCountriesDescription: 'Pracownicy w tych krajach podają dane do lokalnego przelewu. Wszyscy pozostali podają dane do międzynarodowego przelewu bankowego.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym jest włączony niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>opiekunem klienta</account-manager-link> lub z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

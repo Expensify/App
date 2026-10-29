@@ -2860,6 +2860,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Conferma le transazioni di prova',
             accountRequiresAttention: 'Questo conto richiede attenzione',
             unlock: 'Sblocca',
+            plaidBrokenReconnect: 'Sistema la connessione Plaid per un limite della Carta Expensify più preciso',
+            plaidConnectForLimit: 'Connettiti a Plaid per un limite della Carta Expensify più preciso',
+            connect: 'Connetti',
+        },
+        linkPlaid: {
+            title: 'Connetti a Plaid',
+            successHeading: 'Connessione riuscita',
+            successDescription: 'Grazie per esserti connesso a Plaid!',
+            failureHeading: 'Connessione non riuscita',
+            failureDescription: '<muted-text>Riprova oppure <concierge-link>contatta Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Conto bancario errato',
+            wrongAccountDescription: 'Seleziona il conto bancario corrispondente in Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Verifichiamo che sia tutto corretto',
@@ -3224,6 +3236,8 @@ ${amount} per ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
         collectEmployeeBankDetails: 'Raccogli i dati bancari dei dipendenti',
         collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei dipendenti per poterli rimborsare al di fuori di Expensify.',
+        businessBankAccountCountries: 'Paesi del conto bancario aziendale',
+        businessBankAccountCountriesDescription: 'I dipendenti in questi paesi forniscono i dati per i bonifici locali. Tutti gli altri forniscono i dati per i bonifici internazionali.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>In questo spazio di lavoro è attivato un processo di approvazione personalizzato. Per rivedere o modificare questo processo, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

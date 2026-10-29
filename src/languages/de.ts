@@ -2871,6 +2871,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
+            plaidBrokenReconnect: 'Beheben Sie Ihre Plaid-Verbindung für ein genaueres Limit Ihrer Expensify Karte',
+            plaidConnectForLimit: 'Mit Plaid verbinden, um ein genaueres Limit für Ihre Expensify Karte zu erhalten',
+            connect: 'Verbinden',
+        },
+        linkPlaid: {
+            title: 'Mit Plaid verbinden',
+            successHeading: 'Erfolgreiche Verbindung',
+            successDescription: 'Danke, dass Sie Plaid verbunden haben!',
+            failureHeading: 'Verbindung fehlgeschlagen',
+            failureDescription: '<muted-text>Bitte versuchen Sie es erneut oder <concierge-link>wenden Sie sich an Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Falsches Bankkonto',
+            wrongAccountDescription: 'Bitte wählen Sie das passende Bankkonto in Plaid aus.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Lassen Sie uns prüfen, ob alles stimmt',
@@ -3238,6 +3250,8 @@ ${amount} für ${merchant} – ${date}`,
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
         collectEmployeeBankDetails: 'Bankdaten der Mitarbeitenden erfassen',
         collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten Ihrer Mitarbeitenden, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
+        businessBankAccountCountries: 'Länder für Geschäftskonten',
+        businessBankAccountCountriesDescription: 'Mitarbeitende in diesen Ländern geben lokale Überweisungsdaten an. Alle anderen geben internationale Überweisungsdaten an.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wende dich bitte an deine:n <account-manager-link>Account Manager</account-manager-link> oder an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
