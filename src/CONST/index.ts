@@ -6427,6 +6427,7 @@ const CONST = {
         ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
+        ISO_8601_UTC_OFFSET_SUFFIX: /([+-]\d{2}:\d{2})$/,
 
         // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,

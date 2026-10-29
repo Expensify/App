@@ -979,12 +979,41 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedCancellationDate('', undefined)).toBe('');
         });
 
-        it('should fall back to UTC when no timezone offset is present in the ISO string', () => {
+        it('should show the wall-clock time without a timezone label when no timezone offset is present in the ISO string', () => {
+            // Given a wall-clock time with no offset, so its timezone is unknown.
             // Pin "now" before 2026 so the 2026 date is treated as a non-current year and the year is shown.
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+
+            // When it is formatted
             const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00', undefined);
-            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
+
+            // Then the time is shown as-is with no guessed timezone label
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
+        });
+
+        it('should not shift a time with no offset into the device timezone', () => {
+            // Given a device in New York and a hotel-local deadline with no offset
+            const originalTZ = process.env.TZ;
+            process.env.TZ = 'America/New_York';
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+
+            // When the deadline is formatted
+            const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00', undefined);
+            process.env.TZ = originalTZ;
+
+            // Then the hotel's wall-clock time is shown as-is, not converted from New York time
+            expect(result).toBe('Monday, Oct 19, 2026 11:59 PM');
+        });
+
+        it('should label a UTC time ending in Z as UTC', () => {
+            // Given a deadline that ends in Z, so its timezone is known
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
+
+            // When it is formatted, then it keeps the UTC label
+            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00Z', undefined)).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
 
         it('should use the given locale for the weekday, the month and the clock', () => {

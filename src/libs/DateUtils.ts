@@ -970,13 +970,20 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
     if (!isoDateString) {
         return '';
     }
-    const offsetMatch = isoDateString.match(/([+-]\d{2}:\d{2})$/);
+    const offsetMatch = isoDateString.match(CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX);
     const venueTimezone = offsetMatch ? offsetMatch[1] : 'UTC';
-    const date = new Date(isoDateString);
+    // A string with no offset and no `Z` is the venue's wall-clock time in an unknown timezone. `new Date` would read it
+    // in the device's timezone, so read it as-is and leave out the timezone label instead of guessing one.
+    const isWallClockTime = !offsetMatch && !isoDateString.endsWith('Z');
+    const date = isWallClockTime ? fromZonedTime(isoDateString, venueTimezone) : new Date(isoDateString);
     const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
+    const formattedDate = formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale});
+    if (isWallClockTime) {
+        return formattedDate;
+    }
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.
-    return `${formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale})}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
+    return `${formattedDate}, ${getCancellationDateTimezoneLabel(venueTimezone)}`;
 }
 
 /**
