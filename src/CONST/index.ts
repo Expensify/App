@@ -1046,6 +1046,13 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
+        ONBOARDING_STEP: {
+            BUSINESS: 'business',
+            REPRESENTATIVE: 'representative',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
         /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
             NOT_PROVIDED: 'NOT_PROVIDED',

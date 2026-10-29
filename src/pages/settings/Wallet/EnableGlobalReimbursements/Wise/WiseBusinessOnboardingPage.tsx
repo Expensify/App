@@ -187,8 +187,11 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={(page, answers, sensitiveAnswers) => {
-                const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(bankAccountID, page, answers, sensitiveAnswers);
-                updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
+                const pageParams = getWiseOnboardingPageParams(bankAccountID, page, answers, sensitiveAnswers);
+                if (!pageParams) {
+                    return;
+                }
+                updateWiseOnboardingAdditionalData(pageParams.params, pageParams.hasSensitiveAnswers);
             }}
             // A later page's save clears the shared error, so a page that is still unsaved shows the generic one
             submitError={saveError || (hasUnsavedPage && !isSavingPage ? translate('common.genericErrorMessage') : undefined)}

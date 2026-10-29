@@ -4,8 +4,11 @@ import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
 import isFileUploadable from '@libs/isFileUploadable';
 
+import CONST from '@src/CONST';
 import type {DynamicFormPage} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
 
 /** A file the server already holds, put back in the draft on resume. Its key tells it apart from a file picked on this device. */
 type WiseSavedFile = FileObject & {savedFileKey: string};
@@ -36,6 +39,14 @@ function getSavedFileAnswers(documents: Record<string, Record<string, string[] |
     return answers;
 }
 
+type WiseOnboardingStep = ValueOf<typeof CONST.WISE.ONBOARDING_STEP>;
+
+const WISE_ONBOARDING_STEPS = new Set<string>(Object.values(CONST.WISE.ONBOARDING_STEP));
+
+function isWiseOnboardingStep(key: string): key is WiseOnboardingStep {
+    return WISE_ONBOARDING_STEPS.has(key);
+}
+
 function getFiles(answer: DynamicFormValues[string]): FileObject[] {
     return Array.isArray(answer) ? answer.filter((item): item is FileObject => typeof item === 'object' && item !== null) : [];
 }
@@ -45,13 +56,18 @@ function getFiles(answer: DynamicFormValues[string]): FileObject[] {
  * Files the server holds are listed in `documents`, new ones are sent as `<field>[<index>]`, and the rest of the answers go in `inputs`.
  * Every file field of the page is listed in `documents`, so a file the user removed, or a field the answers now hide, is removed on the server too.
  * A typed SSN goes in `inputs` too, where the server reads it, and `hasSensitiveAnswers` tells the caller to keep the request out of the queue.
+ * A page whose key is not a step the server accepts gets nothing, since the server would answer it with 400 Invalid step.
  */
 function getWiseOnboardingPageParams(
     bankAccountID: number,
     page: DynamicFormPage,
     answers: DynamicFormValues,
     sensitiveAnswers: DynamicFormValues,
-): {params: UpdateWiseOnboardingAdditionalDataParams; hasSensitiveAnswers: boolean} {
+): {params: UpdateWiseOnboardingAdditionalDataParams; hasSensitiveAnswers: boolean} | undefined {
+    const step = page.key;
+    if (!isWiseOnboardingStep(step)) {
+        return undefined;
+    }
     const fileFieldKeys = new Set(
         getContentFields(page.content)
             .filter((field) => field.type === 'file')
@@ -86,7 +102,7 @@ function getWiseOnboardingPageParams(
     return {
         params: {
             bankAccountID,
-            step: page.key,
+            step,
             inputs: JSON.stringify(inputs),
             ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
             ...newFiles,

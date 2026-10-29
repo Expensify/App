@@ -1,12 +1,14 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import updateWiseOnboardingAdditionalData, {clearWiseOnboardingSaving} from '@libs/actions/WiseOnboarding';
 import * as API from '@libs/API';
+import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {setHasRadio} from '@libs/NetworkState';
 
 import getWiseOnboardingPageParams from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingPageParams';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
 
@@ -20,7 +22,7 @@ import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const PARAMS = {bankAccountID: 1, step: 'representative', inputs: '{}'};
+const PARAMS: UpdateWiseOnboardingAdditionalDataParams = {bankAccountID: 1, step: CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE, inputs: '{}'};
 const SSN = '123456789';
 
 const REPRESENTATIVE_PAGE: DynamicFormPage = {
@@ -35,6 +37,15 @@ const BUSINESS_PAGE: DynamicFormPage = {
     key: 'business',
     content: [{key: 'description', type: 'text', required: true}],
 };
+
+/** The page's save parameters, which every page here has, since its key is a step the server accepts */
+function getPageParams(...args: Parameters<typeof getWiseOnboardingPageParams>) {
+    const pageParams = getWiseOnboardingPageParams(...args);
+    if (!pageParams) {
+        throw new Error(`No step for page ${args[1].key}`);
+    }
+    return pageParams;
+}
 
 /** Whether any page save is still running, the way the page reads it */
 function hasPendingSave(reimbursementAccount: unknown) {
@@ -137,8 +148,8 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
             }
             return Promise.resolve(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: 200})}));
         });
-        const representative = getWiseOnboardingPageParams(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
-        const business = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        const representative = getPageParams(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
+        const business = getPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
 
         // When both pages are saved and only the business page's save answers
         updateWiseOnboardingAdditionalData(representative.params, representative.hasSensitiveAnswers);
@@ -157,7 +168,7 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
         await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {representative: true}, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
 
         // When the user edits the business page and it saves
-        const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        const {params, hasSensitiveAnswers} = getPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
         updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
         await waitForBatchedUpdates();
 
@@ -171,7 +182,7 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
     it('keeps a page unsaved when the server rejects it and clears it once it saves', async () => {
         // Given the server rejects the business page
         mockFetch.fail();
-        const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        const {params, hasSensitiveAnswers} = getPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
 
         // When the page is saved
         updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
@@ -193,8 +204,8 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
     it('never writes a typed SSN to the request queue on disk', async () => {
         // Given the device is offline, so every queued request waits on disk, and a representative page with a typed SSN next to a business page
         setHasRadio(false);
-        const representative = getWiseOnboardingPageParams(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
-        const business = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        const representative = getPageParams(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
+        const business = getPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
 
         // When both pages are saved through the real request path
         updateWiseOnboardingAdditionalData(representative.params, representative.hasSensitiveAnswers);
