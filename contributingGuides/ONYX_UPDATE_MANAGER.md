@@ -2,16 +2,38 @@
 
 Server updates reach the app through HTTPS responses, Pusher events, and Airship push notifications. Those transports can deliver overlapping updates or leave gaps. `OnyxUpdateManager` recovers missing updates before replaying the updates waiting behind them.
 
-This guide explains the update IDs and deferred-update flow. See [SequentialQueue](SEQUENTIAL_QUEUE.md) for outgoing requests, WRITE-response buffering, and recovery timers.
+This guide is for contributors and coding agents working on server-update synchronization. Start with the [workflow for coding agents](#workflow-for-coding-agents), then use the reference sections for the affected path. See [SequentialQueue](SEQUENTIAL_QUEUE.md) for outgoing requests, WRITE-response buffering, and recovery timers.
 
 ## Contents
 
+* [Workflow for coding agents](#workflow-for-coding-agents)
 * [Where updates enter](#where-updates-enter)
 * [How update IDs describe a gap](#how-update-ids-describe-a-gap)
 * [Recovery flow](#recovery-flow)
 * [How deferred updates are replayed](#how-deferred-updates-are-replayed)
 * [Recovery branches and safeguards](#recovery-branches-and-safeguards)
 * [Which module to read](#which-module-to-read)
+
+## Workflow for coding agents
+
+Confirm behavior against the source and tests in the checked-out revision. The diagram summarizes the normal flow; the source defines the exceptions and branch order.
+
+For investigations, complete steps 1 through 3 with the traced path and expected ID transition. For code changes, continue through steps 4 and 5.
+
+1. Trace the affected transport through its [entry point](#where-updates-enter) and the [responsible modules](#which-module-to-read). Identify the function that detects a gap, the request that fills it, and the path that resumes the queue. For a shared helper, trace every transport that calls it.
+2. Describe the case with concrete IDs before editing. Record `previousUpdateID`, `lastUpdateID`, the persisted client ID, and relevant buffered or in-flight updates. State the expected [apply, skip, or fetch decision](#how-update-ids-describe-a-gap) and the resulting client ID. Include any pending-update flag or existing recovery request that changes the decision.
+3. Check the affected [recovery branches and safeguards](#recovery-branches-and-safeguards). Account for the pending-update check running before the ordinary-gap checks. For a changed pause or error path, identify how finalization or existing recovery work will resume the queue.
+4. Change the module that owns the decision and select the relevant tests below. For behavior changes, add a regression for the concrete ID transition and any affected rejection or queue-resumption path. Reuse [`OnyxUpdateMockUtils`](../tests/utils/OnyxUpdateMockUtils.ts) for update fixtures where it fits.
+5. Finish when the focused tests demonstrate the expected decision, ID transition, and queue state for the affected paths. Update this guide if those contracts change, and follow the repository instructions for the required checks. Keep source inspection, unit test results, and app observations distinct when reporting evidence.
+
+### Test entry points
+
+| Changed behavior | Start here |
+| --- | --- |
+| Deferred gaps, overlapping updates, pending notifications, concurrent recovery, or stalled fetches | [`tests/unit/OnyxUpdateManagerTest.ts`](../tests/unit/OnyxUpdateManagerTest.ts) |
+| Old payloads, buffered WRITE updates, in-flight Pusher updates, failed applies, or client-ID advancement | [`tests/unit/OnyxUpdatesTest.ts`](../tests/unit/OnyxUpdatesTest.ts) |
+| A failed Pusher apply and later updates in the same apply chain | [`tests/unit/OnyxUpdatesPusherChainFailureTest.ts`](../tests/unit/OnyxUpdatesPusherChainFailureTest.ts) |
+| Fetching missing updates while the sequential queue is paused | [`tests/actions/OnyxUpdateManagerTest.ts`](../tests/actions/OnyxUpdateManagerTest.ts) |
 
 ## Where updates enter
 
