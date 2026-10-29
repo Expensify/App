@@ -26547,6 +26547,27 @@ describe('ReportUtils', () => {
             expect(result).toBe('Test Merchant');
         });
 
+        it('should return the vendor name shown in the Vendor column for VENDOR column', () => {
+            // Given a workspace whose synced vendor list renamed one vendor, and expenses holding that vendor, a vendor no longer synced, and no vendor
+            const policyWithVendors = createMock<Policy>({
+                ...mockPolicy,
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: 'USD', email: ''}]}}},
+            });
+            const renamedVendorTransaction = createMockTransaction({comment: {vendor: {externalID: 'v-1', name: 'Old Acme', wasManuallySet: true}}});
+            const unsyncedVendorTransaction = createMockTransaction({comment: {vendor: {externalID: 'gone', name: 'Former Vendor', wasManuallySet: true}}});
+            const noVendorTransaction = createMockTransaction();
+
+            // When getting their sort values for the Vendor column
+            const renamedVendorSortValue = getTransactionSortValue(renamedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const unsyncedVendorSortValue = getTransactionSortValue(unsyncedVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+            const noVendorSortValue = getTransactionSortValue(noVendorTransaction, CONST.SEARCH.TABLE_COLUMNS.VENDOR, mockReport, policyWithVendors);
+
+            // Then each expense sorts by the name the column shows, which prefers the synced name and falls back to the stored one
+            expect(renamedVendorSortValue).toBe('Acme Co');
+            expect(unsyncedVendorSortValue).toBe('Former Vendor');
+            expect(noVendorSortValue).toBe('');
+        });
+
         it('should return category for CATEGORY column', () => {
             const transaction = createMockTransaction({category: 'Travel'});
             const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY, mockReport, mockPolicy);
@@ -26704,6 +26725,7 @@ describe('ReportUtils', () => {
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.DATE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.POSTED)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)).toBe(true);
+            expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
             expect(isSortableColumnName(CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE)).toBe(true);
