@@ -116,8 +116,11 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     if (!isSmallScreenWidth) {
+        // The preset list scrolls under the same cap as the other filter dropdowns. The calendars are taller than that cap, so they keep the window-based one and stay fully visible.
+        const popoverMaxHeightStyle = selectedDateModifier ? {maxHeight: maxPopupHeight} : styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
+
         return (
-            <View style={[styles.pv4, styles.gap2, {maxHeight: maxPopupHeight}, style]}>
+            <View style={[styles.pv4, styles.gap2, popoverMaxHeightStyle, style]}>
                 <ScrollView>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader
