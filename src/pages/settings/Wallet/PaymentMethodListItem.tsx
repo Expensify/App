@@ -49,6 +49,7 @@ import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     tooltipText?: string;
     message?: string;
     actionText?: string;
@@ -221,7 +222,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         descriptionAddon = (
             <ConnectionStatusBadge
                 text={item.connectionStatus.statusText}
-                tone={item.connectionStatus.statusTone}
+                tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
                 tooltipText={item.connectionStatus.tooltipText}
             />
         );
@@ -287,6 +288,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
               }),
     };
     const menuItem = <MenuItem {...menuItemProps} />;
+
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
 
     return (
         <OfflineWithFeedback

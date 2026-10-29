@@ -20,9 +20,11 @@ type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalA
 type BankAccountConnectionStatus = {
     labelKey: TranslationPaths;
     tone: 'default' | 'success' | 'danger';
+    badgeTone?: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
+    requiresPlaidHandler?: boolean;
     requiresFixHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
@@ -75,6 +77,50 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
+function isConnectedViaPlaid(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.plaidAccountID || !!accountData.additionalData?.plaidAccountID;
+}
+
+function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.additionalData?.verifications?.externalApiResponses?.plaidAssets?.needsFixing;
+}
+
+/**
+ * Whether the bank account can be connected via Plaid:
+ * - Provisioned as the Expensify Card settlement account; or
+ * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
+ */
+function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, cardOnWaitlistPolicyIDs: Set<string> | undefined): boolean {
+    if (!bankAccount) {
+        return false;
+    }
+
+    if (bankAccount.isExpensifyCardSettlementAccount || bankAccount.accountData?.isExpensifyCardSettlementAccount) {
+        return true;
+    }
+
+    const policyID = bankAccount.accountData?.additionalData?.policyID;
+    if (policyID && cardOnWaitlistPolicyIDs?.has(policyID)) {
+        return true;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (cardOnWaitlistPolicyIDs?.has(id)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function hasInsufficientFundsError(accountData: AccountData | undefined): boolean {
     if (!accountData?.additionalData?.lastNocCode) {
         return false;
@@ -108,8 +154,35 @@ function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
  * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
  * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
  */
-function getBankAccountConnectionStatus(accountData: AccountData | undefined, currency?: string): BankAccountConnectionStatus | undefined {
-    const state = getBankAccountState(accountData);
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, currency?: string, canBankAccountLinkPlaid = false): BankAccountConnectionStatus | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
+    if (canBankAccountLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+        if (hasBrokenPlaidConnection(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
+                actionKey: 'common.actionBadge.fix',
+                tone: 'danger',
+                badgeTone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
+        if (!isConnectedViaPlaid(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
+                actionKey: 'walletPage.bankAccountStatus.connect',
+                tone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        }
+    }
 
     if (state === CONST.BANK_ACCOUNT.STATE.PENDING && !!currency && currency !== CONST.CURRENCY.USD) {
         return getIncompleteBankAccountStatus();
@@ -279,6 +352,10 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
 }
 
+function hasBrokenPlaidConnectionBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => hasBrokenPlaidConnection(bankAccount?.accountData));
+}
+
 function hasValidationFailedBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED);
 }
@@ -439,12 +516,16 @@ export {
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
+    isConnectedViaPlaid,
+    hasBrokenPlaidConnection,
+    canLinkPlaid,
     hasInsufficientFundsError,
     hasDebitBlockedError,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasBrokenPlaidConnectionBankAccount,
     hasValidationFailedBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,

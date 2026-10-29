@@ -8,6 +8,7 @@ import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {IndicatorTestCase} from 'tests/utils/IndicatorTestUtils';
@@ -38,6 +39,13 @@ const accountCardFeedTestCases = {
     },
 } as const satisfies Record<'admin' | 'employee', IndicatorTestCase>;
 
+// Shares HAS_PAYMENT_METHOD_ERROR with hasPaymentMethodError, so the mock discriminates the two by name.
+const brokenPlaidConnectionTestCase = {
+    name: 'has a bank account with a broken Plaid connection',
+    indicatorColor: defaultTheme.danger,
+    status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
+} as const satisfies IndicatorTestCase;
+
 const TEST_CASES = {
     hasUserWalletErrors: {
         name: 'has user wallet errors',
@@ -49,6 +57,7 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
     },
+    hasBrokenPlaidConnection: brokenPlaidConnectionTestCase,
     hasReimbursementAccountErrors: {
         name: 'has reimbursement account errors',
         indicatorColor: defaultTheme.danger,
@@ -95,16 +104,18 @@ const TEST_CASES = {
 
 const policyKey = `${ONYXKEYS.COLLECTION.POLICY}1` as const;
 
-function getMockAccountDataForStatus(status: IndicatorTestCase['status']): {state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE>} | undefined {
+const getMockBankAccountData = (name: string, status: IndicatorStatus | undefined) => {
     switch (status) {
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
         case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
             return {state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED};
-        default:
-            return undefined;
     }
-}
+    if (name === brokenPlaidConnectionTestCase.name) {
+        return {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}};
+    }
+    return undefined;
+};
 
 const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
     ({
@@ -113,12 +124,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             12345: {
                 methodID: 12345,
                 errors:
-                    status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR
+                    status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR && name !== brokenPlaidConnectionTestCase.name
                         ? {
                               error: 'Something went wrong',
                           }
                         : undefined,
-                accountData: getMockAccountDataForStatus(status),
+                accountData: getMockBankAccountData(name, status),
             },
         },
         [ONYXKEYS.USER_WALLET]: {
