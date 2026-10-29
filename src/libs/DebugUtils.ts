@@ -1027,6 +1027,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'policyID':
         case 'rejectFailedFromReportID':
         case 'reportName':
         case 'currency':
@@ -1185,6 +1186,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    policyID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
