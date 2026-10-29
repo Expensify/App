@@ -862,7 +862,7 @@ describe('findForbiddenSeatbeltRows', () => {
 
     it('finds no forbidden row in the committed seatbelt TSV', () => {
         // Given the seatbelt TSV checked into the repo
-        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/eslint/eslint.seatbelt.tsv'), 'utf8');
+        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/oxlint/oxlint.seatbelt.tsv'), 'utf8');
 
         // When it is scanned for the forbidden rules
         // Then nothing is reported, so a row added through SEATBELT_INCREASE fails this suite as well as the lint run

@@ -27,7 +27,7 @@ import {BANNED_RULES, collectDisableDirectivesFromSource, findForbiddenSeatbeltR
 
 const projectRoot = path.resolve(import.meta.dir, '..');
 
-const SEATBELT_TSV = 'config/eslint/eslint.seatbelt.tsv';
+const SEATBELT_TSV = 'config/oxlint/oxlint.seatbelt.tsv';
 
 /** Repo-relative paths of the files under `targets` that contain every search term. An empty `targets` searches the whole repo. */
 function findCandidateFiles(targets: string[], searchTerms: string[]): string[] {

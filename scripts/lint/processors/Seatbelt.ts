@@ -9,12 +9,7 @@ import Processor from '../Processor';
 import {LINT_SEVERITY} from '../types';
 
 const SEATBELT_NAME = 'eslint-seatbelt';
-const SEATBELT_TSV_BY_LINTER = {
-    eslint: 'config/eslint/eslint.seatbelt.tsv',
-    oxlint: 'config/oxlint/oxlint.seatbelt.tsv',
-} as const;
-
-const SEATBELT_TSV_RELATIVE = SEATBELT_TSV_BY_LINTER.eslint;
+const SEATBELT_TSV_RELATIVE = 'config/oxlint/oxlint.seatbelt.tsv';
 const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
 # docs: https://github.com/justjake/${SEATBELT_NAME}#readme`;
 
@@ -199,7 +194,7 @@ function messageFrozenUnderMaxErrorCountText(seatbeltFilename: string, errorCoun
     const fixedMessage = fixed === 1 ? 'error' : 'errors';
     return `[${SEATBELT_NAME}]: SEATBELT_FROZEN: Expected ${maxErrorCount} ${pluralErrors(maxErrorCount)}, found ${errorCount}.
 If you fixed ${fixed} ${fixedMessage}, thank you, but you'll need to update the seatbelt file to match.
-Try running eslint, then committing ${seatbeltFilename}.`.trim();
+Try running npm run lint, then committing ${seatbeltFilename}.`.trim();
 }
 
 function messageFrozenUnderMaxErrorCount(message: LintMessage, seatbeltFilename: string, errorCount: number, maxErrorCount: number): LintMessage {
@@ -543,7 +538,7 @@ function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = pr
 
 export default Seatbelt;
 export {
-    SEATBELT_TSV_BY_LINTER,
+    SEATBELT_TSV_RELATIVE,
     applySeatbelt,
     canonicalizeMessages,
     compareMessages,
