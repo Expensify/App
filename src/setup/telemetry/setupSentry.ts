@@ -90,8 +90,8 @@ function setupSentry(): void {
         autoInitializeNativeSdk: false,
         // Do not set `_experiments.profilingOptions` here on its own. The native SDK is started by SentryNativeSDKManager
         // without profiling options, so session sampling is never configured, and the UI profiling integration the SDK
-        // adds for these options would start the iOS continuous profiler on every root span. Enabling UI profiling needs
-        // the same options in the native init as well.
+        // adds for these options would start the iOS continuous profiler whenever a root span starts. Enabling UI
+        // profiling needs the same options in the native init as well.
     });
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
