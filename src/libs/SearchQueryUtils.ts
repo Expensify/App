@@ -1172,6 +1172,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 
 /** Checks query forms that Auth rejects, including queries typed directly into the search input. */
 function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationPaths | undefined {
+    // Auth only allows grouping expense, invoice, and trip searches. Other types must be searched without grouping.
     if (
         queryJSON.groupBy &&
         (!VALID_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) ||

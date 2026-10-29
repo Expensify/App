@@ -852,7 +852,7 @@ function getOnyxLoadingData(
             value: {
                 errors: null,
                 // The code explains the errors it was stored with, so the two have to be cleared together.
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1364,7 +1364,7 @@ function search({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
                 value: {
-                    search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY},
+                    search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: queryError},
                     errors: getMicroSecondOnyxErrorWithTranslationKey(queryError),
                 },
             },
@@ -1473,9 +1473,10 @@ function search({
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
                 if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
+                    const errorTranslationKey = responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY ? getSearchErrorMessage(result) : undefined;
                     Onyx.merge(snapshotKey, {
-                        search: {responseJsonCode},
-                        ...(responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY && {errors: getMicroSecondOnyxErrorWithTranslationKey(getSearchErrorMessage(result))}),
+                        search: {responseJsonCode, errorTranslationKey},
+                        ...(errorTranslationKey && {errors: getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey)}),
                     }).catch((error: unknown) => Log.hmmm('[Search] failed to store the search response code', {error: String(error)}));
                 }
 

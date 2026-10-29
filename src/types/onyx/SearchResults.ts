@@ -8,6 +8,7 @@ import type {
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -82,6 +83,9 @@ type SearchResultsInfo = {
      * failure. That verdict otherwise lives in component state, which a reload resets while the errored
      * snapshot survives, so without this a reload would offer a pointless Retry. */
     responseJsonCode?: number;
+
+    /** Client-only validation message key. Cleared when a new search starts so a previous failure cannot supply its message. */
+    errorTranslationKey?: TranslationPaths;
 
     /** The number of results */
     count?: number;

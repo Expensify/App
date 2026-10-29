@@ -221,6 +221,7 @@ describe('search snapshot terminal state', () => {
         // Then the persisted error contains the specific message displayed by Search
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(getLatestErrorMessage(snapshot)).toBe(translateLocal(translationKey));
+        expect(snapshot?.search?.errorTranslationKey).toBe(translationKey);
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
     });
 
@@ -247,6 +248,7 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
         expect(snapshot?.search?.isLoading).toBe(false);
         expect(getLatestErrorMessage(snapshot)).toBe(translateLocal(translationKey));
+        expect(snapshot?.search?.errorTranslationKey).toBe(translationKey);
     });
 
     it.each([
@@ -317,7 +319,9 @@ describe('search snapshot terminal state', () => {
 
     it('clears a previously persisted jsonCode when a new request starts', async () => {
         const queryJSON = getQueryJSON();
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {
+            search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: 'search.searchResults.tooManyKeywords'},
+        });
 
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
         const {optimisticData} = getCapturedSearchOnyxData();
@@ -326,6 +330,7 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+        expect(snapshot?.search?.errorTranslationKey).toBeUndefined();
     });
 
     it('deduplicates concurrent requests for the same hash and offset', async () => {

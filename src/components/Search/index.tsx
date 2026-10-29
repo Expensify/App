@@ -33,7 +33,6 @@ import {
     setActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -1389,7 +1388,7 @@ function Search({
             },
             [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
                 title: errorTitle,
-                subtitle: getLatestErrorMessage(searchResults) || translate('errorPage.wrongTypeSubtitle'),
+                subtitle: translate(searchResults.search.errorTranslationKey ?? 'errorPage.wrongTypeSubtitle'),
             },
             [CONST.SEARCH.FAILURE_KIND.FAILED]: {
                 title: errorTitle,
