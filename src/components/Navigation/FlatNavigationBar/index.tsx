@@ -34,7 +34,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import FlatNavAccountStatus from './FlatNavAccountStatus';
-import FlatNavCreateMenuButtons from './FlatNavCreateMenuButtons';
+import FlatNavCreateButton from './FlatNavCreateButton';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
@@ -80,7 +80,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     >
                         <View style={styles.flatNavigationBarHeader}>
                             <FlatNavLogo onPress={navigateToHome} />
-                            <FlatNavCreateMenuButtons />
+                        </View>
+                        <View style={styles.flatNavigationBarCreateRow}>
+                            <FlatNavCreateButton />
                         </View>
                         <ScrollView
                             style={styles.flex1}

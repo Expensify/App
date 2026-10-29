@@ -898,6 +898,16 @@ const staticStyles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
+        flatNavigationBarCreateRow: {
+            marginHorizontal: variables.flatNavigationBarCreateRowInset,
+            marginBottom: variables.flatNavigationBarCreateRowGap,
+        },
+
+        flatNavigationBarCreateButton: {
+            height: variables.flatNavigationBarCreateButtonHeight,
+            minHeight: variables.flatNavigationBarCreateButtonHeight,
+        },
+
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',

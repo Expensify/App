@@ -60,10 +60,25 @@ jest.mock('@components/ScrollView', () => {
 });
 jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps', () => () => ({}));
 jest.mock('@components/Navigation/QuickCreationActionsBar', () => {
+    const ReactModule = require('react');
+    const {View: RNView} = require('react-native');
     function MockQuickCreationActionsBar() {
-        return null;
+        return ReactModule.createElement(RNView, {testID: 'quickCreationActionsBar'});
     }
     return MockQuickCreationActionsBar;
+});
+let mockEnabledBetas: string[] = [];
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta)}));
+type UseShouldUseFlatNavigationBarModule = {default: () => boolean};
+// Jest resolves the .native file by default, so each test picks the web or native variant of the hook explicitly.
+let mockShouldUseNativeVariant = false;
+jest.mock('@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar', () => {
+    const web = jest.requireActual<UseShouldUseFlatNavigationBarModule>('@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar/index.ts');
+    const native = jest.requireActual<UseShouldUseFlatNavigationBarModule>('@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar/index.native.ts');
+    return {
+        __esModule: true,
+        default: () => (mockShouldUseNativeVariant ? native.default() : web.default()),
+    };
 });
 // Rendered as a host View so `shouldShowLoadingBar` can be read back off the element's props.
 jest.mock('@components/Navigation/TopBar', () => {
@@ -252,6 +267,8 @@ describe('HomePage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockForYouSectionMountCount = 0;
+        mockEnabledBetas = [];
+        mockShouldUseNativeVariant = false;
         setNarrowLayout();
         setIsOffline(false);
         await Onyx.clear();
@@ -281,6 +298,60 @@ describe('HomePage', () => {
 
     // Offline, OpenApp/OpenReport never send, so IS_LOADING_APP / IS_LOADING_REPORT_DATA can stay true forever and the
     // top loading bar used to hang on Home. The bar must stay hidden while offline no matter what the flags say.
+    describe('create row', () => {
+        it('shows the create row on wide without the flatNav beta', async () => {
+            // Given a wide layout and a user outside the flatNav beta
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the create row stays, because only the flat bar has its own Create button
+            expect(screen.getByTestId('quickCreationActionsBar')).toBeOnTheScreen();
+        });
+
+        it('hides the create row on wide web with the flatNav beta', async () => {
+            // Given a wide web layout and a user on the flatNav beta
+            setWideLayout();
+            mockEnabledBetas = [CONST.BETAS.FLAT_NAV];
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the row is gone, since the Create button below the bar's logo opens the same actions
+            expect(screen.queryByTestId('quickCreationActionsBar')).not.toBeOnTheScreen();
+        });
+
+        it('keeps the create row on a wide native layout with the flatNav beta', async () => {
+            // Given a tablet on the flatNav beta, which keeps the icon bar and its floating action button
+            setWideLayout();
+            mockEnabledBetas = [CONST.BETAS.FLAT_NAV];
+            mockShouldUseNativeVariant = true;
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then the create row stays, because the flat bar and its Create button are web only
+            expect(screen.getByTestId('quickCreationActionsBar')).toBeOnTheScreen();
+        });
+
+        it('never shows the create row on narrow', async () => {
+            // Given a narrow layout and a user on the flatNav beta
+            setNarrowLayout();
+            mockEnabledBetas = [CONST.BETAS.FLAT_NAV];
+            await waitForBatchedUpdates();
+
+            // When the Home page renders
+            renderHomePage();
+
+            // Then there is no create row, as before the beta, since narrow layouts create from the bottom bar
+            expect(screen.queryByTestId('quickCreationActionsBar')).not.toBeOnTheScreen();
+        });
+    });
+
     describe('loading bar visibility', () => {
         function renderedShouldShowLoadingBar() {
             return screen.getByTestId('topBar').props.shouldShowLoadingBar;
