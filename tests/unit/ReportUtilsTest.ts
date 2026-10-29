@@ -14704,7 +14704,7 @@ describe('ReportUtils', () => {
             expect(result).toBeFalsy();
         });
 
-        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
+        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.CARD_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
             // Given a policy room the current user belongs to, in a workspace where they only have read access to all reports
             const report: Report = {
                 ...createRandomReport(40003, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
@@ -14725,6 +14725,7 @@ describe('ReportUtils', () => {
         it.each([
             [CONST.POLICY.ROLE.AUDITOR, false],
             [CONST.POLICY.ROLE.PAYMENTS_ADMIN, false],
+            [CONST.POLICY.ROLE.CARD_ADMIN, false],
             [CONST.POLICY.ROLE.ADMIN, true],
         ])('should handle an open invoice report for a %s', (role, expected) => {
             // Given an open invoice report in a workspace where the current user has the role
