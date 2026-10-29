@@ -965,8 +965,9 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
  * Dates are formatted as follows:
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
+ * When the string has no offset, `localTimeLabel` (e.g. "hotel's local time") is appended instead of a timezone label, if passed.
  */
-function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: DateFnsLocale | undefined, localTimeLabel?: string): string {
     if (!isoDateString) {
         return '';
     }
@@ -979,7 +980,7 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
     const pattern = isThisYear(date) ? `EEEE, MMM d ${CONST.DATE.LOCAL_TIME_FORMAT}` : `EEEE, MMM d, yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`;
     const formattedDate = formatInTimeZone(date, venueTimezone, pattern, {locale: dateFnsLocale});
     if (isWallClockTime) {
-        return formattedDate;
+        return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
     }
     // `formatInTimeZone`'s `zzz` token relies on `Intl.DateTimeFormat`, which rejects raw offset strings like
     // `+07:00`, so the timezone label is derived from the offset and appended manually.

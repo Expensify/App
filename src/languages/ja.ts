@@ -4944,6 +4944,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             roomType: '部屋タイプ',
             cancellation: 'キャンセルポリシー',
             cancellationUntil: '無料キャンセル期限：',
+            hotelLocalTime: 'ホテルの現地時間',
             confirmation: '確認番号',
             cancellationPolicies: {
                 unknown: '不明',

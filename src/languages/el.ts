@@ -5065,6 +5065,7 @@ ${amount} για ${merchant} - ${date}`,
             roomType: 'Τύπος δωματίου',
             cancellation: 'Πολιτική ακύρωσης',
             cancellationUntil: 'Δωρεάν ακύρωση έως',
+            hotelLocalTime: 'τοπική ώρα του ξενοδοχείου',
             confirmation: 'Αριθμός επιβεβαίωσης',
             cancellationPolicies: {
                 unknown: 'Άγνωστο',

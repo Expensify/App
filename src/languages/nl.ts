@@ -4987,6 +4987,7 @@ ${amount} voor ${merchant} - ${date}`,
             roomType: 'Kamertype',
             cancellation: 'Annuleringsbeleid',
             cancellationUntil: 'Gratis annuleren tot',
+            hotelLocalTime: 'lokale tijd van het hotel',
             confirmation: 'Bevestigingsnummer',
             cancellationPolicies: {
                 unknown: 'Onbekend',

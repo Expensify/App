@@ -992,6 +992,30 @@ describe('DateUtils', () => {
             expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM');
         });
 
+        it('should append the local time label when no timezone offset is present in the ISO string', () => {
+            // Given a hotel-local deadline with no offset, so the hotel page passes a label saying it is the hotel's local time
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-01T00:00:00Z'));
+
+            // When it is formatted with the label
+            const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00', undefined, "hotel's local time");
+
+            // Then the label is shown at the end in place of a timezone label
+            expect(result).toBe("Monday, Oct 19 11:59 PM, hotel's local time");
+        });
+
+        it('should keep the GMT offset label instead of the local time label when an offset is present', () => {
+            // Given a hotel deadline with a known offset
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2026-10-01T00:00:00Z'));
+
+            // When it is formatted with the local time label
+            const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00+01:00', undefined, "hotel's local time");
+
+            // Then the known offset is shown, since it is more precise than the label
+            expect(result).toBe('Monday, Oct 19 11:59 PM, GMT+1');
+        });
+
         it('should not shift a time with no offset into the device timezone', () => {
             // Given a device in New York and a hotel-local deadline with no offset
             const originalTZ = process.env.TZ;
