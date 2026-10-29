@@ -762,7 +762,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabNavigatorBarContainer: {
-            width: variables.navigationTabBarSize + variables.sideBarWithLHBWidth,
             marginRight: -variables.sideBarWithLHBWidth,
             overflow: 'visible',
         },
@@ -870,6 +869,51 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             paddingHorizontal: 4,
+        },
+
+        flatNavigationBarContainer: {
+            height: '100%',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            backgroundColor: theme.appBG,
+        },
+
+        flatNavigationBarHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: variables.flatNavigationBarHeaderHeight,
+            paddingLeft: 20,
+            paddingRight: 12,
+        },
+
+        flatNavigationBarItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            height: variables.flatNavigationBarItemHeight,
+            paddingHorizontal: 12,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        flatNavigationBarItemSelected: {
+            backgroundColor: theme.hoverComponentBG,
+        },
+
+        flatNavigationBarItemHovered: {
+            backgroundColor: theme.highlightBG,
+        },
+
+        flatNavigationBarDivider: {
+            height: 1,
+            marginHorizontal: 20,
+            marginVertical: 8,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarFooter: {
+            paddingBottom: 12,
         },
 
         button: {

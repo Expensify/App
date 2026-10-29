@@ -1,4 +1,7 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
+import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
+import useNavigationBarWidth from '@components/Navigation/FlatNavigationBar/useNavigationBarWidth';
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
@@ -31,6 +34,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const navigationBarWidth = useNavigationBarWidth();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
@@ -89,10 +94,10 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     // When the screen is not blocking the view, we need to raise the tab bar above the screen content so the DebugTabView is visible.
     return (
         <View
-            style={[styles.tabNavigatorBarContainer, !isBlockingViewVisible && {zIndex: 1}]}
+            style={[styles.tabNavigatorBarContainer, StyleUtils.getTabNavigatorBarWidthStyle(navigationBarWidth), !isBlockingViewVisible && {zIndex: 1}]}
             pointerEvents="box-none"
         >
-            <NavigationTabBar selectedTab={selectedTab} />
+            {shouldUseFlatNavigationBar ? <FlatNavigationBar selectedTab={selectedTab} /> : <NavigationTabBar selectedTab={selectedTab} />}
         </View>
     );
 }

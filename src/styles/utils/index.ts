@@ -2540,6 +2540,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
     },
 
+    // The container reaches over the sidebar next to the bar, so floating content such as the debug view is not
+    // clipped; tabNavigatorBarContainer's negative margin gives that overflow back, leaving the bar's width as layout space.
+    getTabNavigatorBarWidthStyle: (navigationBarWidth: number): ViewStyle => ({
+        width: navigationBarWidth + variables.sideBarWithLHBWidth,
+    }),
+
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
         marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),

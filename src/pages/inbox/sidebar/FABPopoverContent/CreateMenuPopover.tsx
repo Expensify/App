@@ -1,6 +1,8 @@
 import {generateReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
@@ -26,10 +28,16 @@ type CreateMenuPopoverProps = {
 
     /** The button that opened the menu, which gets focus back when it closes */
     anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
+
+    /** Replaces the default placement above a floating action button at the bottom of the sidebar */
+    anchorPosition?: AnchorPosition;
+
+    /** How the menu lines up with `anchorPosition` */
+    anchorAlignment?: AnchorAlignment;
 };
 
 /** The create menu with every item, for any button that opens it. */
-function CreateMenuPopover({isVisible, onClose, anchorRef}: CreateMenuPopoverProps) {
+function CreateMenuPopover({isVisible, onClose, anchorRef, anchorPosition, anchorAlignment}: CreateMenuPopoverProps) {
     const [reportID] = useState(() => generateReportID());
 
     return (
@@ -38,6 +46,8 @@ function CreateMenuPopover({isVisible, onClose, anchorRef}: CreateMenuPopoverPro
             onClose={onClose}
             onItemSelected={onClose}
             anchorRef={anchorRef}
+            anchorPosition={anchorPosition}
+            anchorAlignment={anchorAlignment}
             animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
             animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
         >
