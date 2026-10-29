@@ -123,16 +123,16 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
+    const hidePopoverMenu = (selectedItem?: PopoverMenuItem) => {
         if (selectedItem?.shouldKeepModalOpen || selectedItem?.shouldCloseModalOnSelect === false) {
             return;
         }
         setPopupMenuVisible(false);
-    }, []);
+    };
 
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
+    const calculateAndSetThreeDotsMenuPosition = () => calculatePopoverPosition(buttonRef, anchorAlignment);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
     const getMenuPositionRef = useRef(getMenuPosition);

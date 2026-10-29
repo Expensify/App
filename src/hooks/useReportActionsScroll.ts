@@ -60,6 +60,9 @@ type UseReportActionsScrollParams = {
     /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
+    /** Maps hidden canonical actions to the summary row used by the list. */
+    reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
+
     /** Extracts the list key for an action; used to locate the initial scroll target */
     keyExtractor: (item: OnyxTypes.ReportAction) => string;
 
@@ -147,6 +150,7 @@ function useReportActionsScroll({
     parentReportAction,
     sortedVisibleReportActions,
     renderedVisibleReportActions,
+    reportActionIDToDisplayIndex,
     keyExtractor,
     hasScrolledOverThreshold,
     markNewestActionAsRead,
@@ -161,7 +165,7 @@ function useReportActionsScroll({
     setTreatAsNoPaginationAnchor,
 }: UseReportActionsScrollParams): UseReportActionsScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
@@ -243,6 +247,16 @@ function useReportActionsScroll({
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
         },
         actionBadgeTargetIndex,
+        getVisibleIndexRange: () => {
+            const list = getListRef()?.current;
+            // getLayout is the one accessor that does not throw before FlashList has laid out
+            if (!list?.getLayout?.(0)) {
+                return undefined;
+            }
+            const range = list.computeVisibleIndices?.();
+            // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
+            return range && range.startIndex >= 0 ? range : undefined;
+        },
         shouldBeAlignedToTop,
     });
 
@@ -482,7 +496,9 @@ function useReportActionsScroll({
     //    of the viewport (viewPosition: 1) with a small offset so the message above is partly visible.
     // 2. Otherwise, if the report should be opened at top (ex: for transaction threads), scroll to the top message and offset by
     //    the window height so we land at top of the top message for sure.
-    const targetIndex = initialScrollKey ? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey) : -1;
+    const targetIndex = initialScrollKey
+        ? (reportActionIDToDisplayIndex?.get(initialScrollKey) ?? renderedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey))
+        : -1;
     let initialScrollIndex: number | undefined;
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {

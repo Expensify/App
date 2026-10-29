@@ -31,6 +31,7 @@ import type {IOURequestStepConfirmationProps} from './types';
 
 type UseParticipantPickerStateParams = {
     transaction: OnyxEntry<Transaction>;
+    transactions: Transaction[];
     iouType: IOUType;
     reportID: string;
     reportDrafts: OnyxCollection<Report>;
@@ -47,6 +48,7 @@ type UseParticipantPickerStateParams = {
  */
 function useParticipantPickerState({
     transaction,
+    transactions,
     iouType,
     reportID,
     reportDrafts,
@@ -154,30 +156,39 @@ function useParticipantPickerState({
         // silently converted into a personal track expense.
         const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
         const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
+        // Every receipt in a multi-scan batch is submitted to the visible receipt's recipient, report and policy, so
+        // the selection must apply to all of them, the same way the legacy participants step (useParticipantSubmission) did.
+        // Otherwise each receipt shows its own recipient but they all land on whichever one was on screen at submit.
+        const transactionsToUpdate = transactions.length > 1 ? transactions : [transaction];
         if (shouldKeepOnSelfDM) {
-            setMoneyRequestParticipantsFromReport(activeTransactionID, selfDMReport, currentUserPersonalDetails.accountID);
-            setTransactionReport(activeTransactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+            for (const transactionToUpdate of transactionsToUpdate) {
+                if (!transactionToUpdate?.transactionID) {
+                    continue;
+                }
+                setMoneyRequestParticipantsFromReport(transactionToUpdate.transactionID, selfDMReport, currentUserPersonalDetails.accountID);
+                setTransactionReport(transactionToUpdate.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
 
-            // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place
-            // makes the Rate field read "Pending..." and the amount go blank once the expense is back on the self
-            // DM. Re-resolve the rate the self DM itself uses, the same way starting a track distance expense does.
-            if (isDistanceRequest) {
-                const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: selfDMReport?.reportID,
-                    isPolicyExpenseChat: false,
-                    isTrackDistanceExpense: true,
-                    policy: policyForMovingExpenses,
-                    lastSelectedDistanceRates,
-                    expenseDate: transaction?.created,
-                });
-                setCustomUnitRateID(
-                    activeTransactionID,
-                    selfDMRateID,
-                    transaction,
-                    policyForMovingExpenses,
-                    false,
-                    policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency,
-                );
+                // The rate the expense picked up from a workspace does not exist outside it, so leaving it in place
+                // makes the Rate field read "Pending..." and the amount go blank once the expense is back on the self
+                // DM. Re-resolve the rate the self DM itself uses, the same way starting a track distance expense does.
+                if (isDistanceRequest) {
+                    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: selfDMReport?.reportID,
+                        isPolicyExpenseChat: false,
+                        isTrackDistanceExpense: true,
+                        policy: policyForMovingExpenses,
+                        lastSelectedDistanceRates,
+                        expenseDate: transactionToUpdate.created,
+                    });
+                    setCustomUnitRateID(
+                        transactionToUpdate.transactionID,
+                        selfDMRateID,
+                        transactionToUpdate,
+                        policyForMovingExpenses,
+                        false,
+                        policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency,
+                    );
+                }
             }
 
             if (iouType !== CONST.IOU.TYPE.TRACK) {
@@ -187,18 +198,26 @@ function useParticipantPickerState({
             if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) {
                 navigation.setParams({iouType: CONST.IOU.TYPE.CREATE});
             }
-            setMoneyRequestParticipants(activeTransactionID, participantsList);
             const firstParticipant = participantsList.at(0);
-            if (iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant) {
-                const isPolicyExpenseChatParticipant = !!firstParticipant.isPolicyExpenseChat;
+            const isPolicyExpenseChatParticipant = !!firstParticipant?.isPolicyExpenseChat;
 
-                // A brand-new recipient picked by email has no chat yet (no reportID). Reusing the route's `reportID`
-                // (which points at the flow's origin report - e.g. the default workspace chat this distance flow was
-                // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
-                // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
-                // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission).
-                const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
-                setTransactionReport(activeTransactionID, {reportID: participantReportID}, true);
+            // A brand-new recipient picked by email has no chat yet (no reportID). Reusing the route's `reportID`
+            // (which points at the flow's origin report - e.g. the default workspace chat this distance flow was
+            // seeded with) leaves the expense bound to that workspace, so the backend rejects it with
+            // "There is a previously existing chat between these users." Generate a fresh optimistic reportID for
+            // P2P recipients, mirroring the legacy participants-step flow (useParticipantSubmission). It is generated
+            // once so every receipt in a multi-scan batch shares the same new chat.
+            const participantReportID = firstParticipant?.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
+            for (const transactionToUpdate of transactionsToUpdate) {
+                if (!transactionToUpdate?.transactionID) {
+                    continue;
+                }
+                const transactionIDToUpdate = transactionToUpdate.transactionID;
+                setMoneyRequestParticipants(transactionIDToUpdate, participantsList);
+                if (iouType === CONST.IOU.TYPE.SPLIT || !firstParticipant) {
+                    continue;
+                }
+                setTransactionReport(transactionIDToUpdate, {reportID: participantReportID}, true);
 
                 // When switching from the auto-assigned default workspace to a P2P recipient we must also undo the
                 // workspace-specific defaults the distance step applied: reset the mileage rate to the P2P rate and
@@ -212,16 +231,16 @@ function useParticipantPickerState({
                             isPolicyExpenseChat: false,
                             policy: undefined,
                             lastSelectedDistanceRates,
-                            expenseDate: transaction?.created,
+                            expenseDate: transactionToUpdate.created,
                         });
-                        setCustomUnitRateID(activeTransactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
+                        setCustomUnitRateID(transactionIDToUpdate, p2pRateID, transactionToUpdate, undefined, false, personalPolicy?.outputCurrency);
                     }
-                    setMoneyRequestCategory(activeTransactionID, '', undefined, getCurrencyDecimals);
-                    setMoneyRequestTag(activeTransactionID, '');
+                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined, getCurrencyDecimals);
+                    setMoneyRequestTag(transactionIDToUpdate, '');
                 } else {
                     const workspacePolicy = selectedPolicy;
                     if (isDistanceRequest) {
-                        const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+                        const currentRateID = transactionToUpdate.comment?.customUnit?.customUnitRateID;
                         const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
                         if (!isCurrentRateFromWorkspace) {
                             const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -229,9 +248,9 @@ function useParticipantPickerState({
                                 isPolicyExpenseChat: true,
                                 policy: workspacePolicy,
                                 lastSelectedDistanceRates,
-                                expenseDate: transaction?.created,
+                                expenseDate: transactionToUpdate.created,
                             });
-                            setCustomUnitRateID(activeTransactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                            setCustomUnitRateID(transactionIDToUpdate, workspaceRateID, transactionToUpdate, workspacePolicy, false, workspacePolicy?.outputCurrency);
                         }
                     }
 
@@ -241,8 +260,8 @@ function useParticipantPickerState({
                     // policy so the previous workspace's category-derived tax is cleared along with the category.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
-                        setMoneyRequestCategory(activeTransactionID, defaultCategory, undefined, getCurrencyDecimals);
-                        setMoneyRequestTag(activeTransactionID, '');
+                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined, getCurrencyDecimals);
+                        setMoneyRequestTag(transactionIDToUpdate, '');
                     }
                 }
             }

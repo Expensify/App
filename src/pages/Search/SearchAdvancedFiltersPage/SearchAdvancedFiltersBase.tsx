@@ -7,6 +7,8 @@ import FilterList from '@components/Search/FilterComponents/AdvancedFilters/Filt
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 
+import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import {getMatchingFilters, isLabelMatchingSearchValue} from '@libs/SearchUIUtils';
 
 import {SearchAdvancedFiltersActionContext, SearchAdvancedFiltersContext} from '@pages/Search/SearchAdvancedFiltersProvider';
 
@@ -39,6 +42,12 @@ function SearchAdvancedFiltersBase() {
     const {isBetaEnabled} = usePermissions();
     const canUseNLFilters = isBetaEnabled(CONST.BETAS.NL_FILTERS);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
+    const [filterSearchValue, debouncedFilterSearchValue, setFilterSearchValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const allFilters = useAdvancedSearchFilters(currentDraftFilters.type);
+    // A cleared input lists every filter at once rather than after the debounce, as in useSearchResults.
+    const listedSearchValue = filterSearchValue.trim() ? debouncedFilterSearchValue : '';
+    const filters = getMatchingFilters(allFilters, currentDraftFilters.type, listedSearchValue, translate);
+    const isDescribeSearchListed = canUseNLFilters && isLabelMatchingSearchValue(translate('search.filters.describeSearch.title'), listedSearchValue);
 
     return (
         <ScreenWrapper
@@ -48,42 +57,47 @@ function SearchAdvancedFiltersBase() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')} />
-            {canUseNLFilters && (
-                <>
-                    <PressableWithFeedback
-                        style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}
-                        accessible
-                        accessibilityLabel={translate('search.filters.describeSearch.title')}
-                        sentryLabel="SearchAdvancedFiltersBase-DescribeSearch"
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
-                    >
-                        {({pressed}) => (
-                            <>
-                                <Icon
-                                    src={icons.Sparkles}
-                                    fill={theme.icon}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
-                                />
-                                <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
-                                <Icon
-                                    src={icons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isPressed: pressed})})}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                />
-                            </>
-                        )}
-                    </PressableWithFeedback>
-                    <SpacerView
-                        shouldShow
-                        style={[styles.reportHorizontalRule]}
-                    />
-                </>
-            )}
             <FilterList
                 contentContainerStyle={[styles.pb5]}
                 type={currentDraftFilters.type}
+                filters={filters}
+                searchValue={filterSearchValue}
+                onSearchValueChange={setFilterSearchValue}
+                headerContent={
+                    isDescribeSearchListed && (
+                        <>
+                            <PressableWithFeedback
+                                style={({pressed}) => [styles.typeFilterMenu, pressed && styles.buttonHoveredBG]}
+                                accessible
+                                accessibilityLabel={translate('search.filters.describeSearch.title')}
+                                sentryLabel="SearchAdvancedFiltersBase-DescribeSearch"
+                                onPress={() => Navigation.navigate(ROUTES.SEARCH_NL_FILTER)}
+                            >
+                                {({pressed}) => (
+                                    <>
+                                        <Icon
+                                            src={icons.Sparkles}
+                                            fill={theme.icon}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                        />
+                                        <Text style={[styles.flex1]}>{translate('search.filters.describeSearch.title')}</Text>
+                                        <Icon
+                                            src={icons.ArrowRight}
+                                            fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isPressed: pressed})})}
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
+                                        />
+                                    </>
+                                )}
+                            </PressableWithFeedback>
+                            <SpacerView
+                                shouldShow
+                                style={[styles.reportHorizontalRule]}
+                            />
+                        </>
+                    )
+                }
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
             <View style={[isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3], styles.ph5, styles.pb5]}>

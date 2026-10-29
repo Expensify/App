@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -13,6 +14,7 @@ import PaymentDetailsPage from '@pages/settings/Subscription/PaymentHistoryPage/
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 
@@ -21,6 +23,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -33,6 +36,7 @@ jest.mock('@userActions/Subscription', () => ({
 }));
 
 const PURCHASE_ID = 1001;
+const OWNER_ACCOUNT_ID = 1;
 const BOB = {accountID: 2, login: 'bob@example.com', displayName: 'Bob Clyde'};
 const TODD = {accountID: 3, login: 'todd@example.com', displayName: 'Todd Clyde'};
 
@@ -43,6 +47,7 @@ const OTHER_MEMBERS = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT - 2}, (
     displayName: `Member ${index}`,
 }));
 const SEARCH_PLACEHOLDER = 'Find an active user';
+const COLLECT_SEARCH_PLACEHOLDER = 'Find a member';
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
@@ -64,19 +69,29 @@ function renderPage() {
     );
 }
 
-async function setPurchase(activeUsers: number[], billingType?: string) {
+async function setPurchase(activeUsers: number[], message: Purchase['message'] = {}) {
     const purchase: Purchase = {
         purchaseID: PURCHASE_ID,
         created: '2026-02-01 00:00:00',
         amount: 1000,
         currency: CONST.CURRENCY.USD,
-        message: {billingType},
+        message,
         activeUsers,
         isLoaded: true,
     };
     await Onyx.merge(ONYXKEYS.PURCHASES, {[PURCHASE_ID]: purchase});
     await waitForBatchedUpdatesWithAct();
 }
+
+async function setOwnedWorkspace(type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE) {
+    const policy = createRandomPolicy(1, type);
+    policy.ownerAccountID = OWNER_ACCOUNT_ID;
+    await Onyx.merge(ONYXKEYS.USER_METADATA, {accountID: OWNER_ACCOUNT_ID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+    await waitForBatchedUpdatesWithAct();
+}
+
+const ALL_MEMBER_IDS = [TODD.accountID, BOB.accountID, ...OTHER_MEMBERS.map((member) => member.accountID)];
 
 describe('PaymentDetailsPage Activity list', () => {
     beforeEach(async () => {
@@ -133,7 +148,7 @@ describe('PaymentDetailsPage Activity list', () => {
 
     it('hides the Activity section for a month with no billed members', async () => {
         // Given a failed month nobody was billed for
-        await setPurchase([], CONST.BILLING.TYPE_FAILED);
+        await setPurchase([], {billingType: CONST.BILLING.TYPE_FAILED});
 
         // When the details page renders
         renderPage();
@@ -144,5 +159,67 @@ describe('PaymentDetailsPage Activity list', () => {
         expect(screen.queryByText('Activity')).toBeNull();
         expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).toBeNull();
         expect(screen.queryByText(/active user/)).toBeNull();
+    });
+
+    it('counts and searches members on a Collect 2025 bill, because that pricing has no active users', async () => {
+        // Given a bill on Collect 2025 pricing with enough billed members to show the search bar
+        await setPurchase(ALL_MEMBER_IDS, {isTeam2025Pricing: true});
+
+        // When the details page renders
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        await screen.findByText(BOB.displayName);
+
+        // Then the count and the search field say members, and no active-user copy is shown
+        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} members`)).toBeOnTheScreen();
+        expect(screen.getByPlaceholderText(COLLECT_SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+        expect(screen.queryByPlaceholderText(SEARCH_PLACEHOLDER)).toBeNull();
+        expect(screen.queryByText(/active user/)).toBeNull();
+    });
+
+    it('keeps the active-user copy on a bill without Collect 2025 pricing', async () => {
+        // Given a bill that isn't on Collect 2025 pricing, with enough billed members to show the search bar
+        await setPurchase(ALL_MEMBER_IDS, {isTeam2025Pricing: false});
+
+        // When the details page renders
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        await screen.findByText(BOB.displayName);
+
+        // Then the count and the search field still say active users
+        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
+        expect(screen.getByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+        expect(screen.queryByPlaceholderText(COLLECT_SEARCH_PLACEHOLDER)).toBeNull();
+    });
+
+    it('labels an old bill from its own pricing, not the owner’s current plan', async () => {
+        // Given an owner who is on Collect now, viewing an older bill that wasn't on Collect 2025 pricing
+        await setOwnedWorkspace(CONST.POLICY.TYPE.TEAM);
+        await setPurchase(ALL_MEMBER_IDS, {isTeam2025Pricing: false});
+
+        // When the details page renders
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        await screen.findByText(BOB.displayName);
+
+        // Then the bill keeps the active-user copy, because the wording follows the bill and not the current plan
+        expect(screen.getByText(`${CONST.STANDARD_LIST_ITEM_LIMIT} active users`)).toBeOnTheScreen();
+        expect(screen.queryByText(/members/)).toBeNull();
+    });
+
+    it('opens an active user’s public profile when their row is pressed', async () => {
+        // Given a month with two billed members
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await setPurchase([TODD.accountID, BOB.accountID]);
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+        await screen.findByText(BOB.displayName);
+
+        // When the user presses Bob's row
+        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: `${BOB.displayName}, ${BOB.login}`}));
+
+        // Then Bob's public profile opens on top of the Payment details page
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.PROFILE.getRoute(BOB.accountID)));
+        navigateSpy.mockRestore();
     });
 });

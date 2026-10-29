@@ -4,6 +4,7 @@
  * Do not import ReportUtils or anything that imports Navigation here, or Navigation rejoins the import/no-cycle graph.
  */
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import {
     RHP_TO_DOMAIN,
     RHP_TO_HOME,
@@ -15,13 +16,12 @@ import {
     RHP_TO_WORKSPACES_LIST,
 } from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, NavigationRoute} from '@libs/Navigation/types';
+import {hasKey} from '@libs/ObjectUtils';
 import {getSearchParamFromPath} from '@libs/Url';
 
 import NAVIGATORS from '@src/NAVIGATORS';
-import type {Route as RoutePath} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Screen} from '@src/SCREENS';
 
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 
@@ -65,16 +65,14 @@ function isRouteWithBackToParam(route: NavigationRoute): route is Route<string, 
  *   without changing the page currently underneath.
  */
 function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- route names in navigation state are typed as string
-    const isDynamicScreen = isDynamicRouteScreen(route.name as Screen);
+    const isDynamicScreen = hasKey(normalizedConfigs, route.name) && isDynamicRouteScreen(route.name);
 
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     // Dynamic screens are skipped here because they never carry their own backTo - they only
     // inherit it from the screen underneath. Letting backTo dictate the full-screen route for
     // a dynamic screen would resolve the wrong page.
     if (isRouteWithBackToParam(route) && !isDynamicScreen) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- backTo is a path string read from route params
-        const stateForBackTo = getStateFromPath(route.params.backTo as RoutePath);
+        const stateForBackTo = getStateFromPath(route.params.backTo);
 
         // This may happen if the backTo url is invalid.
         const lastRoute = stateForBackTo?.routes.at(-1);
@@ -216,7 +214,8 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
     // Handle dynamic routes: find the appropriate full screen route.
     // Iterate all candidates so that a false-positive first match (e.g. a tag named "gl-code"
     // colliding with the registered static suffix) does not produce a NOT_FOUND state.
-    if (route.path) {
+    // Static screens are skipped because their path can end like a dynamic suffix by coincidence (`settings/card/:cardID` ends like `card/:cardID`).
+    if (route.path && isDynamicScreen) {
         const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
         for (const suffixMatch of allSuffixMatches) {
             const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);

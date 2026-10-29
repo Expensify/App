@@ -32,7 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -121,13 +121,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         loadPolicyCompanyCardsPageEvent();
     }, []);
 
-    const loadPolicyCompanyCardsFeed = useCallback(() => {
+    const loadPolicyCompanyCardsFeed = () => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
+    };
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();

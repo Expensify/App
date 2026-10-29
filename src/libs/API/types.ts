@@ -22,7 +22,9 @@ const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_HARVESTING: 'SetWorkspaceAutoHarvesting',
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
     SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE: 'SetGlobalReimbursementFXPreference',
+    TOGGLE_COLLECT_DEPOSIT_ACCOUNTS: 'ToggleCollectDepositAccounts',
     SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET: 'SetWorkspaceAutoReportingOffset',
+    UPDATE_POLICY_TIMEZONE: 'UpdatePolicyTimezone',
     SET_WORKSPACE_APPROVAL_MODE: 'SetWorkspaceApprovalMode',
     DISABLE_POLICY_APPROVALS: 'DisablePolicyApprovals',
     SET_WORKSPACE_PAYER: 'SetWorkspacePayer',
@@ -123,6 +125,7 @@ const WRITE_COMMANDS = {
     ADD_ATTACHMENT: 'AddAttachment',
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
+    LINK_PLAID_TO_BANK_ACCOUNT: 'LinkPlaidToBankAccount',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
     CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT: 'CreateCollectOnlyDepositAccount',
     UPDATE_PERSONAL_BANK_ACCOUNT_INFO: 'UpdatePersonalBankAccountInfo',
@@ -589,9 +592,9 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT: 'UpdateDualEntryFxExpenseAccount',
     UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateDualEntrySyncExpensifyCardSettlements',
     UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT: 'UpdateDualEntrySettlementsAccount',
-    UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateDualEntrySyncTravelInvoicingSettlements',
-    UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelInvoicingSettlementsAccount',
-    UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelInvoicingPayableAccount',
+    UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateDualEntrySyncTravelBillingSettlements',
+    UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelBillingSettlementsAccount',
+    UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelBillingPayableAccount',
     CONNECT_POLICY_TO_BUSINESS_CENTRAL: 'ConnectPolicyToBusinessCentral',
     UPDATE_BUSINESS_CENTRAL_COMPANY: 'UpdateBusinessCentralCompany',
     UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING: 'UpdateBusinessCentralCustomersMapping',
@@ -636,9 +639,26 @@ const WRITE_COMMANDS = {
     UPDATE_CAMPFIRE_BILL_PAYMENT_ACCOUNT: 'UpdateCampfireBillPaymentAccount',
     UPDATE_CAMPFIRE_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateCampfireSyncExpensifyCardSettlements',
     UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT: 'UpdateCampfireSettlementsAccount',
-    UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateCampfireSyncTravelInvoicingSettlements',
-    UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateCampfireTravelInvoicingSettlementsAccount',
-    UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateCampfireTravelInvoicingPayableAccount',
+    UPDATE_CAMPFIRE_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateCampfireSyncTravelBillingSettlements',
+    UPDATE_CAMPFIRE_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT: 'UpdateCampfireTravelBillingSettlementsAccount',
+    UPDATE_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateCampfireTravelBillingPayableAccount',
+    UPDATE_DIGITS_FIELD_MAPPING: 'UpdateDigitsFieldMapping',
+    UPDATE_DIGITS_ENABLE_NEW_CATEGORIES: 'UpdateDigitsEnableNewCategories',
+    UPDATE_DIGITS_EXPORTER: 'UpdateDigitsExporter',
+    UPDATE_DIGITS_EXPORT_DATE: 'UpdateDigitsExportDate',
+    UPDATE_DIGITS_DEFAULT_VENDOR: 'UpdateDigitsDefaultVendor',
+    UPDATE_DIGITS_CREDIT_CARD_ACCOUNT: 'UpdateDigitsCreditCardAccount',
+    UPDATE_DIGITS_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateDigitsExportToMultipleAccounts',
+    UPDATE_DIGITS_CARD_PROGRAM_ACCOUNT: 'UpdateDigitsCardProgramAccount',
+    UPDATE_DIGITS_AUTO_SYNC: 'UpdateDigitsAutoSync',
+    UPDATE_DIGITS_ACCOUNTING_METHOD: 'UpdateDigitsAccountingMethod',
+    UPDATE_DIGITS_SYNC_REIMBURSED_REPORTS: 'UpdateDigitsSyncReimbursedReports',
+    UPDATE_DIGITS_BILL_PAYMENT_ACCOUNT: 'UpdateDigitsBillPaymentAccount',
+    UPDATE_DIGITS_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateDigitsSyncExpensifyCardSettlements',
+    UPDATE_DIGITS_SETTLEMENTS_ACCOUNT: 'UpdateDigitsSettlementsAccount',
+    UPDATE_DIGITS_SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'UpdateDigitsSyncTravelInvoicingSettlements',
+    UPDATE_DIGITS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT: 'UpdateDigitsTravelInvoicingSettlementsAccount',
+    UPDATE_DIGITS_TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'UpdateDigitsTravelInvoicingPayableAccount',
     UPDATE_ZOHO_BOOKS_SUBSIDIARY: 'UpdateZohoBooksSubsidiary',
     UPDATE_ZOHO_BOOKS_FIELD_MAPPING: 'UpdateZohoBooksFieldMapping',
     UPDATE_ZOHO_BOOKS_ENABLE_NEW_CATEGORIES: 'UpdateZohoBooksEnableNewCategories',
@@ -916,6 +936,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_APP_REPORT]: Parameters.CreateAppReportParams;
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
+    [WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT]: Parameters.LinkPlaidToBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT]: Parameters.CreateCollectOnlyDepositAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
@@ -1067,7 +1088,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_HARVESTING]: Parameters.SetWorkspaceAutoHarvestingParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY]: Parameters.SetWorkspaceAutoReportingFrequencyParams;
     [WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE]: Parameters.SetGlobalReimbursementFXPreferenceParams;
+    [WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS]: Parameters.ToggleCollectDepositAccountsParams;
     [WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET]: Parameters.SetWorkspaceAutoReportingMonthlyOffsetParams;
+    [WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE]: Parameters.UpdatePolicyTimezoneParams;
     [WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE]: Parameters.SetWorkspaceApprovalModeParams;
     [WRITE_COMMANDS.DISABLE_POLICY_APPROVALS]: Parameters.DisablePolicyApprovalsParams;
     [WRITE_COMMANDS.SET_WORKSPACE_PAYER]: Parameters.SetWorkspacePayerParams;
@@ -1365,9 +1388,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT]: Parameters.UpdateDualEntryFxExpenseAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDualEntrySyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntrySettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelInvoicingSettlementsParams;
-    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelInvoicingPayableAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelBillingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelBillingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelBillingPayableAccountParams;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_BUSINESS_CENTRAL]: Parameters.ConnectPolicyToBusinessCentralParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_COMPANY]: Parameters.UpdateBusinessCentralCompanyParams;
     [WRITE_COMMANDS.UPDATE_BUSINESS_CENTRAL_CUSTOMERS_MAPPING]: Parameters.UpdateBusinessCentralCustomerMappingParams;
@@ -1413,9 +1436,26 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateCampfireBillPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateCampfireSyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateCampfireSyncTravelInvoicingSettlementsParams;
-    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateCampfireTravelInvoicingPayableAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateCampfireSyncTravelBillingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateCampfireTravelBillingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateCampfireTravelBillingPayableAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_FIELD_MAPPING]: Parameters.UpdateDigitsFieldMappingParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_ENABLE_NEW_CATEGORIES]: Parameters.UpdateDigitsEnableNewCategoriesParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_EXPORTER]: Parameters.UpdateDigitsExporterParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_EXPORT_DATE]: Parameters.UpdateDigitsExportDateParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_DEFAULT_VENDOR]: Parameters.UpdateDigitsDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_CREDIT_CARD_ACCOUNT]: Parameters.UpdateDigitsCreditCardAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateDigitsExportToMultipleAccountsParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_CARD_PROGRAM_ACCOUNT]: Parameters.UpdateDigitsCardProgramAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_AUTO_SYNC]: Parameters.UpdateDigitsAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_ACCOUNTING_METHOD]: Parameters.UpdateDigitsAccountingMethodParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateDigitsSyncReimbursedReportsParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateDigitsBillPaymentAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDigitsSyncExpensifyCardSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDigitsSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_SYNC_TRAVEL_INVOICING_SETTLEMENTS]: Parameters.UpdateDigitsSyncTravelInvoicingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDigitsTravelInvoicingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_INVOICING_PAYABLE_ACCOUNT]: Parameters.UpdateDigitsTravelInvoicingPayableAccountParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SUBSIDIARY]: Parameters.UpdateZohoBooksSubsidiaryParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_FIELD_MAPPING]: Parameters.UpdateZohoBooksFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_ENABLE_NEW_CATEGORIES]: Parameters.UpdateZohoBooksEnableNewCategoriesParams;
@@ -1658,6 +1698,8 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_RILLET: 'SyncPolicyToRillet',
     SYNC_POLICY_TO_DUALENTRY: 'SyncPolicyToDualEntry',
     SYNC_POLICY_TO_CAMPFIRE: 'SyncPolicyToCampfire',
+    SYNC_POLICY_TO_DIGITS: 'SyncPolicyToDigits',
+    CONNECT_POLICY_TO_DIGITS: 'ConnectPolicyToDigits',
     SYNC_POLICY_TO_ZOHO_BOOKS: 'SyncPolicyToZohoBooks',
     CONNECT_POLICY_TO_ZOHO_BOOKS: 'ConnectPolicyToZohoBooks',
     SYNC_POLICY_TO_BUSINESS_CENTRAL: 'SyncPolicyToBusinessCentral',
@@ -1748,6 +1790,7 @@ const READ_COMMANDS = {
     OPEN_TROUBLESHOOT_SETTINGS_PAGE: 'OpenTroubleshootSettingsPage',
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     OPEN_REUSE_ROUTE_PAGE: 'OpenReuseRoutePage',
+    GET_OUTSTANDING_REPORTS: 'GetOutstandingReports',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
     GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
@@ -1785,6 +1828,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_RILLET]: Parameters.SyncPolicyToRilletParams;
     [READ_COMMANDS.SYNC_POLICY_TO_DUALENTRY]: Parameters.SyncPolicyToDualEntryParams;
     [READ_COMMANDS.SYNC_POLICY_TO_CAMPFIRE]: Parameters.SyncPolicyToCampfireParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_DIGITS]: Parameters.SyncPolicyToDigitsParams;
+    [READ_COMMANDS.CONNECT_POLICY_TO_DIGITS]: Parameters.ConnectPolicyToDigitsParams;
     [READ_COMMANDS.SYNC_POLICY_TO_ZOHO_BOOKS]: Parameters.SyncPolicyToZohoBooksParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_ZOHO_BOOKS]: Parameters.ConnectPolicyToZohoBooksParams;
     [READ_COMMANDS.SYNC_POLICY_TO_BUSINESS_CENTRAL]: Parameters.SyncPolicyToBusinessCentralParams;
@@ -1875,6 +1920,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_TROUBLESHOOT_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.OPEN_REUSE_ROUTE_PAGE]: null;
+    [READ_COMMANDS.GET_OUTSTANDING_REPORTS]: Parameters.GetOutstandingReportsParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
     [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;

@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -148,6 +149,7 @@ function DescribeRuleForm({
 }: DescribeRuleFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const inputTopOffsetRef = useRef(0);
@@ -344,6 +346,8 @@ function DescribeRuleForm({
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
+                                // Like the form's submit button, this button sends GenerateRule, which needs a connection
+                                isDisabled={isOffline}
                                 style={[styles.mt2, styles.alignSelfStart]}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
                             >
