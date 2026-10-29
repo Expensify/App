@@ -2,6 +2,8 @@
  * Fetch fresh navigation HTML without waiting for a service worker update to finish downloading.
  * The installed worker's precached shell and assets remain available for offline navigation.
  */
+import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
+
 import {clientsClaim} from 'workbox-core';
 import {ExpirationPlugin} from 'workbox-expiration';
 import {matchPrecache, precacheAndRoute} from 'workbox-precaching';
@@ -37,11 +39,19 @@ const navigationStrategy = new NetworkOnly({
     ],
 });
 
+// A 426 means the cached app cannot continue. Wait for network headers instead of returning it after three seconds.
+// An actual network failure still uses the installed shell so the user can work offline or retry the upgrade.
+const upgradeNavigationStrategy = new NetworkOnly({plugins: navigationStrategy.plugins});
+
 // Navigation must win over the precache routes for / and /index.html as well as deep links.
 registerRoute(
-    new NavigationRoute(navigationStrategy, {
-        denylist: [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*\/[^/?]+\.[^/]+$/],
-    }),
+    new NavigationRoute(
+        (options) => {
+            const strategy = options.url.searchParams.has(APP_UPDATE_QUERY_PARAM) ? upgradeNavigationStrategy : navigationStrategy;
+            return strategy.handle(options);
+        },
+        {denylist: [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*\/[^/?]+\.[^/]+$/]},
+    ),
 );
 
 // Workbox replaces this exact property with the build's precache manifest.

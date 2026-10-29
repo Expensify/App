@@ -1,3 +1,4 @@
+import {getAppUpdateURL} from '@libs/AppUpdateURL';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
@@ -39,7 +40,7 @@ function alertUser() {
     hasHandledUpdateRequired = true;
 
     if (markReloadAttempted()) {
-        window.location.reload();
+        window.location.replace(getAppUpdateURL(window.location.href));
         return;
     }
 

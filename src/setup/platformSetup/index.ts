@@ -1,3 +1,4 @@
+import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
@@ -59,6 +60,13 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 });
 
 export default function () {
+    // The worker has already handled this navigation. Later navigations should keep the normal offline timeout.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(APP_UPDATE_QUERY_PARAM)) {
+        url.searchParams.delete(APP_UPDATE_QUERY_PARAM);
+        window.history.replaceState(window.history.state, '', url.href);
+    }
+
     // Initialize Cache API
     CacheAPI.init();
 

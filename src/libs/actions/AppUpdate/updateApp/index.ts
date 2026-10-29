@@ -1,7 +1,9 @@
+import {getAppUpdateURL} from '@libs/AppUpdateURL';
+
 /**
- * Navigation checks the network for fresh HTML while the service worker keeps its offline assets.
+ * The upgrade marker prevents a slow network from sending the user back to an unsupported cached shell.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function updateApp(isProduction: boolean) {
-    window.location.reload();
+    window.location.replace(getAppUpdateURL(window.location.href));
 }
