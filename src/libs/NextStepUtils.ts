@@ -458,12 +458,6 @@ function getReportNextStep({
     return moneyRequestReport?.nextStep;
 }
 
-/**
- * Whether to show the DEW approve-error next step.
- * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
- * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
- * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
- */
 /** The workflow step each next step waits on. Typed as a full record so a new message key has to pick one. */
 const UPCOMING_STEP_ACTION_BY_MESSAGE_KEY: Record<ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>, ReportUpcomingStepAction | undefined> = {
     [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: CONST.REPORT.UPCOMING_STEP_ACTION.SUBMIT,
@@ -495,6 +489,12 @@ function getUpcomingStepActionForNextStep(nextStep: ReportNextStep | undefined, 
     return UPCOMING_STEP_ACTION_BY_MESSAGE_KEY[nextStep.messageKey];
 }
 
+/**
+ * Whether to show the DEW approve-error next step.
+ * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
+ * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
+ * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
+ */
 function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean): boolean {
     if (!hasDEWApproveFailed || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
         return false;

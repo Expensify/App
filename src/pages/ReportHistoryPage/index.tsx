@@ -71,7 +71,10 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const shouldShowSkeleton = !!isLoadingReportStatus && !reportUpcomingSteps && !isOffline;
 
     return (
-        <ScreenWrapper testID="ReportHistoryPage">
+        <ScreenWrapper
+            testID="ReportHistoryPage"
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <FullPageNotFoundView shouldShow={!isGroupPolicyExpenseReport(report, policy?.type)}>
                 <HeaderWithBackButtonAndTitle
                     title={translate('reportHistoryPage.title')}
