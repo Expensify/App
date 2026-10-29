@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getIntegrationLastSuccessfulDate, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 
 import {useAccountingActions, useAccountingState} from '@pages/workspace/accounting/AccountingContext';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from '@pages/workspace/accounting/utils';
@@ -99,8 +99,8 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     };
 
     const getConnectedStatus = (name: ConnectionName, title: string | undefined): ConnectionStatus => {
-        const hasQBOExportError = name === CONST.POLICY.CONNECTIONS.NAME.QBO && shouldShowQBOReimbursableExportDestinationAccountError(policy);
-        if (hasQBOExportError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
+        const hasReimbursableExportDestinationAccountError = shouldShowReimbursableExportDestinationAccountError(policy);
+        if (hasReimbursableExportDestinationAccountError || getSynchronizationErrorMessage(policy, name, isSyncInProgress, translate, styles)) {
             return {isBroken: true, message: translate('workspace.connections.brokenConnection')};
         }
         // A new connection hasn't synced yet while its first sync runs, so the sync is checked first

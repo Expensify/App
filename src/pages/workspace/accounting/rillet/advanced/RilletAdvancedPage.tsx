@@ -50,7 +50,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const autoSync = rilletConfig?.autoSync?.enabled ?? true;
     const accountingMethod = rilletConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL;
     const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
-    const billPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
+    const achPaymentAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.billPaymentAccountCode);
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
     const fxExpenseAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.sync?.fxExpenseAccountCode);
     const syncExpensifyCardSettlements = rilletConfig?.sync?.syncExpensifyCardSettlements ?? true;
@@ -137,9 +137,9 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}>
                     <MenuItemField
-                        name={translate('workspace.rillet.billPaymentAccount.label')}
-                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                        value={billPaymentAccount ? `${billPaymentAccount?.code} ${billPaymentAccount?.name}` : undefined}
+                        name={translate('workspace.rillet.achPaymentAccount.label')}
+                        onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_ACH_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined)}
+                        value={achPaymentAccount ? `${achPaymentAccount?.code} ${achPaymentAccount?.name}` : undefined}
                     >
                         {areSettingsInErrorFields([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.errorFields) && (
                             <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

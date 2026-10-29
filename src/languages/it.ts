@@ -6391,9 +6391,16 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             noAccountsFound: 'Nessun conto trovato',
             noAccountsFoundDescription: 'Aggiungi degli account in Rillet e sincronizza di nuovo la connessione',
             exportDescription: 'Configura come i dati di Expensify vengono esportati in Rillet.',
-            exportReimbursable: {label: 'Esporta le spese rimborsabili come', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Fatture fornitori'}}},
+            exportReimbursable: {
+                label: 'Esporta le spese rimborsabili come',
+                values: {
+                    REIMBURSEMENT: {label: 'Rimborsi dettagliati'},
+                    VENDOR_BILL: {label: 'Fatture fornitore dettagliate'},
+                },
+                description: 'Creeremo una fattura fornitore dettagliata o un rimborso per ogni report di Expensify. Se il periodo è chiuso, registreremo nel periodo aperto successivo.',
+            },
             exportDate: {
-                label: 'Data fattura fornitore',
+                label: 'Data di impatto GL',
                 description: 'Usa questa data quando esporti i report su Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6432,8 +6439,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
             },
             syncReimbursedReports: 'Sincronizza i report rimborsati',
-            syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, verrà generato un pagamento fattura in questo conto.',
-            billPaymentAccount: {label: 'Conto per il pagamento delle bollette', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in Rillet.'},
+            syncReimbursedReportsDescription: 'Quando un resoconto viene pagato tramite ACH, verrà generato un pagamento su questo conto.',
             syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
             settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Rillet.'},
             syncTravelBillingSettlements: 'Sincronizza i pagamenti di fatturazione di viaggio consolidati',
@@ -6475,6 +6481,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 description:
                     'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in Rillet come registrazione contabile.',
             },
+            reimbursementAccount: {label: 'Conto di rimborso', description: 'Scegli dove esportare le spese rimborsabili.', accountRequiredError: 'Seleziona un conto di rimborso Rillet.'},
+            achPaymentAccount: {label: 'Conto di pagamento ACH', description: 'Scegli da dove pagare i report e creeremo il pagamento in Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configurazione DualEntry',
@@ -6580,7 +6588,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
             },
             syncReimbursedReports: 'Sincronizza i report rimborsati',
-            syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
+            syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, verrà generato un pagamento su questo conto.',
             billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
             fxExpenseAccount: {
                 label: 'Conto commissioni conversione valuta DualEntry',
@@ -12186,7 +12194,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             theresAReportWithErrors: 'C’è un resoconto con errori',
             theresAWorkspaceWithCustomUnitsErrors: 'C’è uno spazio di lavoro con errori nelle unità personalizzate',
             theresAProblemWithAWorkspaceMember: 'C’è un problema con un membro dello spazio di lavoro',
-            theresAProblemWithAWorkspaceQBOExport: "Si è verificato un problema con un'impostazione di esportazione della connessione dello spazio di lavoro.",
+            theresAProblemWithAWorkspaceReimbursementExport: "Si è verificato un problema con un'impostazione di esportazione della connessione dello spazio di lavoro.",
             theresAProblemWithAContactMethod: "C'è un problema con un metodo di contatto",
             aContactMethodRequiresVerification: 'Un metodo di contatto richiede la verifica',
             theresAProblemWithAPaymentMethod: "C'è un problema con un metodo di pagamento",

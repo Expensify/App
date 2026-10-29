@@ -6390,9 +6390,17 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             noAccountsFound: 'Nenhuma conta encontrada',
             noAccountsFoundDescription: 'Adicione contas no Rillet e sincronize a conexão novamente',
             exportDescription: 'Configure como os dados do Expensify são exportados para o Rillet.',
-            exportReimbursable: {label: 'Exportar despesas reembolsáveis como', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Faturas de fornecedores'}}},
+            exportReimbursable: {
+                label: 'Exportar despesas reembolsáveis como',
+                values: {
+                    REIMBURSEMENT: {label: 'Reembolsos detalhados'},
+                    VENDOR_BILL: {label: 'Contas de fornecedores detalhadas'},
+                },
+                description:
+                    'Vamos criar uma conta de fornecedor ou um reembolso detalhado para cada relatório do Expensify. Se o período estiver fechado, vamos lançar no próximo período aberto.',
+            },
             exportDate: {
-                label: 'Data da fatura do fornecedor',
+                label: 'Data de impacto no razão geral',
                 description: 'Use esta data ao exportar relatórios para o Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6434,8 +6442,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
             },
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
-            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
-            billPaymentAccount: {label: 'Conta de pagamento de contas', description: 'Escolha de onde pagar as contas e nós vamos criar o pagamento no Rillet.'},
+            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento será gerado nesta conta.',
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
             syncTravelBillingSettlements: 'Sincronizar liquidações de cobrança consolidada de viagens',
@@ -6477,6 +6484,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description:
                     'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, vamos lançar esse custo nesta conta no Rillet como um lançamento contábil.',
             },
+            reimbursementAccount: {
+                label: 'Conta de reembolso',
+                description: 'Escolha para onde exportar as despesas reembolsáveis.',
+                accountRequiredError: 'Selecione uma conta de reembolso Rillet.',
+            },
+            achPaymentAccount: {label: 'Conta de pagamento ACH', description: 'Escolha de onde pagar os relatórios e criaremos o pagamento no Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuração do DualEntry',
@@ -6582,7 +6595,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 },
             },
             syncReimbursedReports: 'Sincronizar relatórios reembolsados',
-            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento de conta será gerado nesta conta.',
+            syncReimbursedReportsDescription: 'Quando um relatório for pago via ACH, um pagamento será gerado nesta conta.',
             billPaymentAccount: {label: 'Conta de pagamento de faturas', description: 'Escolha de onde deseja pagar as contas e criaremos o pagamento no DualEntry.'},
             fxExpenseAccount: {
                 label: 'Conta de taxa de conversão de moeda DualEntry',
@@ -12146,7 +12159,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             theresAReportWithErrors: 'Há um relatório com erros',
             theresAWorkspaceWithCustomUnitsErrors: 'Há um workspace com erros de unidades personalizadas',
             theresAProblemWithAWorkspaceMember: 'Há um problema com um membro do workspace',
-            theresAProblemWithAWorkspaceQBOExport: 'Ocorreu um problema com uma configuração de exportação de conexão do workspace.',
             theresAProblemWithAContactMethod: 'Há um problema com um método de contato',
             aContactMethodRequiresVerification: 'É necessário verificar um método de contato',
             theresAProblemWithAPaymentMethod: 'Há um problema com um método de pagamento',
@@ -12160,6 +12172,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             aBankAccountIsLocked: 'Uma conta bancária está bloqueada',
             completeHrSetup: 'Concluir configuração de RH',
             theresAProblemWithAnHRConnection: 'Há um problema com uma conexão de RH',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Ocorreu um problema com uma configuração de exportação da conexão do espaço de trabalho.',
             theresAProblemWithYourAgent: 'Há um problema com seu(s) agente(s)',
         },
     },

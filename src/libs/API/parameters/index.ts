@@ -52,6 +52,8 @@ export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSync
 export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
 export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRilletCreditCardAccountParams';
 export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
+export type {default as UpdateRilletReimbursableExpensesExportDestinationParams} from './UpdateRilletReimbursableExpensesExportDestinationParams';
+export type {default as UpdateRilletReimbursementAccountParams} from './UpdateRilletReimbursementAccountParams';
 export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
 export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
 export type {default as UpdateRilletExportToMultipleAccountsParams} from './UpdateRilletExportToMultipleAccountsParams';

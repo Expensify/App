@@ -6601,14 +6601,23 @@ const translations = {
             exportDescription: 'Configure how Expensify data exports to Rillet.',
             exportReimbursable: {
                 label: 'Export reimbursable expenses as',
+                description: "We'll create an itemized vendor bill or reimbursement for each Expensify report. If the period is closed, we'll post to the next open period.",
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Vendor bills',
+                    VENDOR_BILL: {
+                        label: 'Itemized vendor bills',
+                    },
+                    REIMBURSEMENT: {
+                        label: 'Itemized reimbursements',
                     },
                 },
             },
+            reimbursementAccount: {
+                label: 'Reimbursement account',
+                description: 'Choose where to export reimbursable expenses.',
+                accountRequiredError: 'Please select a Rillet reimbursement account.',
+            },
             exportDate: {
-                label: 'Vendor bill date',
+                label: 'GL impact date',
                 description: 'Use this date when exporting reports to Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6684,10 +6693,10 @@ const translations = {
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
-            billPaymentAccount: {
-                label: 'Bill payment account',
-                description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
+            achPaymentAccount: {
+                label: 'ACH payment account',
+                description: "Choose where to pay reports from and we'll create the payment in Rillet.",
             },
             fxExpenseAccount: {
                 label: 'Rillet currency conversion fee account',
@@ -12519,7 +12528,7 @@ const translations = {
             theresAReportWithErrors: "There's a report with errors",
             theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
             theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
-            theresAProblemWithAWorkspaceQBOExport: 'There was a problem with a workspace connection export setting.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'There was a problem with a workspace connection export setting.',
             theresAProblemWithAContactMethod: "There's a problem with a contact method",
             aContactMethodRequiresVerification: 'A contact method requires verification',
             theresAProblemWithAPaymentMethod: "There's a problem with a payment method",

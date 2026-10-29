@@ -7,7 +7,7 @@ import {
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     shouldShowPolicyError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import {getApprovalWorkflowRulesForPolicy, hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
@@ -68,7 +68,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
                 ),
             ),
         ],
-        [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR, cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError)],
+        [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_EXPORT_ERROR, cleanPolicies.find((cleanPolicy) => shouldShowReimbursableExportDestinationAccountError(cleanPolicy))],
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR, cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy)],
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS, isAdminOfPolicyWithCardFeedErrors ? policiesWithCardFeedErrors.at(0) : undefined],
         [

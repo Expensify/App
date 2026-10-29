@@ -22,7 +22,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -183,7 +183,7 @@ function getWorkspaceMenuItems({
         }
     };
     const getConnectionsBrickRoadIndicator = () => {
-        if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError) {
+        if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {
@@ -297,7 +297,7 @@ function getWorkspaceMenuItems({
 
         if (!isUnifiedConnectionsBetaEnabled && policyFeatureStates[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.ACCOUNTING)) {
             let accountingBrickRoadIndicator;
-            if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy)) {
+            if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy)) {
                 accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             } else if (isQBORefreshTokenExpiringSoonSelector(policy)) {
                 accountingBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;

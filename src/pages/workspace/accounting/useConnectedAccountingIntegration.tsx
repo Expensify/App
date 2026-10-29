@@ -34,7 +34,7 @@ import {
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
     settingsPendingAction,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 
@@ -529,7 +529,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                       onPress: integrationData?.onExportPagePress,
                       brickRoadIndicator:
                           areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                          shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+                          shouldShowReimbursableExportDestinationAccountError(policy) ||
                           integrationData?.externalSubscribedExportSettingsHasErrorFields
                               ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                               : undefined,

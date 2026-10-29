@@ -29,14 +29,14 @@ type AccountListItem = ListItem & {
     value: RilletAccount['code'];
 };
 
-function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
+function RilletACHPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
-    const billPaymentAccountCode = rilletConfig?.sync?.billPaymentAccountCode;
+    const achPaymentAccountCode = rilletConfig?.sync?.billPaymentAccountCode;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_ADVANCED.getRoute(policyID) : undefined;
 
     const syncReimbursedReports = rilletConfig?.sync?.syncReimbursedReports ?? true;
@@ -49,13 +49,13 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
                 value: accountItem.code,
                 text: `${accountItem.code} ${accountItem.name}`,
                 keyForList: accountItem.code,
-                isSelected: billPaymentAccountCode === accountItem.code,
+                isSelected: achPaymentAccountCode === accountItem.code,
             })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.billPaymentAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.achPaymentAccount.description')}</Text>
         </View>
     );
 
@@ -70,9 +70,9 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 
-    const setBillPaymentAccount = (item: AccountListItem) => {
-        if (item.value !== billPaymentAccountCode && policyID) {
-            updateRilletBillPaymentAccount(policyID, item.value, billPaymentAccountCode);
+    const setACHPaymentAccount = (item: AccountListItem) => {
+        if (item.value !== achPaymentAccountCode && policyID) {
+            updateRilletBillPaymentAccount(policyID, item.value, achPaymentAccountCode);
         }
         Navigation.goBack(backPath);
     };
@@ -83,15 +83,15 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
-            displayName="RilletBillPaymentAccountPage"
-            title="workspace.rillet.billPaymentAccount.label"
+            displayName="RilletACHPaymentAccountPage"
+            title="workspace.rillet.achPaymentAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={setBillPaymentAccount}
+            onSelectRow={setACHPaymentAccount}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={billPaymentAccountCode}
+            initiallyFocusedOptionKey={achPaymentAccountCode}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}
@@ -102,4 +102,4 @@ function RilletBillPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(RilletBillPaymentAccountPage);
+export default withPolicyConnections(RilletACHPaymentAccountPage);

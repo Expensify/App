@@ -6518,13 +6518,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             exportReimbursable: {
                 label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Τιμολόγια προμηθευτών',
-                    },
+                    REIMBURSEMENT: {label: 'Αναλυτικές αποζημιώσεις'},
+                    VENDOR_BILL: {label: 'Αναλυτικοί λογαριασμοί προμηθευτών'},
                 },
+                description:
+                    'Θα δημιουργούμε ένα αναλυτικό τιμολόγιο προμηθευτή ή μια αποζημίωση για κάθε αναφορά Expensify. Αν η περίοδος είναι κλειστή, θα καταχωρούμε στην επόμενη ανοιχτή περίοδο.',
             },
             exportDate: {
-                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                label: 'Ημερομηνία επίδρασης στο Γ/Λ',
                 description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6571,11 +6572,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή τιμολογίου σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {
-                label: 'Λογαριασμός πληρωμής λογαριασμών',
-                description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.',
-            },
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή σε αυτόν τον λογαριασμό.',
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
@@ -6620,6 +6617,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Rillet ως λογιστική εγγραφή.',
             },
+            reimbursementAccount: {
+                label: 'Λογαριασμός αποζημίωσης',
+                description: 'Επιλέξτε πού θα εξαχθούν οι επιστρεπτέες δαπάνες.',
+                accountRequiredError: 'Παρακαλούμε επιλέξτε έναν λογαριασμό αποζημίωσης Rillet.',
+            },
+            achPaymentAccount: {label: 'λογαριασμός πληρωμών ACH', description: 'Επιλέξτε από πού θα πληρώνονται οι αναφορές και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Ρύθμιση DualEntry',
@@ -6725,7 +6728,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             syncReimbursedReports: 'Συγχρονισμός εξοφλημένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή σε αυτόν τον λογαριασμό.',
             billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνετε λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
             fxExpenseAccount: {
                 label: 'Λογαριασμός προμήθειας μετατροπής νομίσματος DualEntry',
@@ -12450,7 +12453,7 @@ ${reportName}`,
             theresAReportWithErrors: 'Υπάρχει μια αναφορά με σφάλματα',
             theresAWorkspaceWithCustomUnitsErrors: 'Υπάρχει ένας χώρος εργασίας με σφάλματα προσαρμοσμένων μονάδων',
             theresAProblemWithAWorkspaceMember: 'Υπάρχει πρόβλημα με ένα μέλος του χώρου εργασίας',
-            theresAProblemWithAWorkspaceQBOExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
             theresAProblemWithAContactMethod: 'Υπάρχει πρόβλημα με μια μέθοδο επικοινωνίας',
             aContactMethodRequiresVerification: 'Απαιτείται επαλήθευση μιας μεθόδου επικοινωνίας',
             theresAProblemWithAPaymentMethod: 'Υπάρχει πρόβλημα με μία μέθοδο πληρωμής',

@@ -561,6 +561,8 @@ const WRITE_COMMANDS = {
     UPDATE_RILLET_FIELD_MAPPING: 'UpdateRilletFieldMapping',
     UPDATE_RILLET_CREDIT_CARD_ACCOUNT: 'UpdateRilletCreditCardAccount',
     UPDATE_RILLET_DEFAULT_VENDOR: 'UpdateRilletDefaultVendor',
+    UPDATE_RILLET_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateRilletReimbursableExpensesExportDestination',
+    UPDATE_RILLET_REIMBURSEMENT_ACCOUNT: 'UpdateRilletReimbursementAccount',
     UPDATE_RILLET_EXPORT_DATE: 'UpdateRilletExportDate',
     UPDATE_RILLET_EXPORTER: 'UpdateRilletExporter',
     UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS: 'UpdateRilletExportToMultipleAccounts',
@@ -1356,6 +1358,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_RILLET_FIELD_MAPPING]: Parameters.UpdateRilletFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_RILLET_CREDIT_CARD_ACCOUNT]: Parameters.UpdateRilletCreditCardAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_DEFAULT_VENDOR]: Parameters.UpdateRilletDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateRilletReimbursableExpensesExportDestinationParams;
+    [WRITE_COMMANDS.UPDATE_RILLET_REIMBURSEMENT_ACCOUNT]: Parameters.UpdateRilletReimbursementAccountParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_DATE]: Parameters.UpdateRilletExportDateParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORTER]: Parameters.UpdateRilletExporterParams;
     [WRITE_COMMANDS.UPDATE_RILLET_EXPORT_TO_MULTIPLE_ACCOUNTS]: Parameters.UpdateRilletExportToMultipleAccountsParams;

@@ -6421,9 +6421,17 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę konta w Rillet i zsynchronizuj połączenie ponownie',
             exportDescription: 'Skonfiguruj sposób eksportowania danych Expensify do Rillet.',
-            exportReimbursable: {label: 'Eksportuj wydatki podlegające zwrotowi jako', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Faktury od dostawców'}}},
+            exportReimbursable: {
+                label: 'Eksportuj wydatki podlegające zwrotowi jako',
+                values: {
+                    REIMBURSEMENT: {label: 'Zwroty z wyszczególnieniem pozycji'},
+                    VENDOR_BILL: {label: 'Pozycje na fakturach od dostawców'},
+                },
+                description:
+                    'Utworzymy zindywidualizowaną fakturę od dostawcy lub zwrot kosztów dla każdego raportu Expensify. Jeśli okres jest zamknięty, zaksięgujemy to w następnym otwartym okresie.',
+            },
             exportDate: {
-                label: 'Data rachunku od dostawcy',
+                label: 'Data ujęcia w księgach',
                 description: 'Użyj tej daty podczas eksportowania raportów do Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6459,8 +6467,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
             },
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
-            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność rachunku.',
-            billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w Rillet.'},
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność.',
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
             syncTravelBillingSettlements: 'Synchronizuj rozliczenia skonsolidowanego fakturowania podróży',
@@ -6501,6 +6508,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 label: 'Konto opłaty za przewalutowanie Rillet',
                 description: 'Gdy twoja firma pokrywa koszt przewalutowania przy płatności dokonanej za granicą, zaksięgujemy ten koszt na tym koncie w Rillet jako zapis w dzienniku.',
             },
+            reimbursementAccount: {
+                label: 'Konto zwrotów',
+                description: 'Wybierz miejsce eksportu wydatków podlegających zwrotowi.',
+                accountRequiredError: 'Wybierz proszę konto zwrotu Rillet.',
+            },
+            achPaymentAccount: {label: 'Konto płatności ACH', description: 'Wybierz, z którego miejsca chcesz opłacać raporty, a my utworzymy płatność w Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Konfiguracja DualEntry',
@@ -6606,7 +6619,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
             },
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
-            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność.',
             billPaymentAccount: {label: 'Konto do płatności rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w DualEntry.'},
             fxExpenseAccount: {
                 label: 'Konto opłaty za przewalutowanie DualEntry',
@@ -12181,7 +12194,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             theresAReportWithErrors: 'Jest raport z błędami',
             theresAWorkspaceWithCustomUnitsErrors: 'Istnieje przestrzeń robocza z błędami niestandardowych jednostek',
             theresAProblemWithAWorkspaceMember: 'Wystąpił problem z członkiem przestrzeni roboczej',
-            theresAProblemWithAWorkspaceQBOExport: 'Wystąpił problem z ustawieniem eksportu połączenia przestrzeni roboczej.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Wystąpił problem z ustawieniem eksportu połączenia w przestrzeni roboczej.',
             theresAProblemWithAContactMethod: 'Wystąpił problem z metodą kontaktu',
             aContactMethodRequiresVerification: 'Metoda kontaktu wymaga weryfikacji',
             theresAProblemWithAPaymentMethod: 'Wystąpił problem z metodą płatności',
