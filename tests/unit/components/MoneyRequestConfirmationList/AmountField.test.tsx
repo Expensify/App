@@ -2,19 +2,22 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
+import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+
+import type IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
-let mockCurrencyButtonRef: unknown;
-let mockLauncherRef: unknown;
+let mockCurrencyButtonRef: NumberWithSymbolFormProps['currencyButtonRef'];
+let mockLauncherRef: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef'];
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, errorText, currencyButtonRef}: {onInputChange: (amount: string) => void; errorText?: string; currencyButtonRef?: unknown}) => {
+    return ({onInputChange, errorText, currencyButtonRef}: {onInputChange: (amount: string) => void; errorText?: string; currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef']}) => {
         mockCurrencyButtonRef = currencyButtonRef;
         return (
             <>
@@ -38,7 +41,7 @@ jest.mock('@components/NumberWithSymbolForm', () => {
 jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, launcherRef}: {onInputChange: (currency: string) => void; launcherRef?: unknown}) => {
+    return ({onInputChange, launcherRef}: {onInputChange: (currency: string) => void; launcherRef?: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef']}) => {
         mockLauncherRef = launcherRef;
         return (
             <Pressable
