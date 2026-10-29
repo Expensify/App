@@ -122,6 +122,25 @@ describe('AnimatedSubmitButton web animations', () => {
         jest.useRealTimers();
     });
 
+    it.each([false, true])('keeps the outer layout static (submitting: %s)', (isSubmittingAnimationRunning) => {
+        // Given either submission state, the outer wrapper only provides layout
+        const props = {text: 'Submit', onPress: jest.fn(), onAnimationFinish: jest.fn()};
+
+        // When the button renders, only the inner submitting view needs animation support
+        act(() =>
+            root.render(
+                <AnimatedSubmitButton
+                    {...props}
+                    isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                />,
+            ),
+        );
+
+        // Then only the submitting state needs an animated view, and both states still render their button
+        expect(Animated.View).toHaveBeenCalledTimes(isSubmittingAnimationRunning ? 1 : 0);
+        expect(screen.getByRole('button', {name: isSubmittingAnimationRunning ? 'Submitting' : 'Submit'})).toBeTruthy();
+    });
+
     it('removes the loading button immediately when cancellation replaces it with the submit dropdown', async () => {
         // Given an in-progress submission whose header switches back to the dropdown on cancellation
         act(() => root.render(<CancellableSubmission />));

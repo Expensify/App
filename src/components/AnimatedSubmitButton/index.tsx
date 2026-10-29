@@ -17,6 +17,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import Animated, {css, useReducedMotion} from 'react-native-reanimated';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
@@ -127,7 +128,7 @@ function AnimatedSubmitButton({isSubmittingAnimationRunning, onPress, isDisabled
     const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.reportID}`, {selector: pendingExpenseActionSelector});
 
     return (
-        <Animated.View style={[styles.justifyContentCenter, {height: variables.componentSizeNormal}]}>
+        <View style={[styles.justifyContentCenter, {height: variables.componentSizeNormal}]}>
             {isSubmittingAnimationRunning ? (
                 <SubmittingButton
                     key={`${props.reportID}:${props.isDEWSubmission ? 'dew' : 'standard'}`}
@@ -144,7 +145,7 @@ function AnimatedSubmitButton({isSubmittingAnimationRunning, onPress, isDisabled
                     <Button.Text>{props.text}</Button.Text>
                 </Button>
             )}
-        </Animated.View>
+        </View>
     );
 }
 
