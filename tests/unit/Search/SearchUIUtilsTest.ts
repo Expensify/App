@@ -74,7 +74,11 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-jest.mock('@userActions/Search', () => ({setOptimisticDataForTransactionThreadPreview: jest.fn()}));
+jest.mock('@userActions/Search', () => ({
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
+    // shouldShowDeleteOption resolves a report's actions through this helper, so the real implementation has to stay available
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchUtils>('@userActions/Search').getReportActionsFromSearchSnapshot,
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
