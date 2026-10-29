@@ -2481,6 +2481,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 20,
         },
 
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
+        },
+
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',

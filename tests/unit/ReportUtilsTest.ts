@@ -105,6 +105,7 @@ import {
     getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
+    getDisplayedReportID,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
@@ -212,7 +213,7 @@ import {
     isSortableColumnName,
     isThreadMemberProtectedByParentReport,
     isUnread,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseMovedTransactionReportIDs,
     parseReportRouteParams,
@@ -6858,6 +6859,35 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction], currentUserAccountID, undefined, THREADING_OTHER_MEMBER_EMAIL, undefined, undefined)).toBe(false);
             });
 
+            it('should decide from the passed report actions whether the report was forwarded since its last submit', async () => {
+                // Given a submitted report whose owner submits to the approver holding it, and a history that so far holds one submit
+                await setUpApprovalChain();
+                const report = buildSubmittedReport();
+                const transaction = {...createRandomTransaction(911), reportID: report.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(report.reportID, transaction.transactionID, currentUserAccountID);
+                const submittedAction: ReportAction = {...createRandomReportAction(912), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+                const forwardedAction: ReportAction = {...createRandomReportAction(913), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+
+                // When the passed actions hold only that submit, the submitter can still delete because the report awaits its first level
+                expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction, submittedAction], currentUserAccountID, undefined, THREADING_OWNER_EMAIL, undefined, undefined)).toBe(
+                    true,
+                );
+
+                // Then a forward after that submit, read from the same passed actions, blocks the delete
+                expect(
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        [iouAction, submittedAction, forwardedAction],
+                        currentUserAccountID,
+                        undefined,
+                        THREADING_OWNER_EMAIL,
+                        undefined,
+                        undefined,
+                    ),
+                ).toBe(false);
+            });
+
             it('should resolve the report owner from the personalDetails canDeleteReportAction is given', async () => {
                 // Given the same submitted report, reachable by reportID, and its report preview action
                 await setUpApprovalChain();
@@ -7938,7 +7968,7 @@ describe('ReportUtils', () => {
     describe('replaceLocalAttachmentReferences', () => {
         const reportActionID = '6076606438659303644';
         const syncedImageHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" />`;
-        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" />`;
+        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" data-attachment-id="1" />`;
 
         it('drops the local reference while the upload is still pending, since the queued send re-attaches the file', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -7986,6 +8016,82 @@ describe('ReportUtils', () => {
             );
         });
 
+        describe('several synced attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const syncedTwoImagesHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" data-attachment-id="11" /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg" alt="receipt.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/def.jpg" data-attachment-id="12" />`;
+            const attachmentIDByLocalSource = {[firstSource]: '11', [secondSource]: '12'};
+
+            it('keeps every attachment the draft kept', () => {
+                // Given a message with two images that synced after the user started editing
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('matches by position when the synced attachments have no attachment ID', () => {
+                // Given synced images without an attachment ID
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('keeps the image the user kept when they deleted the other one', () => {
+                // Given the user deleted the first image while both were uploading
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then the second image stays, not the first
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('keeps the image the user kept by its file name after the app restarted', () => {
+                // Given the user deleted the first image, and the app restarted so it no longer knows which upload is which
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = 'Hello edited\n\n!(file:///var/mobile/Documents/receipt.jpg)';
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, {});
+
+                // Then the second image stays, matched by its file name
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('matches same-named images to different synced attachments', () => {
+                // Given three synced images with the same file name, and a draft that kept two of them after the app restarted
+                const syncedSameNameHtml = ['a', 'b', 'c']
+                    .map(
+                        (name) =>
+                            `<img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_${name}.png" alt="image.png" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/${name}.png" />`,
+                    )
+                    .join('');
+                const draft = 'Hello edited\n\n![image.png](file:///var/mobile/Documents/image.png)\n\n![image.png](file:///var/mobile/Documents/image.png)';
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, `Hello<br /><br />${syncedSameNameHtml}`, reportActionID, {});
+
+                // Then each kept image gets its own synced attachment instead of both getting the first one
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_a.png)\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_b.png)`,
+                );
+            });
+        });
+
         it('swaps a document reference for the synced attachment link', () => {
             const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
             const draft = 'Hello edited\n\n[file.doc](blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -8020,17 +8126,17 @@ describe('ReportUtils', () => {
         });
 
         it('reports the uploading attachment as removed once the draft drops its local reference', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', uploadingImageHtml)).toBe(true);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', uploadingImageHtml)).toEqual(['1']);
         });
 
         it('does not report a removal while the draft still references the uploading attachment', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(isUploadingAttachmentRemovedFromDraft(draft, uploadingImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImageHtml)).toEqual([]);
         });
 
         it('does not report a removal when the attachment already synced', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', syncedImageHtml)).toEqual([]);
         });
 
         it('returns the uploading attachment tag so the optimistic message can keep showing it', () => {
@@ -8038,6 +8144,45 @@ describe('ReportUtils', () => {
 
             expect(tag).toContain('data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1"');
             expect(tag?.startsWith('<img')).toBe(true);
+        });
+
+        describe('several uploading attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const uploadingImagesHtml = `Hello<br /><br /><img src="${firstSource}" data-optimistic-src="${firstSource}" data-attachment-id="11" /><br /><img src="${secondSource}" data-optimistic-src="${secondSource}" data-attachment-id="12" />`;
+
+            it('reports only the attachments the draft dropped', () => {
+                // Given a draft that keeps the second image but not the first
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the removed uploads are looked up
+                const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImagesHtml);
+
+                // Then only the first image counts as removed
+                expect(removedAttachmentIDs).toEqual(['11']);
+            });
+
+            it('keeps showing every attachment the edit kept', () => {
+                // Given a message with two uploading images
+
+                // When the first image is removed
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml, ['11']);
+
+                // Then only the second image is re-appended to the edited message
+                expect(html).toContain(secondSource);
+                expect(html).not.toContain(firstSource);
+            });
+
+            it('re-appends all the attachments when none were removed', () => {
+                // Given a message with two uploading images
+
+                // When the edit keeps both images
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml);
+
+                // Then both images are re-appended to the edited message
+                expect(html).toContain(firstSource);
+                expect(html).toContain(secondSource);
+            });
         });
 
         it('returns nothing to re-append once the attachment has synced', () => {
@@ -8087,7 +8232,7 @@ describe('ReportUtils', () => {
                 const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
 
                 expect(secondEditDraft).toContain(videoSource);
-                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+                expect(getUploadingAttachmentIDsRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toEqual([]);
             });
         });
 
@@ -9277,7 +9422,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, ['4']);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: ['4']});
 
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
@@ -9291,7 +9436,7 @@ describe('ReportUtils', () => {
             });
 
             // When the caller builds the icons without passing the pending delete members
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
 
             // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
@@ -9301,10 +9446,111 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, []);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: []});
 
             expect(icons.at(0)?.source).toEqual(getDefaultGroupAvatar(groupChatReport.reportID));
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
+        });
+    });
+
+    describe('getIcons for a thread', () => {
+        afterEach(() => Onyx.clear());
+
+        const parentReportID = '9301';
+        const parentReportActionID = '9302';
+        const passedActorAccountID = 3;
+        const onyxActorAccountID = 4;
+
+        const buildIOUAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+            originalMessage: {
+                IOUReportID: parentReportID,
+                IOUTransactionID: '9303',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 1000,
+                currency: 'USD',
+            },
+        });
+
+        const buildCommentAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi'}],
+        });
+
+        const expenseRequest: Report = {
+            reportID: '9304',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        const chatThread: Report = {
+            reportID: '9305',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        it('should build the expense request member avatar from the parent report action passed by the caller', async () => {
+            // Given an expense request whose parent action in Onyx (still read by the expense request check) was posted by one user,
+            // while the caller resolved that same action as posted by another user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildIOUAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: expenseRequest,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildIOUAction(passedActorAccountID),
+            });
+
+            // Then the member avatar belongs to the actor of the passed action, so the module-level cache was not read for it
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should build the chat thread avatar from the parent report action passed by the caller', async () => {
+            // Given a chat thread whose parent chat is in Onyx but whose parent actions are not loaded there
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: chatThread,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildCommentAction(passedActorAccountID),
+            });
+
+            // Then the avatar belongs to the actor of the passed action
+            expect(icons).toHaveLength(1);
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should fall back to the parent report action in Onyx when the caller does not pass one', async () => {
+            // Given a chat thread whose parent action is only available in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildCommentAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built without a parent report action
+            const icons = getIcons({report: chatThread, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
+
+            // Then the avatar still resolves from Onyx until every caller passes the action
+            expect(icons.at(0)?.id).toBe(onyxActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Four');
         });
     });
 
@@ -12716,6 +12962,58 @@ describe('ReportUtils', () => {
             // Then it is discarded in favour of the store, rather than reaching the approval lookup and matching no
             // employee, which would fall through to the policy default approver and wrongly report false
             expect(result).toBe(true);
+        });
+
+        describe('reportActions', () => {
+            const submittedAction: ReportAction = {...createRandomReportAction(901), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+            const forwardedAction: ReportAction = {...createRandomReportAction(902), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+            const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${buildProcessingReport().reportID}` as const;
+
+            afterEach(async () => {
+                await Onyx.merge(reportActionsKey, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('should not be awaiting first level approval when the passed reportActions show a forward after the last submit', async () => {
+                // Given a report that the approval chain alone would place with its first approver
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+
+                // When the caller passes actions showing the report was forwarded after its last submit
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, forwardedActions);
+
+                // Then the report is past its first level
+                expect(result).toBe(false);
+            });
+
+            it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When the caller passes only the submit, as an array
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, [submittedAction]);
+
+                // Then the passed actions win, so the report is still awaiting its first level
+                expect(result).toBe(true);
+            });
+
+            it('should fall back to the report actions stored in Onyx when reportActions is not passed', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When a caller that has not been migrated yet omits reportActions
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL);
+
+                // Then the transitional fallback still sees the forward
+                expect(result).toBe(false);
+            });
         });
     });
 
@@ -25619,6 +25917,152 @@ describe('ReportUtils', () => {
 
             // Then there is no IOU action to match the thread against
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDisplayedReportID', () => {
+        const parentReport = createMock<Report>({reportID: 'displayed-parent', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'displayed-chat'});
+        const threadReport = createMock<Report>({reportID: 'displayed-thread', parentReportID: parentReport.reportID, parentReportActionID: '1'});
+        const reportWithoutParent = createMock<Report>({reportID: 'displayed-no-parent', type: CONST.REPORT.TYPE.CHAT});
+        const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'USD 1.00 expense', text: 'USD 1.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-1', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
+        });
+        const secondIOUAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: 'displayed-other-thread',
+            message: [{type: 'COMMENT', html: 'USD 2.00 expense', text: 'USD 2.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-2', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: CONST.CURRENCY.USD},
+        });
+        // Same ID as the thread's parentReportActionID, but a send-money action, which getDisplayedReportID must never treat as a one-transaction thread
+        const sentMoneyAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'sent USD 1.00', text: 'sent USD 1.00'}],
+            originalMessage: {
+                IOUTransactionID: 'displayed-txn-1',
+                IOUReportID: parentReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''},
+            },
+        });
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const;
+
+        beforeEach(async () => {
+            // getDisplayedReportID reads the thread and its parent from the reports stored in Onyx
+            await Onyx.multiSet(toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [parentReport, threadReport, reportWithoutParent], (report) => report.reportID));
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.merge(parentReportActionsKey, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutParent.reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return the report ID when the report has no parent', () => {
+            // Given a report that is not a thread, even though a matching IOU action is passed
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report
+            const result = getDisplayedReportID(reportWithoutParent.reportID, false, parentReportActions);
+
+            // Then the report itself is displayed because there is no parent to switch to
+            expect(result).toBe(reportWithoutParent.reportID);
+        });
+
+        it('should return the parent report ID when the passed parent report actions hold a single IOU action pointing to the thread', () => {
+            // Given the parent's actions contain exactly one IOU action whose child is the thread
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report with those actions passed as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the one-transaction parent is displayed instead of the thread
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when the passed parent report actions hold more than one IOU action', () => {
+            // Given the parent holds two expenses
+            const parentReportActions = {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction};
+
+            // When resolving the displayed report for one of their threads
+            const result = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+
+            // Then the thread stays displayed because the parent is not a one-transaction report
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should read the passed parent report actions rather than the actions stored in Onyx', async () => {
+            // Given Onyx says the parent holds two expenses
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes only the single IOU action
+            const result = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+
+            // Then the passed actions win and the parent is displayed
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should fall back to the actions stored in Onyx when parentReportActions is not passed', async () => {
+            // Given Onyx holds a single IOU action for the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When a caller that has not been migrated yet omits parentReportActions
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then the transitional fallback still resolves the parent from Onyx
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when parentReportActions is not passed and Onyx has no actions for the parent', () => {
+            // Given nothing is stored for the parent and the caller passes no actions
+            // When resolving the displayed report
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then there is no IOU action to match, so the thread stays displayed
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should resolve the thread parent action from the passed parent report actions rather than from Onyx', async () => {
+            // Given Onyx stores a send-money action under the thread's parentReportActionID, which would keep the thread displayed
+            await Onyx.merge(parentReportActionsKey, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a plain expense action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the passed action is the one checked, so the parent is displayed
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should keep the thread displayed when the passed parent report actions hold a send-money action for the thread', async () => {
+            // Given Onyx stores a plain expense action under the thread's parentReportActionID, which would switch to the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a send-money action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [sentMoneyAction]);
+
+            // Then the passed send-money action is the one checked, so the thread stays displayed
+            expect(resultForObject).toBe(threadReport.reportID);
+            expect(resultForArray).toBe(threadReport.reportID);
         });
     });
 

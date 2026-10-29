@@ -505,6 +505,28 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {
             greeting: 'Hola, ¿en qué puedo ayudarte?',
             showHistory: 'Mostrar historial',
+            subtitle: 'Tu asistente de IA personal',
+            welcomeDescription: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
+            viewChatHistory: 'Ver historial del chat',
+            hideChatHistory: 'Ocultar historial del chat',
+            askNewQuestion: 'Haz una nueva pregunta',
+            newChat: 'Nuevo chat',
+            composerPlaceholders: {
+                spendLastMonth: '¿Cuánto gasté el mes pasado?',
+                topExpenses: 'Muéstrame mis mayores gastos de este mes',
+                spendDrivers: '¿Qué impulsó mi gasto el trimestre pasado?',
+                travelSpendChange: '¿Cómo cambió mi gasto en viajes desde el mes pasado?',
+                topSpender: '¿Quién gastó más este mes?',
+                missingCategory: '¿Qué gastos no tienen categoría?',
+                awaitingApproval: '¿Qué informes están esperando mi aprobación?',
+                notReimbursed: '¿Qué no se me ha reembolsado todavía?',
+                unsubmitted: '¿Cuáles de mis gastos siguen sin enviarse?',
+                leftToPay: '¿Qué queda por pagar este mes?',
+                createExpense: 'Crea un gasto de $30 por un almuerzo',
+                combineExpenses: 'Combina todos mis gastos abiertos en un informe',
+                exportPdf: 'Exporta mi último informe a PDF',
+                exportCsv: 'Dame un CSV de mis gastos de más de $50',
+            },
         },
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
@@ -3147,6 +3169,9 @@ ${amount} para ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
         collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
+        businessBankAccountCountries: 'Países con cuenta bancaria de empresa',
+        businessBankAccountCountriesDescription:
+            'Los empleados de estos países proporcionan datos de transferencia local. Todos los demás proporcionan datos de transferencia bancaria internacional.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6531,7 +6556,8 @@ ${amount} para ${merchant} - ${date}`,
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
             addWorkEmail: 'Añade tu correo electrónico de trabajo',
-            addWorkEmailDescription: 'Por favor, añade tu correo de trabajo para poder usar los feeds existentes de otros espacios de trabajo.',
+            addWorkEmailDescription:
+                'Añade tu correo electrónico del trabajo y establécelo como tu método de contacto principal para poder usar los feeds existentes de otros espacios de trabajo.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:

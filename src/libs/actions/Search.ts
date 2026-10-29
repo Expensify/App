@@ -184,12 +184,19 @@ function getReportActionsFromSearchSnapshot(
     reportID: string | undefined,
     searchData: SearchResultDataType | undefined,
     allReportActions: OnyxCollection<ReportActions>,
+    shouldFillFromLiveCollection = false,
 ): OnyxEntry<ReportActions> {
     if (!reportID) {
         return undefined;
     }
 
     const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+
+    if (shouldFillFromLiveCollection) {
+        // The snapshot can hold only part of a report's actions, and none at all on grouped searches, so the live collection fills the gaps
+        // for checks that need the whole history, while the snapshot still wins for the actions it has.
+        return {...allReportActions?.[key], ...searchData?.[key]};
+    }
 
     // Prefer the search snapshot so the actions match what the user selected on the search page, fall back to live report actions.
     return searchData?.[key] ?? allReportActions?.[key];
