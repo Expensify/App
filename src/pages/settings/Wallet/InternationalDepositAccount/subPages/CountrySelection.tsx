@@ -1,4 +1,3 @@
-import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -20,9 +19,6 @@ import React, {useState} from 'react';
 function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: CustomSubPageProps) {
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [selectedCountry, setSelectedCountry] = useState(formValues.bankCountry || '');
-
-    // Load each workspace's withdrawal accounts so that we can determine whether to show the ABA form
-    useLoadDepositAccountSetup();
 
     const onCountrySelected = () => {
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
