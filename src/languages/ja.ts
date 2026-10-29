@@ -2223,6 +2223,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: '月末最終日に',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: '出張の終わりに',
         },
+        scheduleEta: {
+            weekly: {monday: '月曜日に', tuesday: '火曜日に', wednesday: '水曜日に', thursday: '木曜日に', friday: '金曜日に', saturday: '土曜日に', sunday: '日曜日に'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `毎月${firstDay}日と${secondDay}日に`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `毎月の${firstDay}日および最終日`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: '毎月の最後の月曜日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: '毎月の最後の火曜日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: '毎月最後の水曜日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: '毎月の最終木曜日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: '毎月の最終金曜日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: '毎月の最終土曜日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '毎月の最終日曜日に',
+            },
+        },
     },
     profilePage: {
         profile: 'プロフィール',
@@ -3215,6 +3229,13 @@ ${date} の ${merchant} への ${amount}`,
                 '9': '9番目',
                 '10': '10番目',
             },
+            lastMondayOfMonth: '先週の月曜日',
+            lastTuesdayOfMonth: '先週の火曜日',
+            lastWednesdayOfMonth: '先週の水曜日',
+            lastThursdayOfMonth: '先週の木曜日',
+            lastFridayOfMonth: '先週の金曜日',
+            lastSaturdayOfMonth: '先週の土曜日',
+            lastSundayOfMonth: '先週の日曜日',
         },
         approverInMultipleWorkflows: 'このメンバーはすでに別の承認ワークフローに属しています。ここでの更新内容はそちらにも反映されます。',
         approverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択するか、このワークフローを削除してください。',
@@ -3235,10 +3256,52 @@ ${date} の ${merchant} への ${amount}`,
         approverFromProvider: ({provider}: {provider: string}) => `${provider}から`,
         finalApprover: '最終承認者',
         manager: 'マネージャー',
+        submitFrequency: '送信頻度',
+        submitOn: '提出日',
+        dayOfTheWeek: '曜日',
+        dayOfTheMonth: '月の日付',
+        firstSubmission: '初回の提出',
+        secondSubmission: '2 回目の提出',
+        submissionDatesOrderError: '1つ目の提出日が2つ目の提出日より前である必要があります',
+        daysOfWeek: {monday: '月曜日', tuesday: '火曜日', wednesday: '水曜日', thursday: '木曜日', friday: '金曜日', saturday: '土曜日', sunday: '日曜日'},
+        frequencySummary: {
+            weekly: {monday: '毎週月曜日', tuesday: '毎週火曜日', wednesday: '毎週水曜日', thursday: '毎週木曜日', friday: '毎週金曜日', saturday: '毎週土曜日', sunday: '毎週日曜日'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `毎月${firstDay}日と${secondDay}日の月2回`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `毎月${firstDay}日と月末の月2回`,
+            monthly: ({day}: {day: string}) => `毎月${day}日`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: '毎月最終日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: '毎月最終営業日に',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: '毎月、最後の月曜日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: '毎月、最終火曜日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: '毎月、最後の水曜日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: '毎月、最後の木曜日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: '毎月最終金曜日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: '毎月、最終土曜日',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: '毎月、最後の日曜日',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '経費は作成されるとすぐに提出されます',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: '経費がない場合、レポートは2日後に提出されます',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'レポートは、メンバーが提出するまで下書きのままになります',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '経費は作成後すぐに提出されます。',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて毎日自動的に送信されます。`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて毎週自動送信されます。`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて、月に2回自動で提出されます。`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `レポートは、<a href="${timezoneLink}">ワークスペースのタイムゾーン</a>に基づいて毎月自動的に提出されます。`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: '新しい経費が追加されずに丸2日経過すると、レポートが送信されます。',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'レポートは、メンバーが提出するまで下書きのままになります。',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
-        monthlyOffsetErrorMessage: '月次の頻度を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
     },
     workflowsCurrencyConversionFeesPage: {
         title: '通貨換算手数料',
@@ -5024,6 +5087,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             archived: 'アーカイブ済み',
             workspaceStatus: 'ワークスペースのステータス',
             findRoom: 'ルームを探す',
+            emptyRoomsTitle: '表示できるルームはありません',
+            emptyRoomsSubtitle: 'このワークスペースのルームがここに表示されます。',
+            emptyRoomsArchivedTitle: 'これらのルームはアーカイブされています',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">このワークスペースをアーカイブ解除</a>して、再度使用します。</centered-text></muted-text>`,
             edit: 'ワークスペースを編集',
             enabled: '有効',
             disabled: '無効',
@@ -7821,6 +7889,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'Campfire データを同期しています';
                         case 'campfireSyncConnection':
                             return 'Campfire への接続を初期化しています';
+                        case 'zohoBooksSyncTitle':
+                            return 'Zoho Books データを同期しています';
                         case 'zohoBooksSyncConnection':
                             return 'Zoho Books への接続を初期化しています';
                         case 'campfireSyncImportData':
@@ -8071,6 +8141,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             avatarUploadFailureMessage: 'アバターのアップロード中にエラーが発生しました。もう一度お試しください。',
             addressContext: 'Expensify Travel を有効にするには、ワークスペースの住所が必要です。お客様のビジネスに関連付けられた住所を入力してください。',
             policy: '経費ポリシー',
+            timezoneInputLabel: 'タイムゾーン',
+            timezoneInputHelpText: '自動レポート送信には、お客様のタイムゾーンが使用されます',
+            timezoneErrorMessage: 'タイムゾーンを変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
         },
         officeLocations: {
             title: 'オフィス所在地',
@@ -8893,7 +8966,7 @@ ${reportName}`,
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>エージェント ルールを適用するために、エージェントを作成し、ワークスペースの管理者として追加しました。<br><br>エージェントの詳細は <a href="${agentsRoute}">「アカウント」&gt;「エージェント」</a> で編集できます。</muted-text>`,
                 suggestionsTab: 'おすすめ',
-                writeTab: '編集',
+                writeTab: 'カスタム',
                 findSuggestion: 'ルールを探す',
                 emptySuggestionsTitle: '利用可能な提案はありません',
                 emptySuggestionsSubtitle: '独自のルールを作成してみてください。',
@@ -9350,6 +9423,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
+            organizationSelectDescription: 'データをインポートする Zoho Books の組織を選択してください。',
+            noOrganizationsFound: '組織が見つかりません',
+            noOrganizationsFoundDescription: 'Zoho Books で組織を追加して、接続を再度同期してください',
+            multiLocationNotSupported: '複数拠点の組織にはまだ対応していません',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -10680,6 +10757,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'フィールドの更新中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         genericUpdateReportNameEditFailureMessage: 'レポート名の変更中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
         noActivityYet: 'まだアクティビティがありません',
+        collapsedSystemMessages: () => ({
+            one: '1件の更新を表示',
+            other: (count: number) => `${count}件の更新を表示`,
+        }),
         connectionSettings: '接続設定',
         actions: {
             type: {

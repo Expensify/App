@@ -598,6 +598,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CLIENT_ID]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewClientIDPage').default,
     [SCREENS.WORKSPACE.SHARE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewSharePage').default,
     [SCREENS.WORKSPACE.CURRENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyPage').default,
+    [SCREENS.WORKSPACE.TIMEZONE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewTimezonePage').default,
     [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewCurrencyGovernmentRateCountryPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategorySettingsPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryRequiredFieldsPage').default,
@@ -812,6 +813,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOAuthPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/zohoBooks/ZohoBooksOrganizationSelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/ClaimOfferPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default,
@@ -1111,6 +1116,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsCurrencyConversionFeesPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingWeeklyOffsetPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingSemiMonthlyOffsetPage').default,
     [SCREENS.WORKSPACE.TAX_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceEditTaxPage').default,
     [SCREENS.WORKSPACE.TAX_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/NamePage').default,
     [SCREENS.WORKSPACE.TAX_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/ValuePage').default,
