@@ -2295,6 +2295,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'την τελευταία ημέρα του μήνα',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'στο τέλος του ταξιδιού σας',
         },
+        scheduleEta: {
+            weekly: {monday: 'τη Δευτέρα', tuesday: 'την Τρίτη', wednesday: 'την Τετάρτη', thursday: 'την Πέμπτη', friday: 'την Παρασκευή', saturday: 'το Σάββατο', sunday: 'την Κυριακή'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `την ${firstDay} και την ${secondDay} κάθε μήνα`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `την ${firstDay} και την τελευταία ημέρα κάθε μήνα`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'την τελευταία Δευτέρα του μήνα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'την τελευταία Τρίτη του μήνα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'την τελευταία Τετάρτη του μήνα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'την τελευταία Πέμπτη του μήνα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'την τελευταία Παρασκευή του μήνα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'το τελευταίο Σάββατο του μήνα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'την τελευταία Κυριακή του μήνα',
+            },
+        },
     },
     profilePage: {
         profile: 'Προφίλ',
@@ -2912,6 +2926,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
+            plaidBrokenReconnect: 'Διορθώστε τη σύνδεσή σας με το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            plaidConnectForLimit: 'Συνδεθείτε με το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            connect: 'Σύνδεση',
+        },
+        linkPlaid: {
+            title: 'Σύνδεση με το Plaid',
+            successHeading: 'Επιτυχής σύνδεση',
+            successDescription: 'Ευχαριστούμε που συνδεθήκατε με το Plaid!',
+            failureHeading: 'Ανεπιτυχής σύνδεση',
+            failureDescription: '<muted-text>Παρακαλούμε δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Λάθος τραπεζικός λογαριασμός',
+            wrongAccountDescription: 'Παρακαλούμε επιλέξτε τον αντίστοιχο τραπεζικό λογαριασμό στο Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Ας ελέγξουμε ότι όλα είναι σωστά',
@@ -3314,6 +3340,13 @@ ${amount} για ${merchant} - ${date}`,
                 '9': 'Ένατος',
                 '10': 'Δέκατο',
             },
+            lastMondayOfMonth: 'Την περασμένη Δευτέρα',
+            lastTuesdayOfMonth: 'Την περασμένη Τρίτη',
+            lastWednesdayOfMonth: 'Τετάρτη που πέρασε',
+            lastThursdayOfMonth: 'Πέμπτη που μας πέρασε',
+            lastFridayOfMonth: 'Την περασμένη Παρασκευή',
+            lastSaturdayOfMonth: 'Το περασμένο Σάββατο',
+            lastSundayOfMonth: 'Την περασμένη Κυριακή',
         },
         approverInMultipleWorkflows: 'Αυτό το μέλος ανήκει ήδη σε άλλη ροή έγκρισης. Τυχόν ενημερώσεις εδώ θα αντικατοπτρίζονται και εκεί.',
         approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
@@ -3327,10 +3360,60 @@ ${amount} για ${merchant} - ${date}`,
             approverSubtitle: 'Όλοι οι εγκριτές ανήκουν σε μια υπάρχουσα ροή εργασίας.',
             bulkApproverSubtitle: 'Κανένας εγκρίνων δεν ταιριάζει στα κριτήρια για τις επιλεγμένες αναφορές.',
         },
+        submitFrequency: 'Συχνότητα υποβολής',
+        submitOn: 'Υποβολή στις',
+        dayOfTheWeek: 'Ημέρα της εβδομάδας',
+        dayOfTheMonth: 'Ημέρα του μήνα',
+        firstSubmission: 'Πρώτη υποβολή',
+        secondSubmission: 'Δεύτερη υποβολή',
+        submissionDatesOrderError: 'Η πρώτη ημερομηνία υποβολής πρέπει να είναι πριν από τη δεύτερη ημερομηνία υποβολής',
+        daysOfWeek: {monday: 'Δευτέρα', tuesday: 'Τρίτη', wednesday: 'Τετάρτη', thursday: 'Πέμπτη', friday: 'Παρασκευή', saturday: 'Σάββατο', sunday: 'Κυριακή'},
+        frequencySummary: {
+            weekly: {
+                monday: 'Κάθε εβδομάδα τη Δευτέρα',
+                tuesday: 'Κάθε εβδομάδα την Τρίτη',
+                wednesday: 'Κάθε εβδομάδα, Τετάρτη',
+                thursday: 'Κάθε εβδομάδα, Πέμπτη',
+                friday: 'Κάθε εβδομάδα τις Παρασκευές',
+                saturday: 'Κάθε εβδομάδα τα Σάββατα',
+                sunday: 'Κάθε εβδομάδα τις Κυριακές',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Δύο φορές τον μήνα στις ${firstDay} και ${secondDay}`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Δύο φορές τον μήνα την ${firstDay} και την τελευταία ημέρα`,
+            monthly: ({day}: {day: string}) => `Κάθε μήνα στις ${day}`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Κάθε μήνα την τελευταία ημέρα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Κάθε μήνα την τελευταία εργάσιμη ημέρα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Κάθε μήνα την τελευταία Δευτέρα',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Μηνιαία την τελευταία Τρίτη',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Μηνιαία την τελευταία Τετάρτη',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Κάθε μήνα την τελευταία Πέμπτη',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Κάθε μήνα την τελευταία Παρασκευή',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Μηνιαίως το τελευταίο Σάββατο',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Κάθε μήνα την τελευταία Κυριακή',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Οι δαπάνες υποβάλλονται μόλις δημιουργηθούν',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Οι αναφορές υποβάλλονται μετά από δύο ημέρες χωρίς έξοδα',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Οι αναφορές παραμένουν σε πρόχειρη μορφή μέχρι ένα μέλος να τις υποβάλει',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Οι δαπάνες υποβάλλονται αμέσως μετά τη δημιουργία.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Οι αναφορές υποβάλλονται αυτόματα κάθε μέρα, με βάση τη <a href="${timezoneLink}">ζώνη ώρας του χώρου εργασίας</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Οι αναφορές υποβάλλονται αυτόματα κάθε εβδομάδα, με βάση τη <a href="${timezoneLink}">ζώνη ώρας του χώρου εργασίας</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Οι αναφορές υποβάλλονται αυτόματα δύο φορές τον μήνα, με βάση τη <a href="${timezoneLink}">ζώνη ώρας του χώρου εργασίας</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Οι αναφορές υποβάλλονται αυτόματα κάθε μήνα, με βάση τη <a href="${timezoneLink}">ζώνη ώρας του χώρου εργασίας</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Οι αναφορές υποβάλλονται μετά από δύο πλήρεις ημέρες χωρίς νέες δαπάνες.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Οι αναφορές παραμένουν σε πρόχειρη μορφή μέχρι ένα μέλος να τις υποβάλει.',
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Δεν ήταν δυνατή η αλλαγή της συχνότητας υποβολής. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
-        monthlyOffsetErrorMessage: 'Η μηνιαία συχνότητα δεν μπόρεσε να αλλάξει. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
     },
     workflowsCreateApprovalsPage: {
         title: 'Επιβεβαιώστε',
@@ -5156,6 +5239,11 @@ ${amount} για ${merchant} - ${date}`,
             workspaceStatus: 'Κατάσταση χώρου εργασίας',
             findDomain: 'Εύρεση τομέα',
             findRoom: 'Βρείτε δωμάτιο',
+            emptyRoomsTitle: 'Δεν υπάρχουν δωμάτια προς εμφάνιση',
+            emptyRoomsSubtitle: 'Τα δωμάτια σε αυτόν τον χώρο εργασίας θα εμφανίζονται εδώ.',
+            emptyRoomsArchivedTitle: 'Αυτά τα δωμάτια έχουν αρχειοθετηθεί',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Ανακτήστε αυτόν τον χώρο εργασίας από το αρχείο</a> για να τα χρησιμοποιήσετε ξανά.</centered-text></muted-text>`,
             edit: 'Επεξεργασία χώρου εργασίας',
             enabled: 'Ενεργοποιημένο',
             disabled: 'Απενεργοποιημένο',
@@ -8085,6 +8173,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                             return 'Γίνεται συγχρονισμός δεδομένων Campfire';
                         case 'campfireSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Γίνεται συγχρονισμός δεδομένων Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Γίνεται αρχικοποίηση σύνδεσης με το Zoho Books';
                         case 'campfireSyncImportData':
@@ -8516,6 +8606,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             addressContext:
                 'Απαιτείται μια διεύθυνση χώρου εργασίας για να ενεργοποιήσετε το Expensify Travel. Παρακαλούμε εισαγάγετε μια διεύθυνση που να σχετίζεται με την επιχείρησή σας.',
             policy: 'Πολιτική εξόδων',
+            timezoneInputLabel: 'Ζώνη ώρας',
+            timezoneInputHelpText: 'Η ζώνη ώρας σας χρησιμοποιείται για την αυτόματη υποβολή αναφορών',
+            timezoneErrorMessage: 'Δεν ήταν δυνατή η αλλαγή της ζώνης ώρας. Δοκιμάστε ξανά ή επικοινωνήστε με την υποστήριξη.',
         },
         officeLocations: {
             title: 'Τοποθεσίες γραφείων',
@@ -9533,7 +9626,7 @@ ${reportName}`,
                     'Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον διαμορφώσαμε ως κανόνα πράκτορα. Οι κανόνες πράκτορα εφαρμόζονται αφού αλλάξει μια δαπάνη ή μια αναφορά, για παράδειγμα κρατώντας τη δαπάνη ή απορρίπτοντας την αναφορά.',
                 fallbackBannerWithExplanation: (explanation: string) => `Αυτός δεν είναι ένας τυπικός κανόνας, οπότε τον συντάξαμε ως κανόνα εκπροσώπου. ${explanation}`,
                 suggestionsTab: 'Προτεινόμενο',
-                writeTab: 'Επεξεργασία',
+                writeTab: 'Προσαρμοσμένο',
                 findSuggestion: 'Βρείτε έναν κανόνα',
                 emptySuggestionsTitle: 'Δεν υπάρχουν διαθέσιμες προτάσεις',
                 emptySuggestionsSubtitle: 'Δοκιμάστε να γράψετε τον δικό σας κανόνα.',
@@ -9698,6 +9791,10 @@ ${reportName}`,
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
+            organizationSelectDescription: 'Επιλέξτε τον οργανισμό στο Zoho Books από τον οποίο θέλετε να εισαγάγετε δεδομένα.',
+            noOrganizationsFound: 'Δεν βρέθηκαν οργανισμοί',
+            noOrganizationsFoundDescription: 'Προσθέστε έναν οργανισμό στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            multiLocationNotSupported: 'Οι οργανισμοί με πολλές τοποθεσίες δεν υποστηρίζονται ακόμη',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10663,6 +10760,15 @@ ${reportName}`,
         screenShareRequest: 'Η Expensify σάς προσκαλεί σε κοινή χρήση οθόνης',
     },
     search: {
+        trip: {
+            tripName: 'Όνομα ταξιδιού',
+            traveler: 'Ταξιδιώτης',
+            status: {
+                upcoming: 'Επερχόμενο',
+                done: 'Ολοκληρώθηκε',
+                canceled: 'Ακυρώθηκε',
+            },
+        },
         tabs: {
             expenseReports: 'Αναφορές εξόδων',
             reports: 'Αναφορές',
@@ -11079,6 +11185,10 @@ ${reportName}`,
         genericUpdateReportFieldFailureMessage: 'Προέκυψε απρόσμενο σφάλμα κατά την ενημέρωση του πεδίου. Προσπαθήστε ξανά αργότερα.',
         genericUpdateReportNameEditFailureMessage: 'Παρουσιάστηκε απρόσμενο σφάλμα κατά τη μετονομασία της αναφοράς. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         noActivityYet: 'Καμία δραστηριότητα ακόμα',
+        collapsedSystemMessages: () => ({
+            one: 'εμφάνιση 1 ενημέρωσης',
+            other: (count: number) => `εμφάνιση ${count} ενημερώσεων`,
+        }),
         connectionSettings: 'Ρυθμίσεις σύνδεσης',
         actions: {
             type: {
