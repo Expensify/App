@@ -200,6 +200,12 @@ const FILTER_KEYS = {
     RECEIPT_TYPE_NOT: 'receiptTypeNot',
     RECEIPT_TYPE: 'receiptType',
 
+    TRAVEL_TYPE_NOT: 'travelTypeNot',
+    TRAVEL_TYPE: 'travelType',
+
+    TRAVEL_PLATFORM_NOT: 'travelPlatformNot',
+    TRAVEL_PLATFORM: 'travelPlatform',
+
     TRANSACTION_STATUS: 'transactionStatus',
     TRANSACTION_STATUS_NOT: 'transactionStatusNot',
 
@@ -305,6 +311,10 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.EXPENSE_TYPE_NOT,
         FILTER_KEYS.RECEIPT_TYPE,
         FILTER_KEYS.RECEIPT_TYPE_NOT,
+        FILTER_KEYS.TRAVEL_TYPE,
+        FILTER_KEYS.TRAVEL_TYPE_NOT,
+        FILTER_KEYS.TRAVEL_PLATFORM,
+        FILTER_KEYS.TRAVEL_PLATFORM_NOT,
         FILTER_KEYS.TRANSACTION_STATUS,
         FILTER_KEYS.TRANSACTION_STATUS_NOT,
         FILTER_KEYS.MERCHANT,
@@ -768,6 +778,10 @@ type MerchantMatchType = typeof CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO | typeof 
 type ReceiptTypeValue = ValueOf<typeof CONST.SEARCH.RECEIPT_TYPE>;
 type ReceiptTypeValues = ReceiptTypeValue[];
 type TransactionStatusValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_STATUS>;
+type TravelTypeValue = ValueOf<typeof CONST.SEARCH.TRAVEL_TYPE>;
+type TravelTypeValues = TravelTypeValue[];
+type TravelPlatformValue = ValueOf<typeof CONST.SEARCH.TRAVEL_PLATFORM>;
+type TravelPlatformValues = TravelPlatformValue[];
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
@@ -901,6 +915,12 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.RECEIPT_TYPE]: ReceiptTypeValues;
         [FILTER_KEYS.RECEIPT_TYPE_NOT]: ReceiptTypeValues;
 
+        [FILTER_KEYS.TRAVEL_TYPE]: TravelTypeValues;
+        [FILTER_KEYS.TRAVEL_TYPE_NOT]: TravelTypeValues;
+
+        [FILTER_KEYS.TRAVEL_PLATFORM]: TravelPlatformValues;
+        [FILTER_KEYS.TRAVEL_PLATFORM_NOT]: TravelPlatformValues;
+
         [FILTER_KEYS.TRANSACTION_STATUS]: TransactionStatusValue;
         [FILTER_KEYS.TRANSACTION_STATUS_NOT]: TransactionStatusValue;
 
@@ -1001,6 +1021,10 @@ export type {
     MerchantMatchType,
     ReceiptTypeValue,
     TransactionStatusValue,
+    TravelTypeValue,
+    TravelTypeValues,
+    TravelPlatformValue,
+    TravelPlatformValues,
     SearchNegatableFilterKeys,
 };
 export default FILTER_KEYS;

@@ -11121,6 +11121,19 @@ const translations = {
                 [CONST.SEARCH.TRANSACTION_STATUS.POSTED]: 'Posted',
                 hint: 'Only applies to card transactions.',
             },
+            travelType: {
+                label: 'Travel type',
+                [CONST.SEARCH.TRAVEL_TYPE.AIR]: 'Air',
+                [CONST.SEARCH.TRAVEL_TYPE.HOTEL]: 'Hotel',
+                [CONST.SEARCH.TRAVEL_TYPE.CAR_RENTAL]: 'Car rental',
+                [CONST.SEARCH.TRAVEL_TYPE.RAIL]: 'Rail',
+                [CONST.SEARCH.TRAVEL_TYPE.HOTEL_BLOCK]: 'Hotel block',
+            },
+            travelPlatform: {
+                label: 'Travel platform',
+                [CONST.SEARCH.TRAVEL_PLATFORM.EXPENSIFY_TRAVEL]: 'Expensify Travel',
+                [CONST.SEARCH.TRAVEL_PLATFORM.OTHER]: 'Other',
+            },
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
