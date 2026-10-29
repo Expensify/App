@@ -53,7 +53,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getMakeDefaultPaymentOnyxData} from './PaymentMethods';
+import getMakeDefaultPaymentOnyxData from './getMakeDefaultPaymentOnyxData';
 import {setBankAccountSubStep} from './ReimbursementAccount';
 
 /** Loads the reimbursement countries of the user's policies, which decide whether to collect local or wire details. */
@@ -97,7 +97,8 @@ function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAcc
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure')},
+                // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0)},
             },
         ],
         finallyData: [
@@ -216,7 +217,7 @@ function openPersonalBankAccountSetupView({
             return;
         }
         if (shouldSetUpUSBankAccount) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute()));
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(Navigation.getActiveRoute()));
@@ -546,9 +547,17 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 function addPersonalBankAccount(
     account: Partial<PlaidBankAccount & PersonalBankAccountForm>,
     personalPolicyID: string | undefined,
-    policyID?: string,
-    source?: string,
-    lastPaymentMethod?: LastPaymentMethodType | string | undefined,
+    {
+        policyID,
+        source,
+        lastPaymentMethod,
+        validateCode,
+    }: {
+        policyID?: string;
+        source?: string;
+        lastPaymentMethod?: LastPaymentMethodType | string | undefined;
+        validateCode?: string;
+    } = {},
 ) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL ? `${account?.legalFirstName} ${account?.legalLastName}` : account.addressName,
@@ -562,7 +571,8 @@ function addPersonalBankAccount(
         phoneNumber: account?.phoneNumber,
         legalFirstName: account?.legalFirstName,
         legalLastName: account?.legalLastName,
-        addressStreet: getFormattedStreet(account?.addressStreet, account?.addressStreet2),
+        addressStreet: account?.addressStreet,
+        addressStreet2: account?.addressStreet2 ?? '',
         addressCity: account?.addressCity,
         addressState: account?.addressState,
         addressZip: account?.addressZipCode,
@@ -574,6 +584,9 @@ function addPersonalBankAccount(
     }
     if (source) {
         parameters.source = source;
+    }
+    if (validateCode) {
+        parameters.validateCode = validateCode;
     }
 
     const onyxData: OnyxData<typeof ONYXKEYS.PERSONAL_BANK_ACCOUNT | typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> = {
@@ -675,7 +688,7 @@ function deletePaymentBankAccount(
         pendingAction: null,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET | typeof ONYXKEYS.FUND_LIST> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -707,9 +720,7 @@ function deletePaymentBankAccount(
 
     if (newBankAccountID) {
         const newDefaultPaymentMethodOnyxData = getMakeDefaultPaymentOnyxData(newBankAccountID);
-        onyxData.optimisticData?.push(
-            ...(newDefaultPaymentMethodOnyxData as Array<OnyxUpdate<typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD | typeof ONYXKEYS.USER_WALLET>>),
-        );
+        onyxData.optimisticData?.push(...newDefaultPaymentMethodOnyxData);
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
@@ -738,7 +749,7 @@ function deletePaymentBankAccount(
         });
     }
     for (const paymentMethodID of Object.keys(lastUsedPaymentMethods ?? {})) {
-        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID] as LastPaymentMethodType;
+        const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodID];
 
         if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
             continue;
@@ -1243,7 +1254,7 @@ function sendReminderForCorpaySignerInformation(parameters: SendReminderForCorpa
 }
 
 function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalReimbursementsForUSDBankAccountParams) {
-    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS | typeof ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1262,6 +1273,11 @@ function enableGlobalReimbursementsForUSDBankAccount(parameters: EnableGlobalRei
                     isEnablingGlobalReimbursements: false,
                     isSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT,
+                value: null,
             },
         ],
         failureData: [

@@ -1,4 +1,4 @@
-import type {ComposerProps, ComposerRef} from '@components/Composer/types';
+import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 
@@ -22,7 +22,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 
 type TextInputPasteEvent = NativeSyntheticEvent<{
@@ -52,7 +52,7 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<MarkdownTextInput | null>(null);
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
+    const textContainsOnlyEmojis = containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
@@ -83,58 +83,45 @@ function Composer({
 
     /**
      * Set the TextInput Ref
-     * @param {Element} el
+     * @param el
      */
-    const setTextInputRef = useCallback(
-        (el: AnimatedMarkdownTextInputRef | null) => {
-            textInputRef.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
+    const setTextInputRef = (el: AnimatedMarkdownTextInputRef | null) => {
+        textInputRef.current = isInLandscapeMode ? getLandscapeTextInputRefProxy(el) : el;
 
-            if (typeof ref !== 'function' || textInputRef.current === null) {
-                return;
-            }
+        if (typeof ref !== 'function' || textInputRef.current === null) {
+            return;
+        }
 
-            // This callback prop is used by the parent component using the constructor to
-            // get a ref to the inner textInput element e.g. if we do
-            // <constructor ref={el => this.textInput = el} /> this will not
-            // return a ref to the component, but rather the HTML element by default
-            ref(textInputRef.current as ComposerRef);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isInLandscapeMode],
-    );
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        ref(textInputRef.current);
+    };
 
-    const onClear = useCallback(
-        ({nativeEvent}: TextInputChangeEvent) => {
-            onClearProp(nativeEvent.text);
-        },
-        [onClearProp],
-    );
+    const onClear = ({nativeEvent}: TextInputChangeEvent) => {
+        onClearProp(nativeEvent.text);
+    };
 
-    const pasteFile = useCallback(
-        (e: TextInputPasteEvent) => {
-            const clipboardContent = e.nativeEvent.items.at(0);
-            if (clipboardContent?.type === 'text/plain') {
-                return;
-            }
-            const mimeType = clipboardContent?.type ?? '';
-            const fileURI = clipboardContent?.data;
-            const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (getExtensionFromMimeType(mimeType) ?? 'bin');
-            const fileName = `${stem}.${fileExtension}`;
-            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-            getFileSize(file.uri ?? '')
-                .then((size) => (file = {...file, size}))
-                .finally(() => onPasteFile(file));
-        },
-        [onPasteFile],
-    );
+    const pasteFile = (e: TextInputPasteEvent) => {
+        const clipboardContent = e.nativeEvent.items.at(0);
+        if (clipboardContent?.type === 'text/plain') {
+            return;
+        }
+        const mimeType = clipboardContent?.type ?? '';
+        const fileURI = clipboardContent?.data;
+        const baseFileName = fileURI?.split('/').pop() ?? 'file';
+        const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+        const fileExtension = originalFileExtension || (getExtensionFromMimeType(mimeType) ?? 'bin');
+        const fileName = `${stem}.${fileExtension}`;
+        let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+        getFileSize(file.uri ?? '')
+            .then((size) => (file = {...file, size}))
+            .finally(() => onPasteFile(file));
+    };
 
-    const maxHeightStyle = useMemo(
-        () => StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize),
-        [StyleUtils, isComposerFullSize, maxLines, isInLandscapeMode],
-    );
-    const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
+    const maxHeightStyle = StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize);
+    const composerStyle = StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]);
 
     return (
         <RNMarkdownTextInput

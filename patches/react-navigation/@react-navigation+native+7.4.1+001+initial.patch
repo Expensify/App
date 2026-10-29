@@ -84,7 +84,7 @@ index 0000000..b996822
 +}
 +//# sourceMappingURL=findFocusedRouteKey.js.map
 diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
-index af0cd61..fb06350 100644
+index af0cd61..2805780 100644
 --- a/node_modules/@react-navigation/native/lib/module/useLinking.js
 +++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
 @@ -4,6 +4,7 @@ import { CommonActions, findFocusedRoute, getActionFromState as getActionFromSta
@@ -139,7 +139,19 @@ index af0cd61..fb06350 100644
  export function useLinking(ref, {
    enabled = true,
    config,
-@@ -411,6 +449,9 @@ export function useLinking(ref, {
+@@ -266,7 +304,10 @@ export function useLinking(ref, {
+       if (record?.path === path && record?.state) {
+         const currentState = navigation.getRootState();
+         const [currentFocused, recordFocused] = findMatchingState(currentState, record.state);
+-        if (previousIndex - index === 1 && currentFocused && recordFocused && isPoppingLastEntry(currentFocused, recordFocused)) {
++        // Custom string history entries (e.g. modal back-guards) aren't routes, so no router can pop them with GO_BACK.
++        // Reset to the record's state instead, which drops the custom entry.
++        const isPoppingCustomHistoryEntry = typeof currentFocused?.history?.at(-1) === 'string';
++        if (previousIndex - index === 1 && currentFocused && recordFocused && !isPoppingCustomHistoryEntry && isPoppingLastEntry(currentFocused, recordFocused)) {
+           const pending = pendingPopStateDeltaRef.current;
+ 
+           // If we detect that the state change is popping the last entry
+@@ -411,6 +452,9 @@ export function useLinking(ref, {
          const historyDelta = getHistoryLength(focusedState) - getHistoryLength(previousFocusedState) - (
          // Subtract the delta already applied by the browser to sync only the remaining changes
          pendingPopStateDelta ?? 0);
@@ -149,7 +161,7 @@ index af0cd61..fb06350 100644
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
-@@ -422,7 +463,8 @@ export function useLinking(ref, {
+@@ -422,7 +466,8 @@ export function useLinking(ref, {
            // If history length is decreased, i.e. entries were removed, we want to go back
  
            const nextIndex = history.backIndex({
@@ -159,7 +171,7 @@ index af0cd61..fb06350 100644
            });
            const currentIndex = history.index;
            try {
-@@ -435,7 +477,18 @@ export function useLinking(ref, {
+@@ -435,7 +480,18 @@ export function useLinking(ref, {
                // We couldn't find an existing entry to go back to, so we'll go back by the delta
                // This won't be correct if multiple routes were pushed in one go before
                // Usually this shouldn't happen and this is a fallback for that
@@ -179,7 +191,7 @@ index af0cd61..fb06350 100644
              }
  
              // Store the updated state as well as fix the path if incorrect
-@@ -448,10 +501,26 @@ export function useLinking(ref, {
+@@ -448,10 +504,26 @@ export function useLinking(ref, {
            }
          } else {
            // If history length is unchanged, we want to replaceState

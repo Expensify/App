@@ -6,7 +6,7 @@
 
 We used to carry patches that restored the real implementation (`react-native+…+restore-interaction-manager.patch`) and that opened interaction handles during screen transitions (`@react-navigation+native-stack+…+added-interaction-manager-integration.patch`). Both patches have been removed - the app no longer calls `InteractionManager` anywhere, so there was nothing left for them to serve.
 
-`InteractionManager.runAfterInteractions` has been replaced with purpose-built alternatives that are more precise.
+`InteractionManager.runAfterInteractions` has been replaced with purpose-built alternatives that are more precise. For how these fit together with pre-mounting, deferred mounts and deferred writes, see [DEFER_AFTER_PAINT.md](DEFER_AFTER_PAINT.md).
 
 ## Current state
 
@@ -98,4 +98,4 @@ For reference, here's how the available timing primitives compare:
 | ---------------------- | ------------------------- | ------------------------- | --------------------- |
 | `rAF`                  | Next frame (~16ms)        | None — just "next paint"  | Web + RN              |
 | `requestIdleCallback`  | When idle (unpredictable) | None — "whenever free"    | Web + RN (polyfilled) |
-| `runAfterInteractions` | Same as `setImmediate` (stubbed) | None - nothing blocks the queue | RN only          |
+| `runAfterInteractions` | Native: same as `setImmediate` (stubbed). Web: after interaction handles clear, via `requestIdleCallback` | Native: none - nothing blocks the queue. Web: interaction handles | Web + RN |

@@ -2,6 +2,9 @@
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationPaths} from '@src/languages/types';
+import {getForwardsToFromRules} from '@src/libs/PolicyUtils';
+import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
@@ -12,11 +15,17 @@ import {
     extractSubmitterEmails,
     filterRulesForPolicy,
     getApprovalLimitDescription,
+    getApproverPendingActionByMemberEmail,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
+    getEnforcedApprovalWorkflows,
+    getEnforcedApprovalWorkflowsForMembers,
+    getFirstApproverByMemberEmail,
+    getFirstApproverLabel,
     getRulesSubmitterToFirstApprover,
+    hasMultiLevelApprovalWorkflow,
     getRulesSubmitterToWorkflowKey,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
@@ -29,6 +38,7 @@ import {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
@@ -41,6 +51,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilter, RuleFilterComparison} from '@src/types/onyx/RuleFilters';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import createRandomPolicy from '../utils/collections/policies';
@@ -100,11 +111,7 @@ describe('WorkflowUtils', () => {
         it('Should return no approvers for empty employees object', () => {
             const employees: PolicyEmployeeList = {};
             const firstEmail = '1@example.com';
-            const approvers = calculateApprovers({
-                employees,
-                firstEmail,
-                personalDetailsByEmail,
-            });
+            const approvers = calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([]);
         });
@@ -121,11 +128,7 @@ describe('WorkflowUtils', () => {
                 },
             };
             const firstEmail = '1@example.com';
-            const approvers = calculateApprovers({
-                employees,
-                firstEmail,
-                personalDetailsByEmail,
-            });
+            const approvers = calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1)]);
         });
@@ -142,11 +145,7 @@ describe('WorkflowUtils', () => {
                 },
             };
             const firstEmail = '1@example.com';
-            const approvers = calculateApprovers({
-                employees,
-                firstEmail,
-                personalDetailsByEmail,
-            });
+            const approvers = calculateApprovers({employees, firstEmail, personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1)]);
         });
@@ -175,27 +174,18 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(
-                calculateApprovers({
-                    employees,
-                    firstEmail: '1@example.com',
-                    personalDetailsByEmail,
-                }),
-            ).toEqual([buildApprover(1, {forwardsTo: '2@example.com'}), buildApprover(2, {forwardsTo: '3@example.com'}), buildApprover(3, {forwardsTo: '4@example.com'}), buildApprover(4)]);
-            expect(
-                calculateApprovers({
-                    employees,
-                    firstEmail: '2@example.com',
-                    personalDetailsByEmail,
-                }),
-            ).toEqual([buildApprover(2, {forwardsTo: '3@example.com'}), buildApprover(3, {forwardsTo: '4@example.com'}), buildApprover(4)]);
-            expect(
-                calculateApprovers({
-                    employees,
-                    firstEmail: '3@example.com',
-                    personalDetailsByEmail,
-                }),
-            ).toEqual([buildApprover(3, {forwardsTo: '4@example.com'}), buildApprover(4)]);
+            expect(calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com'}),
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+            expect(calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
+                buildApprover(2, {forwardsTo: '3@example.com'}),
+                buildApprover(3, {forwardsTo: '4@example.com'}),
+                buildApprover(4),
+            ]);
+            expect(calculateApprovers({employees, firstEmail: '3@example.com', personalDetailsByEmail})).toEqual([buildApprover(3, {forwardsTo: '4@example.com'}), buildApprover(4)]);
         });
 
         it('Should return a list of approvers with circular references', () => {
@@ -222,39 +212,21 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(
-                calculateApprovers({
-                    employees,
-                    firstEmail: '1@example.com',
-                    personalDetailsByEmail,
-                }),
-            ).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '2@example.com'}),
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4, {forwardsTo: '5@example.com'}),
                 buildApprover(5, {forwardsTo: '1@example.com'}),
-                buildApprover(1, {
-                    forwardsTo: '2@example.com',
-                    isCircularReference: true,
-                }),
+                buildApprover(1, {forwardsTo: '2@example.com', isCircularReference: true}),
             ]);
-            expect(
-                calculateApprovers({
-                    employees,
-                    firstEmail: '2@example.com',
-                    personalDetailsByEmail,
-                }),
-            ).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '2@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(2, {forwardsTo: '3@example.com'}),
                 buildApprover(3, {forwardsTo: '4@example.com'}),
                 buildApprover(4, {forwardsTo: '5@example.com'}),
                 buildApprover(5, {forwardsTo: '1@example.com'}),
                 buildApprover(1, {forwardsTo: '2@example.com'}),
-                buildApprover(2, {
-                    forwardsTo: '3@example.com',
-                    isCircularReference: true,
-                }),
+                buildApprover(2, {forwardsTo: '3@example.com', isCircularReference: true}),
             ]);
         });
 
@@ -266,18 +238,9 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            expect(
-                calculateApprovers({
-                    employees,
-                    firstEmail: '1@example.com',
-                    personalDetailsByEmail,
-                }),
-            ).toEqual([
+            expect(calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail})).toEqual([
                 buildApprover(1, {forwardsTo: '1@example.com'}),
-                buildApprover(1, {
-                    forwardsTo: '1@example.com',
-                    isCircularReference: true,
-                }),
+                buildApprover(1, {forwardsTo: '1@example.com', isCircularReference: true}),
             ]);
         });
 
@@ -294,19 +257,9 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            const approvers = calculateApprovers({
-                employees,
-                firstEmail: '1@example.com',
-                personalDetailsByEmail,
-            });
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
-            expect(approvers).toEqual([
-                buildApprover(1, {
-                    forwardsTo: '2@example.com',
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                }),
-                buildApprover(2),
-            ]);
+            expect(approvers).toEqual([buildApprover(1, {forwardsTo: '2@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), buildApprover(2)]);
         });
 
         it('Should include approvalLimit and overLimitForwardsTo in approver objects', () => {
@@ -329,24 +282,11 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            const approvers = calculateApprovers({
-                employees,
-                firstEmail: '1@example.com',
-                personalDetailsByEmail,
-            });
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([
-                buildApprover(1, {
-                    forwardsTo: '2@example.com',
-                    approvalLimit: 50000,
-                    overLimitForwardsTo: '3@example.com',
-                    overLimitForwardsToDisplayName: '3@example.com User',
-                }),
-                buildApprover(2, {
-                    approvalLimit: 100000,
-                    overLimitForwardsTo: '3@example.com',
-                    overLimitForwardsToDisplayName: '3@example.com User',
-                }),
+                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
+                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com', overLimitForwardsToDisplayName: '3@example.com User'}),
             ]);
         });
 
@@ -360,11 +300,7 @@ describe('WorkflowUtils', () => {
                 },
             };
 
-            const approvers = calculateApprovers({
-                employees,
-                firstEmail: '1@example.com',
-                personalDetailsByEmail,
-            });
+            const approvers = calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
 
             expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
         });
@@ -436,11 +372,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails,
-                localeCompare,
-            });
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([]);
         });
@@ -572,11 +504,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails,
-                localeCompare,
-            });
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([1, 2], [1], {isDefault: true})]);
         });
@@ -607,11 +535,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails,
-                localeCompare,
-            });
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([2, 3], [1], {isDefault: true}), buildWorkflow([1, 4], [4])]);
         });
@@ -647,11 +571,7 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails,
-                localeCompare,
-            });
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
             expect(approvalWorkflows).toEqual([buildWorkflow([3, 2], [1], {isDefault: true}), buildWorkflow([5], [3]), buildWorkflow([4, 1], [4])]);
         });
@@ -682,15 +602,9 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails,
-                localeCompare,
-            });
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
-            const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {
-                isDefault: true,
-            });
+            const defaultWorkflow = buildWorkflow([2, 3, 4], [1, 3, 4], {isDefault: true});
             let firstApprover = defaultWorkflow.approvers.at(0);
             let secondApprover = defaultWorkflow.approvers.at(1);
             if (firstApprover && secondApprover) {
@@ -744,15 +658,9 @@ describe('WorkflowUtils', () => {
             const defaultApprover = '1@example.com';
             const policy = createMockPolicy(employees, defaultApprover);
 
-            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
-                policy,
-                personalDetails,
-                localeCompare,
-            });
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, localeCompare});
 
-            const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {
-                isDefault: true,
-            });
+            const defaultWorkflow = buildWorkflow([1, 4, 5, 6], [1], {isDefault: true});
             const secondWorkflow = buildWorkflow([2, 3], [4, 5, 6]);
             const firstApprover = secondWorkflow.approvers.at(0);
             const secondApprover = secondWorkflow.approvers.at(1);
@@ -789,21 +697,9 @@ describe('WorkflowUtils', () => {
             const policy = createMockPolicy(employees, 'hannahw@htc.us');
             (policy as Policy).approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
             const personalDetailsForTest: PersonalDetailsList = {
-                'alex@htc.us': {
-                    accountID: 1,
-                    login: 'alex@htc.us',
-                    displayName: 'Alex Walker',
-                },
-                'hannahw@htc.us': {
-                    accountID: 2,
-                    login: 'hannahw@htc.us',
-                    displayName: 'Hannah Walker',
-                },
-                'carolyn@htc.us': {
-                    accountID: 3,
-                    login: 'carolyn@htc.us',
-                    displayName: 'Carolyn Smith',
-                },
+                'alex@htc.us': {accountID: 1, login: 'alex@htc.us', displayName: 'Alex Walker'},
+                'hannahw@htc.us': {accountID: 2, login: 'hannahw@htc.us', displayName: 'Hannah Walker'},
+                'carolyn@htc.us': {accountID: 3, login: 'carolyn@htc.us', displayName: 'Carolyn Smith'},
                 'gio@htc.us': {accountID: 4, login: 'gio@htc.us', displayName: 'Gio'},
             };
 
@@ -831,16 +727,8 @@ describe('WorkflowUtils', () => {
             };
             const policy = createMockPolicy(employees, 'bob@example.com');
             const personalDetailsForTest: PersonalDetailsList = {
-                'alice@example.com': {
-                    accountID: 1,
-                    login: 'alice@example.com',
-                    displayName: 'Alice',
-                },
-                'bob@example.com': {
-                    accountID: 2,
-                    login: 'bob@example.com',
-                    displayName: 'Bob',
-                },
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
             };
 
             // When the workflows are built
@@ -910,21 +798,9 @@ describe('WorkflowUtils', () => {
                 owner: 'alice@example.com',
             });
             const personalDetailsForTest: PersonalDetailsList = {
-                'alice@example.com': {
-                    accountID: 1,
-                    login: 'alice@example.com',
-                    displayName: 'Alice',
-                },
-                'guide@expensify.com': {
-                    accountID: 2,
-                    login: 'guide@expensify.com',
-                    displayName: 'Guide',
-                },
-                'concierge@team.expensify.com': {
-                    accountID: 3,
-                    login: 'concierge@team.expensify.com',
-                    displayName: 'Concierge',
-                },
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
+                'concierge@team.expensify.com': {accountID: 3, login: 'concierge@team.expensify.com', displayName: 'Concierge'},
             };
 
             const {approvalWorkflows, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
@@ -960,16 +836,8 @@ describe('WorkflowUtils', () => {
                 owner: 'admin@expensify.com',
             });
             const personalDetailsForTest: PersonalDetailsList = {
-                'admin@expensify.com': {
-                    accountID: 1,
-                    login: 'admin@expensify.com',
-                    displayName: 'Admin',
-                },
-                'guide@expensify.com': {
-                    accountID: 2,
-                    login: 'guide@expensify.com',
-                    displayName: 'Guide',
-                },
+                'admin@expensify.com': {accountID: 1, login: 'admin@expensify.com', displayName: 'Admin'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
             };
 
             const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
@@ -1000,16 +868,8 @@ describe('WorkflowUtils', () => {
                 owner: 'alice@example.com',
             });
             const personalDetailsForTest: PersonalDetailsList = {
-                'alice@example.com': {
-                    accountID: 1,
-                    login: 'alice@example.com',
-                    displayName: 'Alice',
-                },
-                'guide@expensify.com': {
-                    accountID: 2,
-                    login: 'guide@expensify.com',
-                    displayName: 'Guide',
-                },
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
             };
 
             const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
@@ -1043,21 +903,9 @@ describe('WorkflowUtils', () => {
                 owner: 'alice@example.com',
             });
             const personalDetailsForTest: PersonalDetailsList = {
-                'alice@example.com': {
-                    accountID: 1,
-                    login: 'alice@example.com',
-                    displayName: 'Alice',
-                },
-                'guide@expensify.com': {
-                    accountID: 2,
-                    login: 'guide@expensify.com',
-                    displayName: 'Guide',
-                },
-                'bob@example.com': {
-                    accountID: 3,
-                    login: 'bob@example.com',
-                    displayName: 'Bob',
-                },
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'guide@expensify.com': {accountID: 2, login: 'guide@expensify.com', displayName: 'Guide'},
+                'bob@example.com': {accountID: 3, login: 'bob@example.com', displayName: 'Bob'},
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
@@ -1098,26 +946,10 @@ describe('WorkflowUtils', () => {
                 owner: 'alice@example.com',
             });
             const personalDetailsForTest: PersonalDetailsList = {
-                'alice@example.com': {
-                    accountID: 1,
-                    login: 'alice@example.com',
-                    displayName: 'Alice',
-                },
-                'bob@example.com': {
-                    accountID: 2,
-                    login: 'bob@example.com',
-                    displayName: 'Bob',
-                },
-                'guide@expensify.com': {
-                    accountID: 3,
-                    login: 'guide@expensify.com',
-                    displayName: 'Guide',
-                },
-                'carol@example.com': {
-                    accountID: 4,
-                    login: 'carol@example.com',
-                    displayName: 'Carol',
-                },
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
+                'guide@expensify.com': {accountID: 3, login: 'guide@expensify.com', displayName: 'Guide'},
+                'carol@example.com': {accountID: 4, login: 'carol@example.com', displayName: 'Carol'},
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
@@ -1162,26 +994,10 @@ describe('WorkflowUtils', () => {
                 },
             });
             const personalDetailsForTest: PersonalDetailsList = {
-                'unassigned@example.com': {
-                    accountID: 1,
-                    login: 'unassigned@example.com',
-                    displayName: 'Unassigned',
-                },
-                'assigned@example.com': {
-                    accountID: 2,
-                    login: 'assigned@example.com',
-                    displayName: 'Assigned',
-                },
-                'finalapprover@example.com': {
-                    accountID: 3,
-                    login: 'finalapprover@example.com',
-                    displayName: 'Final Approver',
-                },
-                'manager@external.com': {
-                    accountID: 4,
-                    login: 'manager@external.com',
-                    displayName: 'Manager',
-                },
+                'unassigned@example.com': {accountID: 1, login: 'unassigned@example.com', displayName: 'Unassigned'},
+                'assigned@example.com': {accountID: 2, login: 'assigned@example.com', displayName: 'Assigned'},
+                'finalapprover@example.com': {accountID: 3, login: 'finalapprover@example.com', displayName: 'Final Approver'},
+                'manager@external.com': {accountID: 4, login: 'manager@external.com', displayName: 'Manager'},
             };
 
             const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({
@@ -1243,9 +1059,7 @@ describe('WorkflowUtils', () => {
         const employeeList: PolicyEmployeeList = {
             '1@example.com': buildPolicyEmployee(1),
             '2@example.com': buildPolicyEmployee(2),
-            '3@example.com': buildPolicyEmployee(3, {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            }),
+            '3@example.com': buildPolicyEmployee(3, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
         };
 
         it('is true when every member is included, leaving out members being removed from the workspace', () => {
@@ -1268,6 +1082,16 @@ describe('WorkflowUtils', () => {
             // Then it doesn't have everyone, so no workflow is made the default by mistake
             expect(includesEveryWorkspaceMember(['1@example.com'], {})).toBe(false);
         });
+
+        it('skips a null employeeList entry instead of crashing', () => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime
+            const employeeListWithNull: PolicyEmployeeList = {...employeeList};
+            Reflect.set(employeeListWithNull, 'stale@example.com', null);
+
+            // When checking a workflow with every member, as creating or saving a workflow does
+            // Then the null entry is skipped rather than crashing, and the workflow still has everyone
+            expect(includesEveryWorkspaceMember(['1@example.com', '2@example.com'], employeeListWithNull)).toBe(true);
+        });
     });
 
     describe('convertApprovalWorkflowToPolicyEmployees', () => {
@@ -1278,23 +1102,11 @@ describe('WorkflowUtils', () => {
                 isDefault: true,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList: {},
-                approvalWorkflow,
-                type: 'create',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {
-                    forwardsTo: '',
-                    overLimitForwardsTo: '',
-                    submitsTo: '1@example.com',
-                    pendingFields: {submitsTo: 'add'},
-                }),
-                '2@example.com': buildPolicyEmployee(2, {
-                    submitsTo: '1@example.com',
-                    pendingFields: {submitsTo: 'add'},
-                }),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', overLimitForwardsTo: '', submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -1305,40 +1117,15 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList: {},
-                approvalWorkflow,
-                type: 'create',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {
-                    forwardsTo: '2@example.com',
-                    overLimitForwardsTo: '',
-                    pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'},
-                }),
-                '2@example.com': buildPolicyEmployee(2, {
-                    forwardsTo: '3@example.com',
-                    overLimitForwardsTo: '',
-                    pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'},
-                }),
-                '3@example.com': buildPolicyEmployee(3, {
-                    forwardsTo: '',
-                    overLimitForwardsTo: '',
-                    pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'},
-                }),
-                '4@example.com': buildPolicyEmployee(4, {
-                    submitsTo: '1@example.com',
-                    pendingFields: {submitsTo: 'add'},
-                }),
-                '5@example.com': buildPolicyEmployee(5, {
-                    submitsTo: '1@example.com',
-                    pendingFields: {submitsTo: 'add'},
-                }),
-                '6@example.com': buildPolicyEmployee(6, {
-                    submitsTo: '1@example.com',
-                    pendingFields: {submitsTo: 'add'},
-                }),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -1349,11 +1136,7 @@ describe('WorkflowUtils', () => {
                 isDefault: false,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList: {},
-                approvalWorkflow,
-                type: 'remove',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {
@@ -1361,85 +1144,64 @@ describe('WorkflowUtils', () => {
                     approvalLimit: null,
                     overLimitForwardsTo: '',
                     pendingAction: 'update',
-                    pendingFields: {
-                        forwardsTo: 'update',
-                        approvalLimit: 'update',
-                        overLimitForwardsTo: 'update',
-                    },
+                    pendingFields: {forwardsTo: 'update', approvalLimit: 'update', overLimitForwardsTo: 'update'},
                 }),
                 '2@example.com': buildPolicyEmployee(2, {
                     forwardsTo: '',
                     approvalLimit: null,
                     overLimitForwardsTo: '',
                     pendingAction: 'update',
-                    pendingFields: {
-                        forwardsTo: 'update',
-                        approvalLimit: 'update',
-                        overLimitForwardsTo: 'update',
-                    },
+                    pendingFields: {forwardsTo: 'update', approvalLimit: 'update', overLimitForwardsTo: 'update'},
                 }),
                 '3@example.com': buildPolicyEmployee(3, {
                     forwardsTo: '',
                     approvalLimit: null,
                     overLimitForwardsTo: '',
                     pendingAction: 'update',
-                    pendingFields: {
-                        forwardsTo: 'update',
-                        approvalLimit: 'update',
-                        overLimitForwardsTo: 'update',
-                    },
+                    pendingFields: {forwardsTo: 'update', approvalLimit: 'update', overLimitForwardsTo: 'update'},
                 }),
-                '4@example.com': buildPolicyEmployee(4, {
-                    submitsTo: '',
-                    pendingAction: 'update',
-                    pendingFields: {submitsTo: 'update'},
-                }),
-                '5@example.com': buildPolicyEmployee(5, {
-                    submitsTo: '',
-                    pendingAction: 'update',
-                    pendingFields: {submitsTo: 'update'},
-                }),
-                '6@example.com': buildPolicyEmployee(6, {
-                    submitsTo: '',
-                    pendingAction: 'update',
-                    pendingFields: {submitsTo: 'update'},
-                }),
+                '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+                '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+                '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
             });
+        });
+
+        it('marks the approver change pending for members and approvers taken out of a workflow', () => {
+            // Given a workflow losing a member and an approver, both of whom fall back to the default routing
+            const approvalWorkflow: ApprovalWorkflow = {members: [buildMember(4)], approvers: [buildApprover(1)], isDefault: false};
+
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
+                previousEmployeeList: {'5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com'}), '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com'})},
+                approvalWorkflow,
+                type: 'update',
+                membersToRemove: [buildMember(5)],
+                approversToRemove: [buildApprover(2)],
+                defaultApprover: '9@example.com',
+            });
+
+            // Then both carry a pending field, not just a pending action, since that is what the surfaces showing
+            // their approver read to dim it while the change is in flight
+            expect(convertedEmployees['5@example.com']?.pendingFields).toEqual({submitsTo: 'update'});
+            expect(convertedEmployees['2@example.com']?.pendingFields).toEqual({forwardsTo: 'update'});
         });
 
         it('Should include approvalLimit and overLimitForwardsTo when creating workflow with limits', () => {
             const approvalWorkflow: ApprovalWorkflow = {
                 members: [buildMember(2)],
-                approvers: [
-                    buildApprover(1, {
-                        approvalLimit: 50000,
-                        overLimitForwardsTo: '3@example.com',
-                    }),
-                ],
+                approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
                 isDefault: false,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList: {},
-                approvalWorkflow,
-                type: 'create',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
                 '1@example.com': buildPolicyEmployee(1, {
                     forwardsTo: '',
                     approvalLimit: 50000,
                     overLimitForwardsTo: '3@example.com',
-                    pendingFields: {
-                        forwardsTo: 'add',
-                        approvalLimit: 'add',
-                        overLimitForwardsTo: 'add',
-                    },
+                    pendingFields: {forwardsTo: 'add', approvalLimit: 'add', overLimitForwardsTo: 'add'},
                 }),
-                '2@example.com': buildPolicyEmployee(2, {
-                    submitsTo: '1@example.com',
-                    pendingFields: {submitsTo: 'add'},
-                }),
+                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
 
@@ -1454,21 +1216,11 @@ describe('WorkflowUtils', () => {
             };
             const approvalWorkflow: ApprovalWorkflow = {
                 members: [],
-                approvers: [
-                    buildApprover(1, {
-                        forwardsTo: '2@example.com',
-                        approvalLimit: 50000,
-                        overLimitForwardsTo: '3@example.com',
-                    }),
-                ],
+                approvers: [buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
                 isDefault: false,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList,
-                approvalWorkflow,
-                type: 'remove',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'remove'});
 
             // approvalLimit should be null (not undefined) so it gets sent to the API and clears the field
             expect(convertedEmployees['1@example.com']?.approvalLimit).toBeNull();
@@ -1486,20 +1238,11 @@ describe('WorkflowUtils', () => {
             };
             const approvalWorkflow: ApprovalWorkflow = {
                 members: [],
-                approvers: [
-                    buildApprover(1, {
-                        approvalLimit: 100000,
-                        overLimitForwardsTo: '4@example.com',
-                    }),
-                ],
+                approvers: [buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '4@example.com'})],
                 isDefault: false,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList,
-                approvalWorkflow,
-                type: 'update',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
 
             // pendingFields should include the fields that changed (forwardsTo didn't change since it's '' -> '')
             expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
@@ -1521,20 +1264,11 @@ describe('WorkflowUtils', () => {
             };
             const approvalWorkflow: ApprovalWorkflow = {
                 members: [],
-                approvers: [
-                    buildApprover(1, {
-                        approvalLimit: 50000,
-                        overLimitForwardsTo: '4@example.com',
-                    }),
-                ],
+                approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '4@example.com'})],
                 isDefault: false,
             };
 
-            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({
-                previousEmployeeList,
-                approvalWorkflow,
-                type: 'update',
-            });
+            const convertedEmployees = convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
 
             // Only overLimitForwardsTo changed, so only that should be in pendingFields
             expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
@@ -1699,13 +1433,7 @@ describe('WorkflowUtils', () => {
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([
-                approvalWorkflow1,
-                {
-                    ...approvalWorkflow2,
-                    approvers: [buildApprover(2), buildApprover(3), buildApprover(1)],
-                },
-            ]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(3), buildApprover(1)]}]);
         });
         it('Should remove the approvers that have submitsTo set to the removed approver, update the removed approver to the Workspace Owner, and ensure there was a previous approver before this one', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
@@ -1733,13 +1461,7 @@ describe('WorkflowUtils', () => {
                 ownerDetails,
             });
 
-            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([
-                approvalWorkflow1,
-                {
-                    ...approvalWorkflow2,
-                    approvers: [buildApprover(2), buildApprover(1)],
-                },
-            ]);
+            expect(updateWorkflowDataOnApproverRemovalResult).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(1)]}]);
         });
         it('Should remove Workflow 2 if it has no approvers and the default Workspace approver is the approve', () => {
             const approvalWorkflow1: ApprovalWorkflow = {
@@ -1792,26 +1514,14 @@ describe('WorkflowUtils', () => {
                 ownerDetails,
             });
 
-            expect(result).toEqual([
-                {
-                    ...approvalWorkflow1,
-                    approvers: [buildApprover(4), buildApprover(5)],
-                },
-            ]);
+            expect(result).toEqual([{...approvalWorkflow1, approvers: [buildApprover(4), buildApprover(5)]}]);
         });
 
         it('Should clear overLimitForwardsTo when a later approver had overLimitForwardsTo pointing to the first approver (which is also the removed approver)', () => {
             // The multi-approver block handles this: removed approver (3) is spliced out and overLimitForwardsTo is cleared.
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
-                approvers: [
-                    buildApprover(3),
-                    buildApprover(4, {
-                        overLimitForwardsTo: '3@example.com',
-                        approvalLimit: 100,
-                    }),
-                    buildApprover(5),
-                ],
+                approvers: [buildApprover(3), buildApprover(4, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(5)],
                 isDefault: true,
             };
 
@@ -1858,26 +1568,14 @@ describe('WorkflowUtils', () => {
                 ownerDetails,
             });
 
-            expect(result).toEqual([
-                {
-                    ...approvalWorkflow1,
-                    approvers: [buildApprover(1), buildApprover(2)],
-                },
-            ]);
+            expect(result).toEqual([{...approvalWorkflow1, approvers: [buildApprover(1), buildApprover(2)]}]);
         });
 
         it('Should clear overLimitForwardsTo pointing to removed approver when a prior approver references them via overLimitForwardsTo (removed approver also in chain)', () => {
             // The multi-approver block handles this: removed approver (3) is spliced out and overLimitForwardsTo is cleared.
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
-                approvers: [
-                    buildApprover(1),
-                    buildApprover(2, {
-                        overLimitForwardsTo: '3@example.com',
-                        approvalLimit: 100,
-                    }),
-                    buildApprover(3),
-                ],
+                approvers: [buildApprover(1), buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(3)],
                 isDefault: true,
             };
 
@@ -1983,13 +1681,7 @@ describe('WorkflowUtils', () => {
             // The multi-approver block handles this: removed approver (3) is replaced by owner and overLimitForwardsTo is cleared.
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
-                approvers: [
-                    buildApprover(2, {
-                        overLimitForwardsTo: '3@example.com',
-                        approvalLimit: 50,
-                    }),
-                    buildApprover(3),
-                ],
+                approvers: [buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 50}), buildApprover(3)],
                 isDefault: true,
             };
 
@@ -2065,10 +1757,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should return undefined when approvalLimit is null', () => {
-            const approver = buildApprover(1, {
-                approvalLimit: null,
-                overLimitForwardsTo: '2@example.com',
-            });
+            const approver = buildApprover(1, {approvalLimit: null, overLimitForwardsTo: '2@example.com'});
 
             const result = getApprovalLimitDescription({
                 approver,
@@ -2082,10 +1771,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should return undefined when approvalLimit is undefined', () => {
-            const approver = buildApprover(1, {
-                approvalLimit: undefined,
-                overLimitForwardsTo: '2@example.com',
-            });
+            const approver = buildApprover(1, {approvalLimit: undefined, overLimitForwardsTo: '2@example.com'});
 
             const result = getApprovalLimitDescription({
                 approver,
@@ -2099,10 +1785,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should return undefined when overLimitForwardsTo is missing', () => {
-            const approver = buildApprover(1, {
-                approvalLimit: 50000,
-                overLimitForwardsTo: undefined,
-            });
+            const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: undefined});
 
             const result = getApprovalLimitDescription({
                 approver,
@@ -2116,10 +1799,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should return description when approvalLimit and overLimitForwardsTo are set', () => {
-            const approver = buildApprover(1, {
-                approvalLimit: 50000,
-                overLimitForwardsTo: '2@example.com',
-            });
+            const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '2@example.com'});
 
             const result = getApprovalLimitDescription({
                 approver,
@@ -2286,22 +1966,10 @@ describe('WorkflowUtils', () => {
     describe('rule-based approval workflows', () => {
         const submitTriggers = {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT};
         const approveTriggers = {'1': CONST.RULES.TRIGGERS.REPORT_APPROVE};
-        const forwardActions = (approver: string) => ({
-            '1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver},
-        });
-        const approveActions = {
-            '1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT},
-        };
-        const buildFromFilter = (emails: string[]) => ({
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            right: emails,
-        });
-        const buildToFilter = (email: string) => ({
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            right: email,
-        });
+        const forwardActions = (approver: string) => ({'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver}});
+        const approveActions = {'1': {name: CONST.RULES.ACTIONS.APPROVE_REPORT}};
+        const buildFromFilter = (emails: string[]) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: emails});
+        const buildToFilter = (email: string) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: email});
         const and = (left: RuleFilter | RuleFilterComparison, right: RuleFilter | RuleFilterComparison): RuleFilter => ({
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
             left,
@@ -2319,165 +1987,310 @@ describe('WorkflowUtils', () => {
 
             it('Should build a submit rule and a terminal approve rule for a one-approver workflow', () => {
                 expect(buildApprovalWorkflowRules(buildWorkflow([2], [1]))).toEqual([
-                    {
-                        triggers: submitTriggers,
-                        filters: buildFromFilter(['2@example.com']),
-                        actions: forwardActions('1@example.com'),
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')),
-                        actions: approveActions,
-                    },
+                    {triggers: submitTriggers, filters: buildFromFilter(['2@example.com']), actions: forwardActions('1@example.com')},
+                    {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')), actions: approveActions},
                 ]);
             });
 
             it('Should chain approvers with `to` gates and approve at the end', () => {
                 expect(buildApprovalWorkflowRules(buildWorkflow([3], [1, 2]))).toEqual([
-                    {
-                        triggers: submitTriggers,
-                        filters: buildFromFilter(['3@example.com']),
-                        actions: forwardActions('1@example.com'),
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['3@example.com']), buildToFilter('1@example.com')),
-                        actions: forwardActions('2@example.com'),
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['3@example.com']), buildToFilter('2@example.com')),
-                        actions: approveActions,
-                    },
+                    {triggers: submitTriggers, filters: buildFromFilter(['3@example.com']), actions: forwardActions('1@example.com')},
+                    {triggers: approveTriggers, filters: and(buildFromFilter(['3@example.com']), buildToFilter('1@example.com')), actions: forwardActions('2@example.com')},
+                    {triggers: approveTriggers, filters: and(buildFromFilter(['3@example.com']), buildToFilter('2@example.com')), actions: approveActions},
                 ]);
             });
 
-            it('Should split an approver into under/over amount rules when it has a limit split', () => {
+            it('Should split an approver into within/over limit rules when it has a limit split', () => {
+                // Given a single approver whose reports over 500.00 also need 3@example.com
                 const workflow: ApprovalWorkflow = {
                     members: [buildMember(2)],
-                    approvers: [
-                        buildApprover(1, {
-                            approvalLimit: 50000,
-                            overLimitForwardsTo: '3@example.com',
-                        }),
-                    ],
+                    approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
                     isDefault: false,
                 };
-                const underAmount = {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                const withinLimit = {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
                     left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
                     right: 50000,
                 };
-                const overAmount = {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
+                const overLimit = {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN,
                     left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
                     right: 50000,
-                };
-
-                // The limit decides who *receives* the report, so the amount split is on the way in. Both possible
-                // holders then finalize it, because this is the last position.
-                expect(buildApprovalWorkflowRules(workflow)).toEqual([
-                    {
-                        triggers: submitTriggers,
-                        filters: and(buildFromFilter(['2@example.com']), underAmount),
-                        actions: forwardActions('1@example.com'),
-                    },
-                    {
-                        triggers: submitTriggers,
-                        filters: and(buildFromFilter(['2@example.com']), overAmount),
-                        actions: forwardActions('3@example.com'),
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')),
-                        actions: approveActions,
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['2@example.com']), buildToFilter('3@example.com')),
-                        actions: approveActions,
-                    },
-                ]);
-            });
-
-            it('Should route an over-limit report to the over-limit approver instead of the limited one, then continue the chain', () => {
-                // 1@example.com approves up to 100.00; above that 3@example.com receives the report instead. Either way
-                // it carries on to 4@example.com afterwards.
-                const workflow: ApprovalWorkflow = {
-                    members: [buildMember(2)],
-                    approvers: [
-                        buildApprover(1, {
-                            approvalLimit: 10000,
-                            overLimitForwardsTo: '3@example.com',
-                        }),
-                        buildApprover(4),
-                    ],
-                    isDefault: false,
-                };
-                const underAmount = {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
-                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    right: 10000,
-                };
-                const overAmount = {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO,
-                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    right: 10000,
                 };
                 const from = buildFromFilter(['2@example.com']);
 
-                expect(buildApprovalWorkflowRules(workflow)).toEqual([
+                // When the workflow is turned into rules
+                const rules = buildApprovalWorkflowRules(workflow);
+
+                // Then every report reaches the approver. Once they approve it, a report within the limit is finalized,
+                // and one over it goes on to the over-limit approver, who finalizes it since there is no later step
+                expect(rules).toEqual([
                     {
                         triggers: submitTriggers,
-                        filters: and(from, underAmount),
+                        filters: from,
                         actions: forwardActions('1@example.com'),
                     },
                     {
-                        triggers: submitTriggers,
-                        filters: and(from, overAmount),
-                        actions: forwardActions('3@example.com'),
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), withinLimit),
+                        actions: approveActions,
                     },
                     {
                         triggers: approveTriggers,
-                        filters: and(from, buildToFilter('1@example.com')),
-                        actions: forwardActions('4@example.com'),
+                        filters: and(and(from, buildToFilter('1@example.com')), overLimit),
+                        actions: forwardActions('3@example.com'),
                     },
                     {
                         triggers: approveTriggers,
                         filters: and(from, buildToFilter('3@example.com')),
-                        actions: forwardActions('4@example.com'),
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(from, buildToFilter('4@example.com')),
                         actions: approveActions,
                     },
                 ]);
+            });
+
+            it('Should send an over-limit report on to the next approver once the over-limit approver approves it', () => {
+                // Given 1 -> 2, where reports over 100.00 also need 3@example.com right after 1@example.com
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2)],
+                    isDefault: false,
+                };
+                const from = buildFromFilter(['5@example.com']);
+                const overLimit = {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right: 10000};
+
+                // When the workflow is turned into rules
+                const rules = buildApprovalWorkflowRules(workflow);
+
+                // Then 3@example.com sends the reports they get over the limit on to 2@example.com, the step after
+                // 1@example.com
+                expect(rules).toEqual([
+                    {triggers: submitTriggers, filters: from, actions: forwardActions('1@example.com')},
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                            right: 10000,
+                        }),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {triggers: approveTriggers, filters: and(and(from, buildToFilter('1@example.com')), overLimit), actions: forwardActions('3@example.com')},
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('3@example.com')), actions: forwardActions('2@example.com')},
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('2@example.com')), actions: approveActions},
+                ]);
+            });
+
+            it('Should only split where a shared over-limit approver sends reports next on the amount', () => {
+                // Given 1 -> 2 -> 3, where 1@example.com sends reports over 500.00 and 2@example.com sends reports over
+                // 100.00 to 9@example.com
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [
+                        buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(2, {approvalLimit: 10000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(3),
+                    ],
+                    isDefault: false,
+                };
+                const from = buildFromFilter(['5@example.com']);
+                const amount = (operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: number) => ({operator, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, right});
+
+                // When the workflow is turned into rules
+                const rules = buildApprovalWorkflowRules(workflow);
+
+                // Then 9@example.com has a rule for each approver that sends them reports, told apart by the amount. A report
+                // over 500.00 already went to them after 1@example.com, so 2@example.com only sends them the ones up to 500.00
+                expect(rules).toEqual([
+                    {triggers: submitTriggers, filters: from, actions: forwardActions('1@example.com')},
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 50000)),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 50000)),
+                        actions: forwardActions('9@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('9@example.com')), amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 50000)),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('2@example.com')), {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                            left: amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 10000),
+                            right: amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 50000),
+                        }),
+                        actions: forwardActions('3@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(
+                            and(from, buildToFilter('2@example.com')),
+                            and(amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000), amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 50000)),
+                        ),
+                        actions: forwardActions('9@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(
+                            and(from, buildToFilter('9@example.com')),
+                            and(amount(CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, 10000), amount(CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, 50000)),
+                        ),
+                        actions: forwardActions('3@example.com'),
+                    },
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('3@example.com')), actions: approveActions},
+                ]);
+            });
+
+            it('Should let an over-limit approver who is also an approver in the workflow carry on from their own step', () => {
+                // Given reports over 100.00 skip from 1@example.com straight to 3@example.com, who approves later in the
+                // workflow anyway
+                const workflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2), buildApprover(3), buildApprover(4)],
+                    isDefault: false,
+                };
+                const from = buildFromFilter(['5@example.com']);
+
+                // When the workflow is turned into rules
+                const rules = buildApprovalWorkflowRules(workflow);
+
+                // Then 3@example.com keeps the single rule of their own step, rather than also getting one that finalizes
+                // the report, which would conflict with it
+                expect(rules).toEqual([
+                    {triggers: submitTriggers, filters: from, actions: forwardActions('1@example.com')},
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                            right: 10000,
+                        }),
+                        actions: forwardActions('2@example.com'),
+                    },
+                    {
+                        triggers: approveTriggers,
+                        filters: and(and(from, buildToFilter('1@example.com')), {
+                            operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN,
+                            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                            right: 10000,
+                        }),
+                        actions: forwardActions('3@example.com'),
+                    },
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('2@example.com')), actions: forwardActions('3@example.com')},
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('3@example.com')), actions: forwardActions('4@example.com')},
+                    {triggers: approveTriggers, filters: and(from, buildToFilter('4@example.com')), actions: approveActions},
+                ]);
+            });
+
+            describe('routing a report through the rules', () => {
+                const policy: Policy = {...createRandomPolicy(1), id: 'routingPolicyID'};
+
+                /**
+                 * The approvers a report from `submitterEmail` goes through, taking the first matching rule at every step
+                 * the way the backend does. The backend cuts a looping chain short, so a repeated approver throws instead
+                 * of passing as a shorter chain.
+                 */
+                const routeReport = (workflow: ApprovalWorkflow, submitterEmail: string, reportTotal: number): string[] => {
+                    const rulesCollection: OnyxCollection<Rule> = Object.fromEntries(
+                        buildApprovalWorkflowRules(workflow).map((rule, index) => [`${ONYXKEYS.COLLECTION.RULE}${index}`, {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policy.id}]),
+                    );
+                    const approverEmails: string[] = [];
+                    let nextApproverEmail = getForwardsToFromRules(policy, {submitterEmail, reportTotal}, rulesCollection)?.forwardsTo;
+                    while (nextApproverEmail) {
+                        if (approverEmails.includes(nextApproverEmail)) {
+                            throw new Error(`Approval loop at ${nextApproverEmail}`);
+                        }
+                        approverEmails.push(nextApproverEmail);
+                        nextApproverEmail = getForwardsToFromRules(policy, {submitterEmail, currentApproverEmail: nextApproverEmail, reportTotal}, rulesCollection)?.forwardsTo;
+                    }
+                    return approverEmails;
+                };
+
+                // 1 -> 2 -> 3, where reports over 500.00 also need 4@example.com right after 2@example.com
+                const limitedSecondApproverWorkflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [buildApprover(1), buildApprover(2, {approvalLimit: 50000, overLimitForwardsTo: '4@example.com'}), buildApprover(3)],
+                    isDefault: false,
+                };
+                const limitedOnlyApproverWorkflow: ApprovalWorkflow = {
+                    members: [buildMember(5)],
+                    approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '4@example.com'})],
+                    isDefault: false,
+                };
+
+                it.each([
+                    ['under the limit', limitedSecondApproverWorkflow, -49999, ['1@example.com', '2@example.com', '3@example.com']],
+                    ['exactly at the limit', limitedSecondApproverWorkflow, -50000, ['1@example.com', '2@example.com', '3@example.com']],
+                    ['over the limit', limitedSecondApproverWorkflow, -50001, ['1@example.com', '2@example.com', '4@example.com', '3@example.com']],
+                    ['at the limit of an only approver', limitedOnlyApproverWorkflow, -50000, ['1@example.com']],
+                    ['over the limit of an only approver', limitedOnlyApproverWorkflow, -50001, ['1@example.com', '4@example.com']],
+                ])('Should keep the limited approver and only add the over-limit approver after them for a report %s', (_description, workflow, reportTotal, expectedApproverEmails) => {
+                    // Given a workflow where an approver has an approval limit
+                    // When a report goes through its rules
+                    const approverEmails = routeReport(workflow, '5@example.com', reportTotal);
+
+                    // Then the limited approver always approves it, and a report strictly over their limit also goes to the
+                    // over-limit approver right after them, before carrying on to the next approver
+                    expect(approverEmails).toEqual(expectedApproverEmails);
+                });
+
+                const buildSharedOverLimitApproverWorkflow = (firstLimit: number, secondLimit: number): ApprovalWorkflow => ({
+                    members: [buildMember(5)],
+                    approvers: [
+                        buildApprover(1, {approvalLimit: firstLimit, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(2, {approvalLimit: secondLimit, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(3),
+                    ],
+                    isDefault: false,
+                });
+
+                it.each([
+                    ['under both limits', 10000, 50000, -5000, ['1@example.com', '2@example.com', '3@example.com']],
+                    ['over the lower first limit only', 10000, 50000, -20000, ['1@example.com', '9@example.com', '2@example.com', '3@example.com']],
+                    ['over both limits', 10000, 50000, -60000, ['1@example.com', '9@example.com', '2@example.com', '3@example.com']],
+                    ['over the lower second limit only', 50000, 10000, -20000, ['1@example.com', '2@example.com', '9@example.com', '3@example.com']],
+                    ['over both limits when the second one is lower', 50000, 10000, -60000, ['1@example.com', '9@example.com', '2@example.com', '3@example.com']],
+                ])('Should add an over-limit approver shared by two approvers only once for a report %s', (_description, firstLimit, secondLimit, reportTotal, expectedApproverEmails) => {
+                    // Given 1 -> 2 -> 3, where 1@example.com and 2@example.com both send reports over their limits to 9@example.com
+                    // When a report goes through its rules
+                    const approverEmails = routeReport(buildSharedOverLimitApproverWorkflow(firstLimit, secondLimit), '5@example.com', reportTotal);
+
+                    // Then 9@example.com approves it once, right after the first approver whose limit it is over, and it then
+                    // carries on down the workflow
+                    expect(approverEmails).toEqual(expectedApproverEmails);
+                });
+
+                it('Should carry an over-limit report on from the step of an over-limit approver who is also an approver in the workflow', () => {
+                    // Given 1 -> 2 -> 3 -> 4, where reports over 100.00 go from 1@example.com straight to 3@example.com
+                    const workflow: ApprovalWorkflow = {
+                        members: [buildMember(5)],
+                        approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2), buildApprover(3), buildApprover(4)],
+                        isDefault: false,
+                    };
+
+                    // When a report over the limit goes through its rules
+                    const approverEmails = routeReport(workflow, '5@example.com', -10001);
+
+                    // Then it skips 2@example.com and carries on to 4@example.com after 3@example.com approves it
+                    expect(approverEmails).toEqual(['1@example.com', '3@example.com', '4@example.com']);
+                });
             });
 
             it('Should ignore a limit split when the limit is not positive', () => {
                 const workflow: ApprovalWorkflow = {
                     members: [buildMember(2)],
-                    approvers: [
-                        buildApprover(1, {
-                            approvalLimit: 0,
-                            overLimitForwardsTo: '3@example.com',
-                        }),
-                    ],
+                    approvers: [buildApprover(1, {approvalLimit: 0, overLimitForwardsTo: '3@example.com'})],
                     isDefault: false,
                 };
 
                 expect(buildApprovalWorkflowRules(workflow)).toEqual([
-                    {
-                        triggers: submitTriggers,
-                        filters: buildFromFilter(['2@example.com']),
-                        actions: forwardActions('1@example.com'),
-                    },
-                    {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')),
-                        actions: approveActions,
-                    },
+                    {triggers: submitTriggers, filters: buildFromFilter(['2@example.com']), actions: forwardActions('1@example.com')},
+                    {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')), actions: approveActions},
                 ]);
             });
         });
@@ -2582,11 +2395,7 @@ describe('WorkflowUtils', () => {
             it('Should ignore rules that do not contain the members', () => {
                 const existingRules = keyRules(buildApprovalWorkflowRules(buildWorkflow([30], [1])));
 
-                expect(
-                    reconcileApprovalWorkflowRulesForRemove(['10@example.com'], {
-                        existingRules,
-                    }),
-                ).toEqual({});
+                expect(reconcileApprovalWorkflowRulesForRemove(['10@example.com'], {existingRules})).toEqual({});
             });
         });
 
@@ -2616,9 +2425,7 @@ describe('WorkflowUtils', () => {
             it('Should map each submitter to the first approver in their chain', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
 
-                expect(getRulesSubmitterToFirstApprover(rules)).toEqual({
-                    '5@example.com': '1@example.com',
-                });
+                expect(getRulesSubmitterToFirstApprover(rules)).toEqual({'5@example.com': '1@example.com'});
             });
         });
 
@@ -2657,51 +2464,15 @@ describe('WorkflowUtils', () => {
             // then diverges to 9. The workflow key must group 2 and 3 together and set 4 apart, so callers can
             // tell a real cross-workflow move from a same-first-approver re-add.
             const rules: Record<string, ApprovalWorkflowRule> = {
-                sub2: {
-                    triggers: submitTriggers,
-                    filters: buildFromFilter(['2@example.com']),
-                    actions: forwardActions('1@example.com'),
-                },
-                app2at1: {
-                    triggers: approveTriggers,
-                    filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')),
-                    actions: forwardActions('8@example.com'),
-                },
-                app2at8: {
-                    triggers: approveTriggers,
-                    filters: and(buildFromFilter(['2@example.com']), buildToFilter('8@example.com')),
-                    actions: approveActions,
-                },
-                sub3: {
-                    triggers: submitTriggers,
-                    filters: buildFromFilter(['3@example.com']),
-                    actions: forwardActions('1@example.com'),
-                },
-                app3at1: {
-                    triggers: approveTriggers,
-                    filters: and(buildFromFilter(['3@example.com']), buildToFilter('1@example.com')),
-                    actions: forwardActions('8@example.com'),
-                },
-                app3at8: {
-                    triggers: approveTriggers,
-                    filters: and(buildFromFilter(['3@example.com']), buildToFilter('8@example.com')),
-                    actions: approveActions,
-                },
-                sub4: {
-                    triggers: submitTriggers,
-                    filters: buildFromFilter(['4@example.com']),
-                    actions: forwardActions('1@example.com'),
-                },
-                app4at1: {
-                    triggers: approveTriggers,
-                    filters: and(buildFromFilter(['4@example.com']), buildToFilter('1@example.com')),
-                    actions: forwardActions('9@example.com'),
-                },
-                app4at9: {
-                    triggers: approveTriggers,
-                    filters: and(buildFromFilter(['4@example.com']), buildToFilter('9@example.com')),
-                    actions: approveActions,
-                },
+                sub2: {triggers: submitTriggers, filters: buildFromFilter(['2@example.com']), actions: forwardActions('1@example.com')},
+                app2at1: {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('1@example.com')), actions: forwardActions('8@example.com')},
+                app2at8: {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com']), buildToFilter('8@example.com')), actions: approveActions},
+                sub3: {triggers: submitTriggers, filters: buildFromFilter(['3@example.com']), actions: forwardActions('1@example.com')},
+                app3at1: {triggers: approveTriggers, filters: and(buildFromFilter(['3@example.com']), buildToFilter('1@example.com')), actions: forwardActions('8@example.com')},
+                app3at8: {triggers: approveTriggers, filters: and(buildFromFilter(['3@example.com']), buildToFilter('8@example.com')), actions: approveActions},
+                sub4: {triggers: submitTriggers, filters: buildFromFilter(['4@example.com']), actions: forwardActions('1@example.com')},
+                app4at1: {triggers: approveTriggers, filters: and(buildFromFilter(['4@example.com']), buildToFilter('1@example.com')), actions: forwardActions('9@example.com')},
+                app4at9: {triggers: approveTriggers, filters: and(buildFromFilter(['4@example.com']), buildToFilter('9@example.com')), actions: approveActions},
             };
 
             it('Should give submitters with identical chains the same key', () => {
@@ -2752,20 +2523,10 @@ describe('WorkflowUtils', () => {
 
             it('Should reconstruct a multi-approver chain from rules', () => {
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2])));
-                const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                };
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 expect(approvalWorkflows).toHaveLength(1);
                 const workflow = approvalWorkflows.at(0);
@@ -2779,29 +2540,14 @@ describe('WorkflowUtils', () => {
             it('Should reconstruct an approver limit split from rules', () => {
                 const workflow: ApprovalWorkflow = {
                     members: [buildMember(5)],
-                    approvers: [
-                        buildApprover(1, {
-                            approvalLimit: 50000,
-                            overLimitForwardsTo: '3@example.com',
-                        }),
-                    ],
+                    approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
                     isDefault: false,
                 };
                 const rules = keyRules(buildApprovalWorkflowRules(workflow));
-                const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                };
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 const firstApprover = approvalWorkflows.at(0)?.approvers.at(0);
                 expect(firstApprover?.email).toBe('1@example.com');
@@ -2812,30 +2558,14 @@ describe('WorkflowUtils', () => {
             it('Should round-trip a limited first approver back into the same workflow', () => {
                 const workflow: ApprovalWorkflow = {
                     members: [buildMember(2)],
-                    approvers: [
-                        buildApprover(1, {
-                            approvalLimit: 10000,
-                            overLimitForwardsTo: '3@example.com',
-                        }),
-                        buildApprover(4),
-                    ],
+                    approvers: [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(4)],
                     isDefault: false,
                 };
                 const rules = keyRules(buildApprovalWorkflowRules(workflow));
-                const employees: PolicyEmployeeList = {
-                    '2@example.com': {
-                        email: '2@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                };
+                const employees: PolicyEmployeeList = {'2@example.com': {email: '2@example.com', submitsTo: '1@example.com'}};
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 const approvers = approvalWorkflows.at(0)?.approvers ?? [];
                 expect(approvers.map((approver) => approver.email)).toEqual(['1@example.com', '4@example.com']);
@@ -2844,28 +2574,51 @@ describe('WorkflowUtils', () => {
                 expect(approvers.at(1)?.approvalLimit).toBeNull();
             });
 
+            it.each([
+                [
+                    'an over-limit approver who is also an approver in the workflow',
+                    [buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '3@example.com'}), buildApprover(2), buildApprover(3)],
+                ],
+                [
+                    'an over-limit approver shared by two approvers',
+                    [
+                        buildApprover(1, {approvalLimit: 10000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(2, {approvalLimit: 50000, overLimitForwardsTo: '9@example.com'}),
+                        buildApprover(3),
+                    ],
+                ],
+            ])('Should round-trip %s', (_description, approvers) => {
+                // Given rules for 1 -> 2 -> 3, where reports over a limit also need an over-limit approver
+                const workflow: ApprovalWorkflow = {members: [buildMember(5)], approvers, isDefault: false};
+                const rules = keyRules(buildApprovalWorkflowRules(workflow));
+                const policy = createPolicy({'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}}, 'owner@example.com');
+
+                // When the workflows are read back from those rules
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
+
+                // Then every approver keeps their own limit and over-limit approver, and the workflow turns back into the
+                // same rules
+                const readWorkflow = approvalWorkflows.find((approvalWorkflow) => approvalWorkflow.members.some((member) => member.email === '5@example.com'));
+                expect(readWorkflow?.approvers.map((approver) => [approver.email, approver.approvalLimit, approver.overLimitForwardsTo])).toEqual(
+                    approvers.map((approver) => [approver.email, approver.approvalLimit ?? null, approver.overLimitForwardsTo]),
+                );
+                expect(readWorkflow).toBeDefined();
+                if (readWorkflow) {
+                    expect(buildApprovalWorkflowRules(readWorkflow)).toEqual(Object.values(rules));
+                }
+            });
+
             it('Should keep a custom workflow that starts at the default approver separate from the default one', () => {
                 // Both chains start at approver 1 (the policy's default approver) and diverge after it. Only the
                 // chain whose rules declare it is the default. The other must render as its own workflow.
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
                 const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '6@example.com': {
-                        email: '6@example.com',
-                        submitsTo: '1@example.com',
-                    },
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '1@example.com'},
                 };
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 expect(approvalWorkflows).toHaveLength(2);
                 expect(approvalWorkflows.filter((workflow) => workflow.isDefault)).toHaveLength(1);
@@ -2882,39 +2635,16 @@ describe('WorkflowUtils', () => {
             it('Should not treat an unmarked rule-based chain as the default just because it starts at the default approver', () => {
                 // The default workflow still lives in `employeeList`, and 6 has a rule-based chain that starts at
                 // the same approver but splits on an approval limit. Only the employeeList chain is the default.
-                const limitedApprover = buildApprover(1, {
-                    approvalLimit: 100,
-                    overLimitForwardsTo: '2@example.com',
-                });
-                const rules = keyRules(
-                    buildApprovalWorkflowRules({
-                        members: [buildMember(6)],
-                        approvers: [limitedApprover],
-                        isDefault: false,
-                    }),
-                );
+                const limitedApprover = buildApprover(1, {approvalLimit: 100, overLimitForwardsTo: '2@example.com'});
+                const rules = keyRules(buildApprovalWorkflowRules({members: [buildMember(6)], approvers: [limitedApprover], isDefault: false}));
                 const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '6@example.com': {
-                        email: '6@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '1@example.com': {
-                        email: '1@example.com',
-                        submitsTo: '1@example.com',
-                    },
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '1@example.com'},
+                    '1@example.com': {email: '1@example.com', submitsTo: '1@example.com'},
                 };
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 expect(approvalWorkflows.filter((workflow) => workflow.isDefault)).toHaveLength(1);
 
@@ -2930,20 +2660,10 @@ describe('WorkflowUtils', () => {
             it('Should fall back to the default approver when no rule declares itself the default workflow', () => {
                 // Policies whose default workflow has never been saved through the rules backend have no such rule.
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1])));
-                const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                };
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 expect(approvalWorkflows).toHaveLength(1);
                 expect(approvalWorkflows.at(0)?.isDefault).toBe(true);
@@ -2953,20 +2673,10 @@ describe('WorkflowUtils', () => {
                 // Built as the default workflow so its rules declare themselves default, which the rebuilt rules
                 // must reproduce for the round-trip to be lossless.
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1, 2], {isDefault: true})));
-                const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                };
+                const employees: PolicyEmployeeList = {'5@example.com': {email: '5@example.com', submitsTo: '1@example.com'}};
                 const policy = createPolicy(employees, '1@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 // Rebuilding rules from the reconstructed workflow should reproduce the original rule set.
                 const workflow = approvalWorkflows.at(0);
@@ -2980,57 +2690,21 @@ describe('WorkflowUtils', () => {
                 // Two workflows that both route to approver 1, but stored under distinct ruleIDs (e.g. created
                 // before the other one's rules were cached). They must still render as a single workflow card.
                 const rules: Record<string, ApprovalWorkflowRule> = {
-                    subAB: {
-                        triggers: submitTriggers,
-                        filters: buildFromFilter(['2@example.com', '3@example.com']),
-                        actions: forwardActions('1@example.com'),
-                    },
-                    appAB: {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['2@example.com', '3@example.com']), buildToFilter('1@example.com')),
-                        actions: approveActions,
-                    },
-                    subD: {
-                        triggers: submitTriggers,
-                        filters: buildFromFilter(['4@example.com']),
-                        actions: forwardActions('1@example.com'),
-                    },
-                    appD: {
-                        triggers: approveTriggers,
-                        filters: and(buildFromFilter(['4@example.com']), buildToFilter('1@example.com')),
-                        actions: approveActions,
-                    },
+                    subAB: {triggers: submitTriggers, filters: buildFromFilter(['2@example.com', '3@example.com']), actions: forwardActions('1@example.com')},
+                    appAB: {triggers: approveTriggers, filters: and(buildFromFilter(['2@example.com', '3@example.com']), buildToFilter('1@example.com')), actions: approveActions},
+                    subD: {triggers: submitTriggers, filters: buildFromFilter(['4@example.com']), actions: forwardActions('1@example.com')},
+                    appD: {triggers: approveTriggers, filters: and(buildFromFilter(['4@example.com']), buildToFilter('1@example.com')), actions: approveActions},
                 };
                 const employees: PolicyEmployeeList = {
-                    '1@example.com': {
-                        email: '1@example.com',
-                        submitsTo: '9@example.com',
-                    },
-                    '2@example.com': {
-                        email: '2@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '3@example.com': {
-                        email: '3@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '4@example.com': {
-                        email: '4@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '9@example.com': {
-                        email: '9@example.com',
-                        submitsTo: '9@example.com',
-                    },
+                    '1@example.com': {email: '1@example.com', submitsTo: '9@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '1@example.com'},
+                    '3@example.com': {email: '3@example.com', submitsTo: '1@example.com'},
+                    '4@example.com': {email: '4@example.com', submitsTo: '1@example.com'},
+                    '9@example.com': {email: '9@example.com', submitsTo: '9@example.com'},
                 };
                 const policy = createPolicy(employees, '9@example.com');
 
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 const workflowsToApprover1 = approvalWorkflows.filter((workflow) => workflow.approvers.at(0)?.email === '1@example.com');
                 expect(workflowsToApprover1).toHaveLength(1);
@@ -3062,29 +2736,14 @@ describe('WorkflowUtils', () => {
                 // forwards to 3, as the default approver. No rule covers 2 or 6, so employeeList routes them to 2, then 3.
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})));
                 const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '2@example.com',
-                    },
-                    '2@example.com': {
-                        email: '2@example.com',
-                        submitsTo: '2@example.com',
-                        forwardsTo: '3@example.com',
-                    },
-                    '6@example.com': {
-                        email: '6@example.com',
-                        submitsTo: '2@example.com',
-                    },
+                    '5@example.com': {email: '5@example.com', submitsTo: '2@example.com'},
+                    '2@example.com': {email: '2@example.com', submitsTo: '2@example.com', forwardsTo: '3@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
                 };
                 const policy = createPolicy(employees, '2@example.com');
 
                 // When the rules are turned into the workflows the Workflows page shows
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 // Then only the rule-based chain is the default workflow. Deleting a workflow writes its members into the
                 // default workflow's chain, so a second default would let that write the employeeList chain as another default.
@@ -3103,28 +2762,14 @@ describe('WorkflowUtils', () => {
                 // that same approver through employeeList. Their reports take the same route.
                 const rules = keyRules(buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})));
                 const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '6@example.com': {
-                        email: '6@example.com',
-                        submitsTo: '1@example.com',
-                    },
-                    '1@example.com': {
-                        email: '1@example.com',
-                        submitsTo: '1@example.com',
-                    },
+                    '5@example.com': {email: '5@example.com', submitsTo: '1@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '1@example.com'},
+                    '1@example.com': {email: '1@example.com', submitsTo: '1@example.com'},
                 };
                 const policy = createPolicy(employees, '1@example.com');
 
                 // When the rules are turned into the workflows the Workflows page shows
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 // Then 1 and 6 are listed in the default workflow rather than in a second default workflow with the same approver
                 expect(approvalWorkflows).toHaveLength(1);
@@ -3140,24 +2785,13 @@ describe('WorkflowUtils', () => {
                     ...buildApprovalWorkflowRules(buildWorkflow([6], [2, 3], {isDefault: true})),
                 ]);
                 const employees: PolicyEmployeeList = {
-                    '5@example.com': {
-                        email: '5@example.com',
-                        submitsTo: '2@example.com',
-                    },
-                    '6@example.com': {
-                        email: '6@example.com',
-                        submitsTo: '2@example.com',
-                    },
+                    '5@example.com': {email: '5@example.com', submitsTo: '2@example.com'},
+                    '6@example.com': {email: '6@example.com', submitsTo: '2@example.com'},
                 };
                 const policy = createPolicy(employees, '2@example.com');
 
                 // When the rules are turned into the workflows the Workflows page shows
-                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
-                    policy,
-                    personalDetails,
-                    localeCompare,
-                    rules,
-                });
+                const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({policy, personalDetails, localeCompare, rules});
 
                 // Then the chain starting at the default approver stays the default, and the other one is shown as a workflow
                 // of its own, so deleting it sends its members to the default workflow
@@ -3174,17 +2808,8 @@ describe('WorkflowUtils', () => {
             scope: CONST.RULES.SCOPE.POLICY,
             scopeID,
             triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
-            filters: {
-                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                right: 'a@example.com',
-            },
-            actions: {
-                '1': {
-                    name: CONST.RULES.ACTIONS.FORWARD_TO,
-                    approver: 'b@example.com',
-                },
-            },
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
             ...extra,
         });
 
@@ -3193,15 +2818,11 @@ describe('WorkflowUtils', () => {
             const collection = {rules_1: mine, rules_2: ruleForPolicy('policy2')};
 
             // The value is passed through by reference so callers still see the full rule.
-            expect(filterRulesForPolicy(collection, 'policy1')).toEqual({
-                rules_1: mine,
-            });
+            expect(filterRulesForPolicy(collection, 'policy1')).toEqual({rules_1: mine});
         });
 
         it('keeps rules pending deletion, leaving that decision to the caller', () => {
-            const pendingDelete = ruleForPolicy('policy1', {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            });
+            const pendingDelete = ruleForPolicy('policy1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
 
             expect(filterRulesForPolicy({rules_1: pendingDelete}, 'policy1')).toEqual({rules_1: pendingDelete});
         });
@@ -3253,6 +2874,265 @@ describe('WorkflowUtils', () => {
             // Then the other policy's rule never counts, and this policy's rule stops counting while it is being deleted, since it won't route once that goes through
             expect(hasRulesWhileDeleting).toBe(false);
             expect(hasRulesOnceUndone).toBe(true);
+        });
+    });
+
+    describe('isApprovalWorkflowRule', () => {
+        // `Rule` types triggers as one kind or the other, so a rule mixing them can only arrive from the
+        // server. Building the collection untyped and asserting once is the only way to model that payload.
+        const ruleWithTriggers = (...triggers: string[]) => {
+            const rule = {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: 'policy1',
+                triggers: Object.fromEntries(triggers.map((trigger, index) => [String(index + 1), trigger])),
+                filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: 'a@example.com'},
+                actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+            };
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return rule as unknown as Rule;
+        };
+
+        it('is true for a rule that only fires on report events', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT))).toBe(true);
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT, CONST.RULES.TRIGGERS.REPORT_APPROVE))).toBe(true);
+        });
+
+        it('is false for an expense default rule', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers(CONST.RULES.TRIGGERS.CREATE_TRANSACTION))).toBe(false);
+        });
+
+        it('is false for a rule that also fires on transaction creation, so disabling approvals cannot delete it', () => {
+            const mixed = ruleWithTriggers(CONST.RULES.TRIGGERS.REPORT_SUBMIT, CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
+
+            expect(isApprovalWorkflowRule(mixed)).toBe(false);
+        });
+
+        it('is false for a rule with no triggers at all', () => {
+            expect(isApprovalWorkflowRule(ruleWithTriggers())).toBe(false);
+        });
+    });
+
+    describe('getEnforcedApprovalWorkflows', () => {
+        // One default workflow and one that only an advanced mode would run, which is the shape a downgrade leaves behind.
+        const defaultWorkflow = buildWorkflow([1], [2], {isDefault: true});
+        const inertWorkflow = buildWorkflow([3], [4]);
+        const workflows = [defaultWorkflow, inertWorkflow];
+
+        function buildPolicyWithHRAdvancedMode(): Policy {
+            return createMock<Policy>({
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.MANAGER, groups: []}}},
+            });
+        }
+
+        it('enforces every workflow while the multiple approvers beta is on, whatever the approval mode is', () => {
+            // Given a workspace on an approval mode that runs a single workflow
+            const policy = createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+
+            // When the beta is enabled
+            // Then the beta decides, so the mode doesn't narrow the workflows down
+            expect(getEnforcedApprovalWorkflows(workflows, policy, true)).toEqual(workflows);
+        });
+
+        it.each([CONST.POLICY.APPROVAL_MODE.ADVANCED, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL])('enforces every workflow in %s mode', (approvalMode) => {
+            // Given a workspace on an approval mode that runs more than one workflow
+            const policy = createMock<Policy>({approvalMode});
+
+            // When the workflows are narrowed to the enforced ones
+            // Then all of them are still in force
+            expect(getEnforcedApprovalWorkflows(workflows, policy, false)).toEqual(workflows);
+        });
+
+        it('enforces every workflow when an HR provider is in advanced mode', () => {
+            // Given a workspace whose workflows come from an HR provider in manager mode
+            // When the workflows are narrowed to the enforced ones
+            // Then the provider runs them all, so none is dropped
+            expect(getEnforcedApprovalWorkflows(workflows, buildPolicyWithHRAdvancedMode(), false)).toEqual(workflows);
+        });
+
+        it.each([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.OPTIONAL])('enforces only the default workflow in %s mode', (approvalMode) => {
+            // Given a workspace on an approval mode that runs a single workflow
+            const policy = createMock<Policy>({approvalMode});
+
+            // When the workflows are narrowed to the enforced ones
+            // Then the workflow a downgrade left behind is dropped, since the workspace no longer runs it
+            expect(getEnforcedApprovalWorkflows(workflows, policy, false)).toEqual([defaultWorkflow]);
+        });
+
+        it('enforces only the default workflow when the policy has not loaded', () => {
+            // Given no policy at all, so there is no approval mode to read
+            // When the workflows are narrowed to the enforced ones
+            // Then the conservative single-workflow reading applies rather than every workflow
+            expect(getEnforcedApprovalWorkflows(workflows, undefined, false)).toEqual([defaultWorkflow]);
+        });
+    });
+
+    describe('getEnforcedApprovalWorkflowsForMembers', () => {
+        const defaultWorkflow = buildWorkflow([1], [2], {isDefault: true});
+        const inertWorkflow = buildWorkflow([3], [4]);
+        const workflows = [defaultWorkflow, inertWorkflow];
+
+        it('moves the members of a dropped workflow onto the default one', () => {
+            // Given a workspace on a mode that runs only the default workflow, with a member left on another one
+            const policy = createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+
+            // When the workflows are read from a member's side
+            const result = getEnforcedApprovalWorkflowsForMembers(workflows, policy, false);
+
+            // Then that member submits to the default approver like everyone else, rather than to no one
+            expect(result).toEqual([{...defaultWorkflow, members: [...defaultWorkflow.members, ...inertWorkflow.members]}]);
+        });
+
+        it('leaves the workflows alone when every one of them is enforced', () => {
+            // Given a workspace on a mode that runs every workflow
+            const policy = createMock<Policy>({approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED});
+
+            // When the workflows are read from a member's side
+            // Then nobody is reassigned, because no workflow was dropped
+            expect(getEnforcedApprovalWorkflowsForMembers(workflows, policy, false)).toEqual(workflows);
+        });
+    });
+
+    describe('getFirstApproverLabel', () => {
+        // Mirrors the provider, which reads the ordinals from the translations. Only the first is needed, since the
+        // label always names the first approver.
+        const ordinalTranslations: Record<number, TranslationPaths> = {1: 'workflowsPage.frequencies.ordinals.1'};
+        const toLocaleOrdinalWithWords = (number: number) => translateLocal(ordinalTranslations[number]);
+
+        it('numbers the approver when the workflow has more than one', () => {
+            // Given a workflow whose expenses pass through several approvers
+            // When the first one is labelled
+            // Then the label says which of them it is, so the rest are implied
+            expect(getFirstApproverLabel(true, translateLocal, toLocaleOrdinalWithWords)).toBe(
+                `${translateLocal('workflowsPage.frequencies.ordinals.1')} ${translateLocal('workflowsPage.approver').toLowerCase()}`,
+            );
+        });
+
+        it('leaves the approver unnumbered when there is only one', () => {
+            // Given a workflow with a single approver
+            // When that approver is labelled
+            // Then the label is the plain one, since there is no second approver to distinguish it from
+            expect(getFirstApproverLabel(false, translateLocal, toLocaleOrdinalWithWords)).toBe(translateLocal('workflowsPage.approver'));
+        });
+    });
+
+    describe('getFirstApproverByMemberEmail', () => {
+        it('maps every member of a workflow to that workflow first approver', () => {
+            const workflows = [buildWorkflow([1, 2], [3, 4]), buildWorkflow([5], [6])];
+
+            expect(getFirstApproverByMemberEmail(workflows)).toEqual({
+                '1@example.com': buildApprover(3),
+                '2@example.com': buildApprover(3),
+                '5@example.com': buildApprover(6),
+            });
+        });
+
+        it('maps a member who is their own first approver, such as the workspace owner, to themselves', () => {
+            const workflows = [buildWorkflow([1, 2], [1])];
+
+            expect(getFirstApproverByMemberEmail(workflows)).toEqual({'1@example.com': buildApprover(1), '2@example.com': buildApprover(1)});
+        });
+
+        it('leaves out workflows that have no approvers', () => {
+            expect(getFirstApproverByMemberEmail([buildWorkflow([1], [])])).toEqual({});
+        });
+    });
+
+    describe('getApproverPendingActionByMemberEmail', () => {
+        const approvalRuleFor = (submitter: string, extra: Partial<Omit<Rule, 'actions' | 'filters' | 'triggers'>> = {}): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: 'policy1',
+            triggers: {'1': CONST.RULES.TRIGGERS.REPORT_SUBMIT},
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitter},
+            actions: {'1': {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'b@example.com'}},
+            ...extra,
+        });
+
+        const policyWithEmployees = (employeeList: Policy['employeeList'], extra: Partial<Policy> = {}) => createMock<Policy>({...createRandomPolicy(1), employeeList, ...extra});
+
+        it('reads the employee list, which is where a save lands while the multiple approvers beta is off', () => {
+            // Given an employee whose approver change is still in flight, the beta being off so no rules are passed.
+            const policy = policyWithEmployees({
+                'a@example.com': {email: 'a@example.com', pendingFields: {submitsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                'b@example.com': {email: 'b@example.com'},
+            });
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], undefined)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('marks every submitter when a change further up their chain is in flight', () => {
+            // Given a workflow where the first approver's own forwardsTo is pending, which is where a change to the
+            // second approver lands. The submitters' submitsTo is untouched, but their row's label still follows the
+            // depth of the chain, so it has a change coming.
+            const policy = policyWithEmployees({
+                '1@example.com': {email: '1@example.com'},
+                '2@example.com': {email: '2@example.com', pendingFields: {forwardsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+
+            expect(getApproverPendingActionByMemberEmail(policy, [buildWorkflow([1], [2])], undefined)).toEqual({'1@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('marks every submitter when a change deeper in their chain is in flight', () => {
+            // Given a chain of three approvers whose third approver was swapped for someone else. That lands on the
+            // second approver's forwardsTo, leaving the first approver's own record untouched.
+            const policy = policyWithEmployees({
+                '1@example.com': {email: '1@example.com'},
+                '2@example.com': {email: '2@example.com'},
+                '3@example.com': {email: '3@example.com', pendingFields: {forwardsTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+
+            expect(getApproverPendingActionByMemberEmail(policy, [buildWorkflow([1], [2, 3, 4])], undefined)).toEqual({'1@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('reads the rules, which is where a save lands while the beta is on and the employee list is untouched', () => {
+            // Given a policy whose employees carry no pending approver change, because the save went to the rules.
+            const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
+            const rules = {rules_1: approvalRuleFor('a@example.com', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE})};
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('marks every member while approvals are being turned on or off', () => {
+            // Given a policy whose approval mode is mid-change. That rewrites who everyone submits to, but it marks
+            // the policy rather than the employees, so nothing else here would show the change as in flight.
+            const policy = policyWithEmployees(
+                {'a@example.com': {email: 'a@example.com'}, 'b@example.com': {email: 'b@example.com'}},
+                {pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            );
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], undefined)).toEqual({
+                'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                'b@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+        });
+
+        it('reports a deleted workflow as an update, since its members fall back to the default approver', () => {
+            // Given the rule for a workflow being deleted. The members keep an approver, so reporting the deletion
+            // would strike their new approver's name out as though it were going away.
+            const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
+            const rules = {rules_1: approvalRuleFor('a@example.com', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})};
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], rules)).toEqual({'a@example.com': CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+        });
+
+        it('leaves out members whose approver is settled', () => {
+            const policy = policyWithEmployees({'a@example.com': {email: 'a@example.com'}});
+
+            expect(getApproverPendingActionByMemberEmail(policy, [], {rules_1: approvalRuleFor('a@example.com')})).toEqual({});
+        });
+    });
+
+    describe('hasMultiLevelApprovalWorkflow', () => {
+        it('is false when every workflow has at most one approver', () => {
+            expect(hasMultiLevelApprovalWorkflow([buildWorkflow([1], [2]), buildWorkflow([3], [4])])).toBe(false);
+        });
+
+        it('is true as soon as one workflow has two or more approvers', () => {
+            expect(hasMultiLevelApprovalWorkflow([buildWorkflow([1], [2]), buildWorkflow([3], [4, 5])])).toBe(true);
+        });
+
+        it('is false for an empty list', () => {
+            expect(hasMultiLevelApprovalWorkflow([])).toBe(false);
         });
     });
 
@@ -3462,6 +3342,21 @@ describe('WorkflowUtils', () => {
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: approvalsOffPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
             expect(hasApprovalWorkflowWithNonMemberApprover({policy: lockedPolicy, currentUserLogin: ownerEmail, isMultipleApproversBetaEnabled: false})).toBe(false);
         });
+
+        it.each([false, true])('skips a null employeeList entry instead of crashing when the multiple approvers beta is %s', (isMultipleApproversBetaEnabled) => {
+            // Given a workspace whose employeeList holds a null entry, which the type rules out but happens at runtime,
+            // next to member 1 who still submits to someone no longer on the workspace
+            // The type rules out a null entry, so set it without a cast. It goes in first so every pass over employeeList reaches it before member 1
+            const employeeList: PolicyEmployeeList = {};
+            Reflect.set(employeeList, 'stale@example.com', null);
+            employeeList[ownerEmail] = {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail};
+            employeeList['1@example.com'] = {email: '1@example.com', role: CONST.POLICY.ROLE.USER, submitsTo: removedEmail};
+            const policy = buildPolicy({employeeList});
+
+            // When the owner checks whether a workflow needs fixing, as the Workspaces tab does on every page
+            // Then the null entry is skipped rather than crashing the tab bar, and member 1's workflow is still flagged
+            expect(hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin: ownerEmail, rules: {}, isMultipleApproversBetaEnabled})).toBe(true);
+        });
     });
 
     describe('getNonMemberApproverError', () => {
@@ -3533,20 +3428,8 @@ describe('WorkflowUtils', () => {
                 const policy = createMock<Policy>({
                     id: POLICY_ID,
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                            config: {
-                                integration: 'workday',
-                                approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM,
-                                groups: [],
-                            },
-                        },
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
-                            config: {
-                                integration: 'greenhouse',
-                                approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC,
-                                filters: null,
-                            },
-                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
                     },
                 });
 
@@ -3577,20 +3460,8 @@ describe('WorkflowUtils', () => {
                 const policy = createMock<Policy>({
                     id: POLICY_ID,
                     connections: {
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
-                            config: {
-                                integration: 'workday',
-                                approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM,
-                                groups: [],
-                            },
-                        },
-                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {
-                            config: {
-                                integration: 'greenhouse',
-                                approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC,
-                                filters: null,
-                            },
-                        },
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {config: {integration: 'workday', approvalMode: CONST.MERGE.APPROVAL_MODE.CUSTOM, groups: []}},
+                        [CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS]: {config: {integration: 'greenhouse', approvalMode: CONST.MERGE.APPROVAL_MODE.BASIC, filters: null}},
                     },
                 });
 

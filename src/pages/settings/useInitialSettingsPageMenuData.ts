@@ -12,6 +12,7 @@ import useSignOut from '@hooks/useSignOut';
 
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo, hasValidationFailedBankAccount} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction, hasVirtualExpensifyCardMissingPersonalDetails} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -86,9 +87,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
-    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
-        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors) || !isEmptyObject(agent?.avatarErrors)),
-    });
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
     const privateSubscription = usePrivateSubscription();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -180,7 +179,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             return {
                 ...item,
                 badgeText: translate('common.beta'),
-                brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasAgentError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             };
         }
         if (item.screenName === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {

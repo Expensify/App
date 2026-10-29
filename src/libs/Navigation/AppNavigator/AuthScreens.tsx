@@ -1,3 +1,4 @@
+import BulkActionStatusManager from '@components/BulkActionStatusManager';
 import ComposeProviders from '@components/ComposeProviders';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
@@ -24,11 +25,13 @@ import WideRHPContextProvider from '@components/WideRHPContextProvider';
 import useGPSInProgressModal from '@hooks/useGPSInProgressModal';
 import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -54,7 +57,9 @@ import '@src/libs/subscribeToFullReconnect';
 import type {RouteProp} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
+import {PortalHost} from '@gorhom/portal';
 import React, {useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
@@ -65,7 +70,6 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
-import AIFeaturesPromoModalNavigator from './Navigators/AIFeaturesPromoModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
@@ -86,6 +90,7 @@ const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadTalkToHumanPage = () => require<ReactComponentModule>('../../../pages/TalkToHumanPage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
 const loadPreMountBufferPage = () => require<ReactComponentModule>('../../../pages/PreMountBufferPage').default;
@@ -132,6 +137,7 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens() {
     const theme = useTheme();
+    const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
@@ -176,6 +182,7 @@ function AuthScreens() {
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
             <ExportDownloadStatusManager />
+            <BulkActionStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
@@ -226,6 +233,11 @@ function AuthScreens() {
                             getComponent={loadConciergePage}
                         />
                         <RootStack.Screen
+                            name={SCREENS.TALK_TO_HUMAN}
+                            options={defaultScreenOptions}
+                            getComponent={loadTalkToHumanPage}
+                        />
+                        <RootStack.Screen
                             name={SCREENS.TRACK_EXPENSE}
                             options={defaultScreenOptions}
                             getComponent={loadTrackExpensePage}
@@ -274,6 +286,12 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={SCREENS.WORKSPACE_DOCUMENT}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.BILLING_RECEIPT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
@@ -335,11 +353,6 @@ function AuthScreens() {
                             name={NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={SubmitPlanWelcomeModalNavigator}
-                        />
-                        <RootStack.Screen
-                            name={NAVIGATORS.AI_FEATURES_PROMO_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.centeredModalNavigator}
-                            component={AIFeaturesPromoModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
@@ -415,6 +428,12 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
+                    <View
+                        pointerEvents="box-none"
+                        style={[StyleSheet.absoluteFill, themeStyles.twoFARequiredTestToolsHost]}
+                    >
+                        <PortalHost name={REQUIRE_2FA_ABOVE_PORTAL_HOST} />
+                    </View>
                     <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
                     <OpenAppFailureModal />

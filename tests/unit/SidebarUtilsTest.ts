@@ -16,7 +16,7 @@ import {
     generateReportID,
     getAllReportErrors,
     getReasonAndReportActionThatRequiresAttention,
-    getReportPreviewReportActionMessage,
+    getReportPreviewMessage,
 } from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 
@@ -51,6 +51,9 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // Mock PolicyUtils
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
     getConnectedIntegration: jest.fn(() => true),
     isPolicyAdmin: jest.fn(() => true),
 }));
@@ -463,6 +466,77 @@ describe('SidebarUtils', () => {
             expect(optionDataUnpinned?.isPinned).toBe(false);
         });
 
+        it('uses the passed hasPendingJoinRequest instead of the report actions it reads from Onyx', async () => {
+            // Given an admin room whose report actions in Onyx still hold a pending join request
+            const report: Report = {reportID: '9001', policyID: 'joinRequestPolicy', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+            const joinRequestAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '9002',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+                originalMessage: {choice: '', policyID: 'joinRequestPolicy'},
+            } as ReportAction;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[joinRequestAction.reportActionID]: joinRequestAction});
+            await waitForBatchedUpdates();
+
+            // When the LHN row passes the value from its own subscription, which already knows the request was answered,
+            // and when no value is passed, which falls back to the copy in Onyx
+            const answered = SidebarUtils.getOptionData({
+                report,
+                dateFnsLocale: undefined,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+                hasPendingJoinRequest: false,
+            });
+            const fallback = SidebarUtils.getOptionData({
+                report,
+                dateFnsLocale: undefined,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the passed value wins, so a memoized row doesn't keep showing an answered request as unread
+            expect(answered?.isUnread).toBeFalsy();
+            expect(fallback?.isUnread).toBe(true);
+        });
+
         it('returns null when report is archived', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '5',
@@ -764,6 +838,7 @@ describe('SidebarUtils', () => {
                 currentUserLogin: CURRENT_USER_LOGIN,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 transactionViolations: undefined,
+                reportMetadata: undefined,
             });
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
@@ -1523,6 +1598,173 @@ describe('SidebarUtils', () => {
     });
 
     describe('getOptionData', () => {
+        it('returns isUnread for a never-read chat whose copy carries no lastActorAccountID', async () => {
+            // Given a 1:1 chat the current user has never opened, where the only visible action is a report
+            // preview posted by the other participant, so the received copy has a lastVisibleActionCreated
+            // but neither a lastReadTime nor a lastActorAccountID
+            const report: Report = {
+                ...createRandomReport(7101, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                lastMessageText: '',
+                lastReadTime: undefined,
+                lastActorAccountID: undefined,
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    18921695: {notificationPreference: 'always'},
+                },
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
+            // When the LHN option data is built and the derived attributes report the chat as not empty
+            const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: {
+                    reportName: '',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the row is unread, because the emptiness check already ruled out the deleted-message case
+            expect(result?.isUnread).toBe(true);
+        });
+
+        /**
+         * Builds a chat whose only comment sits after lastReadTime. The server does not reset
+         * lastVisibleActionCreated when a message is deleted, so the deleted variant is the case the removed
+         * lastActorAccountID guard used to catch. Returns the LHN option data for it.
+         *
+         * lastActorAccountID defaults to a real account on purpose: with it populated the removed guard would have
+         * been a no-op, so a `false` result can only come from the empty-report check inside isUnread. Pass 0 to
+         * cover the shape the server actually writes on delete.
+         *
+         * createRandomReportAction assigns random shouldShow and originalMessage.whisperedTo values, either of which
+         * hides the comment from the last-visible-message scan, so both are pinned here.
+         */
+        const getOptionDataForSoleComment = async (reportSeed: number, deleted: string, overrides: Partial<Report> = {}) => {
+            const report: Report = {
+                ...createRandomReport(reportSeed, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                lastMessageText: '',
+                lastReadTime: '2025-01-20 12:30:00.000',
+                lastActorAccountID: 18921695,
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    18921695: {notificationPreference: 'always'},
+                },
+                ...overrides,
+            };
+            const createdAction: ReportAction = {
+                ...createRandomReportAction(1),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: '2025-01-20 12:29:00.000',
+                shouldShow: true,
+                originalMessage: {html: '', lastModified: '2025-01-20 12:29:00.000'},
+            };
+            const comment: ReportAction = {
+                ...createRandomReportAction(2),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 18921695,
+                created: '2025-01-20 12:30:03.784',
+                shouldShow: true,
+                originalMessage: {html: '<p>hi</p>', lastModified: '2025-01-20 12:30:03.784'},
+                message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi', isDeletedParentAction: false, deleted}],
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [comment.reportActionID]: comment,
+                });
+            });
+
+            // reportAttributes is left undefined so the emptiness check has to resolve the last visible message
+            // from the report actions itself instead of reading a value the test handed it.
+            return SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+        };
+
+        it('does not return isUnread for a chat whose only message was deleted', async () => {
+            // Given a chat whose sole comment has been deleted
+            // When the LHN option data is built
+            const result = await getOptionDataForSoleComment(7102, '2025-01-20 12:31:00.000');
+
+            // Then the row is not bold, because the chat reads as empty once the deleted comment is skipped
+            expect(result?.isUnread).toBe(false);
+        });
+
+        it('returns isUnread for the same chat while its only message is still there', async () => {
+            // Given the same chat with the comment not deleted. This is the control for the case above, which
+            // passes vacuously if the fixture's only action is hidden from the last-visible-message scan.
+            // When the LHN option data is built
+            const result = await getOptionDataForSoleComment(7103, '');
+
+            // Then the row is bold, so the deleted case above is driven by the delete and nothing else
+            expect(result?.isUnread).toBe(true);
+        });
+
+        it('does not return isUnread for a never-read chat whose only message was deleted', async () => {
+            // Given the shape the server actually writes on delete: lastActorAccountID zeroed and the chat never
+            // read, so the timestamp comparison alone would call it unread
+            // When the LHN option data is built
+            const result = await getOptionDataForSoleComment(7104, '2025-01-20 12:31:00.000', {lastReadTime: undefined, lastActorAccountID: 0});
+
+            // Then the row is not bold
+            expect(result?.isUnread).toBe(false);
+        });
+
         it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.LEAVE_ROOM type', async () => {
             // When a report has last action of POLICY_CHANGE_LOG.LEAVE_ROOM type
             const report: Report = {
@@ -3830,7 +4072,9 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -3840,7 +4084,7 @@ describe('SidebarUtils', () => {
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
@@ -3948,7 +4192,9 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -3958,7 +4204,7 @@ describe('SidebarUtils', () => {
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
@@ -4628,6 +4874,120 @@ describe('SidebarUtils', () => {
                 });
 
                 expect(result).toEqual({});
+            });
+
+            it('should flag a never-read chat with no lastActorAccountID as unread for the Unread tab', () => {
+                // Given the same chat shape: never read, not empty, and no lastActorAccountID on the report
+                const report: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: '',
+                    lastReadTime: undefined,
+                    lastActorAccountID: undefined,
+                    lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                        18921695: {notificationPreference: 'always'},
+                    },
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}1`]: report,
+                };
+
+                // When the LHN report set is built
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: '1',
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: {
+                        '1': {
+                            reportName: '',
+                            isEmpty: false,
+                            brickRoadStatus: undefined,
+                            requiresAttention: false,
+                            reportErrors: {},
+                        },
+                    },
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then it belongs in the Unread tab
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]?.isUnreadReport).toBe(true);
+            });
+
+            it('should keep a never-read chat whose only message was deleted out of the Unread tab', async () => {
+                // Given a never-read chat whose sole comment was deleted, with lastActorAccountID zeroed the way the
+                // server writes it on delete, so the timestamp comparison alone would call it unread
+                const report: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastMessageText: '',
+                    lastReadTime: undefined,
+                    lastActorAccountID: 0,
+                    lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                        18921695: {notificationPreference: 'always'},
+                    },
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2025-01-20 12:29:00.000',
+                    shouldShow: true,
+                    originalMessage: {html: '', lastModified: '2025-01-20 12:29:00.000'},
+                };
+                const deletedComment: ReportAction = {
+                    ...createRandomReportAction(2),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: 18921695,
+                    created: '2025-01-20 12:30:03.784',
+                    shouldShow: true,
+                    originalMessage: {html: '<p>hi</p>', lastModified: '2025-01-20 12:30:03.784'},
+                    message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi', isDeletedParentAction: false, deleted: '2025-01-20 12:31:00.000'}],
+                };
+                await act(async () => {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                        [createdAction.reportActionID]: createdAction,
+                        [deletedComment.reportActionID]: deletedComment,
+                    });
+                });
+
+                // When the LHN report set is built without derived attributes, so the emptiness check resolves the
+                // last visible message from the report actions itself
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: report.reportID,
+                    reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then it is still displayed, but not flagged for the Unread tab. Asserting it is displayed matters:
+                // without it a report missing from the set entirely would satisfy the isUnreadReport check.
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]).toBeDefined();
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.isUnreadReport).toBeFalsy();
             });
 
             it('should pass isOffline=false to shouldDisplayReportInLHN', () => {

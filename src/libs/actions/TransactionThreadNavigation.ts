@@ -202,6 +202,35 @@ function clearActiveTransactionIDsForSource(source: string) {
 }
 
 /**
+ * Drops expenses that left `reportID` from a carousel seeded from that report, so its arrows stop paging to them.
+ * Carousels from other screens, such as search results, span several reports and are left alone.
+ */
+function removeActiveTransactionIDsForReport(transactionIDs: string[], reportID: string | undefined) {
+    if (!lastSetIDs?.length || !transactionIDs.length || !reportID) {
+        return Promise.resolve();
+    }
+
+    const reportSources = new Set<string>([CAROUSEL_SOURCE.report(reportID), CAROUSEL_SOURCE.reportRow(reportID), CAROUSEL_SOURCE.reportPreview(reportID)]);
+    if (!lastSetSource || !reportSources.has(lastSetSource)) {
+        return Promise.resolve();
+    }
+
+    const removedIDs = new Set(transactionIDs);
+    const remainingIDs = lastSetIDs.filter((transactionID) => !removedIDs.has(transactionID));
+    if (remainingIDs.length === lastSetIDs.length) {
+        return Promise.resolve();
+    }
+
+    // One expense left is nothing to page through.
+    if (remainingIDs.length < 2) {
+        return clearActiveTransactionIDs();
+    }
+
+    lastSetIDs = remainingIDs;
+    return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, remainingIDs);
+}
+
+/**
  * Gives up ownership of the carousel without clearing it, for a writer that unmounts while the list it seeded is
  * still driving the arrows of an expense open on top of it.
  *
@@ -221,6 +250,7 @@ export {
     setActiveTransactionIDs,
     clearActiveTransactionIDs,
     clearActiveTransactionIDsForSource,
+    removeActiveTransactionIDsForReport,
     disownActiveTransactionIDs,
     getActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
