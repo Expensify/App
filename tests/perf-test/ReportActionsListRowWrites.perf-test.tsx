@@ -77,7 +77,6 @@ const WRITES_PER_SCENARIO = 10;
 const VISIBLE_ACTION_ID = '10';
 
 beforeEach(async () => {
-    global.fetch = TestHelper.getGlobalFetchMock();
     // Initialize the network key for OfflineWithFeedback
     setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
