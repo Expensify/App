@@ -31,7 +31,6 @@ type TestFlowProps = {
 function TestFlow({step = 1, showHeader = true, onBackStep1, onBackStep2, shouldShowBackButtonStep2 = true}: TestFlowProps) {
     return (
         <OnboardingHeaderProvider>
-            <OnboardingStickyHeader />
             {showHeader && (
                 <>
                     {step === 1 && <OnboardingHeader onBackButtonPress={onBackStep1} />}
@@ -43,8 +42,17 @@ function TestFlow({step = 1, showHeader = true, onBackStep1, onBackStep2, should
                     )}
                 </>
             )}
+            <OnboardingStickyHeader />
         </OnboardingHeaderProvider>
     );
+}
+
+function getStickyBackButton() {
+    return screen.getAllByLabelText('common.back', {includeHiddenElements: true}).find((element) => element.props.tabIndex === -1);
+}
+
+function queryStickyBackButton() {
+    return screen.queryAllByLabelText('common.back', {includeHiddenElements: true}).find((element) => element.props.tabIndex === -1);
 }
 
 describe('OnboardingHeader', () => {
@@ -60,8 +68,8 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        // In step 1, pressing Back should trigger step 1 callback
-        const backButtonStep1 = screen.getAllByLabelText('common.back').at(0);
+        // In step 1, pressing the sticky Back button should trigger step 1 callback
+        const backButtonStep1 = getStickyBackButton();
         expect(backButtonStep1).toBeDefined();
         if (backButtonStep1) {
             fireEvent.press(backButtonStep1);
@@ -78,8 +86,8 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        // In step 2, pressing Back should trigger step 2 callback, not step 1
-        const backButtonStep2 = screen.getAllByLabelText('common.back').at(0);
+        // In step 2, pressing the sticky Back button should trigger step 2 callback, not step 1
+        const backButtonStep2 = getStickyBackButton();
         expect(backButtonStep2).toBeDefined();
         if (backButtonStep2) {
             fireEvent.press(backButtonStep2);
@@ -88,7 +96,7 @@ describe('OnboardingHeader', () => {
         expect(onBackStep2).toHaveBeenCalledTimes(1);
     });
 
-    it('hides the back button when moving to a step with shouldShowBackButton false', () => {
+    it('hides the sticky back button when moving to a step with shouldShowBackButton false', () => {
         const onBackStep = jest.fn();
 
         const {rerender} = render(
@@ -98,7 +106,7 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        expect(screen.queryAllByLabelText('common.back')).not.toHaveLength(0);
+        expect(queryStickyBackButton()).toBeDefined();
 
         // Move to step 2 where shouldShowBackButton is false
         rerender(
@@ -108,7 +116,7 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        expect(screen.queryAllByLabelText('common.back')).toHaveLength(0);
+        expect(queryStickyBackButton()).toBeUndefined();
     });
 
     it('resets header state to default when unmounted', () => {
@@ -122,11 +130,11 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        expect(screen.queryAllByLabelText('common.back')).not.toHaveLength(0);
+        expect(queryStickyBackButton()).toBeDefined();
 
         // Unmount header
         rerender(<TestFlow showHeader={false} />);
 
-        expect(screen.queryAllByLabelText('common.back')).toHaveLength(0);
+        expect(queryStickyBackButton()).toBeUndefined();
     });
 });
