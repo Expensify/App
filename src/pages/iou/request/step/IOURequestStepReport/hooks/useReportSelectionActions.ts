@@ -213,6 +213,7 @@ function useReportSelectionActions({
                         email: session?.email ?? '',
                         newReport: report,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                        policies: allPolicies,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         policyTagList,
                         transactions: targetTransactions,

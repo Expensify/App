@@ -123,6 +123,7 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
                 email: currentUserPersonalDetails.email ?? '',
                 newReport,
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                policies: allPolicies,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 policyTagList,
                 transactions,

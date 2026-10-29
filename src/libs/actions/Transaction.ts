@@ -23,6 +23,7 @@ import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
 import {
+    buildOptimisticConciergeDistanceRateModifiedExpenseReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
@@ -861,6 +862,8 @@ type ChangeTransactionsReportProps = {
     email: string;
     newReport?: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    /** All policies, used to resolve a distance expense's current rate on its source workspace */
+    policies?: OnyxCollection<Policy>;
     policyCategories?: OnyxEntry<PolicyCategories>;
     policyTagList: OnyxEntry<PolicyTagLists>;
     transactions: Transaction[];
@@ -888,6 +891,7 @@ function getChangeTransactionsReportOnyxData({
     email,
     newReport,
     policy,
+    policies,
     policyCategories,
     policyTagList,
     transactions,
@@ -1290,103 +1294,118 @@ function getChangeTransactionsReportOnyxData({
             });
         }
 
-        // Auto-select a valid default distance rate when moving to a workspace where the current rate is invalid,
-        // and recalculate derived fields (amount, merchant, currency) to match the new rate.
+        // Auto-select a distance rate when the expense moves to a different workspace. A matching rate keeps the expense's price,
+        // while the default rate recalculates its derived fields (amount, merchant, currency) and gets a Concierge MODIFIED_EXPENSE action.
+        // Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
         let transactionForViolations = transaction;
+        let repricedTransaction: Transaction | undefined;
         if (isGroupPolicy(policy) && policy?.id && isDistanceRequest(transaction)) {
             const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
-            const currentRate = currentRateID ? getDistanceRateCustomUnitRate(policy, currentRateID) : undefined;
-            if (!currentRateID || !currentRate || currentRate.enabled === false) {
-                const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-                if (defaultRate?.customUnitRateID) {
-                    transactionIDToUpdatedCustomUnitRateID[transaction.transactionID] = defaultRate.customUnitRateID;
-                    // Build an updated transaction with the new rate so we can derive fields from it
-                    const updatedTransaction: typeof transaction = {
-                        ...transaction,
-                        comment: {
-                            ...transaction.comment,
-                            customUnit: {
-                                ...transaction.comment?.customUnit,
-                                customUnitRateID: defaultRate.customUnitRateID,
-                                defaultP2PRate: undefined,
-                            },
+            const sourcePolicyID = oldReport?.policyID;
+            // An unreported expense has no policy but still carries its last workspace's rate, so it stays on the same workspace when the destination has that rate.
+            const isSameWorkspace = sourcePolicyID ? sourcePolicyID === policy.id : !!currentRateID && !!getDistanceRateCustomUnitRate(policy, currentRateID);
+            const currentRate =
+                currentRateID && currentRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
+                    ? DistanceRequestUtils.getRateByCustomUnitRateIDAcrossPolicies({
+                          customUnitRateID: currentRateID,
+                          policy: sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined,
+                          policies,
+                      })
+                    : undefined;
+            const selectedRate = isSameWorkspace ? undefined : DistanceRequestUtils.getRateForPolicyChange({transaction, policy, currentRate});
+            if (selectedRate?.customUnitRateID && selectedRate.customUnitRateID !== currentRateID) {
+                const isMatchingRate = DistanceRequestUtils.isMatchingRateForPolicyChange({transaction, currentRate, rate: selectedRate});
+                transactionIDToUpdatedCustomUnitRateID[transaction.transactionID] = selectedRate.customUnitRateID;
+                // Build an updated transaction with the new rate so we can derive fields from it
+                const updatedTransaction: typeof transaction = {
+                    ...transaction,
+                    comment: {
+                        ...transaction.comment,
+                        customUnit: {
+                            ...transaction.comment?.customUnit,
+                            customUnitRateID: selectedRate.customUnitRateID,
+                            defaultP2PRate: undefined,
                         },
-                    };
+                    },
+                };
 
-                    // Update distanceUnit if the new rate has a different unit, and convert distance if needed
-                    const existingDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
-                    const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+                // Update distanceUnit if the new rate has a different unit, and convert distance if needed
+                const existingDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
+                const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
+                if (updatedTransaction.comment?.customUnit) {
+                    updatedTransaction.comment.customUnit.distanceUnit = newDistanceUnit;
+                }
+                if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+                    const conversionFactor =
+                        existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
+                    const distance = roundToTwoDecimalPlaces((transaction.comment?.customUnit?.quantity ?? 0) * conversionFactor);
                     if (updatedTransaction.comment?.customUnit) {
-                        updatedTransaction.comment.customUnit.distanceUnit = newDistanceUnit;
+                        updatedTransaction.comment.customUnit.quantity = distance;
                     }
-                    if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
-                        const conversionFactor =
-                            existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
-                        const distance = roundToTwoDecimalPlaces((transaction.comment?.customUnit?.quantity ?? 0) * conversionFactor);
-                        if (updatedTransaction.comment?.customUnit) {
-                            updatedTransaction.comment.customUnit.quantity = distance;
-                        }
-                    }
+                }
 
-                    // Recalculate amount, merchant, and currency from the new rate
-                    const optimisticValue: Partial<typeof transaction> = {
-                        comment: updatedTransaction.comment,
-                    };
+                // Recalculate amount, merchant, and currency from the new rate, unless a matching rate keeps the expense's price
+                const optimisticValue: Partial<typeof transaction> = {
+                    comment: updatedTransaction.comment,
+                };
 
-                    if (!isFetchingWaypointsFromServer(transaction)) {
-                        const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
-                        const {unit, rate} = updatedMileageRate;
-                        const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
-                        const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-                        const shouldNegateAmount = isExpenseReport(newReport);
-                        const updatedAmount = shouldNegateAmount ? -calculatedAmount : calculatedAmount;
-                        const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
-                        const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
-                            true,
-                            distanceInMeters,
-                            unit,
-                            rate,
-                            updatedCurrency,
-                            // eslint-disable-next-line @typescript-eslint/no-deprecated
-                            translateLocal,
-                            (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-                            getCurrencySymbol,
-                            isManualDistanceRequest(transaction),
-                        );
+                const shouldReprice = !isMatchingRate && !isFetchingWaypointsFromServer(transaction);
+                if (shouldReprice) {
+                    const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
+                    const {unit, rate} = updatedMileageRate;
+                    const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
+                    const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
+                    const shouldNegateAmount = isExpenseReport(newReport);
+                    const updatedAmount = shouldNegateAmount ? -calculatedAmount : calculatedAmount;
+                    const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
+                    const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
+                        true,
+                        distanceInMeters,
+                        unit,
+                        rate,
+                        updatedCurrency,
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        translateLocal,
+                        (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                        getCurrencySymbol,
+                        isManualDistanceRequest(transaction),
+                    );
 
-                        optimisticValue.amount = updatedAmount;
-                        optimisticValue.modifiedAmount = updatedAmount;
-                        optimisticValue.modifiedMerchant = updatedMerchant;
-                        optimisticValue.modifiedCurrency = updatedCurrency;
-                    }
+                    optimisticValue.amount = updatedAmount;
+                    optimisticValue.modifiedAmount = updatedAmount;
+                    optimisticValue.modifiedMerchant = updatedMerchant;
+                    optimisticValue.modifiedCurrency = updatedCurrency;
+                }
 
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                        value: optimisticValue,
-                    });
-                    failureData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                        value: {
-                            comment: {
-                                customUnit: {
-                                    customUnitRateID: currentRateID ?? null,
-                                    defaultP2PRate: transaction.comment?.customUnit?.defaultP2PRate,
-                                    distanceUnit: existingDistanceUnit,
-                                    quantity: transaction.comment?.customUnit?.quantity,
-                                },
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: optimisticValue,
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: {
+                        comment: {
+                            customUnit: {
+                                customUnitRateID: currentRateID ?? null,
+                                defaultP2PRate: transaction.comment?.customUnit?.defaultP2PRate,
+                                distanceUnit: existingDistanceUnit,
+                                quantity: transaction.comment?.customUnit?.quantity,
                             },
-                            amount: transaction.amount,
-                            modifiedAmount: transaction.modifiedAmount,
-                            modifiedMerchant: transaction.modifiedMerchant,
-                            modifiedCurrency: transaction.modifiedCurrency,
                         },
-                    });
-                    transactionForViolations = {
-                        ...updatedTransaction,
-                        ...optimisticValue,
-                    };
+                        amount: transaction.amount,
+                        modifiedAmount: transaction.modifiedAmount,
+                        modifiedMerchant: transaction.modifiedMerchant,
+                        modifiedCurrency: transaction.modifiedCurrency,
+                    },
+                });
+                transactionForViolations = {
+                    ...updatedTransaction,
+                    ...optimisticValue,
+                };
+                if (shouldReprice) {
+                    repricedTransaction = transactionForViolations;
                 }
             }
         }
@@ -1757,9 +1776,40 @@ function getChangeTransactionsReportOnyxData({
             });
         }
 
+        // Tell the user why a repriced expense's amount changed, right after it was moved
+        let modifiedExpenseAction;
+        if (repricedTransaction && transactionThreadReportID) {
+            modifiedExpenseAction = buildOptimisticConciergeDistanceRateModifiedExpenseReportAction({
+                transactionThreadReportID,
+                oldTransaction: transaction,
+                updatedTransaction: repricedTransaction,
+                policy,
+                created: movedAction?.created ? DateUtils.addMillisecondsFromDateTime(movedAction.created, 1) : DateUtils.getDBTime(),
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[modifiedExpenseAction.reportActionID]: modifiedExpenseAction},
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[modifiedExpenseAction.reportActionID]: {pendingAction: null}},
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[modifiedExpenseAction.reportActionID]: null},
+            });
+        }
+
         // Create base transaction data object
         const baseTransactionData = {
             movedReportActionID: movedAction?.reportActionID,
+            modifiedExpenseReportActionID: modifiedExpenseAction?.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
             ...(transactionThreadCreatedReportActionID
                 ? {

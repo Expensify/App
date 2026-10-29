@@ -650,11 +650,44 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
         return undefined;
     }
 
-    const equivalentRates = Object.fromEntries(
-        Object.entries(mileageRates).filter(([, rate]) => rate.rate === currentRate.rate && rate.currency === currentRate.currency && rate.unit === currentRate.unit),
-    );
+    const equivalentRates = Object.fromEntries(Object.entries(mileageRates).filter(([, rate]) => isEquivalentRate(rate, currentRate)));
 
     return getBestEligibleRate(equivalentRates, expenseDate);
+}
+
+function isEquivalentRate(rate: MileageRate, currentRate: MileageRate): boolean {
+    return rate.rate === currentRate.rate && rate.currency === currentRate.currency && rate.unit === currentRate.unit;
+}
+
+/**
+ * Returns the rate an expense changing workspace should match: `currentRate` when the caller resolved it, else the P2P rate the expense carries.
+ */
+function getRateToMatchForPolicyChange(transaction: OnyxEntry<Transaction>, currentRate: MileageRate | undefined): MileageRate | undefined {
+    if (currentRate) {
+        return currentRate;
+    }
+
+    if (!isCustomUnitRateIDForP2P(transaction)) {
+        return undefined;
+    }
+
+    const p2pRate = getRateForP2P(getCurrency(transaction), transaction);
+    // getRateForP2P reports the loaded global default's unit, not the expense's, so read the unit off the transaction the way getRate does.
+    // Otherwise an expense saved in kilometers is matched as miles and the fallback rate reprices it.
+    return {...p2pRate, unit: getDistanceUnit(transaction, p2pRate)};
+}
+
+/**
+ * Whether the rate chosen by `getRateForPolicyChange` is equivalent to the expense's current rate, so the expense keeps its amount and merchant.
+ * Otherwise the expense was repriced onto the destination policy's default rate.
+ */
+function isMatchingRateForPolicyChange({transaction, currentRate, rate}: {transaction: OnyxEntry<Transaction>; currentRate?: MileageRate; rate: MileageRate}): boolean {
+    const rateToMatch = getRateToMatchForPolicyChange(transaction, currentRate);
+    if (rateToMatch?.rate === undefined || !rateToMatch.currency) {
+        return false;
+    }
+
+    return isEquivalentRate(rate, rateToMatch);
 }
 
 /**
@@ -669,10 +702,7 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
 function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
     const expenseDate = getFormattedCreated(transaction);
     const mileageRates = getMileageRates(policy);
-    const p2pRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined;
-    // getRateForP2P reports the loaded global default's unit, not the expense's, so read the unit off the transaction the way getRate does.
-    // Otherwise an expense saved in kilometers is matched as miles and the fallback rate reprices it.
-    const rateToMatch = currentRate ?? (p2pRate ? {...p2pRate, unit: getDistanceUnit(transaction, p2pRate)} : undefined);
+    const rateToMatch = getRateToMatchForPolicyChange(transaction, currentRate);
 
     const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
 
@@ -1111,6 +1141,7 @@ export default {
     isUnsetDistanceCustomUnitRateID,
     getBestEligibleRate,
     getRateForPolicyChange,
+    isMatchingRateForPolicyChange,
     getRateDateLabel,
     getRateDisplayName,
     getRateNameWithDateSuffix,
