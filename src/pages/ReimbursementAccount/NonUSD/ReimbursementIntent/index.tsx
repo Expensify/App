@@ -42,7 +42,6 @@ function IntentOption({illustration, title, description, onPress}: IntentOptionP
     return (
         <MenuItem.Root
             onPress={onPress}
-            accessibilityLabel={title}
             style={styles.purposeMenuItem}
         >
             <MenuItem.Row>
