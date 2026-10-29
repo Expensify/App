@@ -2003,7 +2003,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-blob-util (0.24.9):
+  - react-native-blob-util (0.24.12):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -4111,7 +4111,7 @@ SPEC CHECKSUMS:
   react-native-advanced-input-mask: d42c73e0d71141101fa74f16b6a7b55a8420c5a1
   react-native-airship: 25d3e960fb5eadb510682709175267c209f166ed
   react-native-app-logs: ddcfb542d3cfb4ab3210fcd52acf4e6f2e12e3e9
-  react-native-blob-util: 91b174f9c6d6969d366a8cc79035288556062a05
+  react-native-blob-util: 0091cf4599c9cc14d79c9f31be887df4d3d3cf59
   react-native-cameraroll: 8fd837cd3e2c96ca378d85eb4340134381797309
   react-native-config: 06c97ec20d877e11bb128d8cdc11329f18494ecb
   react-native-document-picker: ee9a7692303f36eef1798dcf43f38f51b1382ad1
