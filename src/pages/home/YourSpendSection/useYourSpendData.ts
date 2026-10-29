@@ -169,6 +169,9 @@ type YourSpendReportsSignature = {
     // search-refire key and gates the cached "Awaiting approval" total. It is folded into this
     // signature so the REPORT collection is scanned once per change rather than by a second selector.
     outstandingReportIDs: string;
+    // The same reports with their totals. An edit from another device can reach an expense this device never
+    // loaded, which the expense counter skips, so the report total is what moves the "Awaiting approval" key.
+    outstandingReportTotals: string;
     // Status subsets used to bucket queued amount-affecting commands by the total they'd move.
     submittedReportIDs: string;
     reimbursedReportIDs: string;
@@ -179,6 +182,7 @@ const EMPTY_SPEND_REPORTS_SIGNATURE: YourSpendReportsSignature = {
     approvalScopeReportIDs: '',
     paymentScopeReportIDs: '',
     outstandingReportIDs: '',
+    outstandingReportTotals: '',
     submittedReportIDs: '',
     reimbursedReportIDs: '',
     amount: {approval: false, payment: false},
@@ -194,6 +198,7 @@ function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefine
     const approvalScope: string[] = [];
     const paymentScope: string[] = [];
     const outstanding: string[] = [];
+    const outstandingTotals: Record<string, string> = {};
     const submitted: string[] = [];
     const reimbursed: string[] = [];
     for (const report of Object.values(reports)) {
@@ -212,6 +217,7 @@ function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefine
             // OUTSTANDING is the stricter subset (both state & status SUBMITTED) driving the search refire.
             if (report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
                 outstanding.push(report.reportID);
+                outstandingTotals[report.reportID] = `${report.reportID}:${report.total ?? ''}:${report.currency ?? ''}`;
             }
         } else if (isReimbursed) {
             reimbursed.push(report.reportID);
@@ -228,6 +234,7 @@ function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefine
     signature.approvalScopeReportIDs = approvalScope.sort().join(',');
     signature.paymentScopeReportIDs = paymentScope.sort().join(',');
     signature.outstandingReportIDs = outstanding.sort().join(',');
+    signature.outstandingReportTotals = outstanding.map((reportID) => outstandingTotals[reportID]).join(',');
     signature.submittedReportIDs = submitted.sort().join(',');
     signature.reimbursedReportIDs = reimbursed.sort().join(',');
     return signature;
@@ -425,6 +432,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
     const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
+    const outstandingReportTotals = reportsSignature?.outstandingReportTotals ?? '';
     const reimbursedReportsSignature = reportsSignature?.reimbursedReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
@@ -600,7 +608,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     useTabFocusedRefresh(
         SCREENS.HOME,
         // The expense counter catches edits on a report that is already outstanding, which leave the report list unchanged.
-        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature, spendDataSignature?.expenses ?? 0].join('|'),
+        [isOffline, accountID, approvalQueryJSON?.hash, isApprovalApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportTotals, spendDataSignature?.expenses ?? 0].join('|'),
         fireApprovalSearch,
     );
     useTabFocusedRefresh(SCREENS.HOME, [isOffline, accountID, paymentQueryJSON?.hash, isPaymentApplicable ? 1 : 0, reimbursedReportsSignature].join('|'), firePaymentSearch);

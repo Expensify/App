@@ -48,13 +48,12 @@ function unifiedListItemType(item: UnifiedListItem) {
 }
 
 type MoneyRequestReportFlashListProps = FlashListProps<UnifiedListItem> & {
-    /** Ref to the underlying list, shared via the ActionList context (typed for the legacy FlatList). */
+    /** Ref to the underlying list, shared via the ActionList context. */
     ref: FlatListRefType;
 };
 
 /**
- * Forwards the shared ActionList context ref to the underlying FlashList. That context slot predates this FlashList-based
- * list and is still shared with the legacy report list, so it is typed for a FlatList. Mirroring InvertedFlashList, the
+ * Forwards the shared ActionList context ref to the underlying FlashList. Mirroring InvertedFlashList, the
  * ref is forwarded through @components/FlashList — which receives it as an untyped runtime prop — so no type assertion is
  * needed. The scroll manager relies on the FlashList registering into this slot.
  */
@@ -88,6 +87,9 @@ type MoneyRequestReportUnifiedListProps = {
 
     /** ID of the report action deep-linked to, if any. */
     linkedReportActionID: string | undefined;
+
+    /** First revealed action to mount for a manual expansion's focus handoff. */
+    focusRequestedReportActionID?: string;
 
     /** ID of a newly added transaction to highlight, if any. */
     newTransactionID?: string;
@@ -138,6 +140,7 @@ function MoneyRequestReportUnifiedList({
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
+    focusRequestedReportActionID,
     newTransactionID,
     listRef,
     accessibilityLabel,
@@ -184,6 +187,24 @@ function MoneyRequestReportUnifiedList({
 
     // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
     const viewableItemsRef = useRef<ViewToken[]>([]);
+
+    const expandedFocusIndex = focusRequestedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === focusRequestedReportActionID) : -1;
+    useEffect(() => {
+        if (expandedFocusIndex < 0) {
+            return;
+        }
+
+        const dataIndex = expandedFocusIndex + reportActionIndexOffset;
+        if (viewableItemsRef.current.some((token) => token.index === dataIndex)) {
+            return;
+        }
+
+        // Resolve the transaction offset here, where the virtualized list's data is owned.
+        const frame = requestAnimationFrame(() => {
+            listRef?.current?.scrollToIndex({index: dataIndex, animated: false, viewPosition: 0.5});
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [expandedFocusIndex, focusRequestedReportActionID, reportActionIndexOffset, listRef]);
 
     // Handle to the nested table (horizontal mode) — read for row page positions, never driven to scroll (its scroll is a no-op).
     const tableRef = useRef<ExternalScrollFlashListTableHandle>(null);

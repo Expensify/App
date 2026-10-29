@@ -49,6 +49,7 @@ function SearchNLFilterPage() {
             <SearchNLFilterContent
                 onSuccess={handleSuccess}
                 size={CONST.BUTTON_SIZE.LARGE}
+                autoFocus
             />
         </ScreenWrapper>
     );
