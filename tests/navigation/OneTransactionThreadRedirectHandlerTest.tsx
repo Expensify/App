@@ -20,7 +20,6 @@ const SIBLING_TRANSACTION_ID = '22222';
 
 // Inlined because a `jest.mock` factory may only close over locals initialized with a literal.
 const TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY = 'transactionThreadNavigationTransactionIDs';
-const SINGLE_EXPENSE_REPORT_VIEW_KEY = 'nvp_expensify_singleExpenseReportView';
 
 const mockNavigate = jest.fn();
 
@@ -54,17 +53,12 @@ jest.mock('@react-navigation/native', () => {
 let mockParentReportID: string | undefined = EXPENSE_REPORT_ID;
 let mockParentTransactionCount: number | undefined = 1;
 let mockSiblingTransactionIDs: string[] | undefined;
-let mockSingleExpenseReportView: string | undefined;
-let mockSingleExpenseReportViewStatus = 'loaded';
 
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => {
         if (key === TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS_KEY) {
             return [options?.selector ? options.selector(mockSiblingTransactionIDs) : mockSiblingTransactionIDs, {status: 'loaded'}];
-        }
-        if (key === SINGLE_EXPENSE_REPORT_VIEW_KEY) {
-            return [mockSingleExpenseReportView, {status: mockSingleExpenseReportViewStatus}];
         }
         const value = key.endsWith(EXPENSE_REPORT_ID)
             ? {reportID: EXPENSE_REPORT_ID, type: 'expense', transactionCount: mockParentTransactionCount}
@@ -108,8 +102,6 @@ describe('OneTransactionThreadRedirectHandler', () => {
         mockOneTransactionThreadReportID = THREAD_REPORT_ID;
         mockParentReportAction = createIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
         mockSiblingTransactionIDs = undefined;
-        mockSingleExpenseReportView = undefined;
-        mockSingleExpenseReportViewStatus = 'loaded';
     });
 
     it('replaces the route with the parent report when the thread is the only expense of the report', async () => {
@@ -296,47 +288,5 @@ describe('OneTransactionThreadRedirectHandler', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('mocks the single-expense report view under the key the handler subscribes to', () => {
-        expect(SINGLE_EXPENSE_REPORT_VIEW_KEY).toBe(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
-    });
-
-    it('keeps the thread route when the user views single-expense reports in the table view', async () => {
-        // Given the user picked the table view, where the expense is a row the user opens on purpose
-        mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE;
-
-        // When the expense's thread opens
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Then it stays on the thread instead of bouncing back to the report
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('waits for the single-expense report view to load before redirecting', async () => {
-        // Given the saved view hasn't loaded yet, so we can't tell whether the user picked the table view
-        mockSingleExpenseReportViewStatus = 'loading';
-
-        // When the expense's thread opens, for example from a deep link
-        render(<OneTransactionThreadRedirectHandler />);
-
-        await waitForBatchedUpdatesWithAct();
-
-        // Then it doesn't redirect too early
-        expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('redirects when the user views single-expense reports in the expense view', async () => {
-        // Given the user explicitly picked the expense view
-        mockSingleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE;
-
-        // When the expense's thread opens
-        render(<OneTransactionThreadRedirectHandler />);
-
-        // Then it's replaced with the report, which shows the expense inline
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockNavigate).toHaveBeenCalledWith(`r/${EXPENSE_REPORT_ID}`, {forceReplace: true});
     });
 });

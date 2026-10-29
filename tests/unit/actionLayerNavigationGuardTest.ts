@@ -30,9 +30,6 @@ const FORBIDDEN_IMPORT = '@libs/Navigation/helpers/submitWithDismissFirst';
 const BARRIER_FACTORY = 'createTransitionBarrier|armTransitionBarrier';
 const FORBIDDEN_BARRIER_IMPORT = new RegExp(String.raw`import\s+(?:type\s+)?\{[^}]*\b(?:${BARRIER_FACTORY})\b|\.\s*(?:${BARRIER_FACTORY})\s*\(`);
 
-/** Action files whose navigation already moved to the view layer. Each is pinned here as it migrates, so it cannot drift back before the ESLint ban lands. */
-const MIGRATED_ACTION_FILES = ['IOU/Split.ts', 'IOU/SplitTransactionUpdate.ts', 'IOU/PerDiem.ts', 'IOU/SendInvoice.ts', 'IOU/SendMoney.ts', 'IOU/TrackExpense.ts'];
-
 /**
  * Matching on a leading navigation verb covers the helpers that wrap a route change, such as
  * `dismissModalAndOpenReportInInboxTab`, `navigateAfterExpenseCreate` and `popReportsSplitNavigatorToReport`,
@@ -64,7 +61,8 @@ type HasPayload<F extends (...args: never[]) => unknown> = NoPayload<F> extends 
  * Exhaustive per-module check for the action files whose navigation has already moved. It declares the complete set
  * of exports that return anything, so a newly added action is covered without anybody remembering to list it: a new
  * returning export fails with its own name, and a declared name that becomes void fails too. The modules not listed
- * here still navigate by design until the later PRs in issue #84631, which is when they join.
+ * here still navigate by design until the later PRs in issue #84631, which is when they join. Adding a module here
+ * also adds its file to the navigation scans below, so a migrated file always gets both checks.
  */
 type ReturningExports<M> = {
     [K in keyof M]-?: M[K] extends (...args: never[]) => unknown ? (Awaited<ReturnType<M[K]>> extends void | undefined ? never : K) : never;
@@ -99,6 +97,9 @@ const RETURNING_EXPORTS_BY_MODULE = {
         | 'trackExpense'
     >,
 };
+
+/** Action files whose navigation already moved to the view layer, pinned so they cannot drift back before the ESLint ban lands. */
+const MIGRATED_ACTION_FILES = Object.keys(RETURNING_EXPORTS_BY_MODULE).map((module) => `IOU/${module}.ts`);
 
 /**
  * Write-performing actions under `actions/IOU` that still hand a payload back. The list is kept by hand, so it covers
@@ -164,19 +165,6 @@ describe('action-layer navigation guard (#84631)', () => {
 
         // Then none of them navigates, dismisses or pops a screen
         expect(offenders).toEqual([]);
-    });
-
-    it('every action file that already moved its navigation also has the exhaustive payload check', () => {
-        // Given the files scanned for navigation, which are listed by hand separately from the payload check
-        const navigationScannedFiles = [...MIGRATED_ACTION_FILES].sort();
-
-        // When the modules under the exhaustive payload check are turned into the same file paths
-        const payloadCheckedFiles = Object.keys(RETURNING_EXPORTS_BY_MODULE)
-            .map((module) => `IOU/${module}.ts`)
-            .sort();
-
-        // Then both name the same files, so a migrated file cannot get one check without the other
-        expect(payloadCheckedFiles).toEqual(navigationScannedFiles);
     });
 
     it('action files that already moved their navigation import no route-changing helper', () => {
