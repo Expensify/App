@@ -159,7 +159,7 @@ function useReportPickerActions({
     // For the current user's own non-per-diem expenses, fall back to undefined to let the default workspace apply.
     const targetExpensePolicyID = ownerAccountID !== session?.accountID || isPerDiemTransaction ? (selectedReport?.policyID ?? transactionPolicyID) : undefined;
 
-    // we need to fall back to transactionPolicyID because for a new workspace there is no report created yet
+    // We need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(
         isPerDiemTransaction,
