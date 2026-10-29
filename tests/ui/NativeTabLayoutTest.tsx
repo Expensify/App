@@ -1,6 +1,6 @@
 import {render} from '@testing-library/react-native';
 
-import getTabWithoutBarItem from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/getTabWithoutBarItem';
+import type {NativeTabName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import NativeTabLayout from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
 import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
 
@@ -35,8 +35,7 @@ function Tabs() {
     return null;
 }
 
-function renderTabs(isInsightsBetaEnabled: boolean, selectedTabIndex: number) {
-    const tabWithoutBarItem = getTabWithoutBarItem(isInsightsBetaEnabled);
+function renderTabs(tabWithoutBarItem: NativeTabName, selectedTabIndex: number) {
     const routes = TAB_NAMES.map((name) => ({key: `${name}-key`, name}));
     return (
         <NativeTabLayout
@@ -52,19 +51,19 @@ function renderTabs(isInsightsBetaEnabled: boolean, selectedTabIndex: number) {
 }
 
 describe('NativeTabLayout', () => {
-    it('remounts the native tabs when the Insights beta changes which tab has no bar item, and not when a tab is selected', () => {
-        // Given the tabs shown with the Insights beta off, so Insights has no bar item
-        const {rerender} = render(renderTabs(false, 0));
+    it('remounts the native tabs when the tab without a bar item changes, and not when a tab is selected', () => {
+        // Given the tabs shown with Account as the tab without a bar item, as the app does today
+        const {rerender} = render(renderTabs(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, 0));
 
         // When another tab is selected
-        rerender(renderTabs(false, 1));
+        rerender(renderTabs(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, 1));
 
         // Then the native tabs stay mounted, so the tabs keep their state
         expect(onTabsMount).toHaveBeenCalledTimes(1);
 
-        // When the Insights beta is turned on, and then off again
-        rerender(renderTabs(true, 1));
-        rerender(renderTabs(false, 1));
+        // When Insights becomes the tab without a bar item, and then Account again
+        rerender(renderTabs(SCREENS.INSIGHTS, 1));
+        rerender(renderTabs(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, 1));
 
         // Then the native tabs are remounted for each change, since the Android tab host can't swap a tab in place
         expect(onTabsMount).toHaveBeenCalledTimes(3);

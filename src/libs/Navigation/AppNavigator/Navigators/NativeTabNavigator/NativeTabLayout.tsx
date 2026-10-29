@@ -16,9 +16,9 @@ type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps
 function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    // On Android the native tab host shows no content for a tab added after its first selection, and crashes when the
-    // selected tab is removed in place. Remounting the host when the set of tabs without a bar item changes (the
-    // Insights beta loading after launch or being toggled) gives it only the tabs it should show.
+    // On Android the native tab host shows no content for a tab added after the host selected its first tab, and
+    // crashes when the selected tab is removed in place. Remounting the host when the set of tabs without a bar item
+    // changes gives it only the tabs it should show.
     const tabsWithoutBarItemKey = state.routes
         .filter((route) => descriptors[route.key]?.options.tabBarItemHidden)
         .map((route) => route.name)
