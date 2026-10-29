@@ -234,7 +234,7 @@ function MoneyRequestReceiptView({
     const addButtonRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const deviceHasHoverSupport = hasHoverSupport();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus', 'Globe']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus', 'Translate']);
     const {canTranslate, isTranslateDisabled, startTranslation} = useReceiptTranslation(displayedTransaction);
 
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -866,7 +866,7 @@ function MoneyRequestReceiptView({
                                                     sentryLabel={CONST.SENTRY_LABEL.RECEIPT.TRANSLATE_BUTTON}
                                                 >
                                                     <Icon
-                                                        src={lazyIcons.Globe}
+                                                        src={lazyIcons.Translate}
                                                         height={variables.iconSizeSmall}
                                                         width={variables.iconSizeSmall}
                                                         fill={theme.icon}

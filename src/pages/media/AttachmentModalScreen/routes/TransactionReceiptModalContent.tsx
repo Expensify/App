@@ -75,7 +75,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound', 'Globe', 'ArrowsLeftRight']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound', 'Translate', 'ArrowsLeftRight']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
@@ -627,7 +627,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         style={styles.transactionReceiptButton}
                         sentryLabel={CONST.SENTRY_LABEL.RECEIPT_MODAL.TRANSLATE_RECEIPT}
                     >
-                        <Button.Icon src={expensifyIcons.Globe} />
+                        <Button.Icon src={expensifyIcons.Translate} />
                         <Button.Text>{translate('receipt.translate')}</Button.Text>
                     </Button>
                 )}
