@@ -27,6 +27,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type PayActionCellProps = {
     isLoading: boolean;
@@ -69,7 +70,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
-        conciergeChat,
         defaultWorkspaceName,
         chatReportPolicy,
         delegateAccountID,
@@ -96,7 +96,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
     const {currency} = iouReport ?? {};
 
-    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+    const runPayment = async ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !reportID || !hash || !amount) {
             Log.info('[SearchPay] Dropping row pay: missing required data', false, {
                 hasPaymentType: !!type,
@@ -135,6 +135,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             const chatReportActions =
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
+            // Only paying needs the Concierge chat, so read it after the guards rather than re-rendering every row on Concierge writes
+            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+            const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             payInvoice({
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
@@ -174,6 +177,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         payMoneyRequest({
             bankAccountList,
             isASAPSubmitBetaEnabled,
@@ -202,6 +207,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             conciergeChat,
             rules,
         });
+    };
+
+    const confirmPayment = (params: PaymentActionParams) => {
+        runPayment(params);
     };
 
     return (

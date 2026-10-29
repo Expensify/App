@@ -1,10 +1,9 @@
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
-import type {OpenReportActionParams} from '@libs/actions/Report';
 import {openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
 import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -20,6 +19,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -37,9 +38,7 @@ type RAMOnlyReportLoadingState = OnyxEntry<{
 
 type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
-    introSelected: OpenReportActionParams['introSelected'];
-    isSelfTourViewed: OpenReportActionParams['isSelfTourViewed'];
-    hasCompletedGuidedSetupFlow: OpenReportActionParams['hasCompletedGuidedSetupFlow'];
+    policyID: string | undefined;
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -55,7 +54,6 @@ type UseReportActionsNewActionLiveTailParams = {
     treatAsNoPaginationAnchor: boolean;
     prevIsLoadingInitialReportActions: boolean | undefined;
     reportLoadingState: RAMOnlyReportLoadingState;
-    fullPolicySnapshot?: OpenReportActionParams['fullPolicySnapshot'];
 };
 
 type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune';
@@ -68,9 +66,7 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
  */
 function useReportActionsNewActionLiveTail({
     reportID,
-    introSelected,
-    isSelfTourViewed,
-    hasCompletedGuidedSetupFlow,
+    policyID,
     isOffline,
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
@@ -86,27 +82,33 @@ function useReportActionsNewActionLiveTail({
     treatAsNoPaginationAnchor,
     prevIsLoadingInitialReportActions,
     reportLoadingState,
-    fullPolicySnapshot,
 }: UseReportActionsNewActionLiveTailParams) {
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isInSidePanel = useIsInSidePanel();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
-    // Read the Concierge chat only when the jump happens, so the list does not subscribe to it
+    // Read openReport's inputs only when a jump happens, so the list does not subscribe to them
     const openReportAtLiveTail = async () => {
-        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const [conciergeReportID, introSelected, onboarding, session, fullPolicySnapshotData] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.SESSION,
+            `${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(policyID)}`,
+        ]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+        const fullPolicySnapshotLastModified = fullPolicySnapshotLastModifiedSelector(fullPolicySnapshotData);
         openReport({
             reportID,
             introSelected,
             conciergeChat,
             hasReportActions: true,
-            currentUserAccountID,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            fullPolicySnapshot,
+            fullPolicySnapshot: policyID && fullPolicySnapshotLastModified ? {policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
     };
 
@@ -250,6 +252,7 @@ function useReportActionsNewActionLiveTail({
         isScrollToBottomEnabled,
         setIsScrollToBottomEnabled,
         completeLiveTailPruneAfterScrollToBottom,
+        openReportAtLiveTail,
     };
 }
 

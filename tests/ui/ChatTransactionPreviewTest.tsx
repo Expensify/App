@@ -99,6 +99,8 @@ describe('ChatTransactionPreview', () => {
         );
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Transaction preview'));
+        // Creating the thread reads its inputs from Onyx first, so wait for that read before checking the call
+        await waitForBatchedUpdatesWithAct();
 
         // Then the thread is created with the marker, so OpenReport can skip the large policy collections
         expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({fullPolicySnapshotLastModified: LIVE_FULL_POLICY_SNAPSHOT_LAST_MODIFIED}));

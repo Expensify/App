@@ -140,6 +140,7 @@ import type {ValueOf} from 'type-fest';
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
@@ -640,18 +641,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
-    const {
-        introSelected,
-        isSelfTourViewed,
-        activePolicyID,
-        activePolicy,
-        conciergeChat,
-        defaultWorkspaceName,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
-    } = usePaymentContext();
+    const {introSelected, isSelfTourViewed, activePolicyID, activePolicy, defaultWorkspaceName, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail} =
+        usePaymentContext();
     const allTransactions = useAllTransactions();
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -1655,7 +1646,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     ]);
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
+        async (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
             if (!hash) {
                 Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
@@ -1795,6 +1786,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
+            // Only paying needs the Concierge chat, so read it here rather than re-rendering the bulk actions on Concierge writes
+            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+            const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
@@ -1999,7 +1993,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             searchResults?.data,
             delegateAccountID,
             isTrackIntentUser,
-            conciergeChat,
             getCurrencyDecimals,
             rules,
         ],
@@ -2679,7 +2672,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
             shouldCloseModalOnSelect: true,
             subMenuItems: bulkPayButtonOptions,
-            onSelected: () => onBulkPaySelected(undefined),
+            onSelected: () => {
+                onBulkPaySelected(undefined);
+            },
         };
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;

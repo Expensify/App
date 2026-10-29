@@ -18,6 +18,8 @@ import type {UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
 const TEST_INVOICE_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
 const TEST_HASH = 12345;
@@ -146,7 +148,7 @@ describe('PayActionCell', () => {
         mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
     });
 
-    it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', () => {
+    it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', async () => {
         // Given an invoice report row whose invoice chat is resolved and passed down as a prop
         render(
             <PayActionCell
@@ -166,6 +168,8 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+        // The payment reads the Concierge chat from Onyx first, so wait for that read before checking the call
+        await waitForBatchedUpdates();
 
         // Then the invoice payment should use the supplied chat report because paying an invoice needs the real invoice chat data
         expect(mockedPayInvoice).toHaveBeenCalledWith(
@@ -203,7 +207,7 @@ describe('PayActionCell', () => {
         expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID: TEST_INVOICE_REPORT_ID});
     });
 
-    it('pays a money request with a fallback chat report when no chatReport prop is supplied', () => {
+    it('pays a money request with a fallback chat report when no chatReport prop is supplied', async () => {
         // Given an expense report row whose chat report is not loaded (no chatReport prop) while the report itself carries a chatReportID
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
@@ -226,6 +230,8 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+        // The payment reads the Concierge chat from Onyx first, so wait for that read before checking the call
+        await waitForBatchedUpdates();
 
         // Then the payment should proceed with a minimal fallback chat report built from the known IDs
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
@@ -236,7 +242,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('pays a money request with the loaded chat report when it is supplied', () => {
+    it('pays a money request with the loaded chat report when it is supplied', async () => {
         // Given an expense report row whose chat report is loaded and passed down as a prop
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
@@ -259,6 +265,8 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+        // The payment reads the Concierge chat from Onyx first, so wait for that read before checking the call
+        await waitForBatchedUpdates();
 
         // Then the payment should use the loaded chat report
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(

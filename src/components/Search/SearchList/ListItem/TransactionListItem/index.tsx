@@ -57,7 +57,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import TransactionListItemNarrow from './TransactionListItemNarrow';
 import TransactionListItemWide from './TransactionListItemWide';
@@ -166,7 +166,6 @@ function TransactionListItemInner<TItem extends ListItem>({
         chatReportPolicy,
         delegateEmail,
         delegateAccountID,
-        conciergeChat,
         bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
@@ -244,7 +243,14 @@ function TransactionListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes.
+    // Other actions skip the read so they stay synchronous with the press event.
+    const runActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
+        let conciergeChat: OnyxEntry<Report>;
+        if (liveTransactionItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
+            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+            conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        }
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -289,6 +295,10 @@ function TransactionListItemInner<TItem extends ListItem>({
             conciergeChat,
             bankAccountList,
         });
+    };
+
+    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
+        runActionButtonPress(event);
     };
 
     const sharedProps = {

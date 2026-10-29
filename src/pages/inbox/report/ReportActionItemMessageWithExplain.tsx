@@ -5,7 +5,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {openLink} from '@libs/actions/Link';
@@ -23,6 +22,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
@@ -44,33 +44,36 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
     const personalDetails = usePersonalDetails();
 
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
 
+    // Read explain's inputs only when the link is pressed, so each row with reasoning does not subscribe to them
+    const explainAction = async () => {
+        const [introSelected, onboarding, conciergeReportID] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING, ONYXKEYS.CONCIERGE_REPORT_ID]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
+        explain({
+            childReport,
+            originalReport,
+            reportAction: action,
+            translate,
+            currentUserAccountID: personalDetail.accountID,
+            introSelected,
+            conciergeChat,
+            isSelfTourViewed: hasSeenTourSelector(onboarding),
+            delegateAccountID,
+            participantsPersonalDetails,
+            timezone: personalDetail?.timezone,
+        });
+    };
+
     const handleLinkPress = (event: GestureResponderEvent | KeyboardEvent, href: string) => {
         // Handle the special "Explain" link
         if (href.endsWith(CONST.CONCIERGE_EXPLAIN_LINK_PATH)) {
-            const participantsPersonalDetails = getParticipantsPersonalDetails([personalDetail.accountID, Number(action?.actorAccountID)], personalDetails);
-            explain({
-                childReport,
-                originalReport,
-                reportAction: action,
-                translate,
-                currentUserAccountID: personalDetail.accountID,
-                introSelected,
-                conciergeChat,
-                isSelfTourViewed,
-                delegateAccountID,
-                participantsPersonalDetails,
-                timezone: personalDetail?.timezone,
-            });
+            explainAction();
             return;
         }
 

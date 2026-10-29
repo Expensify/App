@@ -49,7 +49,7 @@ import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
 
@@ -310,7 +310,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         amountOwed,
         delegateEmail,
         delegateAccountID,
-        conciergeChat,
         bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
@@ -327,7 +326,14 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
+    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes.
+    // Other actions skip the read so they stay synchronous with the press event.
+    const runActionButtonPress = async (event?: ModifiedMouseEvent) => {
+        let conciergeChat: OnyxEntry<Report>;
+        if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
+            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+            conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        }
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -372,6 +378,11 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             bankAccountList,
         });
     };
+
+    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
+        runActionButtonPress(event);
+    };
+
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow

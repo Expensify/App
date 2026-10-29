@@ -47,6 +47,8 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
@@ -55,7 +57,7 @@ import {View} from 'react-native';
 // without triggering the wrapper's additional logic, ensuring violations
 // sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 
@@ -256,13 +258,19 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         amountOwed,
         delegateEmail,
         delegateAccountID,
-        conciergeChat,
         bankAccountList,
     } = useReportPaymentContext({
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    const handleOnButtonPress = () => {
+    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes.
+    // Other actions skip the read so they stay synchronous with the press event.
+    const runActionButtonPress = async () => {
+        let conciergeChat: OnyxEntry<Report>;
+        if (liveReportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
+            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+            conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        }
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -309,6 +317,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             conciergeChat,
             bankAccountList,
         });
+    };
+
+    const handleOnButtonPress = () => {
+        runActionButtonPress();
     };
 
     const handleSelectionButtonPress = (shiftKey?: boolean) => {

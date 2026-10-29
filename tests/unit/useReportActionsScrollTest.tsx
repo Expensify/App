@@ -70,6 +70,7 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
 // --- useReportActionsNewActionLiveTail ---
 const mockSetIsScrollToBottomEnabled = jest.fn();
 const mockCompleteLiveTailPrune = jest.fn();
+const mockOpenReportAtLiveTail = jest.fn();
 let mockIsScrollToBottomEnabled = false;
 jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
     __esModule: true,
@@ -77,6 +78,7 @@ jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
         isScrollToBottomEnabled: mockIsScrollToBottomEnabled,
         setIsScrollToBottomEnabled: mockSetIsScrollToBottomEnabled,
         completeLiveTailPruneAfterScrollToBottom: mockCompleteLiveTailPrune,
+        openReportAtLiveTail: mockOpenReportAtLiveTail,
     }),
 }));
 
@@ -112,15 +114,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
             mockSetParams(...args);
         },
         getReportRHPActiveRoute: () => mockReportRHPActiveRoute,
-    },
-}));
-
-// --- openReport ---
-const mockOpenReport = jest.fn();
-jest.mock('@userActions/Report', () => ({
-    __esModule: true,
-    openReport: (...args: unknown[]) => {
-        mockOpenReport(...args);
     },
 }));
 
@@ -375,7 +368,7 @@ describe('useReportActionsScroll', () => {
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).toHaveBeenCalledTimes(1);
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).not.toHaveBeenCalled();
+            expect(mockOpenReportAtLiveTail).not.toHaveBeenCalled();
         });
 
         it('navigates and opens the report when the newest action is not present', async () => {
@@ -385,10 +378,9 @@ describe('useReportActionsScroll', () => {
             act(() => {
                 result.current.scrollToBottomAndMarkReportAsRead();
             });
-            await waitForBatchedUpdates();
 
             expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+            expect(mockOpenReportAtLiveTail).toHaveBeenCalledTimes(1);
             expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
             expect(mockMarkNewestActionAsRead).not.toHaveBeenCalled();
         });
@@ -401,29 +393,9 @@ describe('useReportActionsScroll', () => {
             act(() => {
                 result.current.scrollToBottomAndMarkReportAsRead();
             });
-            await waitForBatchedUpdates();
 
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
-        });
-
-        it('reads the Concierge chat from Onyx when it opens the report', async () => {
-            // Given a Concierge chat in Onyx and a report whose newest action is not loaded. The hook does not subscribe to
-            // the Concierge chat, so it must read it at press time for the guided setup data openReport builds.
-            mockLastVisibleActionCreated = '2099-01-01 00:00:00.000';
-            const conciergeChat = createMockReport({reportID: 'concierge-scroll-1'});
-            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeChat.reportID);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChat.reportID}`, conciergeChat);
-            const {result} = await renderScroll();
-
-            // When the user presses the "Latest messages" pill
-            act(() => {
-                result.current.scrollToBottomAndMarkReportAsRead();
-            });
-            await waitForBatchedUpdates();
-
-            // Then openReport receives the Concierge chat that was in Onyx
-            expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({conciergeChat: expect.objectContaining({reportID: conciergeChat.reportID})}));
+            expect(mockOpenReportAtLiveTail).toHaveBeenCalledTimes(1);
         });
     });
 

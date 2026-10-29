@@ -10,7 +10,6 @@ const defaultMockPaymentContextValue = {
     isSelfTourViewed: false,
     activePolicyID: undefined,
     activePolicy: undefined,
-    conciergeReportID: undefined,
     defaultWorkspaceName: 'Test Workspace',
     userBillingGracePeriodEnds: undefined,
     amountOwed: undefined,
