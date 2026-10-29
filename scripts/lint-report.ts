@@ -17,10 +17,9 @@ import {execSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import {SEATBELT_TSV_RELATIVE} from './lint/processors/Seatbelt';
 import Git from './utils/Git';
 import TSVUtils from './utils/TSVUtils';
-
-const SEATBELT_REL = 'config/oxlint/oxlint.seatbelt.tsv';
 
 /** Pinned Chart.js for reproducible reports (UMD build). */
 const CHART_JS_CDN = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js';
@@ -181,7 +180,7 @@ const sortedEntries = (map: Map<string, number>): Array<[string, number]> => [..
  */
 const trySeatbeltAtCommit = (hash: string): string | null => {
     try {
-        return Git.show(hash, SEATBELT_REL);
+        return Git.show(hash, SEATBELT_TSV_RELATIVE);
     } catch {
         return null;
     }
@@ -190,7 +189,7 @@ const trySeatbeltAtCommit = (hash: string): string | null => {
 /** Requires cwd = App repo root. Git.ts has no wrapper for git log. */
 const listSeatbeltCommits = (limit: number): GitCommitPoint[] => {
     try {
-        const out = execSync(`git log --reverse --format=%H%x09%cI -n ${limit} -- ${SEATBELT_REL}`, {
+        const out = execSync(`git log --reverse --format=%H%x09%cI -n ${limit} -- ${SEATBELT_TSV_RELATIVE}`, {
             encoding: 'utf8',
         }).trim();
         if (!out) {
@@ -615,7 +614,7 @@ const parseNonNegativeIntArg = (val: string): number => {
 
 const runReport = async (): Promise<void> => {
     const projectRoot = path.resolve(__dirname, '..');
-    const seatbeltPath = path.join(projectRoot, SEATBELT_REL);
+    const seatbeltPath = path.join(projectRoot, SEATBELT_TSV_RELATIVE);
     const seatbeltDir = path.dirname(seatbeltPath);
 
     /* CLI argv uses kebab-case for flags documented in help */

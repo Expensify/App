@@ -84,9 +84,11 @@ describe('resolveSeatbeltOptions', () => {
         expect(options.allowIncreaseRules).toEqual(new Set(['no-console']));
     });
 
-    it('defaults to the oxlint baseline and takes an override', () => {
+    it('points at the committed oxlint baseline', () => {
+        // Given a project root and no seatbelt env vars
+        // When the options are resolved
+        // Then the seatbelt file is the committed TSV under that root, so CI and local runs ratchet the same baseline
         expect(resolveSeatbeltOptions(root, {}).seatbeltFile).toBe(`${root}/${SEATBELT_TSV_RELATIVE}`);
-        expect(resolveSeatbeltOptions(root, {}, 'custom.tsv').seatbeltFile).toBe(`${root}/custom.tsv`);
     });
 
     it('parses SEATBELT_INCREASE=ALL', () => {

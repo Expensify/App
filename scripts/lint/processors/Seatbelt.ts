@@ -477,7 +477,7 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
         // stdout carries the --format=json report.
-        console.error(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
+        console.error(`${SEATBELT_NAME}: ${verb} ${pruned} baseline row(s) for deleted files`);
     }
     if (shouldWrite) {
         await writeTSVAtomically(options.seatbeltFile, tsv);
@@ -520,11 +520,11 @@ function parseRuleSetEnvVar(value: string | undefined): SeatbeltRuleSet | undefi
  * - `SEATBELT_FROZEN` defaults to false (the wrapper forces `0` so `CI=true` does not freeze).
  * - `readOnly` defaults to `!CI`; `SEATBELT_INCREASE` forces writes.
  */
-function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = process.env, seatbeltRelativePath: string = SEATBELT_TSV_RELATIVE): SeatbeltOptions {
+function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = process.env): SeatbeltOptions {
     const allowIncreaseRules = parseRuleSetEnvVar(env.SEATBELT_INCREASE) ?? new Set();
     const isIncreaseSet = allowIncreaseRules === 'all' || allowIncreaseRules.size > 0;
     return {
-        seatbeltFile: `${projectRoot}/${seatbeltRelativePath}`,
+        seatbeltFile: `${projectRoot}/${SEATBELT_TSV_RELATIVE}`,
         projectRoot,
         disable: readBooleanEnvVar(env.SEATBELT_DISABLE) ?? false,
         frozen: readBooleanEnvVar(env.SEATBELT_FROZEN) ?? false,

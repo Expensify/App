@@ -23,11 +23,10 @@ import path from 'node:path';
 
 import type {BannedRule} from './onyxLintBypass';
 
+import {SEATBELT_TSV_RELATIVE} from './lint/processors/Seatbelt';
 import {BANNED_RULES, collectDisableDirectivesFromSource, findForbiddenSeatbeltRows, findNewBypasses, SEATBELT_FORBIDDEN_RULES} from './onyxLintBypass';
 
 const projectRoot = path.resolve(import.meta.dir, '..');
-
-const SEATBELT_TSV = 'config/oxlint/oxlint.seatbelt.tsv';
 
 /** Repo-relative paths of the files under `targets` that contain every search term. An empty `targets` searches the whole repo. */
 function findCandidateFiles(targets: string[], searchTerms: string[]): string[] {
@@ -80,7 +79,7 @@ async function checkBan(targets: string[], ban: BannedRule): Promise<boolean> {
 
 /** Prints each forbidden row to stderr and resolves to `true` when there is one. A missing TSV passes. */
 async function checkSeatbelt(): Promise<boolean> {
-    const tsvFile = file(path.join(projectRoot, SEATBELT_TSV));
+    const tsvFile = file(path.join(projectRoot, SEATBELT_TSV_RELATIVE));
     if (!(await tsvFile.exists())) {
         return false;
     }
@@ -90,11 +89,11 @@ async function checkSeatbelt(): Promise<boolean> {
     }
 
     console.error(
-        `${SEATBELT_TSV} has a row for ${SEATBELT_FORBIDDEN_RULES.join(' or ')}. A seatbelt row allows the rule's errors in that file, the same as a disable comment. Remove the row and fix the reads it covers; SEATBELT_INCREASE must not be used for these rules.`,
+        `${SEATBELT_TSV_RELATIVE} has a row for ${SEATBELT_FORBIDDEN_RULES.join(' or ')}. A seatbelt row allows the rule's errors in that file, the same as a disable comment. Remove the row and fix the reads it covers; SEATBELT_INCREASE must not be used for these rules.`,
     );
     console.error('Forbidden seatbelt rows found:');
     for (const row of forbiddenRows) {
-        console.error(`  ${SEATBELT_TSV}:${row.line}  ${path.posix.normalize(path.posix.join(path.posix.dirname(SEATBELT_TSV), row.file))}  ${row.rule}`);
+        console.error(`  ${SEATBELT_TSV_RELATIVE}:${row.line}  ${path.posix.normalize(path.posix.join(path.posix.dirname(SEATBELT_TSV_RELATIVE), row.file))}  ${row.rule}`);
     }
     return true;
 }
