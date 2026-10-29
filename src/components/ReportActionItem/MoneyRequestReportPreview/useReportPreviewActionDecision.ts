@@ -6,7 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-import {canIOUBePaid} from '@libs/ReportUtils';
+import {canIOUBePaid, isExportInProgress} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {loginSelector} from '@src/selectors/PersonalDetails';
@@ -47,7 +47,7 @@ function useReportPreviewActionDecision({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
-    const [iouReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
+    const [isExpenseReportExportInProgress] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: isExportInProgress});
     const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -98,7 +98,7 @@ function useReportPreviewActionDecision({
         isDEWSubmitPending,
         violationsData: transactionViolations,
         reportMetadata: iouReportMetadata,
-        reportActions: iouReportActions ? Object.values(iouReportActions) : undefined,
+        isExportInProgress: isExpenseReportExportInProgress,
         ownerLogin,
         rules,
     });

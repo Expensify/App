@@ -14383,8 +14383,8 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 /**
  * Whether an export this client started is still running.
  *
- * There is no client event meaning "the export finished" - the 200 only means the request was accepted, `failureData`
- * never runs, and the real outcome arrives later over Pusher - so the state is resolved by comparison at read time
+ * There is no client event meaning "the export finished" - the 200 only means the request was accepted, and the real
+ * outcome arrives later over Pusher - so the state is resolved by comparison at read time
  * rather than cleared from a callback. Nothing is stored, so no stale flag can strand the button and no other flow
  * has to remember to clear one.
  *
@@ -14405,7 +14405,8 @@ function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportActi
         // One action type covers both halves of an export, and only `pendingAction` separates them: a pending one renders
         // "started exporting this report to ...", anything else renders a finished export. See getExportIntegrationActionFragments.
         if (isExportIntegrationAction(action)) {
-            if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && action.created > lastExportStartedCreated) {
+            // A rejected request leaves its errors on the started action, and nothing will ever answer it
+            if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isEmptyObject(action.errors) && action.created > lastExportStartedCreated) {
                 lastExportStartedCreated = action.created;
             }
             continue;

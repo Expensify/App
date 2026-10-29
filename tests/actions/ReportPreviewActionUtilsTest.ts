@@ -10,7 +10,7 @@ import {hasOnlyNonReimbursableTransactions, isPayer} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {NetSuiteConnection} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
@@ -1541,22 +1541,7 @@ describe('getReportPreviewAction', () => {
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
-    // A pending EXPORTED_TO_INTEGRATION action is how the client records "started exporting this report".
-    const buildExportStartedAction = (created: string) =>
-        createMock<ReportAction>({
-            actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            created,
-        });
-
-    // The server's answer to an export attempt, success or failure.
-    const buildExportOutcomeAction = (created: string) =>
-        createMock<ReportAction>({
-            actionName: CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
-            created,
-        });
-
-    it('canExport should return false while an export started from this client is still running', async () => {
+    it('canExport should return false while an export is still running', async () => {
         const report = {
             ...createRandomReport(REPORT_ID, undefined),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1577,7 +1562,9 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
 
-        // Only the pending "started exporting" action is on the report, so nothing has answered it yet.
+        // Given a finished report that would otherwise offer Export
+        // When an export of it is still running
+        // Then the preview must not offer a second export
         expect(
             getReportPreviewAction({
                 isReportArchived: isReportArchived.current,
@@ -1588,87 +1575,7 @@ describe('getReportPreviewAction', () => {
                 transactions: [transaction],
                 bankAccountList: {},
                 reportMetadata: undefined,
-                reportActions: [buildExportStartedAction('2026-10-14 10:00:00.000')],
-                ownerLogin: CURRENT_USER_EMAIL,
-                rules: undefined,
-            }),
-        ).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
-    });
-
-    it('canExport should return true again once the export fails with a new error', async () => {
-        const report = {
-            ...createRandomReport(REPORT_ID, undefined),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-            isWaitingOnBankAccount: false,
-            errorFields: {export: {exportError: 'export failed'}},
-        };
-
-        const policy = createRandomPolicy(0);
-        policy.type = CONST.POLICY.TYPE.CORPORATE;
-        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
-        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = createMock<Transaction>({
-            reportID: `${REPORT_ID}`,
-        });
-
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        await waitForBatchedUpdatesWithAct();
-
-        // The failure message landed after the export started, so this attempt is resolved and the button comes back.
-        expect(
-            getReportPreviewAction({
-                isReportArchived: isReportArchived.current,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserLogin: CURRENT_USER_EMAIL,
-                report,
-                policy,
-                transactions: [transaction],
-                bankAccountList: {},
-                reportMetadata: undefined,
-                reportActions: [buildExportStartedAction('2026-10-14 10:00:00.000'), buildExportOutcomeAction('2026-10-14 10:00:05.000')],
-                ownerLogin: CURRENT_USER_EMAIL,
-                rules: undefined,
-            }),
-        ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
-    });
-
-    it('canExport should stay hidden when only an earlier attempt has an outcome', async () => {
-        const report = {
-            ...createRandomReport(REPORT_ID, undefined),
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-            isWaitingOnBankAccount: false,
-            errorFields: {export: {exportError: 'export failed'}},
-        };
-
-        const policy = createRandomPolicy(0);
-        policy.type = CONST.POLICY.TYPE.CORPORATE;
-        policy.connections = {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: createMock<NetSuiteConnection>({})};
-        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        const transaction = createMock<Transaction>({
-            reportID: `${REPORT_ID}`,
-        });
-
-        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-        await waitForBatchedUpdatesWithAct();
-
-        // Retrying an export on a report that already failed once: the older failure must not resolve the new attempt.
-        expect(
-            getReportPreviewAction({
-                isReportArchived: isReportArchived.current,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                currentUserLogin: CURRENT_USER_EMAIL,
-                report,
-                policy,
-                transactions: [transaction],
-                bankAccountList: {},
-                reportMetadata: undefined,
-                reportActions: [buildExportOutcomeAction('2026-10-14 09:00:00.000'), buildExportStartedAction('2026-10-14 10:00:00.000')],
+                isExportInProgress: true,
                 ownerLogin: CURRENT_USER_EMAIL,
                 rules: undefined,
             }),
