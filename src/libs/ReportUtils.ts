@@ -2799,7 +2799,7 @@ function isClosedReport(report: OnyxInputOrEntry<Report>): boolean {
 /**
  * Whether the provided report is the admin's room
  */
-function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined): boolean {
+function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: string | undefined, hasPendingJoinRequest?: boolean): boolean {
     if (!report) {
         return false;
     }
@@ -2813,7 +2813,7 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>, currentUserLogin: s
             return false;
         }
     }
-    return isActionableJoinRequestPending(report.reportID);
+    return hasPendingJoinRequest ?? isActionableJoinRequestPending(report.reportID);
 }
 
 /**
@@ -3526,6 +3526,7 @@ function getBadgeFromIOUReport(
     currentUserLogin: string,
     currentUserAccountID: number,
     iouReportActions: OnyxEntry<ReportActions>,
+    isChatReportArchived: boolean,
     allViolations: OnyxCollection<TransactionViolations> | undefined,
 ): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -3535,10 +3536,6 @@ function getBadgeFromIOUReport(
     if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
     }
-
-    // TODO: https://github.com/Expensify/App/issues/66518
-    // Transitional: resolve the chat report's archived state from the module-level cache until this function threads it down from its callers.
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`]);
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, undefined, policy, false);
     const canBePaidNow =
@@ -3592,18 +3589,31 @@ function canPayIOUFromReportAction(action: ReportAction, chatReport: OnyxEntry<R
     );
 }
 
-function getIOUReportActionWithBadge(
-    chatReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    reportMetadata: OnyxEntry<ReportMetadata>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    chatReportActions: OnyxEntry<ReportActions>,
-    allViolations: OnyxCollection<TransactionViolations> | undefined,
-    allReports?: OnyxCollection<Report>,
-    allReportActionsParam?: OnyxCollection<ReportActions>,
-): {
+function getIOUReportActionWithBadge({
+    chatReport,
+    policy,
+    reportMetadata,
+    invoiceReceiverPolicy,
+    currentUserLogin,
+    currentUserAccountID,
+    chatReportActions,
+    allViolations,
+    isChatReportArchived,
+    allReports,
+    allReportActionsParam,
+}: {
+    chatReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    chatReportActions: OnyxEntry<ReportActions>;
+    allViolations: OnyxCollection<TransactionViolations> | undefined;
+    isChatReportArchived: boolean;
+    allReports?: OnyxCollection<Report>;
+    allReportActionsParam?: OnyxCollection<ReportActions>;
+}): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
 } {
@@ -3640,7 +3650,18 @@ function getIOUReportActionWithBadge(
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID, iouReportActions, allViolations);
+        const badge = getBadgeFromIOUReport(
+            iouReport,
+            chatReport,
+            policy,
+            reportMetadata,
+            invoiceReceiverPolicy,
+            currentUserLogin,
+            currentUserAccountID,
+            iouReportActions,
+            isChatReportArchived,
+            allViolations,
+        );
         if (!badge) {
             continue;
         }
@@ -5201,18 +5222,20 @@ function getReasonAndReportActionThatRequiresAttention({
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
-    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge(
-        optionOrReport,
+    const {reportAction: iouReportActionToApproveOrPay, actionBadge} = getIOUReportActionWithBadge({
+        chatReport: optionOrReport,
         policy,
         reportMetadata,
         invoiceReceiverPolicy,
         currentUserLogin,
         currentUserAccountID,
-        reportActions,
-        transactionViolations,
-        reports,
-        allReportActionsParam ?? allReportActions,
-    );
+        chatReportActions: reportActions,
+        allViolations: transactionViolations,
+        // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
+        isChatReportArchived: isReportArchived,
+        allReports: reports,
+        allReportActionsParam: allReportActionsParam ?? allReportActions,
+    });
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
     const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
     const transactions = getReportTransactions(iouReportID);
@@ -5247,6 +5270,7 @@ function getReasonAndReportActionThatRequiresAttention({
                 currentUserLogin,
                 currentUserAccountID,
                 reportActions,
+                false,
                 transactionViolations,
             );
             return {
@@ -6601,6 +6625,8 @@ type GetReportPreviewMessageBaseParams = {
     /** The current user's bank accounts, used to name the account a report was paid with. */
     bankAccountList?: OnyxEntry<BankAccountList>;
     personalDetails?: OnyxEntry<PersonalDetailsList>;
+    /** The transaction of `iouReportAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    linkedTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -6742,7 +6768,10 @@ function getReportPreviewMessage(
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransaction =
+            params.linkedTransaction && params.linkedTransaction.transactionID === getOriginalMessage(iouReportAction)?.IOUTransactionID
+                ? params.linkedTransaction
+                : getLinkedTransaction(iouReportAction);
     }
 
     if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
@@ -9134,13 +9163,16 @@ function buildOptimisticModifiedExpenseReportAction(
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
+    // Expense edits can arrive without updating the report's lastVisibleActionCreated, so also check the loaded actions.
+    const latestActionCreated = transactionThread?.reportID ? getLastVisibleAction(transactionThread.reportID)?.created : undefined;
+    const lastActionCreated = (latestActionCreated ?? '') > (transactionThread?.lastVisibleActionCreated ?? '') ? latestActionCreated : transactionThread?.lastVisibleActionCreated;
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: deprecatedCurrentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
+        created: getServerAnchoredDBTime('', lastActionCreated),
         isAttachmentOnly: false,
         message: [
             {
@@ -10986,6 +11018,16 @@ function shouldBlockSubmitDueToPreventSelfApproval(report: OnyxEntry<Report>, po
     }
 
     return isProcessingReport(report) && (report?.managerID === report?.ownerAccountID || isSubmitterSameAsNextApprover);
+}
+
+/**
+ * Whether Submit is blocked because the report's workspace was deleted. Deleting a workspace archives its workspace chat
+ * with a POLICY_DELETED close reason but doesn't set archivedDate on the policy, so the archived-policy guard in
+ * isSubmitAction doesn't catch it and the backend rejects the submission. Chats archived for other reasons (e.g. the
+ * submitter was removed from the workspace) can still submit.
+ */
+function shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived: boolean, chatArchiveReason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined): boolean {
+    return isChatReportArchived && chatArchiveReason === CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {
@@ -15787,6 +15829,7 @@ export {
     getReportForHeader,
     isReportOpenOrUnsubmitted,
     getIconsForExpenseReport,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     getReportCustomColumnValue,
     getTransactionSortValue,

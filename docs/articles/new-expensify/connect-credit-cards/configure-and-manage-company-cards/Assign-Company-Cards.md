@@ -66,7 +66,7 @@ No. Only workspace admins, card admins, and their Copilots can assign or reassig
 
 ## Can I change the transaction start date on an assigned card?
 
-Yes. You can update the **Transaction start date** at any time from the assigned card's details. The **Transaction start date** determines the date from which Expensify imports transactions for the card.
+Yes. You can update the **Transaction start date** at any time from the assigned card's details. To update several cards at once, select the assigned cards on the **Company cards** page, then select **Update transaction start date** from the selection bar. The **Transaction start date** determines the date from which Expensify imports transactions for the card.
 
 ## Can I set the transaction start date to a future date?
 

@@ -29,7 +29,7 @@ const ChartLoadingContext = createContext<((loadState: ChartLoadState) => void) 
 function useReportChartLoading(isLoading: boolean, isDrawnBySkia = true) {
     const setLoadState = useContext(ChartLoadingContext);
 
-    // Before paint, so no frame shows the chart and the in-flow spinner stacked, or neither of them
+    // Before paint, so no frame shows the chart and the in-flow spinner stacked
     useLayoutEffect(() => {
         setLoadState?.({isLoading, isDrawnBySkia});
     }, [setLoadState, isLoading, isDrawnBySkia]);
@@ -40,6 +40,9 @@ function useIsInsideChartReveal() {
 }
 
 type ChartRevealProps = {
+    /** Brings the spinner back in the same render, since the chart's own report lands a commit later and leaves the card empty until then. */
+    isLoading?: boolean;
+
     /** Must match the loaded chart's height, or the card jumps at the reveal. */
     loadingHeight: number;
 
@@ -50,7 +53,7 @@ type ChartRevealProps = {
     children: ReactNode;
 };
 
-function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps) {
+function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children}: ChartRevealProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadState, setLoadState] = useState<ChartLoadState | null>(null);
@@ -65,7 +68,8 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
     // Written on the UI thread, which counts the hold, so that the cleanup there can cancel the hold's next frame
     const holdFrameID = useSharedValue(0);
 
-    const isReady = !!loadState && !loadState.isLoading && isCardMeasured;
+    const isChartLoading = isLoading || !!loadState?.isLoading;
+    const isReady = !!loadState && !isChartLoading && isCardMeasured;
 
     // A chart that mounts with everything in memory waits only for its card's first layout to report the width,
     // so it shows no spinner and fades in at once. Only a chart that has shown the spinner holds it until Skia has drawn.
@@ -73,7 +77,7 @@ function ChartReveal({loadingHeight, isCardMeasured, children}: ChartRevealProps
     const shouldHold = hasReportedLoading && !!loadState?.isDrawnBySkia;
 
     // Adjusted during render, not in the effect below, so the spinner changes in the same commit as what the chart reports
-    if (loadState?.isLoading && !hasReportedLoading) {
+    if (isChartLoading && !hasReportedLoading) {
         setHasReportedLoading(true);
     }
     if (!isReady && isRevealed) {

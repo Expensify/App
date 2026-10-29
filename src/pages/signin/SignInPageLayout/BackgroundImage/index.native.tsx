@@ -1,5 +1,7 @@
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
 
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,7 +24,8 @@ function BackgroundImage({width}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = isAnonymousUser();
+    const session = useSession();
+    const isAnonymous = isAnonymousUser(session);
 
     const opacity = useSharedValue(0);
     const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
