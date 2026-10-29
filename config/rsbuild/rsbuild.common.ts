@@ -26,6 +26,8 @@ import BrotliCompressionPlugin from './BrotliCompressionPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import {FORWARDED_DEVELOPMENT_ENV_KEYS} from './developmentEnvKeys.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import RspackPreloadPlugin from './RspackPreloadPlugin.ts';
@@ -133,6 +135,10 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 function getDefineValues(file: string): DefinePluginOptions {
     const isDevelopmentFile = file === '.env' || file === '.env.development';
+    const parsedConfig = dotenv.config({path: file}).parsed;
+    const developmentOverrides = isDevelopmentFile
+        ? Object.fromEntries(FORWARDED_DEVELOPMENT_ENV_KEYS.flatMap((key: string) => (process.env[key] === undefined ? [] : [[key, process.env[key]]])))
+        : {};
     /* eslint-disable @typescript-eslint/naming-convention */
     return {
         process: {env: {}},
@@ -142,7 +148,10 @@ function getDefineValues(file: string): DefinePluginOptions {
         global: 'globalThis',
         // Define EXPO_OS for web platform to fix expo-modules-core warning
         'process.env.EXPO_OS': JSON.stringify('web'),
-        __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
+        __REACT_WEB_CONFIG__: JSON.stringify({
+            ...parsedConfig,
+            ...developmentOverrides,
+        }),
 
         // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
         // react-native-render-html uses variable to log exclusively during development.

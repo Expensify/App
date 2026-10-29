@@ -36,6 +36,7 @@ type SearchTableHeaderProps = {
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
+    paidColumnSize?: TableColumnSize;
     withdrawnColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
@@ -58,6 +59,7 @@ function SortableTableHeader({
     approvedColumnSize,
     postedColumnSize,
     exportedColumnSize,
+    paidColumnSize,
     withdrawnColumnSize,
     containerStyles,
     shouldShowSorting,
@@ -84,7 +86,10 @@ function SortableTableHeader({
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isYesNoColumn =
-                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.HELD;
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.HELD ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.DECLINED;
                     const isConversionAmountColumn =
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
@@ -113,6 +118,7 @@ function SortableTableHeader({
                                     isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isExportedColumnWide: exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isPaidColumnWide: paidColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isTaxAmountColumnWide: taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isAmountColumnWide: amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,
