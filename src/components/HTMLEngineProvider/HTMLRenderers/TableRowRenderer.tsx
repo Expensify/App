@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 
@@ -48,6 +49,7 @@ function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const session = useSession();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {hovered, bind} = useHover();
     const {anchor, report, action, originalReportID} = useShowContextMenuState();
@@ -90,7 +92,7 @@ function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
         <PressableWithoutFeedback
             style={rowStyle}
             hoverStyle={styles.htmlTableRowHovered}
-            onPress={() => openLink(rowLinkURL, environmentURL)}
+            onPress={() => openLink(rowLinkURL, environmentURL, false, session)}
             onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID))}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={getRowCellsText(tnode) || translate('iou.viewDetails')}

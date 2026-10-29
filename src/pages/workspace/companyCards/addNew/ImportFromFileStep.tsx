@@ -30,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -54,6 +55,7 @@ function ImportFromFileStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_COMPANY_CARDS_ADD_NEW>>();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -118,7 +120,7 @@ function ImportFromFileStep() {
                         sentryLabel="ImportFromFileStep-HelpGuideLink"
                         onPress={(event) => {
                             event?.preventDefault();
-                            openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL);
+                            openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL, false, session);
                         }}
                         style={styles.dInlineFlex}
                     >
