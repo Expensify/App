@@ -7450,6 +7450,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 continue: 'メンバーなしで続行',
                 description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             },
+            confirmMembers: {
+                title: 'メンバーをコピー',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    // Japanese has no "one" plural category, so handle the single-workspace case here
+                    other:
+                        count === 1
+                            ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
+                            : `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'コピーを実行中です...',
                 copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',

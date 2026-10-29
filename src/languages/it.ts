@@ -7553,6 +7553,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 continue: 'Continua senza membri',
                 description: 'Copiare Flussi di lavoro senza Membri non copierà i flussi di lavoro di approvazione. Le impostazioni di invio e pagamento verranno comunque copiate.',
             },
+            confirmMembers: {
+                title: 'Copia membri',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Sei sicuro di voler sostituire i membri di ${targetWorkspaceName} con i membri di questo spazio di lavoro?`,
+                    other: `Sei sicuro di voler sostituire i membri di ${count} spazi di lavoro con i membri di questo spazio di lavoro?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Copia in corso...',
                 copyInProgressDescription: 'Puoi aspettare che il processo finisca oppure Concierge può avvisarti quando è terminato.',

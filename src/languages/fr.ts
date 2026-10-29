@@ -7614,6 +7614,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 continue: 'Continuer sans membres',
                 description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
             },
+            confirmMembers: {
+                title: 'Copier les membres',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Êtes-vous sûr de vouloir remplacer les membres de ${targetWorkspaceName} par les membres de cet espace de travail ?`,
+                    other: `Êtes-vous sûr de vouloir remplacer les membres de ${count} espaces de travail par les membres de cet espace de travail ?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Copie en cours...',
                 copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
