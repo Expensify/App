@@ -88,6 +88,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         violations,
         email ?? '',
         accountID,
+        cardList,
     );
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);

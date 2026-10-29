@@ -154,6 +154,7 @@ function useSelectionModeReportActions({
         reportTransactions: transactions,
         violations: allTransactionViolations,
         bankAccountList,
+        cardList,
         policy,
         reportNameValuePairs,
         reportActions,

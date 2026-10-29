@@ -14,7 +14,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
+import type {Card, CardList, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
 import type {Routes} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
@@ -2172,7 +2172,7 @@ describe('TransactionUtils', () => {
     describe('shouldShowBrokenConnectionViolation', () => {
         it('should return false when no broken connection violations are found for the provided transaction', () => {
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
@@ -2180,7 +2180,7 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2188,7 +2188,7 @@ describe('TransactionUtils', () => {
         it('should return true for a 531 (temporary, retry later) broken connection violation', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2196,7 +2196,7 @@ describe('TransactionUtils', () => {
         it('should return true when a re-auth broken connection violation exists and the user is the policy member', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2226,6 +2226,7 @@ describe('TransactionUtils', () => {
                 transactionViolations,
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ID,
+                undefined,
             );
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -2235,7 +2236,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = processingReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2244,7 +2245,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = secondUserOpenReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2253,7 +2254,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT});
             const report = processingReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -2262,7 +2263,7 @@ describe('TransactionUtils', () => {
             const policy = createMock<Policy>({role: CONST.POLICY.ROLE.ADMIN});
             const report = approvedReport;
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations, undefined);
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
@@ -2287,6 +2288,7 @@ describe('TransactionUtils', () => {
                 transactionViolations,
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ID,
+                undefined,
             );
 
             expect(showBrokenConnectionViolation).toBe(false);
@@ -2312,9 +2314,65 @@ describe('TransactionUtils', () => {
                 transactionViolations,
                 CURRENT_USER_EMAIL,
                 CURRENT_USER_ID,
+                undefined,
             );
 
             expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        describe('once the connection has been broken past the grace period', () => {
+            const CARD_ID = 55501;
+            const reauthViolation = {
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                name: CONST.VIOLATIONS.RTER,
+                data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID: CARD_ID},
+            };
+
+            function cardListBrokenFor(days: number): CardList {
+                return {
+                    [CARD_ID]: createMock<Card>({
+                        cardID: CARD_ID,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                        fundID: '88801',
+                        lastScrapeResult: 438,
+                        lastScrape: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+                    }),
+                };
+            }
+
+            // Given a feed that broke recently, when the submitter opens the expense, then the violation still asks
+            // them to wait, because an admin reconnecting is still a realistic outcome.
+            it('still shows the violation while the connection is inside the grace period', () => {
+                const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+
+                expect(shouldShowBrokenConnectionViolation(undefined, policy, [reauthViolation], cardListBrokenFor(10))).toBe(true);
+            });
+
+            // Given a feed nobody has reconnected for months, when the submitter opens the expense, then the
+            // violation is gone, because it was asking them to wait for something that is not going to happen and
+            // which they cannot do themselves.
+            it('stops showing the violation once the connection is past the grace period', () => {
+                const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+
+                expect(shouldShowBrokenConnectionViolation(undefined, policy, [reauthViolation], cardListBrokenFor(120))).toBe(false);
+            });
+
+            // Given one feed past the grace period and another still inside it, when the report is checked, then the
+            // violation still shows - the report has an expense whose feed could realistically still be reconnected.
+            it('still shows the violation when only some of the connections are past the grace period', () => {
+                const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+                const otherCardViolation = {...reauthViolation, data: {...reauthViolation.data, cardID: 55502}};
+
+                expect(shouldShowBrokenConnectionViolation(undefined, policy, [reauthViolation, otherCardViolation], cardListBrokenFor(120))).toBe(true);
+            });
+
+            // A violation whose card is not loaded has no date to judge, so it keeps its existing behaviour rather
+            // than being hidden on a guess.
+            it('keeps showing the violation when the card it names is not loaded', () => {
+                const policy = createMock<Policy>({role: CONST.POLICY.ROLE.USER});
+
+                expect(shouldShowBrokenConnectionViolation(undefined, policy, [reauthViolation], {})).toBe(true);
+            });
         });
     });
 

@@ -7,7 +7,7 @@ import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed, isHardVio
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, BetaOverrides, Card, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -4363,6 +4363,84 @@ describe('getViolationTranslation', () => {
 
         // Then it should format the amount in the transaction currency rather than the USD fallback
         expect(message).toBe('Expense over €100.00');
+    });
+
+    describe('once the connection has been broken past the grace period', () => {
+        const CARD_ID = 55501;
+        const reauthViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.RTER,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_REAUTH, cardID: CARD_ID},
+        };
+        const expectedMessage = 'Bank connection needs re-authentication. Ask an admin to reconnect to match receipt.';
+
+        function cardBrokenFor(days: number) {
+            return createMock<Card>({
+                cardID: CARD_ID,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                // A workspace feed card, not a personal one: this issue is about workspace feeds, and the two take
+                // different branches of the rter message.
+                fundID: '88801',
+                lastScrapeResult: 438,
+                lastScrape: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
+            });
+        }
+
+        // Given a feed that broke recently, when the expense renders its violation, then it still tells the
+        // submitter to wait, because an admin reconnecting is still a realistic outcome.
+        it('still describes the violation while the connection is inside the grace period', () => {
+            const message = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: reauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                card: cardBrokenFor(10),
+            });
+
+            expect(message).toBe(expectedMessage);
+        });
+
+        // Given a feed nobody has reconnected for months, when the expense renders, then it has no violation message
+        // at all, so it stops asking the submitter to wait for something that is not going to happen.
+        it('returns no message once the connection is past the grace period', () => {
+            const message = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: reauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                card: cardBrokenFor(120),
+            });
+
+            expect(message).toBe('');
+        });
+
+        // A violation whose card was never loaded has no date to judge, so it keeps its existing message rather than
+        // being hidden on a guess.
+        it('keeps the message when the card it names is not loaded', () => {
+            const message = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: reauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+            });
+
+            expect(message).toBe(expectedMessage);
+        });
+
+        // A card past the grace period that is still scraping successfully is not broken at all, so its expenses keep
+        // whatever message they had: the grace period only applies to a connection that is actually broken.
+        it('keeps the message when the card is old but its connection is not broken', () => {
+            const healthyCard = {...cardBrokenFor(120), lastScrapeResult: 200};
+            const message = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale: undefined,
+                violation: reauthViolation,
+                translate: translateLocal,
+                convertToDisplayString,
+                card: healthyCard,
+            });
+
+            expect(message).toBe(expectedMessage);
+        });
     });
 
     it('should return the correct message for broken card connection violation', () => {

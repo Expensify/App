@@ -35,7 +35,13 @@ import {canEditMoneyRequest, getTransactionDetails, isPolicyExpenseChat, isRepor
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isManagedCardTransaction as isCardTransactionUtils, isGPSDistanceRequest, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
+import {
+    isBrokenConnectionViolationPastDismissThreshold,
+    isManagedCardTransaction as isCardTransactionUtils,
+    isGPSDistanceRequest,
+    isMapDistanceRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 
 import {fontScale} from '@styles/typography';
@@ -90,9 +96,15 @@ function TransactionPreviewContent({
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    // Dropped here rather than only suppressing its message, because the red dot beside the message is driven by the
+    // violation list itself - leaving it in would render a dot with no text next to it.
+    const visibleViolations = violations.filter(
+        (violation) => !isBrokenConnectionViolationPastDismissThreshold(violation, violation.data?.cardID ? cardList?.[violation.data.cardID] : undefined),
+    );
     // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
     // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
-    const filteredViolations = filterReceiptViolations(violations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
+    const filteredViolations = filterReceiptViolations(visibleViolations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
     const firstViolation = filteredViolations.at(0);
     const cardID = firstViolation?.data?.cardID;
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
@@ -114,7 +126,7 @@ function TransactionPreviewContent({
         transaction,
         action,
         isBillSplit,
-        violations,
+        violations: visibleViolations,
         transactionDetails,
     };
 
@@ -135,7 +147,7 @@ function TransactionPreviewContent({
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
-    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
+    const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, visibleViolations, cardList, policy) : false;
 
     const violationMessage = firstViolation
         ? ViolationsUtils.getViolationTranslation({

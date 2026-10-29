@@ -318,6 +318,7 @@ function isApproveAction(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     reportMetadata: OnyxEntry<ReportMetadata>,
+    cardList: OnyxEntry<CardList>,
     policy?: Policy,
 ): boolean {
     if (isArchivedOrPendingDeletePolicy(policy)) {
@@ -384,6 +385,7 @@ function isApproveAction(
         violations,
         currentUserLogin,
         currentUserAccountID,
+        cardList,
     );
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
@@ -1098,6 +1100,7 @@ function getSecondaryReportActions({
         reportTransactions,
         violations,
         bankAccountList,
+        cardList,
         policy,
         reportNameValuePairs,
         reportActions,
@@ -1126,7 +1129,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
-    if (isApproveAction(currentUserLogin, currentUserAccountID, report, submitterLogin, reportTransactions, violations, reportMetadata, policy)) {
+    if (isApproveAction(currentUserLogin, currentUserAccountID, report, submitterLogin, reportTransactions, violations, reportMetadata, cardList, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 

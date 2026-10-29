@@ -52,28 +52,32 @@ export default function ViolationMessages({
 
     const filteredViolations = filterReceiptViolations(violations);
 
-    const violationMessages = filteredViolations.map((violation) => {
-        const cardID = violation.data?.cardID;
-        const card = cardID ? cardList?.[cardID] : undefined;
-        return [
-            violation.name,
-            ViolationsUtils.getViolationTranslation({
-                dateFnsLocale,
-                violation,
-                translate,
-                convertToDisplayString,
-                canEdit,
-                companyCardPageURL,
-                connectionLink,
-                card,
-                isMarkAsCash,
-                routeDistanceMeters,
-                distanceUnit,
-                policyVendors,
-                transactionCurrency,
-            }),
-        ];
-    });
+    const violationMessages = filteredViolations
+        .map((violation) => {
+            const cardID = violation.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            return [
+                violation.name,
+                ViolationsUtils.getViolationTranslation({
+                    dateFnsLocale,
+                    violation,
+                    translate,
+                    convertToDisplayString,
+                    canEdit,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    routeDistanceMeters,
+                    distanceUnit,
+                    policyVendors,
+                    transactionCurrency,
+                }),
+            ];
+            // A violation can translate to an empty message when it is deliberately suppressed (e.g. a broken connection
+            // past the 90-day grace period); rendering it would leave a blank, spaced row.
+        })
+        .filter(([, message]) => !!message);
 
     return (
         <View style={[styles.mtn1, isLast ? styles.mb2 : styles.mb1, containerStyle, styles.gap1]}>
