@@ -205,7 +205,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         initialTooltipPosition,
         activePointPosition,
         onChartMoved,
-        onTooltipDismiss,
+        dismissTooltip,
         onChartTouchStart,
     } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
@@ -376,7 +376,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
                 />
             </Animated.View>
         </GestureDetector>
