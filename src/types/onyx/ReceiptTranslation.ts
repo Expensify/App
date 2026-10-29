@@ -48,4 +48,4 @@ type ReceiptTranslationState = {
 };
 
 export default ReceiptTranslation;
-export type {TranslatedReceipt, TranslatedReceiptRow, ReceiptTranslationState};
+export type {TranslatedReceiptRow, ReceiptTranslationState};
