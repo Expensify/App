@@ -15795,6 +15795,24 @@ describe('SearchUIUtils', () => {
             }
         });
 
+        it('widens every column once one transaction needs them all, without checking the rest of the group', () => {
+            // Given a group whose first transaction already needs every wide column, followed by one that needs none
+            const widestTransaction = {
+                ...getTransactionListItem(0),
+                ...Object.fromEntries(yearFlags.map((flag) => [flag, true])),
+                isAmountColumnWide: true,
+                isTaxAmountColumnWide: true,
+                isActionColumnWide: true,
+            };
+            const transactions = [widestTransaction, withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then every column is wide, since a later narrow transaction can't make a column narrow again
+            expect(Object.values(flags).every(Boolean)).toBe(true);
+        });
+
         it('keeps every date column narrow when all the dates are from this year', () => {
             // Given a group whose transactions have no date from a past year
             const transactions = [withoutYear(getTransactionListItem(0)), withoutYear(getTransactionListItem(1))];
@@ -15806,6 +15824,49 @@ describe('SearchUIUtils', () => {
             for (const flag of yearFlags) {
                 expect(flags[flag]).toBe(false);
             }
+        });
+    });
+
+    describe('getGroupTableScrollLayout', () => {
+        const dateColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+            CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+            CONST.SEARCH.TABLE_COLUMNS.PAID,
+            CONST.SEARCH.TABLE_COLUMNS.POSTED,
+            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        ];
+        const narrowFlags = SearchUIUtils.getGroupColumnWidthFlags([]);
+        const wideFlags = {
+            ...narrowFlags,
+            shouldShowYear: true,
+            shouldShowYearSubmitted: true,
+            shouldShowYearApproved: true,
+            shouldShowYearPaid: true,
+            shouldShowYearPosted: true,
+            shouldShowYearExported: true,
+        };
+
+        it('reserves the wide width for date columns that show the year, so the table scrolls before they are clipped', () => {
+            // Given a window that fits the group's date columns at their narrow estimates
+            const narrowLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+            const windowWidth = narrowLayout.minTableWidth + 1;
+
+            // When the same columns show the year
+            const wideLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, wideFlags, windowWidth, true);
+
+            // Then each one counts at its wide width, and the table scrolls instead of overflowing the window
+            expect(wideLayout.minTableWidth).toBeGreaterThan(narrowLayout.minTableWidth);
+            expect(wideLayout.shouldScrollHorizontally).toBe(true);
+        });
+
+        it('keeps the existing estimate when no date shows the year', () => {
+            // Given the group's date columns all show this year's dates
+            // When the scroll layout is computed
+            const layout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+
+            // Then the minimum width is the same as the shared table estimate, so narrow groups scroll exactly as before
+            expect(layout.minTableWidth).toBe(SearchUIUtils.getTableMinWidth(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, false));
         });
     });
 

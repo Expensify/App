@@ -173,6 +173,7 @@ function TransactionGroupListExpandedImpl({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
+    const columnWidthFlags = getGroupColumnWidthFlags(transactions);
     const {
         isAmountColumnWide,
         isTaxAmountColumnWide,
@@ -183,7 +184,7 @@ function TransactionGroupListExpandedImpl({
         shouldShowYearPosted,
         shouldShowYearExported,
         isActionColumnWide,
-    } = getGroupColumnWidthFlags(transactions);
+    } = columnWidthFlags;
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
@@ -194,7 +195,7 @@ function TransactionGroupListExpandedImpl({
     const exportedColumnSize = shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     // Shared with GroupHeader so the two always agree on the table's width.
-    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, windowWidth, isLargeScreenWidth);
+    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, columnWidthFlags, windowWidth, isLargeScreenWidth);
 
     // syncScrollKey is only set when the header is split out (wide web); otherwise this is a no-op.
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);

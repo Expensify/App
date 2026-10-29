@@ -7567,6 +7567,22 @@ type GroupTableScrollLayout = {
 };
 
 /**
+ * The width of each date column that is wide enough for the year. `getTableMinWidth` only has a narrow estimate for
+ * these columns, so a group's table would otherwise stop scrolling before the wider dates fit.
+ */
+function getWideDateColumnWidths(widthFlags: GroupColumnWidthFlags): Partial<Record<SearchColumnType, number>> {
+    const dateColumns: Array<[SearchColumnType, boolean]> = [
+        [CONST.SEARCH.TABLE_COLUMNS.DATE, widthFlags.shouldShowYear],
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, widthFlags.shouldShowYearSubmitted],
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED, widthFlags.shouldShowYearApproved],
+        [CONST.SEARCH.TABLE_COLUMNS.PAID, widthFlags.shouldShowYearPaid],
+        [CONST.SEARCH.TABLE_COLUMNS.POSTED, widthFlags.shouldShowYearPosted],
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED, widthFlags.shouldShowYearExported],
+    ];
+    return Object.fromEntries(dateColumns.filter(([, isWide]) => isWide).map(([column]) => [column, variables.w102]));
+}
+
+/**
  * The scroll layout a group's table needs: its data columns (the group columns stripped out), its minimum width, and
  * whether that makes it overflow the window.
  *
@@ -7576,12 +7592,12 @@ type GroupTableScrollLayout = {
 function getGroupTableScrollLayout(
     columns: SearchColumnType[],
     type: SearchDataTypes,
-    isActionColumnWide: boolean,
+    widthFlags: GroupColumnWidthFlags,
     windowWidth: number,
     isLargeScreenWidth: boolean,
 ): GroupTableScrollLayout {
     const dataColumns = columns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX));
-    const minTableWidth = getTableMinWidth(dataColumns, type, isActionColumnWide);
+    const minTableWidth = getTableMinWidth(dataColumns, type, widthFlags.isActionColumnWide, getWideDateColumnWidths(widthFlags));
     return {dataColumns, minTableWidth, shouldScrollHorizontally: isLargeScreenWidth && minTableWidth > windowWidth};
 }
 

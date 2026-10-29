@@ -154,6 +154,7 @@ function GroupHeader({
         });
     }
 
+    const subHeaderColumnWidthFlags = getGroupColumnWidthFlags(groupItem.transactions);
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
         isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
@@ -164,13 +165,13 @@ function GroupHeader({
         shouldShowYearPosted: shouldSubHeaderShowYearPosted,
         shouldShowYearExported: shouldSubHeaderShowYearExported,
         isActionColumnWide: isSubHeaderActionColumnWide,
-    } = getGroupColumnWidthFlags(groupItem.transactions);
+    } = subHeaderColumnWidthFlags;
 
     // Shared with TransactionGroupListExpanded so the two always agree on the table's width.
     const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
         subHeaderColumns,
         CONST.SEARCH.DATA_TYPES.EXPENSE,
-        isSubHeaderActionColumnWide,
+        subHeaderColumnWidthFlags,
         windowWidth,
         isLargeScreenWidth,
     );
