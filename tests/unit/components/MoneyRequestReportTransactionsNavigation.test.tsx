@@ -31,6 +31,7 @@ type MockOnyxState = {
     transactionsStatus: 'loading' | 'loaded';
     reportActionsCollection: Record<string, unknown>;
     reportsCollection: Record<string, unknown>;
+    modal: Record<string, unknown> | undefined;
 };
 
 const mockState: MockOnyxState = {
@@ -42,7 +43,28 @@ const mockState: MockOnyxState = {
     transactionsStatus: 'loaded',
     reportActionsCollection: {},
     reportsCollection: {},
+    modal: undefined,
 };
+
+type KeyboardShortcutRegistration = {
+    callback: (event?: KeyboardEvent) => void;
+    config: {captureOnInputs?: boolean; isActive?: boolean};
+};
+
+// The latest registration per key, so a test can check whether a shortcut is active and fire it like a key press would.
+const mockKeyboardShortcuts = new Map<string, KeyboardShortcutRegistration>();
+
+jest.mock('@hooks/useKeyboardShortcut', () => ({
+    __esModule: true,
+    default: (shortcut: {shortcutKey: string}, callback: KeyboardShortcutRegistration['callback'], config: KeyboardShortcutRegistration['config']) => {
+        mockKeyboardShortcuts.set(shortcut.shortcutKey, {callback, config});
+    },
+}));
+
+jest.mock('@libs/getPlatform', () => ({
+    __esModule: true,
+    default: () => 'web',
+}));
 
 const mockUseOnyx = jest.fn();
 const mockMarkReportRHPWidth = jest.fn();
@@ -173,6 +195,8 @@ const resetMockState = () => {
     mockState.transactionsStatus = 'loaded';
     mockState.reportActionsCollection = {};
     mockState.reportsCollection = {};
+    mockState.modal = undefined;
+    mockKeyboardShortcuts.clear();
     mockGetRootState.mockReturnValue(makeRootState('testRoute'));
     mockIsOffline.value = false;
 };
@@ -201,6 +225,9 @@ const setupUseOnyx = () => {
         if (key === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             return loaded(selector ? selector(mockState.reportActionsCollection) : undefined);
         }
+        if (key === ONYXKEYS.MODAL) {
+            return loaded(selector ? selector(mockState.modal) : mockState.modal);
+        }
         if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
             return loaded(mockState.reportsCollection[key]);
         }
@@ -224,6 +251,20 @@ const press = (testID: string) => {
     };
     fireEvent.press(screen.getByTestId(testID));
 };
+
+const pressKey = (shortcutKey: string, {defaultPrevented = false} = {}) => {
+    global.requestAnimationFrame = (callback: FrameRequestCallback) => {
+        callback(0);
+        return 0;
+    };
+    const event = new KeyboardEvent('keydown', {key: shortcutKey, cancelable: true});
+    if (defaultPrevented) {
+        event.preventDefault();
+    }
+    mockKeyboardShortcuts.get(shortcutKey)?.callback(event);
+};
+
+const isShortcutActive = (shortcutKey: string) => !!mockKeyboardShortcuts.get(shortcutKey)?.config.isActive;
 
 describe('MoneyRequestReportTransactionsNavigation', () => {
     beforeEach(() => {
@@ -329,6 +370,101 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev', anchorTransactionID: PREV_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('threadPrev', 'wide');
+        });
+    });
+
+    describe('left and right arrow keys', () => {
+        beforeEach(() => {
+            mockState.transactionsCollection = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${CURRENT_ID}`]: {transactionID: CURRENT_ID, reportID: 'rCur'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${PREV_ID}`]: {transactionID: PREV_ID, reportID: 'rPrev'},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${NEXT_ID}`]: {transactionID: NEXT_ID, reportID: 'rNext'},
+            };
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rPrev`]: {actionPrev: makeIOUAction(PREV_ID, {childReportID: 'threadPrev', reportID: 'rPrev'})},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {actionNext: makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'})},
+            };
+            mockState.reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}rPrev`]: {reportID: 'rPrev', transactionCount: 2},
+                [`${ONYXKEYS.COLLECTION.REPORT}rNext`]: {reportID: 'rNext', transactionCount: 2},
+            };
+        });
+
+        it('moves to the next expense on the right arrow and the previous one on the left arrow', () => {
+            // Given an expense with a sibling on each side
+            renderNavigation();
+
+            // When the right arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
+
+            // Then it navigates to the next expense, the same as the on-screen next arrow
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext', anchorTransactionID: NEXT_ID}));
+
+            // When the left arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then it navigates to the previous expense, the same as the on-screen previous arrow
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadPrev', anchorTransactionID: PREV_ID}));
+        });
+
+        it('leaves the arrow keys to text inputs', () => {
+            // Given the expense navigation is rendered
+            renderNavigation();
+
+            // Then neither shortcut captures keys typed into a text input, so editing keeps moving the cursor
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)?.config.captureOnInputs).toBe(false);
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)?.config.captureOnInputs).toBe(false);
+        });
+
+        it('does nothing at the last expense, the same as the disabled next arrow', () => {
+            // Given the current expense is the last one in the list
+            mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
+            renderNavigation();
+
+            // Then only the left arrow is active
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(false);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
+        });
+
+        it('does nothing at the first expense, the same as the disabled previous arrow', () => {
+            // Given the current expense is the first one in the list
+            mockState.transactionIDsList = [CURRENT_ID, NEXT_ID];
+            renderNavigation();
+
+            // Then only the right arrow is active
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(false);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(true);
+        });
+
+        it('gives the arrow keys up while a modal or popover opens on top of the expense', () => {
+            // Given a popover (e.g. a context menu) is opening over the expense, which uses the arrow keys itself
+            mockState.modal = {isVisible: true, willAlertModalBecomeVisible: true, isPopover: true};
+            renderNavigation();
+
+            // Then neither shortcut is active
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(false);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(false);
+        });
+
+        it('keeps the arrow keys while only the RHP the expense lives in marks the modal visible', () => {
+            // Given the RHP marks the modal visible on focus, with nothing opened on top of it
+            mockState.modal = {isVisible: true, type: CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED};
+            renderNavigation();
+
+            // Then both shortcuts stay active
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(true);
+        });
+
+        it('ignores an arrow key that something focused has already handled', () => {
+            // Given the expense navigation is rendered
+            renderNavigation();
+
+            // When an arrow key arrives that a focused menu or list already handled
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, {defaultPrevented: true});
+
+            // Then it doesn't also move to another expense, so keyboard and assistive tech navigation keep working
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
     });
 
