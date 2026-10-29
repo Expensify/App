@@ -22,6 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {isPolicyMember} from './members';
 import {isPolicyApprover} from './permissions';
 import {isGroupPolicy} from './policyType';
 import {getTagApproverRule} from './rules';
@@ -86,8 +87,15 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
 
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     // We intentionally use || here so an empty-string approver falls back to the owner. ?? would keep the empty string.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return policy?.approver || policy?.owner || '';
+}
+
+/**
+ * Whether an approver email points at someone who is no longer on the workspace. The owner always counts as a member,
+ * and HR advanced (manager) mode is excluded, because its final approver doesn't have to be a workspace member.
+ */
+function isNonMemberApprover(policy: OnyxEntry<Policy>, approverEmail: string | undefined): boolean {
+    return !!approverEmail && !isPolicyMember(policy, approverEmail) && !getHRAdvancedModeFinalApprover(policy);
 }
 
 /**
@@ -441,6 +449,7 @@ export {
     isSubmitterAndApprover,
     getApprovalWorkflow,
     getDefaultApprover,
+    isNonMemberApprover,
     hasCustomApprovalWorkflow,
     getRuleApprovers,
     evaluateApprovalWorkflowRule,

@@ -12,10 +12,13 @@ type ListItemUserAvatarProps = {
 
     /** Display name used for the fallback avatar when the account has none */
     fallbackDisplayName?: string;
+
+    /** Login of the account. Seeds a deterministic letter avatar when personal details aren't loaded yet */
+    accountEmail?: string;
 };
 
 /** A user's avatar sized for a list row. */
-function ListItemUserAvatar({accountID, fallbackDisplayName}: ListItemUserAvatarProps) {
+function ListItemUserAvatar({accountID, fallbackDisplayName, accountEmail}: ListItemUserAvatarProps) {
     const styles = useThemeStyles();
     const {shouldShowTooltip} = useListItemContext();
 
@@ -25,6 +28,7 @@ function ListItemUserAvatar({accountID, fallbackDisplayName}: ListItemUserAvatar
                 accountID={accountID}
                 containerStyle={[styles.actionAvatar, styles.mr3]}
                 fallbackDisplayName={fallbackDisplayName}
+                accountEmail={accountEmail}
             />
         </AvatarTooltipsProvider>
     );

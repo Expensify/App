@@ -14,6 +14,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,6 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
 import {openInitialSettingsPage} from '@userActions/Wallet';
 
@@ -32,13 +34,15 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable';
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 
-import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
+import {CommonActions, findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
@@ -53,6 +57,8 @@ type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SETTINGS);
     const tabRootScrollProps = useTabRootScrollProps(styles.w100);
@@ -63,14 +69,23 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
 
     // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
-    // With nothing behind it, as after a deep link, Home replaces Account so that going back does not reopen it.
+    // With nothing behind it, as after a deep link or a relaunch, the tab history is reset to Home alone so that going
+    // back does not reopen Account. The tab router drops REPLACE, so `navigate(HOME, {forceReplace: true})` can't do it.
     const goBackFromAccount = () => {
         if (navigation.canGoBack()) {
             navigation.goBack();
             return;
         }
 
-        Navigation.navigate(ROUTES.HOME, {forceReplace: true});
+        const tabNavigation = navigation.getParent<NativeBottomTabNavigationProp<TabNavigatorParamList>>();
+        const tabState = tabNavigation?.getState();
+        const homeRoute = tabState?.routes.find((tabRoute) => tabRoute.name === SCREENS.HOME);
+        if (!tabNavigation || !tabState || !homeRoute) {
+            Navigation.navigate(ROUTES.HOME);
+            return;
+        }
+
+        tabNavigation.dispatch(CommonActions.reset({...tabState, index: tabState.routes.indexOf(homeRoute), history: [{type: 'route', key: homeRoute.key}]}));
     };
 
     useAndroidBackButtonHandler(() => {
@@ -184,6 +199,21 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
+    const topBar = (
+        <TopBarWithLoadingBar
+            breadcrumbLabel={translate('initialSettingsPage.account')}
+            shouldDisplaySearch={shouldUseNarrowLayout}
+            shouldDisplayHelpButton={shouldUseNarrowLayout}
+        >
+            {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                <View style={styles.mr2}>
+                    <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                </View>
+            )}
+        </TopBarWithLoadingBar>
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -191,25 +221,14 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             shouldEnableKeyboardAvoidingView={false}
             {...tabRootScreenWrapperProps}
         >
-            <TopBarWithLoadingBar
-                breadcrumbLabel={translate('initialSettingsPage.account')}
-                shouldDisplaySearch={shouldUseNarrowLayout}
-                shouldDisplayHelpButton={shouldUseNarrowLayout}
-                onBackButtonPress={isDrawnOverTabs ? goBackFromAccount : undefined}
-            >
-                {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
-                    /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
-                    <View style={styles.mr2}>
-                        <AccountSwitcherButton isScreenFocused={isScreenFocused} />
-                    </View>
-                )}
-            </TopBarWithLoadingBar>
+            {!shouldScrollMainHeader && topBar}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...tabRootScrollProps}
             >
+                {shouldScrollMainHeader && topBar}
                 {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}
