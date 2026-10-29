@@ -3019,6 +3019,37 @@ describe('TripReservationUtils', () => {
             // Then the hotel-local deadline is used instead of dropping to the generic policy text
             expect(cancellationDeadline).toBe('2026-10-19T23:59:00');
         });
+
+        it('should prefer the hotel-local deadline when deadlineUtc ends in Z', () => {
+            // Given a deadlineUtc normalized to UTC and a hotel-local deadline
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T22:59:00Z'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the hotel-local time is used so it matches what Spotnana shows, not the UTC time
+            expect(cancellationDeadline).toBe('2026-10-19T23:59:00');
+        });
+
+        it('should fall back to deadlineUtc ending in Z when there is no hotel-local deadline', () => {
+            // Given a deadlineUtc normalized to UTC and no hotel-local deadline
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: 'Free cancellation',
+                    deadlineUtc: {iso8601: '2026-10-19T22:59:00Z'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then the UTC deadline is still shown rather than dropping to the generic policy text
+            expect(cancellationDeadline).toBe('2026-10-19T22:59:00Z');
+        });
     });
 
     describe('getPNRReservationDataFromTripReport', () => {

@@ -999,12 +999,20 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
 
-            // When the deadline is formatted
-            const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00', undefined);
-            process.env.TZ = originalTZ;
+            try {
+                // When the deadline is formatted
+                const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00', undefined);
 
-            // Then the hotel's wall-clock time is shown as-is, not converted from New York time
-            expect(result).toBe('Monday, Oct 19, 2026 11:59 PM');
+                // Then the hotel's wall-clock time is shown as-is, not converted from New York time
+                expect(result).toBe('Monday, Oct 19, 2026 11:59 PM');
+            } finally {
+                // Restore TZ even if formatting throws, and unset it rather than writing the string "undefined"
+                if (originalTZ === undefined) {
+                    delete process.env.TZ;
+                } else {
+                    process.env.TZ = originalTZ;
+                }
+            }
         });
 
         it('should label a UTC time ending in Z as UTC', () => {
@@ -1012,8 +1020,11 @@ describe('DateUtils', () => {
             jest.useFakeTimers();
             jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
 
-            // When it is formatted, then it keeps the UTC label
-            expect(DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00Z', undefined)).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
+            // When it is formatted
+            const result = DateUtils.getFormattedCancellationDate('2026-04-19T15:00:00Z', undefined);
+
+            // Then it keeps the UTC label
+            expect(result).toBe('Sunday, Apr 19, 2026 3:00 PM, UTC');
         });
 
         it('should use the given locale for the weekday, the month and the clock', () => {
