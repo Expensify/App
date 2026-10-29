@@ -409,7 +409,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const reportActionsToRender = shouldKeepInitialSnapshot ? (initialReportActionsSnapshot ?? renderedVisibleReportActions) : renderedVisibleReportActions;
 
     // Report actions are stored newest-first. LegendList renders them chronologically.
-    const chronologicalReportActions = reportActionsToRender.toReversed();
+    const chronologicalReportActions = [...reportActionsToRender].reverse();
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {
         displayReportActions,
