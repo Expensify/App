@@ -44,6 +44,16 @@ const INDICATOR_STYLE: React.CSSProperties = {
     pointerEvents: 'none',
 };
 
+// Centred on the grip, so it reaches into the column as far as into the gap after it.
+// A child of the handle, so its presses, hovers and pointer capture are the handle's.
+const HIT_AREA_STYLE: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: (CONST.RESIZE_HANDLE.INDICATOR_WIDTH - CONST.TABLES.COLUMN_RESIZE.HIT_AREA_WIDTH) / 2,
+    width: CONST.TABLES.COLUMN_RESIZE.HIT_AREA_WIDTH,
+};
+
 /**
  * Drag the strip over a column's right edge. Carries the grip and the indicator line, so they move with the column through drags and scrolls.
  * A plain `div` because it relies on DOM pointer capture.
@@ -62,6 +72,10 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
         <Hoverable>
             {(isHovered) => (
                 <div {...handleProps}>
+                    <div
+                        aria-hidden
+                        style={HIT_AREA_STYLE}
+                    />
                     <div
                         aria-hidden
                         // Takes the line's color while the handle itself is hovered, hinting that dragging grows it into the line.

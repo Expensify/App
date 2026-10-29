@@ -10124,8 +10124,11 @@ const CONST = {
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
 
-            /** Share of the heading's height the grip spans, centred vertically. */
-            GRIP_HEIGHT_RATIO: 0.8,
+            /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
+            GRIP_HEIGHT_RATIO: 0.4,
+
+            /** Width of the strip centred on a column's edge that picks up a drag, the smallest comfortable desktop click target. */
+            HIT_AREA_WIDTH: 24,
 
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,

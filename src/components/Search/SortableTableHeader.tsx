@@ -77,7 +77,7 @@ function SortableTableHeader({
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, styles.alignSelfStretch]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
@@ -127,6 +127,7 @@ function SortableTableHeader({
                                     isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isActionColumnWide,
                                 }),
+                                styles.justifyContentCenter,
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
