@@ -1735,6 +1735,24 @@ function MoneyRequestView({
                             >
                                 {Str.UCFirst(translate('iou.reimbursable'))}
                             </Text>
+                            {!!getErrorForField('reimbursable') && (
+                                <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
+                                    <ViolationMessages
+                                        violations={getViolationsForField('reimbursable')}
+                                        containerStyle={[styles.mt1, styles.userSelectNone]}
+                                        textStyle={[styles.ph0]}
+                                        isLast
+                                        isMarkAsCash={isMarkAsCash}
+                                        canEdit={canEdit}
+                                        companyCardPageURL={companyCardPageURL}
+                                        connectionLink={connectionLink}
+                                        routeDistanceMeters={transaction?.comment?.customUnit?.routeDistanceMeters}
+                                        distanceUnit={transaction?.comment?.customUnit?.distanceUnit}
+                                        policyVendors={policyVendors}
+                                        transactionCurrency={transaction?.currency}
+                                    />
+                                </View>
+                            )}
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}

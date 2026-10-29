@@ -1272,6 +1272,15 @@ const ViolationsUtils = {
                 return translate('violations.itemizedReceiptRequired', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
             case 'customRules':
                 return translate('violations.customRules', message);
+            case CONST.VIOLATIONS.NONDEFAULT_AMOUNT:
+            case CONST.VIOLATIONS.NONDEFAULT_BILLABLE:
+            case CONST.VIOLATIONS.NONDEFAULT_CATEGORY:
+            case CONST.VIOLATIONS.NONDEFAULT_COMMENT:
+            case CONST.VIOLATIONS.NONDEFAULT_MERCHANT:
+            case CONST.VIOLATIONS.NONDEFAULT_REIMBURSABLE:
+            case CONST.VIOLATIONS.NONDEFAULT_TAG:
+            case CONST.VIOLATIONS.NONDEFAULT_TAX:
+                return translate('violations.customRules', message);
             case 'ruleViolation':
                 return buildRuleViolationMessage(violation.data?.filters, transactionCurrency ?? currency, convertToDisplayString, translate, policyVendors);
             case 'rter': {
