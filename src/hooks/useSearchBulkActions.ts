@@ -35,6 +35,8 @@ import {
     getSearchPayOnyxData,
     getTotalFormattedAmount,
     isCurrencySupportWalletBulkPay,
+    queueBulkDeleteExpenses,
+    queueBulkDeleteReports,
     queueBulkMarkAsExported,
     queueBulkPayReports,
     queueExportSearchItemsToCSV,
@@ -53,6 +55,7 @@ import Log from '@libs/Log';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
@@ -460,6 +463,21 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
 }
 
+/** Builds the query and the deselected expenses to send to the backend for a "Select all" bulk action on expenses. */
+function getAllMatchingExpenseActionQuery(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {jsonQuery: string; excludedTransactionIDList: string[]} | undefined {
+    if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        const reportQuery = getAllMatchingReportQuery(queryJSON, excludedTransactions);
+        return reportQuery ? {jsonQuery: serializeQueryJSONForBackend(reportQuery), excludedTransactionIDList: []} : undefined;
+    }
+
+    const expenseQuery = getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, searchData);
+    return expenseQuery ? {jsonQuery: serializeQueryJSONForBackend(expenseQuery.queryJSON), excludedTransactionIDList: expenseQuery.excludedTransactionIDList} : undefined;
+}
+
 /**
  * The groupings whose selected groups `getSelectedGroupFilterEntry` can turn into a query filter, which a template export needs.
  * Keep this in sync with that function.
@@ -739,6 +757,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+    // The backend runs a Select all bulk action only on an expense or report search.
+    const isExpenseOrReportSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || isExpenseReportType;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Download',
         'Export',
@@ -1547,6 +1567,27 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
+        // "Select all" can cover more than is loaded, so hand the search query to the backend to delete every match.
+        if (areAllMatchingItemsSelected) {
+            // The user can go offline while the confirmation is open.
+            if (getIsOffline()) {
+                showOfflineModal();
+                return;
+            }
+            const allMatchingQuery = queryJSON ? getAllMatchingExpenseActionQuery(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+            if (!allMatchingQuery) {
+                Log.info('[BulkDelete] Dropping bulk delete: an excluded row could not be resolved');
+                return;
+            }
+            if (isExpenseReportType) {
+                queueBulkDeleteReports(allMatchingQuery.jsonQuery);
+            } else {
+                queueBulkDeleteExpenses(allMatchingQuery.jsonQuery, allMatchingQuery.excludedTransactionIDList);
+            }
+            clearSelectedTransactions();
+            return;
+        }
+
         const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
         const searchData = searchResults?.data;
         if (isExpenseReportType) {
@@ -1630,7 +1671,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         deleteModalTitle,
         deleteModalPrompt,
-        queryJSON?.groupBy,
+        areAllMatchingItemsSelected,
+        showOfflineModal,
+        queryJSON,
+        excludedTransactions,
+        currentSearchResults?.data,
         translate,
         allTransactions,
         allTransactionViolations,
@@ -2736,6 +2781,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (shouldShowPayOption) {
                 allMatchingOptions.push(payButtonOption);
             }
+            // The backend only deletes what the user can delete, so one deletable loaded item is enough to offer it.
+            const hasLoadedDeletableItem =
+                selectedReports.length && isExpenseReportType
+                    ? selectedReports.some((report) => shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, cardList, [report], queryJSON?.type))
+                    : selectedTransactionsKeys.some((id) =>
+                          shouldShowDeleteOption({[id]: selectedTransactions[id]}, currentSearchResults?.data, accountID, rules, cardList, [], queryJSON?.type),
+                      );
+            if (!isOffline && isExpenseOrReportSearch && hasLoadedDeletableItem) {
+                allMatchingOptions.push({
+                    icon: expensifyIcons.Trashcan,
+                    text: translate('search.bulkActions.delete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: handleDeleteSelectedTransactions,
+                });
+            }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
                 allMatchingOptions.push(downloadPDFOption);
@@ -3464,6 +3525,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isDuplicateReportOptionVisible,
         invokeDuplicateReportHandler,
         isExpenseReportType,
+        isExpenseOrReportSearch,
         handleDeleteSelectedTransactions,
         undeleteTransactions,
         theme.icon,
@@ -3537,5 +3599,5 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 }
 
 export default useSearchBulkActions;
-export {getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
+export {getAllMatchingExpenseActionQuery, getFullyDeletedGroupKeysByTransactionID, getGroupKeysSelectedViaGroup, getSelectedGroupKeys, shouldShowBulkDuplicateOption};
 export type {SearchHeaderOptionValue};
