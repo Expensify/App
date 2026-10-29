@@ -56,6 +56,7 @@ function SelectionTopBar({
     SearchTableHeader,
 }: SelectionTopBarProps) {
     const styles = useThemeStyles();
+    const hasTableHeader = !!SearchTableHeader;
 
     return (
         <View
@@ -63,17 +64,21 @@ function SelectionTopBar({
                 styles.searchListHeaderContainerStyle,
                 isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
                 isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                hasTableHeader && [styles.pv0, styles.pb0],
             ]}
         >
             {canSelectMultiple && (
-                <SearchSelectAllMenu
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    shouldShowTextButton={selectAllButtonVisible}
-                    onAllCheckboxPress={onAllCheckboxPress}
-                />
+                <View style={hasTableHeader && styles.pv2}>
+                    <SearchSelectAllMenu
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
+                        selectedItemsLength={selectedItemsLength}
+                        totalItems={totalItems}
+                        shouldShowTextButton={selectAllButtonVisible}
+                        onAllCheckboxPress={onAllCheckboxPress}
+                    />
+                </View>
             )}
 
             {SearchTableHeader}
