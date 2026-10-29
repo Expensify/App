@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -114,12 +115,11 @@ function FixBankAccountPage() {
                     onBackButtonPress={didSend ? onDismiss : onBack}
                 />
                 {didSend && (
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         illustration={illustrations.LaptopWithSecondScreenBank}
                         heading={translate('walletPage.fixBankAccount.successTitle')}
                         description={translate('walletPage.fixBankAccount.successBody')}
                         descriptionStyle={styles.textSupportingNormal}
-                        shouldShowButton
                         buttonText={translate('walletPage.fixBankAccount.successButton')}
                         onButtonPress={onDismiss}
                         containerStyle={styles.flex1}
@@ -127,13 +127,15 @@ function FixBankAccountPage() {
                 )}
                 {!didSend && isInsufficientFunds && (
                     <>
-                        <ConfirmationPage
-                            illustration={illustrations.ScissorsCuttingMoney}
-                            heading={translate('common.actionRequired')}
-                            description={translate('walletPage.fixBankAccount.insufficientFundsBody')}
-                            descriptionStyle={styles.textSupportingNormal}
-                            containerStyle={styles.flex1}
-                        />
+                        <ConfirmationPage style={styles.flex1}>
+                            <ConfirmationPage.Content>
+                                <ConfirmationPage.Illustration illustration={illustrations.ScissorsCuttingMoney} />
+                                <ConfirmationPage.Heading>{translate('common.actionRequired')}</ConfirmationPage.Heading>
+                                <ConfirmationPage.Description style={styles.textSupportingNormal}>
+                                    {translate('walletPage.fixBankAccount.insufficientFundsBody')}
+                                </ConfirmationPage.Description>
+                            </ConfirmationPage.Content>
+                        </ConfirmationPage>
                         <FixedFooter>{resendButton}</FixedFooter>
                     </>
                 )}
