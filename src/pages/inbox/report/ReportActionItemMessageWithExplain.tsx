@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -22,7 +22,6 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
@@ -44,7 +43,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const session = useSession();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});

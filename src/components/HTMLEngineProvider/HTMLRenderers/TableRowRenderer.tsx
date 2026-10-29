@@ -1,4 +1,5 @@
 import Icon from '@components/Icon';
+import {useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 
@@ -6,7 +7,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -15,11 +15,9 @@ import {openLink} from '@libs/actions/Link';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {CustomRendererProps, TBlock, TNode} from 'react-native-render-html';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import {useContext} from 'react';
 import {View} from 'react-native';
 
@@ -51,7 +49,7 @@ function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const session = useSession();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {hovered, bind} = useHover();
     const {anchor, report, action, originalReportID} = useShowContextMenuState();

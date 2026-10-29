@@ -1,12 +1,12 @@
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
+import {useSession} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useEnvironment from '@hooks/useEnvironment';
 import useHover from '@hooks/useHover';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,12 +16,10 @@ import {isAttachmentAnchor} from '@libs/AttachmentAnchorUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
-import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useContext} from 'react';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
@@ -39,7 +37,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const StyleUtils = useStyleUtils();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const session = useSession();
     const {hovered, bind} = useHover();
     // An auth token is needed to download Expensify chat attachments. An edited comment comes back without the source
     // attribute, so the comment fragment restores the ID before this runs.
