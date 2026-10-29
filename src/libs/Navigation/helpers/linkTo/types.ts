@@ -1,12 +1,5 @@
-type ActionPayloadParams = {
-    [key: string]: unknown;
-    screen?: string;
-    params?: ActionPayloadParams;
-    path?: string;
-};
-
 type ActionPayload = {
-    params?: ActionPayloadParams;
+    params?: unknown;
 };
 
 type LinkToOptions = {
@@ -25,4 +18,4 @@ type LinkToOptions = {
     skipMatchingFullScreenRoute?: boolean;
 };
 
-export type {ActionPayload, ActionPayloadParams, LinkToOptions};
+export type {ActionPayload, LinkToOptions};
