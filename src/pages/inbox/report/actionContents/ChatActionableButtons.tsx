@@ -5,6 +5,8 @@ import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkele
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useHasOwnedPaidPolicy from '@hooks/useHasOwnedPaidPolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -43,6 +45,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
@@ -190,11 +193,17 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const personalDetail = useCurrentUserPersonalDetails();
     const activePolicy = useActivePolicy();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const delegateAccountID = useDelegateAccountID();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasOwnedPaidPolicy = useHasOwnedPaidPolicy();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
     });
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(conciergeReportID)}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -221,6 +230,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
         firstPolicy: filteredPoliciesInfo?.firstPolicy,
         restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+        workspaceCreationParams: {conciergeChat, isSelfTourViewed, hasActiveAdminPolicies, delegateAccountID, hasOwnedPaidPolicy},
     };
     const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
     const shouldShowSubmitButtons = !isSplitExpense || !!hasWorkspaceToSubmitTo;

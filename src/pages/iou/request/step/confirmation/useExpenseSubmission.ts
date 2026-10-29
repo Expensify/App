@@ -186,12 +186,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isOdometerDistanceRequest,
     });
 
-    // "Submit to my employer" with no existing workspace creates a draft Submit (submit2026) workspace. Route it
-    // through trackExpense (AddTrackedExpenseToPolicy) so the workspace is created and the expense submitted
-    // atomically, instead of requestMoney/ConvertTrackedExpenseToRequest which can't create a workspace.
-    // Scoped to submit2026 drafts only so other (team/corporate) draft flows keep their existing behavior.
-    const isSubmittingExpenseToDraftWorkspace = action === CONST.IOU.ACTION.SUBMIT && isDraftPolicy && policy?.type === CONST.POLICY.TYPE.SUBMIT;
-
     const {sendMoney} = useSendMoneySubmission({
         transaction,
         receiptFiles,
@@ -266,7 +260,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isOdometerDistanceRequest,
         isCategorizingTrackExpense,
         isSharingTrackExpense,
-        isSubmittingExpenseToDraftWorkspace,
         isSelfDMDestination,
         isLookingAroundUser,
         draftTransactionIDs,
@@ -397,7 +390,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         isSelfDMDestination,
         isMovingTransactionFromTrackExpense,
         isUnreported,
-        isSubmittingExpenseToDraftWorkspace,
     });
 
     const submitByPath: Record<SubmissionPath, (params: CreateTransactionParams) => boolean> = {
