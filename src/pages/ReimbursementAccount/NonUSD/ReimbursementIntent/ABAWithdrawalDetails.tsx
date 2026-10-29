@@ -147,8 +147,8 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.ACCOUNT_NUMBER}
-                        label={translate('abaWithdrawalDetailsStep.accountNumber')}
-                        aria-label={translate('abaWithdrawalDetailsStep.accountNumber')}
+                        label={translate('bankAccount.accountNumber')}
+                        aria-label={translate('bankAccount.accountNumber')}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         containerStyles={styles.mt6}

@@ -5043,9 +5043,8 @@ const translations = {
     abaWithdrawalDetailsStep: {
         title: 'What are your account details?',
         bsbNumber: 'BSB',
-        accountNumber: 'Account Number',
-        bankUserIdentificationNumber: 'Bank User Identification Number',
-        companyName: 'Company Name',
+        bankUserIdentificationNumber: 'Bank user identification number',
+        companyName: 'Company name',
         includeSelfBalancingTransaction: 'Include self-balancing transaction in the ABA file',
         error: {
             bsbNumber: 'Please enter a valid BSB, like 123-456',
