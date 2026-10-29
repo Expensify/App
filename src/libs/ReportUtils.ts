@@ -147,9 +147,11 @@ import {
     canMemberWrite as canMemberWritePolicyUtils,
     canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
     getActivePolicies,
     getConnectedIntegration,
     getForwardsToAccount,
+    getGroupPoliciesWhereReportCanBeCreated,
     getManagerAccountEmail,
     getManagerAccountID,
     getPerDiemCustomUnit,
@@ -6290,6 +6292,17 @@ function canEditFieldOfMoneyRequest({
         const isOpen = isOpenExpenseReport(moneyRequestReport);
         if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
             return false;
+        }
+
+        // A member who cannot create expenses on the report's policy can only move their own expense to another workspace where they can create a report.
+        if (!isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail)) {
+            if (!isOwner) {
+                return false;
+            }
+            const isPerDiem = isPerDiemRequest(transaction);
+            return getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
+                (destinationPolicy) => destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy)),
+            );
         }
 
         // Check the cheaper condition first
