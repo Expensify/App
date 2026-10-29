@@ -1,3 +1,6 @@
+/**
+ * Lets an admin pick which date Zoho Books vendor bills use when a report is exported.
+ */
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';

@@ -1,3 +1,7 @@
+/**
+ * Zoho Books export settings: the preferred exporter, vendor bill date, and the vendor and account company card expenses export with.
+ * Reimbursable and company card export types are shown read-only because Zoho Books supports one type each.
+ */
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';

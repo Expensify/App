@@ -1,3 +1,7 @@
+/**
+ * Lets an admin pick the default Zoho Books vendor for company card expenses that don't match a vendor automatically.
+ * Only active vendor records are listed, and the selection can be cleared with None.
+ */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';

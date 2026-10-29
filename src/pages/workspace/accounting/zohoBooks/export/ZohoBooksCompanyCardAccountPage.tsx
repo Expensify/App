@@ -1,3 +1,7 @@
+/**
+ * Lets an admin pick the Zoho Books account that company card expenses export to.
+ * Only active bank and credit card accounts are listed, since those are the accounts Zoho Books expenses can be paid through.
+ */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';

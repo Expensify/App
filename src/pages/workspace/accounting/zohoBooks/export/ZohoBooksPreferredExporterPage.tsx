@@ -1,3 +1,7 @@
+/**
+ * Lets an admin pick which workspace admin is the preferred exporter for Zoho Books.
+ * Expensify guides are only listed when the owner or the current user is part of the Expensify team.
+ */
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
