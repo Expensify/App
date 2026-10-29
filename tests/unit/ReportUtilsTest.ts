@@ -29764,6 +29764,30 @@ describe('isExportInProgress', () => {
         expect(isExportInProgress(reportActions)).toBe(true);
     });
 
+    it('returns false once a finished export follows the start', () => {
+        // Given the server recorded the finished export as its own action instead of clearing the started one
+        const reportActions = [
+            buildExportStartedAction('2026-10-14 10:00:00.000'),
+            createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2026-10-14 10:00:05.000'}),
+        ];
+
+        // When checking whether the export is running
+        // Then it is not, because a successful export sends no failure message and would otherwise keep More → Export hidden
+        expect(isExportInProgress(reportActions)).toBe(false);
+    });
+
+    it('returns true when only an earlier export finished', () => {
+        // Given a re-export of a report that was already exported successfully
+        const reportActions = [
+            createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, created: '2026-10-14 09:00:00.000'}),
+            buildExportStartedAction('2026-10-14 10:00:00.000'),
+        ];
+
+        // When checking whether the export is running
+        // Then the older export must not resolve the new attempt
+        expect(isExportInProgress(reportActions)).toBe(true);
+    });
+
     it('returns false once a reset action follows the export', () => {
         // Given the report was unapproved after the export started
         const reportActions = [

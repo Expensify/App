@@ -14404,17 +14404,18 @@ function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportActi
     for (const action of reportActionList) {
         // One action type covers both halves of an export, and only `pendingAction` separates them: a pending one renders
         // "started exporting this report to ...", anything else renders a finished export. See getExportIntegrationActionFragments.
-        if (isExportIntegrationAction(action)) {
+        const isExportIntegration = isExportIntegrationAction(action);
+        if (isExportIntegration && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             // A rejected request leaves its errors on the started action, and nothing will ever answer it
-            if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isEmptyObject(action.errors) && action.created > lastExportStartedCreated) {
+            if (isEmptyObject(action.errors) && action.created > lastExportStartedCreated) {
                 lastExportStartedCreated = action.created;
             }
             continue;
         }
 
-        // Every outcome ends the attempt, reconciled ones included, unlike `hasExportError` which only counts failures.
-        // A pending one is this client's own optimistic action, which says nothing about what the server did.
-        const isOutcome = isIntegrationMessageAction(action) && !action.pendingAction;
+        // Every outcome ends the attempt, finished exports and reconciled ones included, unlike `hasExportError` which only
+        // counts failures. A pending one is this client's own optimistic action, which says nothing about what the server did.
+        const isOutcome = (isExportIntegration || isIntegrationMessageAction(action)) && !action.pendingAction;
         // Resetting the approval state invalidates the export the same way it invalidates a finished one in `isExported`.
         if ((isOutcome || resetApprovalActionTypes.has(action.actionName)) && action.created > lastExportResolvedCreated) {
             lastExportResolvedCreated = action.created;
