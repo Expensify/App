@@ -41,7 +41,7 @@ type CommitData = {
 
 const mockGetInput = jest.fn();
 const mockGetPullRequest = jest.fn();
-const mockCreateComment = jest.fn();
+const mockCreateComment = jest.fn<(params: {body: string; issue_number: number; owner: string; repo: string}) => Promise<void>>();
 const mockListTags = jest.fn();
 const mockGetCommit = jest.fn();
 
@@ -55,9 +55,6 @@ const workflowRunURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_RE
 // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
 jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
-// Must also be set before `markPullRequestsAsDeployed` is imported below: it does `memoize(GithubUtils.octokit.git.
-// getCommit)` in a top-level (module-load-time) constant, capturing whatever `internalOctokit` points to at that
-// moment rather than reading it fresh on each call.
 const mockOctokit = {
     rest: {
         issues: {
@@ -86,7 +83,7 @@ const mockOctokit = {
     },
     paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
 };
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub implements only the endpoints this action touches, and the load-order constraint above rules out initializing a real octokit and spying on it
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub implements only the endpoints this action touches
 GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
 
 // Must be imported after the GithubUtils.internalOctokit setup above so it picks up the mocks.
@@ -112,7 +109,7 @@ const PRList: Record<number, PullRequest> = {
 };
 const version = '42.42.42-42';
 const defaultTags = [
-    {name: '42.42.42-42', commit: {sha: 'abcd'}},
+    {name: '42.42.42-42-staging', commit: {sha: 'abcd'}},
     {name: '42.42.42-41', commit: {sha: 'hash'}},
 ];
 
@@ -169,6 +166,7 @@ afterEach(() => {
     mockCreateComment.mockClear();
     mockGetPullRequest.mockClear();
     mockListTags.mockClear();
+    mockGetCommit.mockClear();
 });
 
 afterAll(() => {
@@ -177,7 +175,12 @@ afterAll(() => {
 
 describe('markPullRequestsAsDeployed', () => {
     it('comments on pull requests correctly for a standard staging deploy', async () => {
+        // Given multiple PRs share the same staging deployment commit.
+        // When staging comments are posted.
         await run();
+
+        // Then the deployment commit is fetched once for the whole repository.
+        expect(mockGetCommit).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
@@ -222,10 +225,19 @@ platform | result
         }
     });
 
-    it('comments on pull requests correctly for a cherry pick', async () => {
+    it.each([
+        [CONST.APP_REPO, true],
+        [CONST.APP_REPO, false],
+        [CONST.MOBILE_EXPENSIFY_REPO, true],
+        [CONST.MOBILE_EXPENSIFY_REPO, false],
+    ])('recognizes the current %s cherry-pick regardless of its label (label present: %s)', async (repo, hasCPLabel) => {
+        // Given the deployed tag points to this PR's cherry-pick, even if its label was removed.
         mockGetInput.mockImplementation((key: string) => {
             if (key === 'PR_LIST') {
-                return JSON.stringify([3]);
+                return JSON.stringify(repo === CONST.APP_REPO ? [3] : []);
+            }
+            if (key === 'MOBILE_EXPENSIFY_PR_LIST') {
+                return JSON.stringify(repo === CONST.MOBILE_EXPENSIFY_REPO ? [3] : []);
             }
             if (key === 'DEPLOY_VERSION') {
                 return '42.42.42-43';
@@ -241,14 +253,14 @@ platform | result
                         merged_by: {
                             login: 'thor',
                         },
-                        labels: [{name: CONST.LABELS.CP_STAGING}],
+                        labels: hasCPLabel ? [{name: CONST.LABELS.CP_STAGING}] : [],
                     },
                 };
             }
             return {};
         });
         mockListTags.mockResolvedValue({
-            data: [{name: '42.42.42-43', commit: {sha: 'xyz'}}, ...defaultTags],
+            data: [{name: '42.42.42-43-staging', commit: {sha: 'xyz'}}, ...defaultTags],
         });
         mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
             if (commit_sha === 'xyz') {
@@ -261,7 +273,10 @@ platform | result
             return mockGetCommitDefaultImplementation({commit_sha});
         });
 
+        // When staging deploy comments are posted.
         await run();
+
+        // Then the comment identifies the current cherry-pick and its actor.
         expect(mockCreateComment).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledWith({
             body: `🚀 [Cherry-picked](${workflowRunURL}) to staging by https://github.com/freyja in version: 42.42.42-43 🚀
@@ -273,8 +288,49 @@ platform | result
 🍎 iOS 🍎|success ✅`,
             issue_number: 3,
             owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
+            repo,
         });
+    });
+
+    it.each([CONST.APP_REPO, CONST.MOBILE_EXPENSIFY_REPO])('does not reuse an old cherry-pick tag or label for %s', async (repo) => {
+        // Given a PR retains its CP label and an old tag, but this release is a normal deployment.
+        mockGetInput.mockImplementation((key: string) => {
+            if (key === 'PR_LIST') {
+                return JSON.stringify(repo === CONST.APP_REPO ? [3] : []);
+            }
+            if (key === 'MOBILE_EXPENSIFY_PR_LIST') {
+                return JSON.stringify(repo === CONST.MOBILE_EXPENSIFY_REPO ? [3] : []);
+            }
+            return mockGetInputDefaultImplementation(key);
+        });
+        mockGetPullRequest.mockResolvedValue({data: {issue_number: 3, title: 'Previously cherry-picked PR', merged_by: {login: 'thor'}, labels: [{name: CONST.LABELS.CP_STAGING}]}});
+        mockListTags.mockResolvedValue({
+            data: [
+                {name: `${version}-staging`, commit: {sha: 'current-normal-deployment'}},
+                {name: '42.42.42-41-staging', commit: {sha: 'previous-cherry-pick'}},
+            ],
+        });
+        mockGetCommit.mockImplementation(({commit_sha}: Commit) => ({
+            data: {
+                message:
+                    commit_sha === 'previous-cherry-pick'
+                        ? 'Merge pull request #3 from Expensify/test\n(cherry picked from commit original)\n(cherry-picked to staging by freyja)'
+                        : 'Update Mobile-Expensify submodule version',
+            },
+        }));
+
+        // When the PR is announced in a later staging release.
+        await run();
+
+        // Then the normal deployment is not attributed to the old cherry-pick actor.
+        expect(mockCreateComment).toHaveBeenCalledTimes(1);
+        expect(mockCreateComment).toHaveBeenCalledWith(
+            expect.objectContaining({
+                repo,
+                issue_number: 3,
+            }),
+        );
+        expect(mockCreateComment.mock.calls.at(0)?.at(0)?.body).toContain(`🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/thor in version: ${version}`);
     });
 
     it('comments on pull requests correctly when one platform fails', async () => {

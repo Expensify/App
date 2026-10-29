@@ -7,7 +7,6 @@ import PromisePool from '@scripts/utils/PromisePool';
 
 import * as core from '@actions/core';
 import {context} from '@actions/github';
-import memoize from 'lodash/memoize';
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -48,8 +47,6 @@ async function commentPR(PR: number, message: string, repo: string = context.rep
 
 const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
-const getCommit = memoize(GithubUtils.octokit.git.getCommit);
-
 /**
  * Process deploy checklist comments for a list of PRs
  */
@@ -57,8 +54,26 @@ async function commentOnDeployChecklistPRs(
     prList: number[],
     repoName: string,
     recentTags: Awaited<ReturnType<typeof GithubUtils.octokit.repos.listTags>>['data'],
+    version: string,
     getDeployMessage: (deployer: string, deployVerb: string, prTitle?: string) => string,
 ) {
+    if (prList.length === 0) {
+        return;
+    }
+
+    // CP labels persist after release, so only the current staging tag can identify a cherry-pick.
+    const deploymentTag = recentTags.find((tag) => tag.name === `${version}-staging`);
+    const deploymentCommit = deploymentTag
+        ? (
+              await GithubUtils.octokit.git.getCommit({
+                  owner: CONST.GITHUB_OWNER,
+                  repo: repoName,
+                  commit_sha: deploymentTag.commit.sha,
+              })
+          ).data
+        : undefined;
+    const cherryPickedPR = deploymentCommit?.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/)?.at(1);
+    const cpActor = deploymentCommit?.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
     const pool = new PromisePool<void>(8);
     const commentPromises = prList.map((prNumber) =>
         pool.add(async () => {
@@ -69,25 +84,10 @@ async function commentOnDeployChecklistPRs(
                     pull_number: prNumber,
                 });
 
-                // Find the deployer: either the merger, or for CPs, the tag creator
-                const isCP = pr.labels.some(({name: labelName}) => labelName === CONST.LABELS.CP_STAGING);
+                const isCP = cherryPickedPR === String(prNumber);
                 let deployer = pr.merged_by?.login;
-                if (isCP) {
-                    for (const tag of recentTags) {
-                        const {data: commit} = await getCommit({
-                            owner: CONST.GITHUB_OWNER,
-                            repo: repoName,
-                            commit_sha: tag.commit.sha,
-                        });
-                        const prNumForCPMergeCommit = commit.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/);
-                        if (prNumForCPMergeCommit?.at(1) === String(prNumber)) {
-                            const cpActor = commit.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
-                            if (cpActor) {
-                                deployer = cpActor;
-                            }
-                            break;
-                        }
-                    }
+                if (isCP && cpActor) {
+                    deployer = cpActor;
                 }
 
                 const title = pr.title;
@@ -214,11 +214,11 @@ async function run() {
     }
 
     // Comment on the PRs
-    await commentOnDeployChecklistPRs(prList, CONST.APP_REPO, appRecentTags, getDeployMessage);
+    await commentOnDeployChecklistPRs(prList, CONST.APP_REPO, appRecentTags, version, getDeployMessage);
     console.log(`✅ Added staging deploy comment ${prList.length} App PRs`);
 
     if (mobileExpensifyPRList.length > 0) {
-        await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, getDeployMessage);
+        await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, version, getDeployMessage);
         console.log(`✅ Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
     }
 }
