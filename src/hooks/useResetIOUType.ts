@@ -89,8 +89,6 @@ function useResetIOUType({
     // Derive participants from the current report (or the global-create fallback) so the freshly-rebuilt transaction
     // already includes them. This prevents the embedded confirmation's auto-assign useEffect from re-firing on every
     // cleanup and dragging back unrelated draft state (receipt, billable, etc.).
-    // From global create there is no report, so `policy` is undefined. `defaultPolicy` is the workspace of the default
-    // workspace chat, so the draft uses that workspace's currency instead of the member's Payment currency.
     const {participants: resolvedDefaultParticipants, defaultPolicy} = useDefaultParticipants({
         sourceReport: report,
         transaction,

@@ -105,7 +105,7 @@ function createDraftWithoutParticipants(overrides: Partial<Transaction> = {}): T
     };
 }
 
-async function renderParticipantPickerState(transaction: Transaction, isDistanceRequest = false) {
+async function renderParticipantPickerState(transaction: Transaction) {
     renderHook(() =>
         useParticipantPickerState({
             transaction,
@@ -114,8 +114,8 @@ async function renderParticipantPickerState(transaction: Transaction, isDistance
             reportDrafts: undefined,
             navigation,
             policyID: undefined,
-            isDistanceRequest,
-            isManualRequest: !isDistanceRequest,
+            isDistanceRequest: transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE,
+            isManualRequest: transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL,
             blockDistanceRequestIfNeeded,
         }),
     );
@@ -159,7 +159,16 @@ describe('useParticipantPickerState', () => {
     it('keeps the draft currency for distance requests', async () => {
         // Given a distance draft, whose currency comes from the selected mileage rate
         // When the confirmation auto-assigns the default participant
-        await renderParticipantPickerState(createDraftWithoutParticipants({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE}), true);
+        await renderParticipantPickerState(createDraftWithoutParticipants({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE}));
+
+        // Then the currency is not overwritten with the workspace output currency
+        expect(mockedSetMoneyRequestCurrency).not.toHaveBeenCalled();
+    });
+
+    it('keeps the draft currency for per diem requests', async () => {
+        // Given a per diem draft, whose currency comes from the destination and which never sets isAmountSet
+        // When the confirmation auto-assigns the default participant
+        await renderParticipantPickerState(createDraftWithoutParticipants({iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM}));
 
         // Then the currency is not overwritten with the workspace output currency
         expect(mockedSetMoneyRequestCurrency).not.toHaveBeenCalled();

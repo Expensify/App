@@ -281,9 +281,10 @@ function useParticipantPickerState({
         }
 
         // The draft was created before the default workspace was known, so it holds the member's Payment currency.
-        // Use the workspace currency instead, unless an amount was already entered. Distance rates set their own currency.
+        // Use the workspace currency instead, unless an amount was already entered. Only Manual requests take the
+        // workspace currency; distance, per diem, and time requests get theirs from the rate or destination.
         const defaultCurrency = defaultPolicy?.outputCurrency;
-        if (defaultCurrency && !transaction.isAmountSet && !isDistanceRequest && transaction.currency !== defaultCurrency) {
+        if (defaultCurrency && !transaction.isAmountSet && isManualRequest && transaction.currency !== defaultCurrency) {
             setMoneyRequestCurrency(transaction.transactionID, defaultCurrency);
         }
     }, [
@@ -293,7 +294,7 @@ function useParticipantPickerState({
         transaction?.currency,
         defaultParticipants,
         defaultPolicy?.outputCurrency,
-        isDistanceRequest,
+        isManualRequest,
         navigation,
     ]);
 
