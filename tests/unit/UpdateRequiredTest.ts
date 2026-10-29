@@ -1,3 +1,5 @@
+import {APP_UPDATE_QUERY_PARAM, getAppUpdateURL} from '@libs/AppUpdateURL';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -39,13 +41,14 @@ function loadWebUpdateRequired(): UpdateRequiredModule {
 }
 
 describe('UpdateRequired (web)', () => {
-    const reloadMock = jest.fn();
+    const replaceMock = jest.fn();
+    const currentURL = 'https://new.expensify.com/r/123?existing=value#details';
     const originalLocation = window.location;
 
     beforeAll(() => {
         Object.defineProperty(window, 'location', {
             configurable: true,
-            value: {reload: reloadMock},
+            value: {href: currentURL, replace: replaceMock},
         });
     });
 
@@ -68,12 +71,12 @@ describe('UpdateRequired (web)', () => {
 
         // When a request gets a 426
         alertUser();
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        expect(replaceMock).toHaveBeenCalledTimes(1);
         await waitForBatchedUpdates();
 
         // Then navigation can load fresh HTML immediately, preserving the worker and its offline assets
         expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        expect(replaceMock).toHaveBeenCalledWith(getAppUpdateURL(currentURL));
         expect(mockOnyxSet).not.toHaveBeenCalled();
     });
 
@@ -87,7 +90,7 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then only one reload is triggered and the Update Required screen is not shown
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        expect(replaceMock).toHaveBeenCalledTimes(1);
         expect(mockLogAlert).not.toHaveBeenCalled();
     });
 
@@ -101,7 +104,7 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then it stops reloading to avoid a loop, shows the Update Required screen, and alerts because the reload didn't get a new bundle
-        expect(reloadMock).not.toHaveBeenCalled();
+        expect(replaceMock).not.toHaveBeenCalled();
         expect(mockLogAlert).toHaveBeenCalledTimes(1);
         expect(mockOnyxSet).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
     });
@@ -131,7 +134,7 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then it gets its own reload instead of going straight to the Update Required screen
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        expect(replaceMock).toHaveBeenCalledTimes(1);
         expect(mockLogAlert).not.toHaveBeenCalled();
         expect(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.UPDATE_REQUIRED_RELOADED_VERSION)).toBe(pkg.version);
     });
@@ -148,7 +151,7 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then it does not reload, since without a record every reload would get a 426 and reload again forever
-        expect(reloadMock).not.toHaveBeenCalled();
+        expect(replaceMock).not.toHaveBeenCalled();
         expect(mockOnyxSet).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
     });
 
@@ -160,7 +163,19 @@ describe('UpdateRequired (web)', () => {
         updateApp(true);
 
         // Then the navigation starts without waiting for an installation or destroying the offline cache
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        expect(replaceMock).toHaveBeenCalledWith(getAppUpdateURL(currentURL));
         expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+    });
+
+    it('marks upgrade navigations without losing the route, query parameters, or fragment', () => {
+        // Given the user is viewing a deep link with existing parameters and a fragment
+        // When an upgrade reload is requested twice
+        const url = new URL(getAppUpdateURL(getAppUpdateURL(currentURL)));
+
+        // Then the marker is added once and the original destination is preserved
+        expect(url.pathname).toBe('/r/123');
+        expect(url.searchParams.get('existing')).toBe('value');
+        expect(url.hash).toBe('#details');
+        expect(url.searchParams.getAll(APP_UPDATE_QUERY_PARAM)).toEqual(['true']);
     });
 });
