@@ -51,8 +51,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -135,9 +133,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             const chatReportActions =
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
-            // Only paying needs the Concierge chat, so read it after the guards rather than re-rendering every row on Concierge writes
-            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+            // Only paying needs these, so read them after the guards rather than re-rendering every row when they change
+            const [conciergeReportID, rules] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.COLLECTION.RULE]);
             const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
             payInvoice({
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
@@ -177,8 +176,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
-        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const [conciergeReportID, rules] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.COLLECTION.RULE]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
         payMoneyRequest({
             bankAccountList,
             isASAPSubmitBetaEnabled,

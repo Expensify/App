@@ -47,8 +47,6 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
@@ -263,14 +261,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         chatReportPolicyID: chatReport?.policyID,
     });
 
-    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes.
-    // Other actions skip the read so they stay synchronous with the press event.
-    const runActionButtonPress = async () => {
-        let conciergeChat: OnyxEntry<Report>;
-        if (liveReportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
-            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
-            conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        }
+    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes
+    const handleOnButtonPress = async () => {
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -317,10 +311,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             conciergeChat,
             bankAccountList,
         });
-    };
-
-    const handleOnButtonPress = () => {
-        runActionButtonPress();
     };
 
     const handleSelectionButtonPress = (shiftKey?: boolean) => {

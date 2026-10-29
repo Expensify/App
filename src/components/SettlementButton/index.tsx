@@ -160,7 +160,6 @@ function SettlementButton({
     const {isBetaEnabled} = usePermissions();
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [unlockRequestedAt] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_LOCKED_VBA_UNLOCK_REQUESTED}${policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [initiatingBankAccountUnlock] = useOnyx(ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -206,8 +205,12 @@ function SettlementButton({
                     if (policy?.achAccount?.bankAccountID === undefined) {
                         return;
                     }
+                    const [initiatingBankAccountUnlock, introSelected, onboarding] = await Onyx.multiGet([
+                        ONYXKEYS.INITIATING_BANK_ACCOUNT_UNLOCK,
+                        ONYXKEYS.NVP_INTRO_SELECTED,
+                        ONYXKEYS.NVP_ONBOARDING,
+                    ]);
                     pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID, delegateAccountID, initiatingBankAccountUnlock);
-                    const [introSelected, onboarding] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING]);
                     const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
                     navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
                 });

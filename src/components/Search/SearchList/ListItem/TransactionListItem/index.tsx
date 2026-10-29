@@ -243,14 +243,10 @@ function TransactionListItemInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes.
-    // Other actions skip the read so they stay synchronous with the press event.
-    const runActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
-        let conciergeChat: OnyxEntry<Report>;
-        if (liveTransactionItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
-            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
-            conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        }
+    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes
+    const handleActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -295,10 +291,6 @@ function TransactionListItemInner<TItem extends ListItem>({
             conciergeChat,
             bankAccountList,
         });
-    };
-
-    const handleActionButtonPress = (event?: Parameters<typeof onSelectRow>[2]) => {
-        runActionButtonPress(event);
     };
 
     const sharedProps = {

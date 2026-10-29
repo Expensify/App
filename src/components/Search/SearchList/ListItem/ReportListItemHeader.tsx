@@ -95,7 +95,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
-    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void;
+    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void | Promise<void>;
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
@@ -326,14 +326,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes.
-    // Other actions skip the read so they stay synchronous with the press event.
-    const runActionButtonPress = async (event?: ModifiedMouseEvent) => {
-        let conciergeChat: OnyxEntry<Report>;
-        if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
-            const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
-            conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        }
+    // Only Pay needs the Concierge chat, so read it on press rather than re-rendering every row on Concierge writes
+    const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
+        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -377,10 +373,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             conciergeChat,
             bankAccountList,
         });
-    };
-
-    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
-        runActionButtonPress(event);
     };
 
     return !isLargeScreenWidth ? (

@@ -2672,9 +2672,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             value: CONST.SEARCH.BULK_ACTION_TYPES.PAY,
             shouldCloseModalOnSelect: true,
             subMenuItems: bulkPayButtonOptions,
-            onSelected: () => {
-                onBulkPaySelected(undefined);
-            },
+            onSelected: () => onBulkPaySelected(undefined),
         };
 
         const isExpenseReportSearch = isExpenseReportType || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;

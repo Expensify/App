@@ -17,6 +17,8 @@ import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
 const TEST_IOU_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
 const SELECTED_BANK_ACCOUNT_ID = 9999;
@@ -177,7 +179,7 @@ describe('PayActionButton', () => {
         });
     });
 
-    it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', () => {
+    it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', async () => {
         renderPayActionButton();
 
         act(() => {
@@ -189,6 +191,9 @@ describe('PayActionButton', () => {
             });
         });
 
+        // The payment reads its inputs from Onyx first, so wait for that read before checking the call
+        await waitForBatchedUpdates();
+
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
             expect.objectContaining({
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -197,7 +202,7 @@ describe('PayActionButton', () => {
         );
     });
 
-    it('does not send a bank account for non-VBBA payment types', () => {
+    it('does not send a bank account for non-VBBA payment types', async () => {
         renderPayActionButton();
 
         act(() => {
@@ -206,6 +211,9 @@ describe('PayActionButton', () => {
                 methodID: SELECTED_BANK_ACCOUNT_ID,
             });
         });
+
+        // The payment reads its inputs from Onyx first, so wait for that read before checking the call
+        await waitForBatchedUpdates();
 
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({methodID: undefined}));
     });
