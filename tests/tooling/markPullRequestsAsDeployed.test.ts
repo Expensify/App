@@ -1,4 +1,4 @@
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
+import {afterAll, afterEach, beforeEach, describe, expect, it, jest} from 'bun:test';
 
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
@@ -8,7 +8,6 @@ import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../.github/libs/CONST';
 import GithubUtils from '../../.github/libs/GithubUtils';
-import GitUtils from '../../.github/libs/GitUtils';
 
 type ObjectMethodData<T> = {
     data: T;
@@ -29,21 +28,10 @@ type PullRequestData = {
     data?: PullRequest;
 };
 
-type Commit = {
-    commit_sha: string;
-};
-
-type CommitData = {
-    data: {
-        message: string;
-    };
-};
-
 const mockGetInput = jest.fn();
 const mockGetPullRequest = jest.fn();
 const mockCreateComment = jest.fn<(params: {body: string; issue_number: number; owner: string; repo: string}) => Promise<void>>();
-const mockListTags = jest.fn();
-const mockGetCommit = jest.fn();
+const mockGetCommitHistory = jest.spyOn(GithubUtils, 'getCommitHistoryBetweenTags');
 
 // Must be set before `markPullRequestsAsDeployed` is imported below: it computes `workflowURL` from these env
 // vars in a top-level (module-load-time) constant, not at runtime.
@@ -74,12 +62,6 @@ const mockOctokit = {
         pulls: {
             get: mockGetPullRequest,
         },
-        repos: {
-            listTags: mockListTags,
-        },
-        git: {
-            getCommit: mockGetCommit,
-        },
     },
     paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
 };
@@ -108,10 +90,6 @@ const PRList: Record<number, PullRequest> = {
     },
 };
 const version = '42.42.42-42';
-const defaultTags = [
-    {name: '42.42.42-42-staging', commit: {sha: 'abcd'}},
-    {name: '42.42.42-41', commit: {sha: 'hash'}},
-];
 
 // `core.getInput` always returns a string, so this returns strings too: the action's inputs go through the real
 // ActionUtils.getJSONInput, which JSON.parses whatever it gets back.
@@ -123,6 +101,8 @@ function mockGetInputDefaultImplementation(key: string): string {
             return 'false';
         case 'DEPLOY_VERSION':
             return version;
+        case 'PREVIOUS_TAG':
+            return '42.42.42-41-staging';
         case 'IOS':
         case 'ANDROID':
         case 'WEB':
@@ -138,35 +118,17 @@ function mockGetInputDefaultImplementation(key: string): string {
     }
 }
 
-function mockGetCommitDefaultImplementation({commit_sha}: Commit): CommitData {
-    if (commit_sha === 'abcd') {
-        return {data: {message: 'Test commit 1'}};
-    }
-    return {data: {message: 'Test commit 2'}};
-}
-
-beforeAll(() => {
-    mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
-
-    // Mock GitUtils
-    GitUtils.getPullRequestsDeployedBetween = jest.fn();
-});
-
 beforeEach(() => {
     mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
     mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams): PullRequestData => (pull_number in PRList ? {data: PRList[pull_number]} : {}));
-    mockListTags.mockResolvedValue({
-        data: defaultTags,
-    });
-    mockGetCommit.mockImplementation(mockGetCommitDefaultImplementation);
+    mockGetCommitHistory.mockResolvedValue([]);
 });
 
 afterEach(() => {
     mockGetInput.mockClear();
     mockCreateComment.mockClear();
     mockGetPullRequest.mockClear();
-    mockListTags.mockClear();
-    mockGetCommit.mockClear();
+    mockGetCommitHistory.mockReset();
 });
 
 afterAll(() => {
@@ -174,13 +136,63 @@ afterAll(() => {
 });
 
 describe('markPullRequestsAsDeployed', () => {
+    it.each([
+        [CONST.APP_REPO, 'Merge pull request #99 from Expensify/cherry-pick-staging-1'],
+        [CONST.APP_REPO, 'Update Mobile-Expensify submodule to include cherry-picked PR #1'],
+        [CONST.MOBILE_EXPENSIFY_REPO, 'Merge pull request #99 from Expensify/cherry-pick-staging-1'],
+        [CONST.MOBILE_EXPENSIFY_REPO, 'Update version to 42.42.42-42'],
+    ])('finds earlier cherry-picks in %s when HEAD is unmarked: %s', async (repo, headMessage) => {
+        // Given two cherry-picks precede an unmarked merge or submodule update in this deployment.
+        mockGetInput.mockImplementation((key: string) => {
+            if (key === 'PR_LIST') {
+                return JSON.stringify(repo === CONST.APP_REPO ? [1, 2, 3] : []);
+            }
+            if (key === 'MOBILE_EXPENSIFY_PR_LIST') {
+                return JSON.stringify(repo === CONST.MOBILE_EXPENSIFY_REPO ? [1, 2, 3] : []);
+            }
+            return mockGetInputDefaultImplementation(key);
+        });
+        mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams) => ({
+            data: {issue_number: pull_number, title: `Test PR ${pull_number}`, merged_by: {login: 'thor'}, labels: [{name: CONST.LABELS.CP_STAGING}]},
+        }));
+        mockGetCommitHistory.mockResolvedValue([
+            {
+                commit: 'first-cherry-pick',
+                subject: 'Merge pull request #1 from Expensify/first\n(cherry picked from commit first-original)\n(cherry-picked to staging by freyja)',
+                authorName: 'First author',
+                date: '',
+            },
+            {
+                commit: 'second-cherry-pick',
+                subject: 'Merge pull request #2 from Expensify/second\n(cherry picked from commit second-original)\n(cherry-picked to staging by loki)',
+                authorName: 'Second author',
+                date: '',
+            },
+            {commit: 'head', subject: headMessage, authorName: 'OSBotify', date: ''},
+        ]);
+
+        // When deployment notifications are posted for two cherry-picks and one normal PR.
+        await run();
+
+        // Then each cherry-pick keeps its own initiator, and the normal PR still uses its merger.
+        expect(mockCreateComment).toHaveBeenCalledTimes(3);
+        for (const [index, actor] of ['freyja', 'loki', 'thor'].entries()) {
+            const comment = mockCreateComment.mock.calls.at(index)?.at(0);
+            expect(comment?.repo).toBe(repo);
+            expect(comment?.issue_number).toBe(index + 1);
+            expect(comment?.body).toContain(`[${index < 2 ? 'Cherry-picked' : 'Deployed'}](${workflowRunURL}) to staging by https://github.com/${actor}`);
+        }
+        expect(mockGetCommitHistory).toHaveBeenCalledTimes(1);
+        expect(mockGetCommitHistory).toHaveBeenCalledWith('42.42.42-41-staging', `${version}-staging`, repo);
+    });
+
     it('comments on pull requests correctly for a standard staging deploy', async () => {
-        // Given multiple PRs share the same staging deployment commit.
+        // Given multiple PRs share the same staging deployment range.
         // When staging comments are posted.
         await run();
 
-        // Then the deployment commit is fetched once for the whole repository.
-        expect(mockGetCommit).toHaveBeenCalledTimes(1);
+        // Then the deployment range is fetched once for the whole repository.
+        expect(mockGetCommitHistory).toHaveBeenCalledTimes(1);
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             const PR = PRList[i + 1];
@@ -208,6 +220,7 @@ platform | result
         });
 
         await run();
+        expect(mockGetCommitHistory).not.toHaveBeenCalled();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length);
         for (let i = 0; i < Object.keys(PRList).length; i++) {
             expect(mockCreateComment).toHaveBeenNthCalledWith(i + 1, {
@@ -231,7 +244,7 @@ platform | result
         [CONST.MOBILE_EXPENSIFY_REPO, true],
         [CONST.MOBILE_EXPENSIFY_REPO, false],
     ])('recognizes the current %s cherry-pick regardless of its label (label present: %s)', async (repo, hasCPLabel) => {
-        // Given the deployed tag points to this PR's cherry-pick, even if its label was removed.
+        // Given the deployment range contains this PR's cherry-pick, even if its label was removed.
         mockGetInput.mockImplementation((key: string) => {
             if (key === 'PR_LIST') {
                 return JSON.stringify(repo === CONST.APP_REPO ? [3] : []);
@@ -259,19 +272,14 @@ platform | result
             }
             return {};
         });
-        mockListTags.mockResolvedValue({
-            data: [{name: '42.42.42-43-staging', commit: {sha: 'xyz'}}, ...defaultTags],
-        });
-        mockGetCommit.mockImplementation(({commit_sha}: Commit) => {
-            if (commit_sha === 'xyz') {
-                return {
-                    data: {
-                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dag_dag)\\n(cherry-picked to staging by freyja)`,
-                    },
-                };
-            }
-            return mockGetCommitDefaultImplementation({commit_sha});
-        });
+        mockGetCommitHistory.mockResolvedValue([
+            {
+                commit: 'xyz',
+                subject: 'Merge pull request #3 from Expensify/test\n(cherry picked from commit original)\n(cherry-picked to staging by freyja)',
+                authorName: 'Original author',
+                date: '',
+            },
+        ]);
 
         // When staging deploy comments are posted.
         await run();
@@ -292,7 +300,12 @@ platform | result
         });
     });
 
-    it.each([CONST.APP_REPO, CONST.MOBILE_EXPENSIFY_REPO])('does not reuse an old cherry-pick tag or label for %s', async (repo) => {
+    it.each([
+        [CONST.APP_REPO, '42.42.42-41-staging'],
+        [CONST.APP_REPO, '42.42.42-41'],
+        [CONST.MOBILE_EXPENSIFY_REPO, '42.42.42-41-staging'],
+        [CONST.MOBILE_EXPENSIFY_REPO, '42.42.42-41'],
+    ])('does not reuse an old cherry-pick tag or label for %s after %s', async (repo, previousTag) => {
         // Given a PR retains its CP label and an old tag, but this release is a normal deployment.
         mockGetInput.mockImplementation((key: string) => {
             if (key === 'PR_LIST') {
@@ -301,23 +314,23 @@ platform | result
             if (key === 'MOBILE_EXPENSIFY_PR_LIST') {
                 return JSON.stringify(repo === CONST.MOBILE_EXPENSIFY_REPO ? [3] : []);
             }
+            if (key === 'PREVIOUS_TAG') {
+                return previousTag;
+            }
             return mockGetInputDefaultImplementation(key);
         });
         mockGetPullRequest.mockResolvedValue({data: {issue_number: 3, title: 'Previously cherry-picked PR', merged_by: {login: 'thor'}, labels: [{name: CONST.LABELS.CP_STAGING}]}});
-        mockListTags.mockResolvedValue({
-            data: [
-                {name: `${version}-staging`, commit: {sha: 'current-normal-deployment'}},
-                {name: '42.42.42-41-staging', commit: {sha: 'previous-cherry-pick'}},
-            ],
-        });
-        mockGetCommit.mockImplementation(({commit_sha}: Commit) => ({
-            data: {
-                message:
-                    commit_sha === 'previous-cherry-pick'
-                        ? 'Merge pull request #3 from Expensify/test\n(cherry picked from commit original)\n(cherry-picked to staging by freyja)'
-                        : 'Update Mobile-Expensify submodule version',
+        mockGetCommitHistory.mockImplementation(async (fromTag) => [
+            {
+                commit: 'head',
+                subject:
+                    fromTag === previousTag
+                        ? 'Update Mobile-Expensify submodule version'
+                        : 'Merge pull request #3 from Expensify/test\n(cherry picked from commit original)\n(cherry-picked to staging by freyja)',
+                authorName: 'OSBotify',
+                date: '',
             },
-        }));
+        ]);
 
         // When the PR is announced in a later staging release.
         await run();
@@ -331,6 +344,7 @@ platform | result
             }),
         );
         expect(mockCreateComment.mock.calls.at(0)?.at(0)?.body).toContain(`🚀 [Deployed](${workflowRunURL}) to staging by https://github.com/thor in version: ${version}`);
+        expect(mockGetCommitHistory).toHaveBeenCalledWith(previousTag, `${version}-staging`, repo);
     });
 
     it('comments on pull requests correctly when one platform fails', async () => {
@@ -376,14 +390,14 @@ platform | result
         mockGetInput.mockImplementation((key: string) => (key === 'MOBILE_EXPENSIFY_PR_LIST' ? input : mockGetInputDefaultImplementation(key)));
         if (!mobilePullRequests) {
             await expect(run()).rejects.toThrow('Deploy pull request list must be an array of strings or numbers');
-            expect(mockListTags).not.toHaveBeenCalled();
+            expect(mockGetCommitHistory).not.toHaveBeenCalled();
             expect(mockCreateComment).not.toHaveBeenCalled();
             return;
         }
         await run();
         expect(mockCreateComment).toHaveBeenCalledTimes(Object.keys(PRList).length + mobilePullRequests.length);
-        expect(mockListTags).toHaveBeenCalledTimes(mobilePullRequests.length > 0 ? 2 : 1);
-        expect(mockListTags).toHaveBeenCalledWith(expect.objectContaining({repo: CONST.APP_REPO}));
+        expect(mockGetCommitHistory).toHaveBeenCalledTimes(mobilePullRequests.length > 0 ? 2 : 1);
+        expect(mockGetCommitHistory).toHaveBeenCalledWith('42.42.42-41-staging', `${version}-staging`, CONST.APP_REPO);
         if (mobilePullRequests.length === 0) {
             expect(mockCreateComment).not.toHaveBeenCalledWith(expect.objectContaining({repo: CONST.MOBILE_EXPENSIFY_REPO}));
         }

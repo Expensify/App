@@ -26533,18 +26533,19 @@ async function commentPR(PR, message, repo = context2.repo.repo) {
   }
 }
 var workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-async function commentOnDeployChecklistPRs(prList, repoName, recentTags, version, getDeployMessage) {
+async function commentOnDeployChecklistPRs(prList, repoName, commits, getDeployMessage) {
   if (prList.length === 0) {
     return;
   }
-  const deploymentTag = recentTags.find((tag) => tag.name === `${version}-staging`);
-  const deploymentCommit = deploymentTag ? (await GithubUtils_default.octokit.git.getCommit({
-    owner: CONST_default.GITHUB_OWNER,
-    repo: repoName,
-    commit_sha: deploymentTag.commit.sha
-  })).data : void 0;
-  const cherryPickedPR = deploymentCommit?.message.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/)?.at(1);
-  const cpActor = deploymentCommit?.message.match(/.*\(cherry-picked to .* by (.*)\)/)?.at(1);
+  const cherryPicks = /* @__PURE__ */ new Map();
+  for (const { subject } of commits) {
+    const cherryPickedPR = subject.match(/Merge pull request #(\d+)[\S\s]*\(cherry picked from commit .*\)/)?.at(1);
+    if (!cherryPickedPR) {
+      continue;
+    }
+    const cpActor = subject.match(/.*\(cherry-picked to staging by (.*)\)/)?.at(1);
+    cherryPicks.set(Number.parseInt(cherryPickedPR, 10), cpActor);
+  }
   const pool = new PromisePool_default(8);
   const commentPromises = prList.map(
     (prNumber) => pool.add(async () => {
@@ -26554,7 +26555,8 @@ async function commentOnDeployChecklistPRs(prList, repoName, recentTags, version
           repo: repoName,
           pull_number: prNumber
         });
-        const isCP = cherryPickedPR === String(prNumber);
+        const isCP = cherryPicks.has(prNumber);
+        const cpActor = cherryPicks.get(prNumber);
         let deployer = pr.merged_by?.login;
         if (isCP && cpActor) {
           deployer = cpActor;
@@ -26651,32 +26653,25 @@ _Note:_ ${note}`;
     }
     return;
   }
-  const { data: appRecentTags } = await GithubUtils_default.octokit.repos.listTags({
-    owner: CONST_default.GITHUB_OWNER,
-    repo: CONST_default.APP_REPO,
-    per_page: 100
-  });
-  let mobileExpensifyRecentTags = [];
+  const previousTag = getInput("PREVIOUS_TAG", { required: true });
+  const stagingTag = `${version}-staging`;
+  const appCommits = prList.length > 0 ? await GithubUtils_default.getCommitHistoryBetweenTags(previousTag, stagingTag, CONST_default.APP_REPO) : [];
+  let mobileExpensifyCommits = [];
   if (mobileExpensifyPRList.length > 0) {
     try {
-      const response = await GithubUtils_default.octokit.repos.listTags({
-        owner: CONST_default.GITHUB_OWNER,
-        repo: CONST_default.MOBILE_EXPENSIFY_REPO,
-        per_page: 100
-      });
-      mobileExpensifyRecentTags = response.data;
+      mobileExpensifyCommits = await GithubUtils_default.getCommitHistoryBetweenTags(previousTag, stagingTag, CONST_default.MOBILE_EXPENSIFY_REPO);
     } catch (error2) {
       if (process.env.GITHUB_REPOSITORY !== `${CONST_default.GITHUB_OWNER}/${CONST_default.APP_REPO}`) {
-        console.warn("Unable to fetch Mobile-Expensify tags from forked repository. This is expected.");
+        console.warn("Unable to fetch Mobile-Expensify deployment commits from forked repository. This is expected.");
       } else {
-        console.error("Failed to fetch Mobile-Expensify tags:", error2);
+        console.error("Failed to fetch Mobile-Expensify deployment commits:", error2);
       }
     }
   }
-  await commentOnDeployChecklistPRs(prList, CONST_default.APP_REPO, appRecentTags, version, getDeployMessage);
+  await commentOnDeployChecklistPRs(prList, CONST_default.APP_REPO, appCommits, getDeployMessage);
   console.log(`\u2705 Added staging deploy comment ${prList.length} App PRs`);
   if (mobileExpensifyPRList.length > 0) {
-    await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST_default.MOBILE_EXPENSIFY_REPO, mobileExpensifyRecentTags, version, getDeployMessage);
+    await commentOnDeployChecklistPRs(mobileExpensifyPRList, CONST_default.MOBILE_EXPENSIFY_REPO, mobileExpensifyCommits, getDeployMessage);
     console.log(`\u2705 Completed staging deploy comment on ${mobileExpensifyPRList.length} Mobile-Expensify PRs`);
   }
 }

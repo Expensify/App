@@ -26723,6 +26723,7 @@ async function run() {
       }
     }
     setOutput("MOBILE_EXPENSIFY_PR_LIST", mobileExpensifyPRList);
+    setOutput("PREVIOUS_TAG", priorTag);
   } catch (error2) {
     const message = error2 instanceof Error ? error2.message : String(error2);
     console.error(message);

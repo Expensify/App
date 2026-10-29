@@ -95,6 +95,7 @@ async function run() {
             }
         }
         core.setOutput('MOBILE_EXPENSIFY_PR_LIST', mobileExpensifyPRList);
+        core.setOutput('PREVIOUS_TAG', priorTag);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         console.error(message);

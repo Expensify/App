@@ -75,6 +75,7 @@ describe('getDeployPullRequestList', () => {
 
         // Then both environments exclude cherry-picks already shipped in their own prior release.
         expect(setFailedSpy).not.toHaveBeenCalled();
+        expect(setOutputSpy).toHaveBeenCalledWith('PREVIOUS_TAG', previousTag);
         expect(setOutputSpy).toHaveBeenCalledWith('PR_LIST', [105300]);
         expect(setOutputSpy).toHaveBeenCalledWith('MOBILE_EXPENSIFY_PR_LIST', [14211]);
         expect(getPullRequestsSpy).toHaveBeenCalledTimes(4);
