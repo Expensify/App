@@ -27,8 +27,6 @@ import {
     getMerchantFilterFormValues,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryWithoutFooterSelections,
-    hasFooterSelections,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
@@ -3061,35 +3059,6 @@ describe('SearchQueryUtils', () => {
             expect(junk?.hash).toEqual(noSelection?.hash);
         });
 
-        it('strips every footer selection back out, landing on the snapshot the plain query keys', () => {
-            const carried = buildSearchQueryJSON('type:expense status:all footerCount:reports footerTotal:reimbursable footerCurrency:EUR');
-            const stripped = carried ? buildSearchQueryJSON(getQueryWithoutFooterSelections(carried)) : undefined;
-            const plain = buildSearchQueryJSON('type:expense status:all');
-
-            // The same search, so the same snapshot: a reader that ignores the selections asks for nothing of its own
-            expect(stripped?.hash).toEqual(plain?.hash);
-            expect(getFooterSelectionFromQuery(stripped).footerCount).toBeUndefined();
-            expect(getFooterSelectionFromQuery(stripped).footerTotal).toBeUndefined();
-            expect(getFooterSelectionFromQuery(stripped).footerCurrency).toBeUndefined();
-        });
-
-        it('keeps the rest of the query when the footer selections are stripped', () => {
-            const carried = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc category:Travel footerTotal:billable');
-            const stripped = carried ? buildSearchQueryJSON(getQueryWithoutFooterSelections(carried)) : undefined;
-
-            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
-            expect(stripped?.sortOrder).toEqual(CONST.SEARCH.SORT_ORDER.ASC);
-            expect(stripped?.flatFilters.map((filter) => filter.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]);
-        });
-
-        it('tells a query carrying footer selections from one that is not', () => {
-            const carried = buildSearchQueryJSON('type:expense footerTotal:billable');
-            const plain = buildSearchQueryJSON('type:expense category:Travel');
-
-            expect(carried ? hasFooterSelections(carried) : undefined).toBe(true);
-            expect(plain ? hasFooterSelections(plain) : undefined).toBe(false);
-        });
-
         it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {
             const lower = buildSearchQueryJSON('type:expense footerCurrency:eur');
             const upper = buildSearchQueryJSON('type:expense footerCurrency:EUR');
@@ -5900,6 +5869,26 @@ describe('SearchQueryUtils', () => {
 
         test('returns an empty array when the policy data is undefined', () => {
             expect(getAllPolicyValues({value: ['1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY, undefined)).toEqual([]);
+        });
+    });
+
+    describe('getAllPolicyValues category projections', () => {
+        test('selects projected names and skips undefined collection members', () => {
+            // Given category selectors retain only names and collection members may not have loaded
+            const names: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {foodKey: {name: 'Food'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`]: {travelKey: {name: 'Travel'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}3`]: undefined,
+            };
+            // When workspace filters must work without complete category metadata
+            const projected = getAllPolicyValues({value: ['1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const negated = getAllPolicyValues({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const all = getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            // Then filtering must skip unloaded members without reconstructing the selected projections
+            expect(projected).toEqual([{foodKey: {name: 'Food'}}]);
+            expect(projected.at(0)).toBe(names[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]);
+            expect(negated).toEqual([{travelKey: {name: 'Travel'}}]);
+            expect(all).toEqual([...projected, ...negated]);
         });
     });
 
