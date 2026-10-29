@@ -57,13 +57,7 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        // TurboModuleContext adds CPU cost to every RNSentry call on iOS, see https://github.com/Expensify/App/pull/103900
-        integrations: (defaultIntegrations) => {
-            // Read from the SDK, so the filter keeps working if Sentry renames the integration. Looked up here rather
-            // than at module load so importing this file does not call into the SDK.
-            const turboModuleContextIntegrationName = Sentry.turboModuleContextIntegration().name;
-            return [...defaultIntegrations.filter((integration) => integration.name !== turboModuleContextIntegrationName), ...integrations];
-        },
+        integrations,
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${semanticVersion}`,
         dist: buildNumber,
@@ -94,17 +88,10 @@ function setupSentry(): void {
         // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
         // via SentryNativeSDKManager so native code can report to Sentry before JS loads.
         autoInitializeNativeSdk: false,
-        // We set experimental lifecycle value to enable profiling for whole spans. Without this option profile often is dropped early and we haven't the whole picture
-        // See https://github.com/Expensify/App/issues/87489
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        _experiments: {
-            profilingOptions: {
-                // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
-                // This option replaces `profilesSampleRate`
-                profileSessionSampleRate: 0.5,
-                lifecycle: 'trace',
-            },
-        },
+        // Do not set `_experiments.profilingOptions` here on its own. The native SDK is started by SentryNativeSDKManager
+        // without profiling options, so session sampling is never configured, and the UI profiling integration the SDK
+        // adds for these options would start the iOS continuous profiler on every root span. Enabling UI profiling needs
+        // the same options in the native init as well.
     });
 
     Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
