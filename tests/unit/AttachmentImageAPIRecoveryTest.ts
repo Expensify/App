@@ -1,5 +1,4 @@
 /** Verify image HEAD probes and JSON requests share authentication through the real middleware. */
-import reauthenticateAttachmentImages from '@libs/actions/Session/AttachmentImageReauthenticator';
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -45,6 +44,11 @@ function getFetchURL(input: FetchArguments[0]): string {
 function startAPIRequest() {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- This regression exercises concurrent side-effect requests through the real middleware.
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
+}
+
+function startImageRequest(imageURL = IMAGE_URL, signal?: AbortSignal) {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Exercise HEAD directly so the transport regression is independent of the image component.
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT, {imageURL}, {}, {signal});
 }
 
 function response(status: number, data: Record<string, unknown> = {jsonCode: CONST.JSON_CODE.SUCCESS}) {
@@ -112,7 +116,7 @@ describe('attachment and API authentication', () => {
             authenticate.mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH));
         }
         const controller = new AbortController();
-        const startImage = () => reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN, controller.signal);
+        const startImage = () => startImageRequest(IMAGE_URL, controller.signal);
 
         // When a second caller fails before the shared recovery completes
         const first = firstCaller === 'API' ? startAPIRequest() : startImage();
@@ -129,7 +133,7 @@ describe('attachment and API authentication', () => {
         const results = await Promise.all([first, second]);
 
         // Then both requests share the cycle, and only an active image replays with fresh credentials
-        expect(results.at(firstCaller === 'API' ? 1 : 0)).toEqual({wasSuccessful: !isCancelled});
+        expect(results.at(firstCaller === 'API' ? 1 : 0)?.jsonCode).toBe(isCancelled ? 403 : 200);
         expect(authenticate).toHaveBeenCalledTimes(isBackingOff ? 2 : 1);
         expect(apiResponse).toHaveBeenCalledTimes(2);
         expect(imageResponse.mock.calls).toEqual(isCancelled ? [[OLD_TOKEN]] : [[OLD_TOKEN], [NEW_TOKEN]]);
@@ -144,15 +148,15 @@ describe('attachment and API authentication', () => {
             return Promise.resolve(response(200, {jsonCode: 200, authToken: `api-token-${count}`, encryptedAuthToken: `image-token-${count}`}));
         });
         imageResponse.mockImplementation((token) => Promise.resolve(response(token === rejectedToken ? 401 : 200)));
-        expect(await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN)).toEqual({wasSuccessful: true});
+        await expect(startImageRequest()).resolves.toMatchObject({jsonCode: 200});
         await waitForBatchedUpdates();
         rejectedToken = 'image-token-1';
 
         // When the replacement session expires independently
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, rejectedToken);
+        const result = await startImageRequest();
 
         // Then the settled promise cannot prevent the next genuine recovery
-        expect(result).toEqual({wasSuccessful: true});
+        expect(result?.jsonCode).toBe(200);
         expect(authenticate).toHaveBeenCalledTimes(2);
     });
 
@@ -161,10 +165,10 @@ describe('attachment and API authentication', () => {
         imageResponse.mockResolvedValue(response(401));
 
         // When recovery has completed one authentication cycle
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
+        const result = await startImageRequest();
 
         // Then another 401 is terminal rather than an unbounded authentication loop
-        expect(result).toEqual({wasSuccessful: false});
+        expect(result?.jsonCode).toBe(401);
         expect(authenticate).toHaveBeenCalledTimes(1);
     });
 
@@ -177,7 +181,7 @@ describe('attachment and API authentication', () => {
             }),
         );
         const controller = new AbortController();
-        const recovery = reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN, controller.signal);
+        const recovery = startImageRequest(IMAGE_URL, controller.signal);
         await waitForBatchedUpdates();
 
         // When the transport delivers a 401 despite cancellation
@@ -185,7 +189,7 @@ describe('attachment and API authentication', () => {
         finishProbe(response(401));
 
         // Then stale work cannot initiate a sign-in for the current view
-        expect(await recovery).toEqual({wasSuccessful: false});
+        expect((await recovery)?.jsonCode).toBe(401);
         expect(authenticate).not.toHaveBeenCalled();
     });
 
@@ -196,10 +200,10 @@ describe('attachment and API authentication', () => {
         const previousFailures = getFailureCount();
 
         // When recovery checks the image endpoint through the real middleware
-        const recovery = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
+        const recovery = await startImageRequest();
 
         // Then neither authentication nor API-health changes are justified by this image result
-        expect(recovery).toEqual({wasSuccessful: false});
+        expect(recovery?.jsonCode).toBe(typeof result === 'number' ? result : undefined);
         expect(authenticate).not.toHaveBeenCalled();
         expect(getFailureCount()).toBe(previousFailures);
     });
@@ -210,7 +214,7 @@ describe('attachment and API authentication', () => {
         await waitForBatchedUpdates();
 
         // When an image and an API request discover the expired session together
-        await Promise.all([reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN), startAPIRequest()]);
+        await Promise.all([startImageRequest(), startAPIRequest()]);
 
         // Then the SAML policy redirects once without attempting password authentication
         expect(redirectToSignIn).toHaveBeenCalledTimes(1);
@@ -224,10 +228,10 @@ describe('attachment and API authentication', () => {
         authenticate.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
 
         // When the shared retry owner gives up
-        const result = await reauthenticateAttachmentImages(IMAGE_URL, OLD_TOKEN);
+        const result = await startImageRequest();
 
-        // Then loading ends and ordinary network requests are not left paused
-        expect(result).toEqual({wasSuccessful: false});
+        // Then the rejection is returned and ordinary network requests are not left paused
+        expect(result?.jsonCode).toBe(401);
         expect(NetworkStore.isAuthenticating()).toBe(false);
         expect(redirectToSignIn).toHaveBeenCalledTimes(1);
     });
@@ -239,7 +243,7 @@ describe('attachment and API authentication', () => {
         imageResponse.mockResolvedValue(response(200));
 
         // When API logging observes the HEAD request
-        await reauthenticateAttachmentImages(`${IMAGE_URL}?encryptedAuthToken=${secret}`, OLD_TOKEN);
+        await startImageRequest(`${IMAGE_URL}?encryptedAuthToken=${secret}`);
 
         // Then neither the query credential nor the encrypted header enters request logs
         const logs = JSON.stringify(logInfo.mock.calls);
