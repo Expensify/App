@@ -46,7 +46,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FieldsListValuesPageProps = {
@@ -102,83 +102,64 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
     const isReportFieldInvalid = !!reportFieldID && (!reportField || !isReportFieldTargetValid(reportField, expectedTarget));
     const listInputSubtitleKey = isInvoicePage ? 'workspace.invoiceFields.listInputSubtitle' : 'workspace.reportFields.listInputSubtitle';
 
-    const [listValues, disabledListValues] = useMemo(() => {
-        let reportFieldValues: string[];
-        let reportFieldDisabledValues: boolean[];
+    let reportFieldValues: string[];
+    let reportFieldDisabledValues: boolean[];
+    if (reportFieldID) {
+        const reportFieldKey = getReportFieldKey(reportFieldID);
+        reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+        reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
+    } else {
+        reportFieldValues = formDraft?.listValues ?? [];
+        reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
+    }
+    const [listValues, disabledListValues] = [reportFieldValues, reportFieldDisabledValues];
 
+    const updateReportFieldListValueEnabled = (value: boolean, valueIndex: number) => {
         if (reportFieldID) {
-            const reportFieldKey = getReportFieldKey(reportFieldID);
-
-            reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
-            reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
-        } else {
-            reportFieldValues = formDraft?.listValues ?? [];
-            reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
+            updateReportFieldListValueEnabledReportField({
+                policy,
+                reportFieldID,
+                valueIndexes: [Number(valueIndex)],
+                enabled: value,
+            });
+            return;
         }
 
-        return [reportFieldValues, reportFieldDisabledValues];
-    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
+        setReportFieldsListValueEnabled({
+            valueIndexes: [valueIndex],
+            enabled: value,
+            disabledListValues,
+        });
+    };
 
-    const updateReportFieldListValueEnabled = useCallback(
-        (value: boolean, valueIndex: number) => {
-            if (reportFieldID) {
-                updateReportFieldListValueEnabledReportField({
-                    policy,
-                    reportFieldID,
-                    valueIndexes: [Number(valueIndex)],
-                    enabled: value,
-                });
-                return;
-            }
+    const openListValuePage = (valueIndex: number) => {
+        Navigation.navigate(getValueSettingsRoute(isInvoicePage, policyID, valueIndex, reportFieldID));
+    };
 
-            setReportFieldsListValueEnabled({
-                valueIndexes: [valueIndex],
-                enabled: value,
-                disabledListValues,
-            });
-        },
-        [disabledListValues, policy, reportFieldID],
-    );
+    const listValueRows: ReportFieldListValueRowData[] = listValues.map((value, index) => ({
+        keyForList: value,
+        value,
+        name: value,
+        index,
+        enabled: !disabledListValues.at(index),
+        isLocked: !canWrite,
+        isSwitchDisabled: !canWrite,
+        action: () => openListValuePage(index),
+        onToggleEnabled: (enabled: boolean) => updateReportFieldListValueEnabled(enabled, index),
+        onDisabledSwitchPress: withReadOnlyFallback(),
+    }));
 
-    const openListValuePage = useCallback(
-        (valueIndex: number) => {
-            Navigation.navigate(getValueSettingsRoute(isInvoicePage, policyID, valueIndex, reportFieldID));
-        },
-        [getValueSettingsRoute, isInvoicePage, policyID, reportFieldID],
-    );
+    const listValueRowsKeyed = listValueRows.reduce<Record<string, ReportFieldListValueRowData>>((acc, row) => {
+        acc[row.keyForList] = row;
+        return acc;
+    }, {});
 
-    const listValueRows = useMemo<ReportFieldListValueRowData[]>(
-        () =>
-            listValues.map((value, index) => ({
-                keyForList: value,
-                value,
-                name: value,
-                index,
-                enabled: !disabledListValues.at(index),
-                isLocked: !canWrite,
-                isSwitchDisabled: !canWrite,
-                action: () => openListValuePage(index),
-                onToggleEnabled: (enabled: boolean) => updateReportFieldListValueEnabled(enabled, index),
-                onDisabledSwitchPress: withReadOnlyFallback(),
-            })),
-        [canWrite, disabledListValues, listValues, openListValuePage, updateReportFieldListValueEnabled, withReadOnlyFallback],
-    );
-
-    const listValueRowsKeyed = useMemo(
-        () =>
-            listValueRows.reduce<Record<string, ReportFieldListValueRowData>>((acc, row) => {
-                acc[row.keyForList] = row;
-                return acc;
-            }, {}),
-        [listValueRows],
-    );
-
-    const filterListValueRow = useCallback((row?: ReportFieldListValueRowData) => !!row, []);
+    const filterListValueRow = (row?: ReportFieldListValueRowData) => !!row;
     const [selectedKeys, setSelectedKeys] = useFilteredSelection(listValueRowsKeyed, filterListValueRow);
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         setSelectedKeys((prevSelectedKeys) => (prevSelectedKeys.length > 0 ? [] : prevSelectedKeys));
-    }, [setSelectedKeys]);
+    };
 
     useCleanupSelectedOptions(clearTableSelection);
 
@@ -189,7 +170,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
 
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Plus', 'Trashcan']);
 
-    const handleDeleteValues = useCallback(() => {
+    const handleDeleteValues = () => {
         const valuesToDelete = selectedKeys.map((value) => listValues.indexOf(value)).filter((index) => index !== -1);
 
         if (reportFieldID) {
@@ -207,7 +188,7 @@ function FieldsListValuesPage({policy, policyID, reportFieldID, isInvoicePage, f
         }
 
         clearTableSelection();
-    }, [clearTableSelection, disabledListValues, listValues, policy, reportFieldID, selectedKeys]);
+    };
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 

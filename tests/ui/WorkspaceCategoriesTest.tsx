@@ -165,8 +165,14 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to delete
-        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
+        // Select categories to delete. Once the list loads, the sticky table header renders a second "Select all" checkbox
+        const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+
+        if (!selectAll) {
+            throw new Error('Select all button not found');
+        }
+
+        fireEvent.press(selectAll);
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
@@ -270,8 +276,14 @@ describe('WorkspaceCategories', () => {
             expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
         });
 
-        // Select categories to disable
-        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
+        // Select categories to disable. Once the list loads, the sticky table header renders a second "Select all" checkbox
+        const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+
+        if (!selectAll) {
+            throw new Error('Select all button not found');
+        }
+
+        fireEvent.press(selectAll);
 
         const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 

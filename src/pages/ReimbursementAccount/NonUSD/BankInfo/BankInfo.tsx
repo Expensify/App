@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type BankInfoSubStepProps from './types';
 
@@ -49,8 +49,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
-    const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
-    const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
+    const values = getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount);
+    const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
     const isSubmittingRef = useRef(false);
 
     const submit = () => {
@@ -99,10 +99,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
         getCorpayBankAccountFields(country, currency);
     }, [corpayFields?.bankCurrency, corpayFields?.bankCountry, country, currency]);
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<BankInfoSubStepProps>({
         pages,

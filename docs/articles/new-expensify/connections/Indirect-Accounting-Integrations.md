@@ -73,4 +73,3 @@ Expensify offers pre-configured flat-file integrations for the following account
 - **MYOB**
 - **Oracle**
 - **SAP**
-

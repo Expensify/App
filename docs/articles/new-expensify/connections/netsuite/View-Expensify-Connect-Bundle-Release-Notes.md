@@ -15,6 +15,23 @@ Bundle versions are separate from NetSuite's own release numbers. Updating the b
 
 Each entry lists documented changes and any version-specific precautions. Release dates are included where confirmed. **Added** identifies new capabilities, components, or permissions; **Changed** and **Removed** describe updates to existing ones.
 
+## What changed in Expensify Connect 1.13
+
+**Released: October 26, 2026**
+
+**Added**
+
+- **Manage own OAuth 2.0 Client Credentials certificates (Full)** on the **Expensify Integration** role. This lets the connection role register and revoke its own certificates for OAuth 2.0 machine-to-machine authentication.
+
+**Compatibility**
+
+- This permission prepares the NetSuite-side access for certificate-based authentication. Installing this version does not, by itself, switch existing SOAP or OAuth connections to machine-to-machine authentication.
+- The bundled role retains its SOAP Web Services, token-based login, and OAuth login permissions. You do not need to disconnect a working connection just to update the bundle.
+
+**Before you upgrade**
+
+Record customized permissions and restrictions on the **Expensify Integration** role, then compare them after the update. A bundle update can overwrite those customizations. **Do Not Update Deployments** remains selected to preserve existing script deployment settings; it does not preserve role permissions.
+
 ## What changed in Expensify Connect 1.12
 
 **Released: September 23, 2026**
