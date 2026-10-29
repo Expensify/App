@@ -26,6 +26,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
@@ -134,6 +135,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.TAX_RATES_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.REIMBURSABLE_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.BILLABLE_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.SUBMITTERS_TO_MATCH,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -293,6 +295,8 @@ function ExpenseDefaultRulePageBase({
         return !!form?.tagsToMatch?.length || policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
     };
     const formTags = getTagArrayFromName(form?.tag ?? '');
+    const members = useWorkspaceMembers(policy);
+    const membersByAccountID = new Map(members.map(({accountID, details}) => [String(accountID), details.displayName ?? details.login ?? String(accountID)]));
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
@@ -320,6 +324,9 @@ function ExpenseDefaultRulePageBase({
     const tagsToMatchDisplayName = hasTagCondition ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
     const currenciesToMatch = form?.currenciesToMatch ?? [];
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
+    const submittersToMatch = form?.submittersToMatch ?? [];
+    // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
+    const submittersToMatchDisplayName = submittersToMatch.length > 0 ? submittersToMatch.map((accountID) => membersByAccountID.get(accountID) ?? accountID).join(', ') : undefined;
     const taxRatesToMatch = form?.taxRatesToMatch ?? [];
     // Blank rather than the raw ID once a rate is gone from the workspace.
     const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
@@ -486,6 +493,13 @@ function ExpenseDefaultRulePageBase({
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Tag,
                       },
+                {
+                    key: 'submittersToMatch',
+                    description: translate('common.submitter'),
+                    title: submittersToMatchDisplayName ?? translate('common.any'),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
                 {
                     key: 'currenciesToMatch',
                     description: translate('common.currency'),

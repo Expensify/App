@@ -30,6 +30,7 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
     tagsToMatch: [],
     currenciesToMatch: [],
     taxRatesToMatch: [],
+    submittersToMatch: [],
     reimbursableToMatch: false,
     billableToMatch: false,
     tax: '',

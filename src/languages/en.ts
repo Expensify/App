@@ -108,6 +108,7 @@ const translations = {
         deny: 'Deny',
         dontChange: 'Don’t change',
         any: 'Any',
+        submitter: 'Submitter',
         // @context Universal confirmation button. Keep the UI-standard term “OK” unless the locale strongly prefers an alternative.
         ok: 'OK',
         notNow: 'Not now',

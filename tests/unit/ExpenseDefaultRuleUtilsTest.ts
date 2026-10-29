@@ -29,6 +29,7 @@ const CURRENCY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY;
 const TAX_RATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE;
 const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
+const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
@@ -228,6 +229,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 taxRatesToMatch: [TAX_KEY],
                 reimbursableToMatch: true,
                 billableToMatch: false,
+                submittersToMatch: ['12345'],
                 category: 'Coffee',
             };
 
@@ -256,6 +258,15 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When its filters are read
             // Then the condition survives, because false is a real match rather than a cleared field
             expect(rule?.filters).toEqual({left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'});
+        });
+
+        it('builds a rule that matches on a submitter alone', () => {
+            // Given a form whose only condition is who submitted the expense
+            const rule = buildExpenseDefaultRule({submittersToMatch: ['12345', '67890'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the submitters are ORed on the `from` key, which is what search uses for the submitter
+            expect(rule?.filters).toEqual({left: SUBMITTER, operator: EQUAL_TO, right: ['12345', '67890']});
         });
 
         it('builds a rule that matches on a tax rate alone', () => {

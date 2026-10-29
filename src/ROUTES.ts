@@ -1242,6 +1242,10 @@ const DYNAMIC_ROUTES = {
         path: 'rule-billable-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
+    RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-submitter-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
         path: 'rule-matches',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
@@ -4604,6 +4608,10 @@ const ROUTES = {
     RULES_BILLABLE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable-to-match` as const,
+    },
+    RULES_SUBMITTER_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/submitter-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/submitter-to-match` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',

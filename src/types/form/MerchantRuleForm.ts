@@ -17,6 +17,7 @@ const INPUT_IDS = {
     MERCHANT: 'merchant',
     REIMBURSABLE: 'reimbursable',
     REIMBURSABLE_TO_MATCH: 'reimbursableToMatch',
+    SUBMITTERS_TO_MATCH: 'submittersToMatch',
     TAG: 'tag',
     TAGS_TO_MATCH: 'tagsToMatch',
     TAX: 'tax',
@@ -41,6 +42,7 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.MERCHANT_TO_MATCH]: string;
         [INPUT_IDS.REIMBURSABLE]: boolean;
         [INPUT_IDS.REIMBURSABLE_TO_MATCH]: boolean;
+        [INPUT_IDS.SUBMITTERS_TO_MATCH]: string[];
         [INPUT_IDS.TAG]: string;
         [INPUT_IDS.TAGS_TO_MATCH]: string[];
         [INPUT_IDS.TAX]: string;

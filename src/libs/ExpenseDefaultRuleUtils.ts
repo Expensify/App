@@ -51,6 +51,9 @@ type ExpenseDefaultFormValues = {
     /** Whether an expense has to be billable. Left unset, the rule matches either way */
     billableToMatch?: boolean;
 
+    /** The account IDs of the members whose expenses the rule applies to. The list is matched as an OR */
+    submittersToMatch?: string[];
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -107,6 +110,7 @@ const CONDITION = {
     TAX_RATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
     REIMBURSABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
     BILLABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+    SUBMITTER: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
 } as const;
 
 /** Search stores a boolean filter as one of these words rather than as a JSON boolean, and the rule tree follows it. */
@@ -289,6 +293,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.BILLABLE, operator: EQUAL_TO, right: formValues.billableToMatch ? YES : NO});
     }
 
+    const submittersToMatch = getNonEmptyValues(formValues.submittersToMatch);
+    if (submittersToMatch.length > 0) {
+        comparisons.push({left: CONDITION.SUBMITTER, operator: EQUAL_TO, right: submittersToMatch});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -330,7 +339,8 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         haveSameConditionValues(first.currenciesToMatch, second.currenciesToMatch) &&
         haveSameConditionValues(first.taxRatesToMatch, second.taxRatesToMatch) &&
         first.reimbursableToMatch === second.reimbursableToMatch &&
-        first.billableToMatch === second.billableToMatch
+        first.billableToMatch === second.billableToMatch &&
+        haveSameConditionValues(first.submittersToMatch, second.submittersToMatch)
     );
 }
 
@@ -413,7 +423,7 @@ function getEditableTriggers(triggers: Rule['triggers'] | undefined): ExpenseDef
 /** The conditions the editor renders, read back off a rule's filter tree. */
 type EditableConditions = Pick<
     ExpenseDefaultFormValues,
-    'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch' | 'currenciesToMatch' | 'taxRatesToMatch' | 'reimbursableToMatch' | 'billableToMatch'
+    'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch' | 'currenciesToMatch' | 'taxRatesToMatch' | 'reimbursableToMatch' | 'billableToMatch' | 'submittersToMatch'
 >;
 
 /**
@@ -462,6 +472,10 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
 
     if (leaf.left === CONDITION.TAX_RATE) {
         return {taxRatesToMatch: values};
+    }
+
+    if (leaf.left === CONDITION.SUBMITTER) {
+        return {submittersToMatch: values};
     }
 
     if (leaf.left === CONDITION.REIMBURSABLE || leaf.left === CONDITION.BILLABLE) {
