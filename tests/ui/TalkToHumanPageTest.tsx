@@ -2,6 +2,7 @@ import {act, render} from '@testing-library/react-native';
 
 import useNetwork from '@hooks/useNetwork';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import TalkToHumanPage from '@pages/TalkToHumanPage';
@@ -16,11 +17,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     setShouldPopToSidebar: jest.fn(),
+    getShouldPopToSidebar: jest.fn(() => false),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: (effect: () => void) => jest.requireActual<typeof React>('react').useEffect(effect, [effect]),
 }));
+jest.mock('@libs/interceptAnonymousUser', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () => () => ({borderBottom: {}}));
 jest.mock('@hooks/useOpenSupportTicket', () => () => ({openSupportTicketOrConcierge: mockOpenSupportTicketOrConcierge}));
@@ -33,9 +36,11 @@ jest.mock(
 jest.mock('@components/ReportHeaderSkeletonView', () => () => null);
 jest.mock('@components/ReportActionsSkeletonView', () => () => null);
 
+const mockInterceptAnonymousUser = jest.mocked(interceptAnonymousUser);
 const mockUseNetwork = jest.mocked(useNetwork);
 const mockGoBack = jest.mocked(Navigation.goBack);
 const mockSetShouldPopToSidebar = jest.mocked(Navigation.setShouldPopToSidebar);
+const mockGetShouldPopToSidebar = jest.mocked(Navigation.getShouldPopToSidebar);
 const mockNavigate = jest.mocked(Navigation.navigate);
 
 async function renderPage() {
@@ -49,7 +54,9 @@ async function renderPage() {
 describe('TalkToHumanPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockInterceptAnonymousUser.mockImplementation((callback) => callback());
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        mockGetShouldPopToSidebar.mockReturnValue(false);
     });
 
     it('goes back and then opens a support ticket', async () => {
@@ -66,6 +73,33 @@ describe('TalkToHumanPage', () => {
         expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
         expect(mockGoBack.mock.invocationCallOrder.at(0)).toBeLessThan(mockOpenSupportTicketOrConcierge.mock.invocationCallOrder.at(0) ?? 0);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('hands a pending pop to the sidebar back after it leaves, so the next Back still pops to the sidebar', async () => {
+        // Given a wide to narrow resize left a pending pop to the sidebar
+        mockGetShouldPopToSidebar.mockReturnValue(true);
+
+        // When the page opens
+        await renderPage();
+
+        // Then the flag is cleared while the page pops, and set again afterwards
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockSetShouldPopToSidebar.mock.calls).toEqual([[false], [true]]);
+        const [clearCall, restoreCall] = mockSetShouldPopToSidebar.mock.invocationCallOrder;
+        const goBackCall = mockGoBack.mock.invocationCallOrder.at(0) ?? 0;
+        expect(clearCall).toBeLessThan(goBackCall);
+        expect(restoreCall).toBeGreaterThan(goBackCall);
+    });
+
+    it('does not arm a pop to the sidebar when none was pending', async () => {
+        // Given no pending pop to the sidebar
+        mockGetShouldPopToSidebar.mockReturnValue(false);
+
+        // When the page opens
+        await renderPage();
+
+        // Then nothing is armed after the page leaves
+        expect(mockSetShouldPopToSidebar).not.toHaveBeenCalledWith(true);
     });
 
     it('goes back and shows the Help page without creating a ticket when offline', async () => {
@@ -104,6 +138,29 @@ describe('TalkToHumanPage', () => {
         expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 
+    it('uses the connection state from when navigation became ready, not a stale one', async () => {
+        // Given navigation that is not ready yet, and a page that rendered online
+        let resolveNavigationReady = () => {};
+        jest.mocked(Navigation.isNavigationReady).mockReturnValue(
+            new Promise<void>((resolve) => {
+                resolveNavigationReady = resolve;
+            }),
+        );
+        const {rerender} = render(<TalkToHumanPage />);
+
+        // When the device turns out to be offline before navigation is ready
+        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        rerender(<TalkToHumanPage />);
+        await act(async () => {
+            resolveNavigationReady();
+            await Promise.resolve();
+        });
+
+        // Then the page shows Help and does not try to create a ticket
+        expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_HELP);
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
+    });
+
     it('does not open a second ticket when it re-renders before it is removed', async () => {
         // Given the page has already handled the link
         const {rerender} = await renderPage();
@@ -119,5 +176,18 @@ describe('TalkToHumanPage', () => {
         expect(mockGoBack).toHaveBeenCalledTimes(1);
         expect(mockOpenSupportTicketOrConcierge).toHaveBeenCalledTimes(1);
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not leave the page or open a ticket for an anonymous session', async () => {
+        // Given an anonymous session, which is sent to sign-in instead of running the callback
+        mockInterceptAnonymousUser.mockImplementation(() => {});
+
+        // When the page opens
+        await renderPage();
+
+        // Then nothing navigates and no ticket is opened
+        expect(mockGoBack).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockOpenSupportTicketOrConcierge).not.toHaveBeenCalled();
     });
 });

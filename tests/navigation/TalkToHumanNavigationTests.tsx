@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
@@ -14,6 +15,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {InitialState} from '@react-navigation/native';
 
+import {findFocusedRoute} from '@react-navigation/native';
 import React from 'react';
 
 import TestNavigationContainer from '../utils/TestNavigationContainer';
@@ -115,5 +117,17 @@ describe.each([
         // Then it lands on a real page instead of stranding the customer on the loader
         expect(Navigation.getActiveRoute()).not.toBe(`/${ROUTES.TALK_TO_HUMAN}`);
         expect(navigationRef.current?.getRootState().routes.at(-1)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+    });
+});
+
+describe('Talk to a human deep link', () => {
+    it('resolves the link to the Talk to a human page', () => {
+        // Given the link that Concierge replies point to
+        // When it is opened as a URL
+        const state = getAdaptedStateFromPath(`/${ROUTES.TALK_TO_HUMAN}`);
+
+        // Then the focused screen is the Talk to a human page, and the URL survives a round trip
+        expect(findFocusedRoute(state)?.name).toBe(SCREENS.TALK_TO_HUMAN);
+        expect(getPathFromState(state)).toBe(`/${ROUTES.TALK_TO_HUMAN}`);
     });
 });

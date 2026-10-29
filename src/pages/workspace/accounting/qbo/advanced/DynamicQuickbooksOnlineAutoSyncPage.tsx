@@ -26,7 +26,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -39,9 +39,9 @@ function DynamicQuickbooksOnlineAutoSyncPage({policy, route}: WithPolicyConnecti
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     return (
         <AccessOrNotFoundWrapper
