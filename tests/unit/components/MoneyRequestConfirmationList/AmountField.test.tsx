@@ -17,7 +17,15 @@ let mockLauncherRef: React.ComponentProps<typeof IOURequestStepCurrencyModal>['l
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, errorText, currencyButtonRef}: {onInputChange: (amount: string) => void; errorText?: string; currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef']}) => {
+    return ({
+        onInputChange,
+        errorText,
+        currencyButtonRef,
+    }: {
+        onInputChange: (amount: string) => void;
+        errorText?: string;
+        currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef'];
+    }) => {
         mockCurrencyButtonRef = currencyButtonRef;
         return (
             <>
