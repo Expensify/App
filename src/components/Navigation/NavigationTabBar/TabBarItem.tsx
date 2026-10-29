@@ -12,6 +12,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
+import getTabIconFill from './getTabIconFill';
+
 type TabBarItemProps = {
     icon: IconAsset;
     label: string;
@@ -20,16 +22,6 @@ type TabBarItemProps = {
     statusIndicatorColor?: string;
     numberOfLines?: number;
 };
-
-function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<typeof useTheme>) {
-    if (isSelected) {
-        return theme.iconMenu;
-    }
-    if (isHovered) {
-        return theme.success;
-    }
-    return theme.icon;
-}
 
 function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
@@ -42,7 +34,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
             <View>
                 <Icon
                     src={icon}
-                    fill={getIconFill(isSelected, isHovered, theme)}
+                    fill={getTabIconFill(isSelected, isHovered, theme)}
                     width={iconSize}
                     height={iconSize}
                 />
