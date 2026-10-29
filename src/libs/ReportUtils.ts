@@ -3048,12 +3048,20 @@ function isReportTransactionThread(report: OnyxEntry<Report>) {
 /**
  * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
-function getDisplayedReportID(reportID: string, isOffline: boolean): string {
+function getDisplayedReportID(reportID: string, isOffline: boolean, parentReportActions?: OnyxEntry<ReportActions> | ReportAction[]): string {
     const report = getReport(reportID, deprecatedAllReports);
     const parentReportID = report?.parentReportID;
+    const parentReportActionID = report?.parentReportActionID;
     const parentReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-    const parentReportAction = getReportAction(parentReportID, report?.parentReportActionID);
-    return parentReportID && isOneTransactionThread(report, parentReport, parentReportAction, isOffline) ? parentReportID : reportID;
+    let parentReportAction: OnyxEntry<ReportAction>;
+    if (!parentReportActions) {
+        parentReportAction = getReportAction(parentReportID, parentReportActionID);
+    } else if (Array.isArray(parentReportActions)) {
+        parentReportAction = parentReportActions.find((action) => action.reportActionID === parentReportActionID);
+    } else if (parentReportActionID) {
+        parentReportAction = parentReportActions[parentReportActionID];
+    }
+    return parentReportID && isOneTransactionThread(report, parentReport, parentReportAction, isOffline, parentReportActions) ? parentReportID : reportID;
 }
 
 /**

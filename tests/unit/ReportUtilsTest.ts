@@ -105,6 +105,7 @@ import {
     getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
+    getDisplayedReportID,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
@@ -25835,6 +25836,152 @@ describe('ReportUtils', () => {
 
             // Then there is no IOU action to match the thread against
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDisplayedReportID', () => {
+        const parentReport = createMock<Report>({reportID: 'displayed-parent', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'displayed-chat'});
+        const threadReport = createMock<Report>({reportID: 'displayed-thread', parentReportID: parentReport.reportID, parentReportActionID: '1'});
+        const reportWithoutParent = createMock<Report>({reportID: 'displayed-no-parent', type: CONST.REPORT.TYPE.CHAT});
+        const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'USD 1.00 expense', text: 'USD 1.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-1', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
+        });
+        const secondIOUAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: 'displayed-other-thread',
+            message: [{type: 'COMMENT', html: 'USD 2.00 expense', text: 'USD 2.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-2', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: CONST.CURRENCY.USD},
+        });
+        // Same ID as the thread's parentReportActionID, but a send-money action, which getDisplayedReportID must never treat as a one-transaction thread
+        const sentMoneyAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'sent USD 1.00', text: 'sent USD 1.00'}],
+            originalMessage: {
+                IOUTransactionID: 'displayed-txn-1',
+                IOUReportID: parentReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''},
+            },
+        });
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const;
+
+        beforeEach(async () => {
+            // getDisplayedReportID reads the thread and its parent from the reports stored in Onyx
+            await Onyx.multiSet(toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [parentReport, threadReport, reportWithoutParent], (report) => report.reportID));
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.merge(parentReportActionsKey, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutParent.reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return the report ID when the report has no parent', () => {
+            // Given a report that is not a thread, even though a matching IOU action is passed
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report
+            const result = getDisplayedReportID(reportWithoutParent.reportID, false, parentReportActions);
+
+            // Then the report itself is displayed because there is no parent to switch to
+            expect(result).toBe(reportWithoutParent.reportID);
+        });
+
+        it('should return the parent report ID when the passed parent report actions hold a single IOU action pointing to the thread', () => {
+            // Given the parent's actions contain exactly one IOU action whose child is the thread
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report with those actions passed as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the one-transaction parent is displayed instead of the thread
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when the passed parent report actions hold more than one IOU action', () => {
+            // Given the parent holds two expenses
+            const parentReportActions = {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction};
+
+            // When resolving the displayed report for one of their threads
+            const result = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+
+            // Then the thread stays displayed because the parent is not a one-transaction report
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should read the passed parent report actions rather than the actions stored in Onyx', async () => {
+            // Given Onyx says the parent holds two expenses
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes only the single IOU action
+            const result = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+
+            // Then the passed actions win and the parent is displayed
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should fall back to the actions stored in Onyx when parentReportActions is not passed', async () => {
+            // Given Onyx holds a single IOU action for the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When a caller that has not been migrated yet omits parentReportActions
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then the transitional fallback still resolves the parent from Onyx
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when parentReportActions is not passed and Onyx has no actions for the parent', () => {
+            // Given nothing is stored for the parent and the caller passes no actions
+            // When resolving the displayed report
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then there is no IOU action to match, so the thread stays displayed
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should resolve the thread parent action from the passed parent report actions rather than from Onyx', async () => {
+            // Given Onyx stores a send-money action under the thread's parentReportActionID, which would keep the thread displayed
+            await Onyx.merge(parentReportActionsKey, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a plain expense action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the passed action is the one checked, so the parent is displayed
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should keep the thread displayed when the passed parent report actions hold a send-money action for the thread', async () => {
+            // Given Onyx stores a plain expense action under the thread's parentReportActionID, which would switch to the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a send-money action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [sentMoneyAction]);
+
+            // Then the passed send-money action is the one checked, so the thread stays displayed
+            expect(resultForObject).toBe(threadReport.reportID);
+            expect(resultForArray).toBe(threadReport.reportID);
         });
     });
 
