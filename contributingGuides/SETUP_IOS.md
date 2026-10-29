@@ -12,8 +12,8 @@ The following steps describe how to configure the project to fully utilize Rock.
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
-* To start metro server run: `npm run start`
-**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To start the dev server run: `npm run start`
+**Note:** For now this is a required step — the dev server needs to be started manually in a separate terminal.
 * To run application on a **Development Simulator**:
     - For standalone `npm run ios-standalone`
     - For hybrid app `npm run ios` 
