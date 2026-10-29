@@ -462,8 +462,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting && zohoBooksOrganizationList.length > 1,
-                          // Multi-location organizations are not supported yet, so explain why the connection doesn't work.
-                          errorText: currentZohoBooksOrganization?.isMultiLocation ? translate('workspace.zohoBooks.multiLocationNotSupported') : undefined,
                           pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
                           brickRoadIndicator:
                               !!policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID || !!currentZohoBooksOrganization?.isMultiLocation
@@ -480,6 +478,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         }
     };
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
+    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
     const getConnectionDetails = () => {
         if (!connectedIntegration || !policyID) {
@@ -573,7 +572,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             : [];
 
         const settingsMenuItems: MenuItemData[] = [
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || (shouldShowSynchronizationError && !shouldKeepIntegrationSpecificMenuItemOnSyncError) || !hasAccountingConnection
+                ? []
+                : [integrationSpecificMenuItems]),
             ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
         return {icon: integrationData?.icon, title: integrationData?.title, connectionMessage, settingsMenuItems};
