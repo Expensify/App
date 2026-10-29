@@ -11,25 +11,32 @@ import TextLink from '@components/TextLink';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {normalizeBSB} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
-import {createDepositABAAccount} from '@userActions/BankAccounts';
-import {clearErrors} from '@userActions/FormActions';
+import {clearCreateDepositABAAccount, createDepositABAAccount} from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ABADepositAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ABADepositAccountForm';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+
+const isSuccessSelector = (form: OnyxEntry<ABADepositAccountForm>) => !!form?.isSuccess;
 
 const REQUIRED_FIELDS = [INPUT_IDS.BSB_NUMBER, INPUT_IDS.ACCOUNT_NUMBER, INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME, INPUT_IDS.BILLING_ADDRESS, INPUT_IDS.CITY];
 
 type ABADepositDetailsProps = {
     onBackButtonPress: () => void;
+
+    onSuccess: () => void;
 };
 
 function TermsOfServiceLabel() {
@@ -47,15 +54,24 @@ function TermsOfServiceLabel() {
 /**
  * Collects the details of an ABA deposit bank account.
  */
-function ABADepositDetails({onBackButtonPress}: ABADepositDetailsProps) {
+function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const [isSuccess] = useOnyx(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM, {selector: isSuccessSelector});
 
-    // Clear any error left from an earlier attempt
+    // Clear any result left from an earlier attempt
     useEffect(() => {
-        clearErrors(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM);
+        clearCreateDepositABAAccount();
     }, []);
+
+    useEffect(() => {
+        if (!isSuccess) {
+            return;
+        }
+        onSuccess();
+        clearCreateDepositABAAccount();
+    }, [isSuccess, onSuccess]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);

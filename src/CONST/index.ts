@@ -9842,6 +9842,12 @@ const CONST = {
         },
     },
 
+    ABA_DEPOSIT_ACCOUNT: {
+        SUB_PAGE_NAMES: {
+            SUCCESS: 'success',
+        },
+    },
+
     COLLECT_DEPOSIT_ACCOUNT: {
         PAGE_NAME: {
             COUNTRY: 'country',

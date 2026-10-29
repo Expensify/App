@@ -26,7 +26,7 @@ function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: Cu
 
     const onCountrySelected = () => {
         if (selectedCountry === CONST.COUNTRY.AU && isDefaultWorkspacePayingWithABAFiles) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_ABA_BANK_ACCOUNT);
+            Navigation.navigate(ROUTES.SETTINGS_ADD_ABA_BANK_ACCOUNT.getRoute());
             return;
         }
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {

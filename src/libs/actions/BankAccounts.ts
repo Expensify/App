@@ -188,6 +188,10 @@ function createDepositABAAccount(parameters: CreateDepositABAAccountParams) {
     API.write(WRITE_COMMANDS.CREATE_DEPOSIT_ABA_ACCOUNT, parameters, onyxData);
 }
 
+function clearCreateDepositABAAccount() {
+    Onyx.merge(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM, {isSuccess: null, errors: null});
+}
+
 export {
     goToWithdrawalAccountSetupStep,
     resetUSDBankAccount,
@@ -2184,6 +2188,7 @@ export {
     enableGlobalReimbursementsForUSDBankAccount,
     clearEnableGlobalReimbursementsForUSDBankAccount,
     clearCreateWithdrawalABAAccount,
+    clearCreateDepositABAAccount,
     askForCorpaySignerInformation,
     clearEnterSignerInformationFormSave,
     sendReminderForCorpaySignerInformation,
