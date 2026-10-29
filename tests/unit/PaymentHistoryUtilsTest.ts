@@ -147,6 +147,73 @@ describe('getPaymentHistoryRows', () => {
         expect(rows.find((row) => row.purchaseID === 2)?.countsMembers).toBe(true);
         expect(rows.find((row) => row.purchaseID === 1)?.countsMembers).toBe(false);
     });
+
+    it('uses totalActorCount on a legacy bill even when totalUniqueMembersCount is higher', () => {
+        // Given a legacy bill where totalUniqueMembersCount counts every member of every workspace (including archived),
+        // while totalActorCount reflects the users actually billed — Classic shows the billed count, so we must too.
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: 2,
+                totalUniqueMembersCount: 5,
+                billablePolicies: {
+                    first: {actorList: 'ada@example.com', corporate: true},
+                    second: {actorList: 'bob@example.com', corporate: false},
+                },
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the row shows the billed-actor count, matching the details page
+        expect(rows.at(0)?.activeUserCount).toBe(2);
+    });
+
+    it('uses the larger of teamActorCount and totalUniqueMembersCount on a Team 2025 bill', () => {
+        // Given a Team 2025 bill where a force-upgraded policy inflated teamActorCount above totalUniqueMembersCount
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 7,
+                totalUniqueMembersCount: 4,
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: 2,
+                totalUniqueMembersCount: 6,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then each row uses the larger count — team actors in the first case, unique members in the second
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(7);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(6);
+    });
+
+    it('coerces string actor counts from Auth into numbers', () => {
+        // Given counts that arrive as strings from Auth (totalActorCount / teamActorCount are serialized as strings there)
+        const purchaseList = [
+            createPurchase(1, '2026-02-01', {
+                isTeam2025Pricing: false,
+                totalActorCount: '3',
+            }),
+            createPurchase(2, '2026-03-01', {
+                isTeam2025Pricing: true,
+                teamActorCount: '4',
+                totalUniqueMembersCount: 2,
+            }),
+        ];
+
+        // When the table rows are built
+        const rows = getPaymentHistoryRows(toPurchases(purchaseList));
+
+        // Then the counts are numeric and compared correctly
+        expect(rows.find((row) => row.purchaseID === 1)?.activeUserCount).toBe(3);
+        expect(rows.find((row) => row.purchaseID === 2)?.activeUserCount).toBe(4);
+    });
 });
 
 describe('getPaymentHistoryRow', () => {

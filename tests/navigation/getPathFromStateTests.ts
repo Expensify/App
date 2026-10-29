@@ -243,6 +243,84 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
+        it('rebuilds a complete nested state after removing its focused dynamic route', () => {
+            // Given full router states at both levels, reducing the RHP must retain its full-state metadata.
+            const state = {
+                stale: false,
+                key: 'root',
+                type: 'stack',
+                index: 0,
+                routeNames: ['RHPNavigator'],
+                routes: [
+                    {
+                        key: 'rhp',
+                        name: 'RHPNavigator',
+                        params: {source: 'wallet'},
+                        state: {
+                            stale: false,
+                            key: 'rhp-stack',
+                            type: 'stack',
+                            index: 1,
+                            routeNames: ['WalletScreen', 'VerifyAccountScreen'],
+                            routes: [
+                                {key: 'wallet', name: 'WalletScreen', path: '/settings/wallet'},
+                                {key: 'verify', name: 'VerifyAccountScreen'},
+                            ],
+                        },
+                    },
+                ],
+            } satisfies NavigationState;
+            const snapshot = JSON.stringify(state);
+            const [rhpRoute] = state.routes;
+            const [walletRoute] = rhpRoute.state.routes;
+            const reducedState = {
+                ...state,
+                routes: [
+                    {
+                        ...rhpRoute,
+                        state: {...rhpRoute.state, index: 0, routes: [walletRoute]},
+                    },
+                ],
+            } satisfies NavigationState;
+
+            // When production serialization peels off the dynamic suffix, it must rebuild the nested full state.
+            const result = getPathFromState(state);
+
+            // Then RN receives exactly the reduced full tree and the caller's original tree remains intact.
+            expect(result).toBe('/settings/wallet/verify-account');
+            expect(mockRNGetPathFromState).toHaveBeenCalledTimes(1);
+            expect(mockRNGetPathFromState).toHaveBeenCalledWith(reducedState, {});
+            expect(JSON.stringify(state)).toBe(snapshot);
+        });
+
+        it('removes the focused middle sibling from a complete state and focuses the last survivor', () => {
+            // Given a full stack whose dynamic route is in the middle, route order differs from focus order.
+            const state = {
+                stale: false,
+                key: 'root',
+                type: 'stack',
+                index: 1,
+                routeNames: ['WalletScreen', 'FlagScreen', 'ReportScreen'],
+                routes: [
+                    {key: 'wallet', name: 'WalletScreen', path: '/settings/wallet'},
+                    {key: 'flag', name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
+                    {key: 'report', name: 'ReportScreen', params: {reportID: '123'}, path: '/r/123'},
+                ],
+            } satisfies NavigationState;
+            const snapshot = JSON.stringify(state);
+            const [walletRoute, , reportRoute] = state.routes;
+            const reducedState = {...state, index: 1, routes: [walletRoute, reportRoute]} satisfies NavigationState;
+
+            // When production serialization removes the focused route, the last remaining sibling supplies the base.
+            const result = getPathFromState(state);
+
+            // Then both survivors retain their keys, params and paths and no input state is mutated.
+            expect(result).toBe('/r/123/flag/456/abc');
+            expect(mockRNGetPathFromState).toHaveBeenCalledTimes(1);
+            expect(mockRNGetPathFromState).toHaveBeenCalledWith(reducedState, {});
+            expect(JSON.stringify(state)).toBe(snapshot);
+        });
+
         it('two dynamic suffixes inside nested navigator', () => {
             const state = buildState([
                 {

@@ -861,7 +861,7 @@ function filterCardsByPersonalDetails(card: Card, searchQuery: string, personalD
     );
 }
 
-function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
+function getCardFeedIcon(cardFeed: string | undefined, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardFeedIcons): IconAsset {
     if (cardFeed === undefined) {
         return illustrations.GenericCompanyCardLarge;
     }
@@ -890,16 +890,18 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         return companyCardIllustrations.ExpensifyCardImage;
     }
 
-    const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
+    const feedEntries = Object.entries(feedIcons);
+    // Raw bank text can match inherited property names, so only owned feed entries can supply an icon.
+    const [, feedIcon] = feedEntries.find(([feed]) => feed === cardFeed) ?? [];
     if (feedIcon) {
         return feedIcon;
     }
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = (Object.keys(feedIcons) as Array<keyof typeof feedIcons>).find((feed) => cardFeed.startsWith(feed));
+    const feedEntry = feedEntries.find(([feed]) => cardFeed.startsWith(feed));
 
-    if (feedKey) {
-        return feedIcons[feedKey];
+    if (feedEntry) {
+        return feedEntry[1];
     }
 
     if (cardFeed.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {

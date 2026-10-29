@@ -25,7 +25,7 @@ import SCREENS from '@src/SCREENS';
 import type {CardList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ActivatePhysicalCardPageBaseProps = {
@@ -88,7 +88,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         setLastFourDigits(text);
     };
 
-    const submitAndNavigateToNextPage = useCallback(() => {
+    const submitAndNavigateToNextPage = () => {
         setCanShowError(true);
         activateCardCodeInputRef.current?.blur();
 
@@ -101,7 +101,7 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomain
         }
 
         activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
-    }, [lastFourDigits, inactiveCard?.cardID, translate]);
+    };
 
     if (isEmptyObject(inactiveCard)) {
         return <NotFoundPage />;

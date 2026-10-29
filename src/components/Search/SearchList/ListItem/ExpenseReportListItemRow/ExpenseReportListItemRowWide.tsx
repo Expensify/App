@@ -259,6 +259,11 @@ function ExpenseReportListItemRowWide({
                 )}
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}>
+                <TextCell text={item.withdrawalIDs} />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
             <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REPORT_ID)]}>
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : item.reportID} />

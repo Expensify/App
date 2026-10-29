@@ -1831,16 +1831,37 @@ describe('CardUtils', () => {
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
             const feed = 'cards_2267989_ccupload666';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Imported CSV feed keys include runtime prefixes that the production parameter type does not model.
-            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCSVCompanyCardLarge);
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
             const feed = '666';
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- This malformed value intentionally exercises the function's generic-icon fallback.
-            const illustration = getCardFeedIcon(feed as Parameters<typeof getCardFeedIcon>[0], mockIllustrations, mockCompanyCardFeedIcons);
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
             expect(illustration).toBe(mockIllustrations.GenericCompanyCardLarge);
+        });
+
+        it.each([
+            {name: 'returns the generic asset for undefined bank text', feed: undefined, expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {name: 'returns the generic asset for empty bank text', feed: '', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {
+                name: 'keeps Expensify prefix precedence over CSV infixes',
+                feed: `${CONST.EXPENSIFY_CARD.BANK} TRAVEL_US ${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}`,
+                expectedIcon: mockCompanyCardFeedIcons.ExpensifyCardImage,
+            },
+            {
+                name: 'retains numbered Visa prefix variants',
+                feed: `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}3`,
+                expectedIcon: mockCompanyCardFeedIcons.VisaCompanyCardDetailLarge,
+            },
+            {name: 'returns the generic asset for __proto__ bank text', feed: '__proto__', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+            {name: 'returns the generic asset for constructor bank text', feed: 'constructor', expectedIcon: mockIllustrations.GenericCompanyCardLarge},
+        ] satisfies Array<{name: string; feed: Parameters<typeof getCardFeedIcon>[0]; expectedIcon: ReturnType<typeof getCardFeedIcon>}>)('$name', ({feed, expectedIcon}) => {
+            // Given raw bank text can be absent, empty, a legacy variant, an inherited property name, or an Expensify feed containing the CSV marker.
+            // When the real resolver handles the unchanged input, it must preserve known-feed precedence and owned-entry fallback behavior.
+            const illustration = getCardFeedIcon(feed, mockIllustrations, mockCompanyCardFeedIcons);
+            // Then exact asset identity distinguishes the intended feed icon from a different valid illustration.
+            expect(illustration).toBe(expectedIcon);
         });
     });
 

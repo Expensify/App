@@ -23,7 +23,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type SelectorType = ListItem & {
@@ -38,51 +38,38 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const accountOptions = [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])];
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
-    const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
-        () =>
-            accountOptions?.map(({id, name}) => ({
-                value: id,
-                text: name,
-                keyForList: id,
-                isSelected: qboConfig?.collectionAccountID === id,
-            })),
-        [qboConfig?.collectionAccountID, accountOptions],
+    const qboOnlineSelectorOptions: SelectorType[] = accountOptions?.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: qboConfig?.collectionAccountID === id,
+    }));
+
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription', integrationName)}</Text>
+        </View>
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription', integrationName)}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, integrationName],
-    );
+    const initiallyFocusedOptionKey = qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
+    const updateAccount = ({value}: SelectorType) => {
+        updateQuickbooksOnlineCollectionAccountID(policyID, value, qboConfig?.collectionAccountID);
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
+    };
 
-    const updateAccount = useCallback(
-        ({value}: SelectorType) => {
-            updateQuickbooksOnlineCollectionAccountID(policyID, value, qboConfig?.collectionAccountID);
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
-        },
-        [policyID, qboConfig?.collectionAccountID],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10, integrationName],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbo.noAccountsFound')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

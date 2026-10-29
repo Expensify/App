@@ -32,14 +32,14 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {cardByIdSelector} from '@selectors/Card';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type PersonalCardEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_NAME>;
 
 function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const {cardID} = route.params;
     const [customCardNames, customCardNamesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
-    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
+    const cardSelector = (cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [cardholder] = usePersonalDetail(card?.accountID);
     const isCSVImportedPersonalCard = !!card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV));

@@ -2485,6 +2485,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.HELP]: {
                             path: ROUTES.SETTINGS_HELP,
+                            // The Talk to a human link in Concierge replies lands on the Help page, where the Talk to a human row is.
+                            alias: [{path: ROUTES.TALK_TO_HUMAN, exact: true}],
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TROUBLESHOOT]: {

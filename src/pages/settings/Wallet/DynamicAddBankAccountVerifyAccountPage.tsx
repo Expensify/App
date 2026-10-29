@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type DynamicAddBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 
@@ -21,7 +21,7 @@ function DynamicAddBankAccountVerifyAccountPage({route}: DynamicAddBankAccountVe
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const currentUserEmail = getCurrentUserEmail();
-    const isAdmin = useMemo(() => hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies), [currentUserEmail, allPolicies]);
+    const isAdmin = hasActiveAdminWorkspaces(currentUserEmail ?? '', allPolicies);
     // This forward path must agree with the validated branch of openPersonalBankAccountSetupView.
     let navigateForwardTo;
     if (shouldSetUpUSBankAccount === 'true') {

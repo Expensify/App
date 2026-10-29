@@ -2485,7 +2485,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         accountValidate: {
             confirmMerge: '本当にアカウントを統合してもよろしいですか？',
-            lossOfUnsubmittedData: (login: string) => `アカウントの統合は元に戻せず、<strong>${login}</strong> の未提出経費はすべて失われます。`,
+            mergeIsIrreversible: (login: string) =>
+                `アカウントを統合すると元に戻すことはできません。下書きや未報告の経費を含む<strong>${login}</strong>のすべての経費とレポートは、引き続きご利用になるアカウントに移動します。`,
             enterSecurityCode: (login: string) => `続行するには、<strong>${login}</strong> に送信されたセキュリティコードを入力してください。`,
             errors: {
                 incorrectSecurityCode: 'セキュリティコードが正しくないか無効です。もう一度お試しいただくか、新しいコードをリクエストしてください。',
@@ -6653,6 +6654,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                             provisioningError:
                                 'ワークスペース内の一部メンバーに対して、Consolidated Travel Billing を有効化できませんでした。時間をおいてもう一度お試しいただくか、サポートが必要な場合は Concierge までお問い合わせください。',
                             sendInvoiceNowCta: '請求書を今すぐ送信',
+                            limitExceedsTravelLimit: ({travelLimit}: {travelLimit: string}) => `メンバーごとの月間利用限度額は、現在の旅行限度額 ${travelLimit} を超えることはできません。`,
                         },
                         setUpNewFeed: '新しい出張フィードを設定する',
                         feedSelectorIntro:
@@ -7377,6 +7379,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                         return 'DualEntry';
                     case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
                         return 'Campfire';
+                    case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+                        return 'Digits';
                     case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
                         return 'Zoho Books';
                     case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL:
@@ -7623,6 +7627,18 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                             return 'カード精算を同期しています';
                         case 'campfireSyncTravelSettlements':
                             return '出張精算を同期しています';
+                        case 'digitsSyncTitle':
+                            return 'Digits データを同期しています';
+                        case 'digitsSyncConnection':
+                            return 'Digits への接続を初期化しています';
+                        case 'digitsSyncImportData':
+                            return 'データを読み込んでいます';
+                        case 'digitsSyncPayments':
+                            return '仕入先への支払いを同期しています';
+                        case 'digitsSyncCardSettlements':
+                            return 'カード精算を同期しています';
+                        case 'digitsSyncTravelSettlements':
+                            return '出張精算を同期しています';
                         case 'businessCentralSyncTitle':
                             return 'Dynamics 365 Business Central データを同期しています';
                         case 'businessCentralSyncConnection':
@@ -7671,6 +7687,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             syncTravelBillingSettlementsNoAccountTooltip: 'ロックを解除するには、エクスポート用の口座を設定してください。',
             syncTravelBillingSettlementsNoAutoSyncTooltip: 'ロックを解除するには、自動同期を有効にしてください。',
             campfire: 'Campfire',
+            digits: 'Digits',
             zohoBooks: 'Zoho Books',
             continuousReconciliationFeedSelection:
                 '<muted-text-label>継続的な照合はカードフィードごとに設定されます。設定するフィードを変更するには、フィードを選択してください。</muted-text-label>',
@@ -8752,11 +8769,8 @@ ${reportName}`,
                 applyExpenseDefaultsDescription: 'フィールドを自動で更新する',
                 flagForReview: '確認のためにフラグを付ける',
                 flagForReviewDescription: '条件が満たされたときに通知する',
-                requireFields: 'フィールドの必須条件を設定',
-                requireFieldsShort: '必須フィールド',
+                requireFields: '必須フィールド',
                 requireFieldsDescription: '領収書、カテゴリなど',
-                createAgentRule: 'エージェントルールの説明',
-                createAgentRuleDescription: '必要なときに実行される柔軟なルールを作成できます。',
                 describeItBelow: 'または、下で説明してください',
                 describeRulePlaceholder: '2,000ドルを超えるすべての支出をブロック',
                 selectTemplateOrDescribe: '続行するには、テンプレートを選択するかルールを説明してください',
@@ -10311,6 +10325,7 @@ ${reportName}`,
         noCategory: 'カテゴリなし',
         noMerchant: '店舗なし',
         noTag: 'タグなし',
+        noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
         receiptTypeValues: {
@@ -11780,6 +11795,7 @@ ${reportName}`,
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
         currentView: '現在のビュー',
+        currentViewGroupsOnly: '現在のビュー（グループのみ）',
     },
     exportDownload: {
         preparingTitle: 'Preparing download...',

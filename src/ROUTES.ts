@@ -2351,6 +2351,7 @@ const ROUTES = {
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TALK_TO_HUMAN: 'settings/help/talk-to-human',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
@@ -5443,6 +5444,18 @@ const ROUTES = {
     POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/campfire/advanced/travel-billing-payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-billing-payable-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_OAUTH: {
+        route: 'workspaces/:policyID/accounting/digits/oauth',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/oauth` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/digits/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_IMPORT: {
+        route: 'workspaces/:policyID/accounting/digits/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/import` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',

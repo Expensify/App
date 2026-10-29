@@ -62,7 +62,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 import type {ParamListBase} from '@react-navigation/routers';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import useModalStackScreenOptions from './useModalStackScreenOptions';
@@ -160,16 +160,13 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         const {isSmallScreenWidth} = useResponsiveLayout();
 
-        const getScreenOptions = useCallback<typeof screenOptions>(
-            ({route: optionRoute}) => {
-                // Extend common options if they are defined for the screen.
-                if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
-                    return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
-                }
-                return screenOptions({route: optionRoute});
-            },
-            [screenOptions],
-        );
+        const getScreenOptions: typeof screenOptions = ({route: optionRoute}) => {
+            // Extend common options if they are defined for the screen.
+            if (OPTIONS_PER_SCREEN[optionRoute.name as Screen]) {
+                return {...screenOptions({route: optionRoute}), ...OPTIONS_PER_SCREEN[optionRoute.name as Screen]};
+            }
+            return screenOptions({route: optionRoute});
+        };
 
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.

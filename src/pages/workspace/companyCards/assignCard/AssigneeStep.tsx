@@ -43,7 +43,7 @@ import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
@@ -92,11 +92,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         excludedUsers[login] = true;
     }
 
-    const {
-        assignedGuideEmail,
-        accountManagerLogin,
-        exclusions: softExclusions,
-    } = useMemo(() => getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails), [policy, account?.accountManagerAccountID, personalDetails]);
+    const {assignedGuideEmail, accountManagerLogin, exclusions: softExclusions} = getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails);
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
