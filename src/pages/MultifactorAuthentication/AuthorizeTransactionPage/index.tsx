@@ -109,7 +109,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     // This will briefly be true after the transaction deny call has succeeded and Onyx has removed the transaction
     // from state, but denyTransaction has not yet resolved. If we reach this case and isDenyingTransaction isn't
-    // true, then something unexpected has happened (we should've navigated away due to the useEffect above)
+    // true, then something unexpected has happened (useForcedReviewScreen should've closed the screen already)
     if (!transaction) {
         if (!isDenyingTransaction) {
             addBreadcrumb('Transaction unavailable', {transactionID}, 'warning');

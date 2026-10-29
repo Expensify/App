@@ -46,7 +46,7 @@ type ForcedReviewConfig = {
 
 const FORCED_REVIEW_CONFIG: Record<ForcedReviewKind, ForcedReviewConfig> = {
     [FORCED_REVIEW_KIND.THREE_DS]: {
-        logPrefix: '[useNavigateTo3DSAuthorizationChallenge]',
+        logPrefix: '[useNavigateToForcedTransactionReview][3DS]',
         breadcrumbPrefix: '[3DS Navigation]',
         breadcrumbCategory: CONST.TELEMETRY.BREADCRUMB_CATEGORY_3DS_NAVIGATION,
         isStillPendingReview: isTransactionStillPending3DSReview,
@@ -148,8 +148,7 @@ function useNavigateToForcedTransactionReview() {
 
     // Review kinds are listed in priority order, the first one with a pending transaction is shown
     const reviewToShow = [{kind: FORCED_REVIEW_KIND.THREE_DS, transactionID: threeDSTransactionIDToShow}].find((review) => !!review.transactionID);
-    const reviewToShowKind = reviewToShow?.kind;
-    const reviewToShowTransactionID = reviewToShow?.transactionID;
+    const {kind: reviewToShowKind, transactionID: reviewToShowTransactionID} = reviewToShow ?? {};
 
     useEffect(() => {
         // There is nothing to review when no queue has a pending transaction
