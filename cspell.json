@@ -1297,6 +1297,7 @@
         "tests/unit/removeInvisibleCharacters.ts",
         "tests/unit/searchCountryOptionsTest.ts",
         "tests/unit/currencyList.json",
+        "tests/data/wise/accountRequirements/**",
         "tests/unit/ValidationUtilsTest.ts",
         "src/CONST/index.ts",
         "src/libs/SearchParser/*",

@@ -1320,6 +1320,15 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
                 },
             },
         ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
+                value: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,

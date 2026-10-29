@@ -1,3 +1,4 @@
+/** Renders the Wise-backed employee bank-account country picker and dynamic form flow. */
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {FormValue} from '@components/Form/types';
@@ -30,7 +31,6 @@ type WiseDepositAccountContentProps = {
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO));
 
-/** The employee bank-account flow on Wise: a country pick, then the form Wise's requirements describe */
 function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -60,7 +60,12 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const submitForm = () => leaveFlow();
 
     if (wiseBankAccountFields?.isLoading) {
-        return <FullScreenLoadingIndicator onGoBack={leaveFlow} />;
+        return (
+            <FullScreenLoadingIndicator
+                shouldUseGoBackButton
+                onGoBack={leaveFlow}
+            />
+        );
     }
 
     if (wiseBankAccountFields?.schema) {

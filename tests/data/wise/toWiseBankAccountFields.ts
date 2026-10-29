@@ -160,5 +160,4 @@ function toWiseBankAccountFields(country: string, currency: string, requirements
 }
 
 export default toWiseBankAccountFields;
-export {pickPayoutType};
-export type {WiseAccountRequirement, WiseBankAccountFields, WiseFieldDescriptor};
+export type {WiseAccountRequirement};

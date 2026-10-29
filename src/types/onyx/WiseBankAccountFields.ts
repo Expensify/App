@@ -18,7 +18,6 @@ type WiseBankAccountFields = {
     /** The form's pages as the server groups them */
     schema?: DynamicFormSchema;
 
-    /** Whether the form is being fetched */
     isLoading?: boolean;
 
     /** Errors from the last fetch */
