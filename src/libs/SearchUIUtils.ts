@@ -114,7 +114,7 @@ import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {createTransactionThreadReport} from './actions/Report';
-import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
+import {getReportActionsFromSearchSnapshot, setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
@@ -7593,19 +7593,6 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
-/**
- * The search snapshot can lack a report's actions (grouped searches) or hold only part of them, so the live collection fills the gaps for the
- * forwarded-since-last-submit check. The snapshot wins for the actions it has, as elsewhere on the search page.
- */
-function getReportActionsForDeleteCheck(
-    reportID: string | undefined,
-    currentSearchResults: SearchResults['data'] | undefined,
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
-): OnyxTypes.ReportActions {
-    const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
-    return {...allReportActions?.[key], ...currentSearchResults?.[key]};
-}
-
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -7626,7 +7613,8 @@ function shouldShowDeleteOption(
               if (!fullReport) {
                   return false;
               }
-              const reportActionsArray = Object.values(getReportActionsForDeleteCheck(selectedReport.reportID, currentSearchResults, allReportActions));
+              // The delete check needs the report's whole history to see a forward since the last submit, which the snapshot alone may not carry
+              const reportActionsArray = Object.values(getReportActionsFromSearchSnapshot(selectedReport.reportID, currentSearchResults, allReportActions, true) ?? {});
               const reportTransactions: OnyxTypes.Transaction[] = [];
               const searchData = currentSearchResults ?? {};
               for (const key of Object.keys(searchData)) {
@@ -7661,7 +7649,7 @@ function shouldShowDeleteOption(
               const rowReportAction = selectedTransactions[id].reportAction;
               // Grouped searches carry no report actions in the snapshot, so the row's own IOU action is kept for the ownership check
               const parentReportActions = Object.values({
-                  ...getReportActionsForDeleteCheck(parentReportID, currentSearchResults, allReportActions),
+                  ...getReportActionsFromSearchSnapshot(parentReportID, currentSearchResults, allReportActions, true),
                   ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {}),
               });
 
