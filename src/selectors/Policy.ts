@@ -45,6 +45,7 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
@@ -478,6 +479,9 @@ const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Poli
 const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
 
+const adminPoliciesConnectedToZohoBooksSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS));
+
 const adminPoliciesConnectedToDigitsSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS));
 
@@ -489,6 +493,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: adminPoliciesConnectedToZohoBooksSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: adminPoliciesConnectedToDigitsSelector,
 };
 
