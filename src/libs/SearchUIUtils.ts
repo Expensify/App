@@ -5971,6 +5971,14 @@ const FILTER_VIEW_MAP = {
         labelKey: 'search.filters.transactionStatus.label',
         icon: 'CreditCardHourglass',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE]: {
+        labelKey: 'search.filters.travelType.label',
+        icon: 'Suitcase',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM]: {
+        labelKey: 'search.filters.travelPlatform.label',
+        icon: 'Globe',
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: {
         labelKey: 'search.exportedTo',
         icon: 'Export',
@@ -6371,6 +6379,14 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
+    if (key === FILTER_KEYS.TRAVEL_TYPE) {
+        return form[key]?.map((travelType) => translate(`search.filters.travelType.${travelType}`)).join(', ');
+    }
+
+    if (key === FILTER_KEYS.TRAVEL_PLATFORM) {
+        return form[key]?.map((travelPlatform) => translate(`search.filters.travelPlatform.${travelPlatform}`)).join(', ');
+    }
+
     if (key === FILTER_KEYS.MERCHANT) {
         const merchant = form[key];
         if (!merchant) {
@@ -6672,6 +6688,14 @@ function getMultiSelectFilterOptions(
             const receiptTypeName = translate(getReceiptTypeTranslationKey(receiptType));
             return {text: receiptTypeName, value: receiptType};
         });
+    }
+
+    if (filterKey === FILTER_KEYS.TRAVEL_TYPE) {
+        return Object.values(CONST.SEARCH.TRAVEL_TYPE).map((travelType) => ({text: translate(`search.filters.travelType.${travelType}`), value: travelType}));
+    }
+
+    if (filterKey === FILTER_KEYS.TRAVEL_PLATFORM) {
+        return Object.values(CONST.SEARCH.TRAVEL_PLATFORM).map((travelPlatform) => ({text: translate(`search.filters.travelPlatform.${travelPlatform}`), value: travelPlatform}));
     }
 
     if (filterKey === FILTER_KEYS.STATUS) {
