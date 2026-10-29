@@ -45,6 +45,7 @@ import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 
 type HoldMenuOpenParams = {
@@ -89,6 +90,7 @@ function useSelectionModePayment({
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
@@ -233,6 +235,7 @@ function useSelectionModePayment({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
@@ -246,6 +249,7 @@ function useSelectionModePayment({
                 shouldCalculateTotals,
                 isOffline,
                 isLoading: !!currentSearchResults?.search?.isLoading,
+                shouldReturnTripRooms,
             });
         }
 
