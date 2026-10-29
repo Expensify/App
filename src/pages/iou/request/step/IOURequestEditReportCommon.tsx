@@ -85,7 +85,7 @@ type IOURequestEditReportCommonProps = {
     /** Closes the list when the report it already shows is picked again. Defaults to going back to `backTo` */
     onDismiss?: () => void;
 
-    /** Called before the list navigates somewhere else, e.g. to the restricted-action page. A container closes itself here, and the navigation waits for that close */
+    /** Called before the list navigates somewhere else, e.g. to the restricted-action page, and when a pick is blocked by a modal whose button may navigate on. A container closes itself here, and the navigation waits for that close */
     onNavigateAway?: () => void;
 
     /** Whether the search input should auto-focus when the list mounts. Only opted into by the anchored pop-over. */
@@ -309,6 +309,8 @@ function IOURequestEditReportCommon({
             return;
         }
         if (blockDistanceRequestIfNeeded(item.policyID)) {
+            // The block modal's button can open the personal details page, so a container closes now rather than staying under it.
+            onNavigateAway?.();
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
@@ -349,6 +351,7 @@ function IOURequestEditReportCommon({
 
     const handleCreateReport = () => {
         if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+            onNavigateAway?.();
             return;
         }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
