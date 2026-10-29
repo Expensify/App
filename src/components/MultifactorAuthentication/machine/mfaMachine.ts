@@ -44,9 +44,11 @@ const DEFAULT_CONTEXT: MfaContext = {
     runScenarioAction: undefined,
     validateCode: undefined,
     registrationChallenge: undefined,
+    registrationKeyInfo: undefined,
     softPromptApproved: false,
     isCancelConfirmVisible: false,
     authenticationMethod: undefined,
+    signedChallenge: undefined,
     scenarioResponse: undefined,
     promptPresentationPhase: undefined,
     validateCodePresentationPhase: undefined,
@@ -299,24 +301,62 @@ const MFAMachine = setup({
                         },
                         // Registration and authorization stay under `prompt` so the prompt screen and its
                         // fingerprint animation remain mounted throughout.
+                        // The platform ceremony, then the backend registration of the key it created.
                         [MFA_STATE.CREATING_CREDENTIAL]: {
                             entry: assign({promptPresentationPhase: MFA_STATE.CREATING_CREDENTIAL}),
-                            invoke: {
-                                id: 'createCredential',
-                                src: 'createCredential',
-                                input: ({context}) => {
-                                    if (context.accountID === undefined || context.registrationChallenge === undefined) {
-                                        throw new Error('MFA account and registration challenge must be stored before creating a credential');
-                                    }
-                                    return {accountID: context.accountID, registrationChallenge: context.registrationChallenge};
+                            exit: assign({registrationKeyInfo: undefined}),
+                            initial: MFA_STATE.CREATING_KEY,
+                            states: {
+                                [MFA_STATE.CREATING_KEY]: {
+                                    invoke: {
+                                        id: 'createCredential',
+                                        src: 'createCredential',
+                                        input: ({context}) => {
+                                            if (context.accountID === undefined || context.registrationChallenge === undefined) {
+                                                throw new Error('MFA account and registration challenge must be stored before creating a credential');
+                                            }
+                                            return {accountID: context.accountID, registrationChallenge: context.registrationChallenge};
+                                        },
+                                        onDone: [
+                                            {
+                                                guard: ({event}) => !event.output.success,
+                                                target: OUTCOME_TARGET,
+                                                actions: assign({error: ({event}) => getMFAFailureError(event.output)}),
+                                            },
+                                            {
+                                                target: MFA_STATE.REGISTERING_KEY,
+                                                actions: assign({registrationKeyInfo: ({event}) => (event.output.success ? event.output.keyInfo : undefined)}),
+                                            },
+                                        ],
+                                        onError: {
+                                            target: OUTCOME_TARGET,
+                                            actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Credential creation', event.error)}),
+                                        },
+                                    },
                                 },
-                                onDone: [
-                                    {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
-                                    {target: MFA_STATE.AUTHORIZING, actions: assign({isRegistrationComplete: true})},
-                                ],
-                                onError: {
-                                    target: OUTCOME_TARGET,
-                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Credential registration', event.error)}),
+                                [MFA_STATE.REGISTERING_KEY]: {
+                                    invoke: {
+                                        id: 'registerCredential',
+                                        src: 'registerCredential',
+                                        input: ({context}) => {
+                                            if (context.registrationKeyInfo === undefined) {
+                                                throw new Error('MFA key info must be stored before registering a credential');
+                                            }
+                                            return {keyInfo: context.registrationKeyInfo};
+                                        },
+                                        onDone: [
+                                            {
+                                                guard: ({event}) => !event.output.success,
+                                                target: OUTCOME_TARGET,
+                                                actions: assign({error: ({event}) => getMFAFailureError(event.output)}),
+                                            },
+                                            {target: AUTHORIZING_TARGET, actions: assign({isRegistrationComplete: true})},
+                                        ],
+                                        onError: {
+                                            target: OUTCOME_TARGET,
+                                            actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Credential registration', event.error)}),
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -324,27 +364,71 @@ const MFAMachine = setup({
                         // The device-local ceremony, then the scenario's backend action.
                         [MFA_STATE.AUTHORIZING]: {
                             entry: assign({promptPresentationPhase: MFA_STATE.AUTHORIZING}),
-                            invoke: {
-                                id: 'authorize',
-                                src: 'authorize',
-                                input: ({context}) => {
-                                    if (context.accountID === undefined || context.runScenarioAction === undefined) {
-                                        throw new Error('MFA account and scenario action must be initialized before authorization');
-                                    }
-                                    return {accountID: context.accountID, runScenarioAction: context.runScenarioAction};
-                                },
-                                onDone: [
-                                    {guard: ({event}) => !event.output.success, target: OUTCOME_TARGET, actions: assign({error: ({event}) => getMFAFailureError(event.output)})},
-                                    {
-                                        target: OUTCOME_TARGET,
-                                        actions: assign(({event}) =>
-                                            event.output.success ? {authenticationMethod: event.output.authenticationMethod, scenarioResponse: event.output.scenarioResponse} : {},
-                                        ),
+                            exit: assign({signedChallenge: undefined}),
+                            initial: MFA_STATE.SIGNING_CHALLENGE,
+                            states: {
+                                [MFA_STATE.SIGNING_CHALLENGE]: {
+                                    invoke: {
+                                        id: 'authorize',
+                                        src: 'authorize',
+                                        input: ({context}) => {
+                                            // The scenario action is checked here too, so a missing one fails before the user is prompted.
+                                            if (context.accountID === undefined || context.runScenarioAction === undefined) {
+                                                throw new Error('MFA account and scenario action must be initialized before authorization');
+                                            }
+                                            return {accountID: context.accountID};
+                                        },
+                                        onDone: [
+                                            {
+                                                guard: ({event}) => !event.output.success,
+                                                target: OUTCOME_TARGET,
+                                                actions: assign({error: ({event}) => getMFAFailureError(event.output)}),
+                                            },
+                                            // The scenario action takes the method as input, so it is stored before the request
+                                            // and outcome telemetry reports it even when the scenario action fails.
+                                            {
+                                                target: MFA_STATE.EXECUTING_SCENARIO_ACTION,
+                                                actions: assign(({event}) =>
+                                                    event.output.success ? {signedChallenge: event.output.signedChallenge, authenticationMethod: event.output.authenticationMethod} : {},
+                                                ),
+                                            },
+                                        ],
+                                        onError: {
+                                            target: OUTCOME_TARGET,
+                                            actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Authorization', event.error)}),
+                                        },
                                     },
-                                ],
-                                onError: {
-                                    target: OUTCOME_TARGET,
-                                    actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Authorization', event.error)}),
+                                },
+                                [MFA_STATE.EXECUTING_SCENARIO_ACTION]: {
+                                    invoke: {
+                                        id: 'executeScenarioAction',
+                                        src: 'executeScenarioAction',
+                                        input: ({context}) => {
+                                            if (context.runScenarioAction === undefined || context.signedChallenge === undefined || context.authenticationMethod === undefined) {
+                                                throw new Error('MFA scenario action and signed challenge must be stored before executing the scenario action');
+                                            }
+                                            return {
+                                                runScenarioAction: context.runScenarioAction,
+                                                signedChallenge: context.signedChallenge,
+                                                authenticationMethod: context.authenticationMethod,
+                                            };
+                                        },
+                                        onDone: [
+                                            {
+                                                guard: ({event}) => !event.output.success,
+                                                target: OUTCOME_TARGET,
+                                                actions: assign({error: ({event}) => getMFAFailureError(event.output)}),
+                                            },
+                                            {
+                                                target: OUTCOME_TARGET,
+                                                actions: assign(({event}) => (event.output.success ? {scenarioResponse: event.output.scenarioResponse} : {})),
+                                            },
+                                        ],
+                                        onError: {
+                                            target: OUTCOME_TARGET,
+                                            actions: assign({error: ({event}) => createUnhandledExceptionMFAError('Scenario action', event.error)}),
+                                        },
+                                    },
                                 },
                             },
                         },

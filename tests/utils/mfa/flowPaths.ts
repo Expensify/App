@@ -15,11 +15,15 @@ import createInitEvent, {
     MFA_TEST_AUTH_METHOD,
     MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
     MFA_TEST_CREDENTIAL_CREATION_ERROR,
+    MFA_TEST_CREDENTIAL_REGISTRATION_ERROR,
     MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR,
     MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN,
     MFA_TEST_INVALID_CODE_ERROR,
+    MFA_TEST_KEY_INFO,
     MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_SCENARIO_ACTION_ERROR,
     MFA_TEST_SCENARIO_RESPONSE,
+    MFA_TEST_SIGNED_CHALLENGE,
     MFA_TEST_VALIDATE_CODE,
 } from './flowFixtures';
 
@@ -172,8 +176,10 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             {type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE},
             createActorDoneEvent('requestRegistrationChallenge', {success: true, challenge: MFA_TEST_REGISTRATION_CHALLENGE}),
             {type: 'SOFT_PROMPT_APPROVED'},
-            createActorDoneEvent('createCredential', {success: true}),
-            createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}),
+            createActorDoneEvent('registerCredential', {success: true}),
+            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
             createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
@@ -185,7 +191,8 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
             createActorDoneEvent('loadRegistrationState', {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true}),
-            createActorDoneEvent('authorize', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
+            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
             createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
         endState: `${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
@@ -247,15 +254,17 @@ const MFA_ACTOR_EVENT_FIXTURES = {
         {success: false, error: MFA_TEST_INVALID_CODE_ERROR},
         {success: false, error: MFA_TEST_FATAL_REGISTRATION_CHALLENGE_ERROR},
     ),
-    createCredential: createActorEvents('createCredential', {success: true}, {success: false, error: MFA_TEST_CREDENTIAL_CREATION_ERROR}),
+    createCredential: createActorEvents('createCredential', {success: true, keyInfo: MFA_TEST_KEY_INFO}, {success: false, error: MFA_TEST_CREDENTIAL_CREATION_ERROR}),
+    registerCredential: createActorEvents('registerCredential', {success: true}, {success: false, error: MFA_TEST_CREDENTIAL_REGISTRATION_ERROR}),
     // Deliberately two variants: every authorization failure reason routes through the same branch and
     // renders the same generic screen, so a third fixture would only multiply walked paths without
     // adding coverage. `authorizationTransition.test.ts` pins the individual reasons by hand instead.
     authorize: createActorEvents(
         'authorize',
-        {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE, authenticationMethod: MFA_TEST_AUTH_METHOD},
+        {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD},
         {success: false, error: MFA_TEST_AUTHORIZATION_ORDINARY_ERROR},
     ),
+    executeScenarioAction: createActorEvents('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}, {success: false, error: MFA_TEST_SCENARIO_ACTION_ERROR}),
     // SKIP_OUTCOME_SCREEN routes to `closing` instead of an outcome screen, so both variants need a
     // graph branch for the walk to reach both endpoints.
     finalizeOutcome: createActorEvents('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN, {callbackResponse: CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN}),

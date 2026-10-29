@@ -136,6 +136,7 @@ describe('maskInspectionEvent', () => {
             event: {type: 'CARD_DETAILS_REVEALED', cardID: 'card-1', pan: '4111111111111111', expiration: '12/30', cvv: '123'},
             snapshot: {
                 input: {keyInfo: {rawId: 'cred-id', type: 'biometrics-hsm', response: {clientDataJSON: 'eyJjaGFsbGVuZ2UiOiJub25jZSJ9', biometric: {publicKey: 'cred-id', algorithm: -7}}}},
+                context: {registrationKeyInfo: {rawId: 'cred-id', type: 'public-key', response: {clientDataJSON: 'eyJjaGFsbGVuZ2UiOiJub25jZSJ9', attestationObject: 'attestation'}}},
             },
         });
 
@@ -147,6 +148,13 @@ describe('maskInspectionEvent', () => {
                         rawId: SENSITIVE_VALUE_MASK,
                         type: SENSITIVE_VALUE_MASK,
                         response: {clientDataJSON: SENSITIVE_VALUE_MASK, biometric: {publicKey: SENSITIVE_VALUE_MASK, algorithm: SENSITIVE_VALUE_MASK}},
+                    },
+                },
+                context: {
+                    registrationKeyInfo: {
+                        rawId: SENSITIVE_VALUE_MASK,
+                        type: SENSITIVE_VALUE_MASK,
+                        response: {clientDataJSON: SENSITIVE_VALUE_MASK, attestationObject: SENSITIVE_VALUE_MASK},
                     },
                 },
             },
