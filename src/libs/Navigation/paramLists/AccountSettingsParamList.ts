@@ -348,6 +348,9 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_BETA_OVERRIDES]: undefined;
+    [SCREENS.SETTINGS.DYNAMIC_FIX_BANK_ACCOUNT]: {
+        bankAccountID: string;
+    };
 };
 
 export default AccountSettingsParamList;
