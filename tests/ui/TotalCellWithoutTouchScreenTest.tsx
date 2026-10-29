@@ -52,6 +52,12 @@ jest.mock('@hooks/useKeyboardShortcut', () => ({__esModule: true, default: jest.
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     __esModule: true,
     default: () => ({isLargeScreenWidth: true, shouldUseNarrowLayout: false, isInNarrowPaneModal: false}),
+    useIsDisplayedInWideRHP: () => false,
+}));
+
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({isLargeScreenWidth: true, shouldUseNarrowLayout: false, isInNarrowPaneModal: false}),
 }));
 
 // EditableCell only shows/enables the edit-pencil button while the cell is hovered (isCellHovered from Hoverable),
