@@ -28,7 +28,7 @@ jest.mock('@hooks/useSingleRHPWidth', () => () => ({width: mockSavedWidth, min: 
 
 const WIDTH_VARIABLE = '--rhp-width';
 
-type PointerEventName = 'pointerEnter' | 'pointerDown' | 'pointerMove' | 'pointerUp' | 'lostPointerCapture';
+type PointerEventName = 'pointerEnter' | 'pointerDown' | 'pointerMove' | 'pointerUp' | 'pointerCancel' | 'lostPointerCapture';
 
 const DEFAULT_WIDTH = variables.rhpWidth;
 
@@ -62,14 +62,12 @@ function renderHandle() {
 
     const rerenderHandle = () => screen.rerender(<RHPResizeHandle scopeRef={scopeRef} />);
 
-    const fireDoubleClick = () => fireEvent(getHandle(), 'doubleClick');
-
     const readLineWidth = () => {
         const lineStyle: unknown = screen.UNSAFE_root.findAll((node) => node.type === 'div').at(1)?.props.style;
         return lineStyle && typeof lineStyle === 'object' && 'width' in lineStyle ? lineStyle.width : undefined;
     };
 
-    return {...screen, firePointer, fireDoubleClick, readLineWidth, readLiveWidth, rerenderHandle};
+    return {...screen, firePointer, readLineWidth, readLiveWidth, rerenderHandle};
 }
 
 describe('RHPResizeHandle', () => {
@@ -110,22 +108,19 @@ describe('RHPResizeHandle', () => {
         expect(readLiveWidth()).toBe(`${MAX_WIDTH}px`);
     });
 
-    it.each([
-        ['a press never moves', []],
-        ['a drag ends at the saved width', [900, 1000]],
-    ])('skips the save and clears the live width when %s', (_, moves: number[]) => {
+    it('skips the save and clears the live width when a drag ends at the saved width', () => {
         // Given a single RHP saved at 400px
         const {firePointer, readLiveWidth} = renderHandle();
 
-        // When its edge is pressed, optionally moved, and released where it started
+        // When its edge is dragged away and back, then released where it started
         firePointer('pointerDown', 1000);
-        for (const clientX of moves) {
-            firePointer('pointerMove', clientX);
-        }
+        firePointer('pointerMove', 900);
+        firePointer('pointerMove', 1000);
         firePointer('pointerUp', 1000);
 
-        // Then nothing is saved, so no needless Onyx write follows, and the live width is cleared because no render follows to clear it
+        // Then nothing is saved or reset, so no needless Onyx write follows, and the live width is cleared because no render follows to clear it
         expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
         expect(readLiveWidth()).toBe('');
     });
 
@@ -202,19 +197,36 @@ describe('RHPResizeHandle', () => {
         expect(readLiveWidth()).toBe('470px');
     });
 
-    it('resets the saved width on a double-click', () => {
+    it.each([
+        ['never moves', []],
+        ['moves within the drag slop', [1000 - CONST.RESIZE_HANDLE.DRAG_SLOP]],
+    ])('resets the saved width on a click that %s', (_, moves: number[]) => {
         // Given a single RHP saved at 400px
-        const {firePointer, fireDoubleClick} = renderHandle();
+        const {firePointer, readLiveWidth} = renderHandle();
 
-        // When its edge is double-clicked, two presses that never move
+        // When its edge is pressed and released, with at most the jitter of a mouse click in between
         firePointer('pointerDown', 1000);
+        for (const clientX of moves) {
+            firePointer('pointerMove', clientX);
+        }
         firePointer('pointerUp', 1000);
-        firePointer('pointerDown', 1000);
-        firePointer('pointerUp', 1000);
-        fireDoubleClick();
 
-        // Then the saved width is dropped, so the RHP returns to the default, and the presses save nothing of their own
+        // Then the saved width is dropped, so a single click returns the RHP to the default the same way a click resets a table column, and nothing is painted on the way
         expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
+        expect(setSingleRHPWidth).not.toHaveBeenCalled();
+        expect(readLiveWidth()).toBe('');
+    });
+
+    it('keeps the saved width when a press is cancelled', () => {
+        // Given a single RHP saved at 400px
+        const {firePointer} = renderHandle();
+
+        // When its edge is pressed, then the browser cancels the pointer, as it does when a gesture takes over
+        firePointer('pointerDown', 1000);
+        firePointer('pointerCancel', 1000);
+
+        // Then nothing is reset, since only a release counts as a click
+        expect(resetSingleRHPWidth).not.toHaveBeenCalled();
         expect(setSingleRHPWidth).not.toHaveBeenCalled();
     });
 

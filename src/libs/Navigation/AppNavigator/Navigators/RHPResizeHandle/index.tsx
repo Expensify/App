@@ -27,6 +27,9 @@ type Drag = {
 
     startWidth: number;
 
+    /** Whether the pointer passed the drag slop. Until then, releasing it is a click. */
+    hasMovedPointer: boolean;
+
     /** Last width painted into CSS, `undefined` until the pointer moves. */
     liveWidth?: number;
 };
@@ -71,6 +74,17 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
         onMove: (drag, clientX) => {
+            // A mouse click rarely lands on the exact pixel it started from, so nothing is painted inside the slop.
+            if (!drag.hasMovedPointer) {
+                if (Math.abs(clientX - drag.startClientX) <= CONST.RESIZE_HANDLE.DRAG_SLOP) {
+                    return;
+                }
+
+                // Kept once set, so a drag that comes back to where it started isn't a click.
+                // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object
+                drag.hasMovedPointer = true;
+            }
+
             const liveWidth = getDraggedSize(drag.startWidth, drag.startClientX - clientX, {min, max, snap: SNAP});
 
             // Pressing an edge already on the default and moving within the threshold changes nothing, so the snapped line waits for a real snap.
@@ -83,8 +97,14 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
         },
-        onEnd: ({liveWidth}) => {
+        onEnd: ({hasMovedPointer, liveWidth}, event, isRelease) => {
             setIsDragging(false);
+
+            // A cancelled press or reclaimed capture isn't a click, so only a release resets.
+            if (!hasMovedPointer && isRelease) {
+                resetSingleRHPWidth();
+                return;
+            }
 
             // Nothing gets saved, so no render follows to clear the live width.
             if (liveWidth === undefined || liveWidth === width) {
@@ -124,13 +144,11 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                 onPointerEnter={() => setIsHovered(true)}
                 onPointerLeave={() => setIsHovered(false)}
                 onPointerDown={(event) => {
-                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width}))) {
+                    if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
                         return;
                     }
                     setIsDragging(true);
                 }}
-                // The browser's own double-click, so it follows the OS double-click speed. Two presses that never moved saved nothing.
-                onDoubleClick={resetSingleRHPWidth}
                 {...pointerDrag.handlers}
             >
                 {(isHovered || isDragging) && (

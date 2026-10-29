@@ -10054,6 +10054,9 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
+
+        /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
+        DRAG_SLOP: 3,
     },
 
     RHP_RESIZE: {
@@ -10122,9 +10125,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
-            DRAG_SLOP: 3,
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
