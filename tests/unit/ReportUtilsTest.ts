@@ -7417,7 +7417,7 @@ describe('ReportUtils', () => {
 
     describe('shouldDisplayThreadReplies', () => {
         it.each([
-            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, true],
             [CONST.REPORT.TYPE.CHAT, true],
             [CONST.REPORT.TYPE.TASK, true],
         ] as const)('child report type %s shows the replies footer: %s', (childType, expected) => {
@@ -7433,7 +7433,7 @@ describe('ReportUtils', () => {
             // When the parent action is displayed in its original conversation
             const shouldShowReplies = shouldDisplayThreadReplies(reportAction, false);
 
-            // Then support-ticket previews omit the footer, while other threads keep it
+            // Then every thread with replies keeps the footer, support-ticket previews included
             expect(shouldShowReplies).toBe(expected);
         });
     });
