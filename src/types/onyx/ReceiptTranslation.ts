@@ -42,9 +42,6 @@ type ReceiptTranslationState = {
 
     /** Whether the viewer chose to see the translation instead of the original */
     isShowingTranslation?: boolean;
-
-    /** Why the last translation failed */
-    error?: ValueOf<typeof CONST.RECEIPT.TRANSLATION_ERROR> | null;
 };
 
 export default ReceiptTranslation;

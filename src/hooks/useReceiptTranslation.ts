@@ -1,5 +1,6 @@
 import {showOriginalReceipt, showReceiptTranslation, translateReceipt} from '@libs/actions/ReceiptTranslation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Growl from '@libs/Growl';
 import {hasReceiptSource} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -14,7 +15,7 @@ import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
 function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
-    const {preferredLocale} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const transactionID = transaction?.transactionID;
@@ -36,7 +37,12 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
             showReceiptTranslation(transactionID);
             return;
         }
-        translateReceipt(transactionID, receiptSource, locale);
+        translateReceipt(transactionID, receiptSource, locale).then((error) => {
+            if (!error) {
+                return;
+            }
+            Growl.error({bodyText: translate(`receipt.translationError.${error}`)});
+        });
     };
 
     const showOriginal = () => {
@@ -51,7 +57,6 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
         isTranslateDisabled: isOffline || isTranslating || !!transaction?.pendingFields?.receipt,
         isTranslating,
         translatedReceiptRows,
-        translationError: receiptTranslationState?.error,
         startTranslation,
         showOriginal,
     };
