@@ -92,7 +92,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             return;
         }
         showConfirmModal({
-            title: translate('workspace.moreFeatures.companyCards.removeCard'),
+            title: translate('common.areYouSure'),
             prompt: translate('workspace.moreFeatures.companyCards.removeCardDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.remove'),
             cancelText: translate('common.cancel'),
