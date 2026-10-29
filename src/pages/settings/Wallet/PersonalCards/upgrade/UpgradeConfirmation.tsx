@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard: () => void; addPersonalCard: () => void}) {
@@ -19,10 +19,10 @@ function UpgradeConfirmation({addCompanyCard, addPersonalCard}: {addCompanyCard:
     const {environmentURL} = useEnvironment();
     const [subscriptionLink, setSubscriptionLink] = useState('');
 
-    const updateSubscriptionLink = useCallback(() => {
+    const updateSubscriptionLink = () => {
         const backTo = Navigation.getActiveRoute();
         setSubscriptionLink(`${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(backTo)}`);
-    }, [environmentURL]);
+    };
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => updateSubscriptionLink());
