@@ -234,15 +234,28 @@ describe('getConfirmationItems', () => {
             expect(group.rows.map((row) => row.id)).toEqual(['ssn']);
         });
 
-        it('has a row once it is tapped', () => {
+        it('stands in for the question it hides once it is tapped', () => {
             // Given an admin who tapped the no-SSN link, which hides the SSN
             const values = {ssn: '', hasNoSSN: true};
 
             // When the confirmation sections are built
             const [group] = getConfirmationItems(ssnPages, getAllFields(ssnPages), values, translateLocal, jest.fn(), jest.fn());
 
-            // Then the link is listed, since it is the only answer telling Wise there is no SSN
-            expect(group.rows.map((row) => row.id)).toEqual(['hasNoSSN']);
+            // Then the SSN row says there is no SSN, so the opt-out never shows as a separate yes or no question
+            expect(group.rows).toEqual([expect.objectContaining({id: 'hasNoSSN', description: 'SSN', title: "I don't have an SSN"})]);
+        });
+
+        it('keeps its yes or no row when it hides no question', () => {
+            // Given a tapped link that no other field depends on
+            const linkPages: DynamicFormPage[] = [
+                {key: 'consent', title: 'Consent', content: [{key: 'skipNewsletter', type: 'boolean', presentation: 'link', required: false, label: 'Skip the newsletter'}]},
+            ];
+
+            // When the confirmation sections are built
+            const [group] = getConfirmationItems(linkPages, getAllFields(linkPages), {skipNewsletter: true}, translateLocal, jest.fn(), jest.fn());
+
+            // Then the link keeps its own label, since there is no question for it to stand in for
+            expect(group.rows).toEqual([expect.objectContaining({id: 'skipNewsletter', description: 'Skip the newsletter'})]);
         });
     });
 });

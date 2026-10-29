@@ -12,7 +12,7 @@ import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
 import {getPageSectionName, isPageShown} from './getPageTitle';
-import getVisibleFields from './getVisibleFields';
+import getVisibleFields, {isFieldVisible} from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
@@ -45,6 +45,14 @@ function getListItemRows(
 /** A link the user never tapped, such as "I don't have a social security number" for an admin who has one, is not an answer worth a row */
 function isUntappedLink(field: DynamicFormField, values: DynamicFormValues): boolean {
     return field.type === 'boolean' && field.presentation === 'link' && values[field.key] !== true;
+}
+
+/** The question a tapped link opts out of, such as the SSN that "I don't have a social security number" hides, so the link's row can stand in for it */
+function getOptedOutField(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): DynamicFormField | undefined {
+    if (field.type !== 'boolean' || field.presentation !== 'link' || values[field.key] !== true) {
+        return undefined;
+    }
+    return allFields.find((candidate) => candidate.showWhen?.key === field.key && !isFieldVisible(candidate, values, allFields));
 }
 
 /** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
@@ -86,6 +94,20 @@ function getConfirmationItems(
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
                     const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
+                    const optedOutField = getOptedOutField(field, values, allFields);
+
+                    if (optedOutField) {
+                        return [
+                            {
+                                id: field.key,
+                                description: getFieldLabel(optedOutField, translate),
+                                title: fieldLabel,
+                                shouldShowRightIcon: isEditable,
+                                onPress: isEditable ? handleEdit : noop,
+                                interactive: isEditable,
+                            },
+                        ];
+                    }
 
                     return [
                         {
