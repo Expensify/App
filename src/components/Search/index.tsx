@@ -9,7 +9,6 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -94,7 +93,6 @@ import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -109,7 +107,7 @@ import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
@@ -145,8 +143,6 @@ type SearchProps = {
      *  Consolidates span-ending logic in one place. Accepts `wasListEmpty` for telemetry attributes. */
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
-
-type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
 
 function Search({
     queryJSON,
@@ -201,7 +197,9 @@ function Search({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {
+        selector: fullPolicySnapshotLastModifiedByPolicyIDSelector,
+    });
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -726,7 +724,14 @@ function Search({
                     fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: item.transactionID}), event);
+                    openInternalRouteInNewTab(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: targetReportID,
+                            backTo,
+                            anchorTransactionID: item.transactionID,
+                        }),
+                        event,
+                    );
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -863,7 +868,11 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined});
+            const route = ROUTES.SEARCH_REPORT.getRoute({
+                reportID,
+                backTo,
+                anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined,
+            });
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
@@ -1673,7 +1682,6 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 

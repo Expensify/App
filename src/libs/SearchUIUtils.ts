@@ -2333,14 +2333,15 @@ function getActions(
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
-    // We're not supporting approve partial amount on search page now
     if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
+
     if (
+        isGroupPolicy(policy) &&
         canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
         isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
     ) {
